@@ -1,13 +1,10 @@
 window.lead = {}
 
-is_string = (x) ->
-  toString.call(x) is '[object String]'
-
 process_arg = (arg) ->
   return _lead: arg._lead if arg._lead
   if typeof arg is "number"
     return _lead: ['n', _lead_: arg]
-  if is_string arg
+  if $.type(arg) == 'string'
     return _lead: ['s', _lead_: arg]
   throw new Error('illegal argument ' + arg)
 
@@ -44,7 +41,7 @@ lead.to_string = (node) ->
       lead.to_string values[0]
 
 lead.to_target_string = (node) ->
-  if is_string node
+  if $.type(node) == 'string'
     node
   else
     lead.to_string node
