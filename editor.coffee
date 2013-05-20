@@ -112,6 +112,11 @@ create_ns = (context) ->
         context.$result.append $pre
         context.success()
 
+    html:
+      fn 'Adds some HTML', (html) ->
+        context.$result.append html
+        context.success()
+
     example:
       fn 'Makes a clickable code example', (string) ->
         $pre = $ '<pre class="example">'
