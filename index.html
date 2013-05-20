@@ -2,22 +2,14 @@
 <html>
 <head>
 <title>lead.js</title>
-<link rel="stylesheet" href="lib/reset.css"/>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-<script src="lib/codemirror-3.12/codemirror.js"></script>
-<script src="lib/codemirror-3.12/javascript.js"></script>
-<script src="lib/codemirror-3.12/coffeescript.js"></script>
-<script src="lib/codemirror-3.12/runmode.js"></script>
-<script src="lib/stacktrace-min-0.4.js"></script>
-<link rel="stylesheet" href="lib/codemirror-3.12/codemirror.css"/>
-<script src="core.js"></script>
-<script src="functions.js"></script>
 <script src="http://coffeescript.org/extras/coffee-script.js"></script>
+<script src="app.js"></script>
 <link rel="stylesheet" href="style.css"/>
 </head>
 <body class="cm-s-default">
 <div id="output"></div>
 <div id="code"></div>
-<script src="editor.js"></script>
+<script>init_editor()</script>
 </body>
 </html>
