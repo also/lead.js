@@ -1,10 +1,13 @@
 window.lead = {}
 
+is_string = (x) ->
+  toString.call(x) is '[object String]'
+
 process_arg = (arg) ->
   return _lead: arg._lead if arg._lead
   if typeof arg is "number"
     return _lead: ['n', _lead_: arg]
-  if toString.call(arg) is '[object String]'
+  if is_string arg
     return _lead: ['s', _lead_: arg]
   throw new Error('illegal argument ' + arg)
 
@@ -39,6 +42,12 @@ lead.to_string = (node) ->
       "#{name}(#{(lead.to_string a for a in args).join ','})"
     else
       lead.to_string values[0]
+
+lead.to_target_string = (node) ->
+  if is_string node
+    node
+  else
+    lead.to_string node
 
 lead.is_lead_node = (x) ->
   x._lead or x._lead_
