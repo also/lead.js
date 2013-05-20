@@ -1,3 +1,4 @@
+//= require ./lib/coffee-script.js
 //= require ./lib/codemirror-3.12/codemirror.js
 //= require ./lib/codemirror-3.12/javascript.js
 //= require ./lib/codemirror-3.12/coffeescript.js
