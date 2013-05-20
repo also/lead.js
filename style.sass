@@ -2,6 +2,10 @@ body
   margin: 0
   position: absolute
   width: 100%
+  color: #333
+
+pre
+  font-family: monospace
 
 #code
   border-top: 2px solid #aaa
@@ -23,7 +27,25 @@ body
 
   .input
     margin-top: 10px
-    padding: 3px
+    padding: 6px
     -webkit-border-radius: 6px
     border: 1px solid #ddd
     background-color: #efefef
+    cursor: pointer
+    -webkit-transition: border-color 0.2s, background-color 0.2s
+    &:hover
+      background-color: #ccc
+
+  .input
+    margin-bottom: 8px
+
+  .result
+    margin-bottom: 16px
+
+.find-results
+  padding-left: 10px
+  li
+    font-family: monospace
+    cursor: pointer
+    &:hover
+      text-decoration: underline

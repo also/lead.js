@@ -1,4 +1,12 @@
 base_url = 'http://graphite.local'
+
+_lead_finished = new Object
+
+intro_text =
+'''Welcome to lead.js!
+
+Press Shift+Enter to execute the CoffeeScript in the console.'''
+
 CodeMirror.keyMap.lead =
   Tab: (cm) ->
     if cm.somethingSelected()
@@ -57,57 +65,108 @@ args_to_params = (args) ->
   params
 
 scroll_to_result = ->
-  $('html, body').scrollTop $(document).height()
+  setTimeout ->
+    $('html, body').scrollTop $(document).height()
+  , 10
 
 create_ns = (context) ->
+  cmd = (wrapped) ->
+    wrapped._lead_cli_fn = wrapped
+    wrapped
+
+  fn = (wrapped) ->
+    wrapped._lead_cli_fn = ->
+      ns.pre 'Did you forget to call a function?'
+    wrapped
+
+  output_object = (o) ->
+    $pre = $ '<pre>'
+    CodeMirror.runMode JSON.stringify(o, null, '  '), {name: 'javascript', json: true}, $pre.get(0)
+    context.$result.append $pre
+    context.success()
+    _lead_finished
+
   json = (url) ->
     $.ajax
       url: url
       dataType: 'json'
       success: (response) ->
-        $pre = $ '<pre class="cm-s-default">'
-        CodeMirror.runMode JSON.stringify(response, null, '  '), {name: 'javascript', json: true}, $pre.get(0)
-        context.$result.append $pre
-        context.success()
+        output_object response
+    _lead_finished
 
-  clear: ->
-    $output.empty()
-    context.success()
+  ns =
+    object: fn output_object
 
-  url: (args...) ->
-    params = args_to_params args
-    query_string = $.param params, true
-    url = "#{base_url}/render?#{query_string}"
-    $a = $ "<a href='#{url}' target='blank'/>"
-    console.log $a
-    $a.text url
-    $pre = $ '<pre>'
-    $pre.append $a
-    context.$result.append($pre)
-    context.success()
+    pre: fn (string) ->
+      $pre = $ '<pre class="cm-string">'
+      $pre.text string
+      context.$result.append $pre
+      context.success()
 
-  img: (args...) ->
-    params = args_to_params args
-    query_string = $.param params, true
-    $img = $ "<img src='#{base_url}/render?#{query_string}'/>"
-    $img.on 'load', -> context.success()
-    context.$result.append($img)
+    intro: cmd -> ns.pre intro_text
 
-  data: (args...) ->
-    params = args_to_params args
-    params.format = 'json'
-    query_string = $.param params, true
-    json "#{base_url}/render?#{query_string}"
+    clear: cmd ->
+      $output.empty()
+      context.success()
 
-  find: (query) ->
-    json "#{base_url}/metrics/find?query=#{encodeURIComponent query}"
+    url: fn (args...) ->
+      params = args_to_params args
+      query_string = $.param params, true
+      url = "#{base_url}/render?#{query_string}"
+      $a = $ "<a href='#{url}' target='blank'/>"
+      $a.text url
+      $pre = $ '<pre>'
+      $pre.append $a
+      context.$result.append($pre)
+      context.success()
 
-  q: (targets...) ->
-    _lead: ['q', _lead_to_string: -> targets.join ',']
+    img: fn (args...) ->
+      params = args_to_params args
+      query_string = $.param params, true
+      $img = $ "<img src='#{base_url}/render?#{query_string}'/>"
+      $img.on 'load', -> context.success()
+      context.$result.append($img)
+      _lead_finished
+
+    data: fn (args...) ->
+      params = args_to_params args
+      params.format = 'json'
+      query_string = $.param params, true
+      json "#{base_url}/render?#{query_string}"
+
+    find: fn (query) ->
+      url = "#{base_url}/metrics/find?query=#{encodeURIComponent query}&format=completer"
+      $.ajax
+        url: url
+        dataType: 'json'
+        success: (response) ->
+          $ul = $ '<ul class="find-results"/>'
+          for node in response.metrics
+            $li = $ '<li class="cm-string"/>'
+            text = node.path
+            text += '*' if node.is_leaf == '0'
+            do (text) ->
+              $li.on 'click', ->
+                if node.is_leaf == '0'
+                  run "find #{JSON.stringify text}"
+                else
+                  run "img q(#{JSON.stringify text})"
+            $li.text text
+            $ul.append $li
+          context.$result.append $ul
+          context.success()
+      _lead_finished
+
+    q: (targets...) ->
+      _lead: ['q', _lead_to_string: -> targets.join ',']
 
 run = (string) ->
   $entry = $ '<div class="entry"/>'
-  $input = $ '<pre class="input cm-s-default">'
+  $input = $ '<pre class="input">'
+  $input.on 'click', ->
+    editor.setValue string
+    editor.focus()
+    editor.setCursor(line: editor.lineCount() - 1)
 
   $result = $ '<div class="result">'
 
@@ -118,19 +177,27 @@ run = (string) ->
   context =
     $result: $result
     success: ->
-      console.log 'success'
       scroll_to_result()
+      _lead_finished
     failure: ->
-      console.log 'failure'
       scroll_to_result()
+      _lead_finished
 
   ns = create_ns context
 
   lead.define_functions ns, lead.functions
 
   `with (ns) {`
-  eval "//@ sourceURL=console-coffeescript.js\n" +  CoffeeScript.compile(string, bare: true)
+  result = eval "//@ sourceURL=console-coffeescript.js\n" +  CoffeeScript.compile(string, bare: true)
+  unless result == _lead_finished
+    if result?._lead_cli_fn
+      result._lead_cli_fn()
+    else if result?._lead
+      ns.pre "What do you want to do with #{lead.to_string result}?"
+    else
+      ns.object result
   `}`
 
   $output.append $entry
 
+run 'intro'
