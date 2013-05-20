@@ -2,7 +2,18 @@ base_url = 'http://grodan.biz'
 
 _lead_finished = new Object
 
-intro_text =
+default_options = {}
+
+graphite_function_docs = {}
+$.getJSON 'functions.fjson', (data) ->
+  prefix_length = "graphite.render.functions.".length
+
+  html = $.parseHTML(data.body)[0]
+  for tag in html.getElementsByTagName 'dt'
+    for a in tag.getElementsByTagName 'a'
+      a.remove()
+    graphite_function_docs[tag.id[prefix_length..]] = tag.parentNode
+
 
 CodeMirror.keyMap.lead =
   Tab: (cm) ->
@@ -30,46 +41,48 @@ $output.css 'padding-bottom': $code.height() + 'px'
 editor.on 'viewportChange', ->
   $output.css 'padding-bottom': $code.height() + 'px'
 
-args_to_params = (args) ->
-  is_target = (x) ->
-    $.type(x) == 'string' or lead.is_lead_node x
-
-  if args.legnth == 0
-    # you're doing it wrong
-    {}
-  if args.length == 1
-    arg = args[0]
-    if arg.targets
-      targets = arg.targets
-      if arg.options
-        options = arg.options
-      else
-        options = arg
-        delete options.targets
-    else
-      targets = args[0]
-      options = {}
-  else
-    last = args[args.length - 1]
-
-    if is_target last
-      targets = args
-      options = {}
-    else
-      [targets..., options] = args
-
-  targets = [targets] unless $.isArray targets
-
-  params = options
-  params.target = (lead.to_target_string(target) for target in targets)
-  params
-
 scroll_to_result = ->
   setTimeout ->
     $('html, body').scrollTop $(document).height()
   , 10
 
 create_ns = (context) ->
+  current_options = {}
+
+  args_to_params = (args) ->
+    is_target = (x) ->
+      $.type(x) == 'string' or lead.is_lead_node x
+
+    if args.legnth == 0
+      # you're doing it wrong
+      {}
+    if args.length == 1
+      arg = args[0]
+      if arg.targets
+        targets = arg.targets
+        if arg.options
+          options = arg.options
+        else
+          options = arg
+          delete options.targets
+      else
+        targets = args[0]
+        options = {}
+    else
+      last = args[args.length - 1]
+
+      if is_target last
+        targets = args
+        options = {}
+      else
+        [targets..., options] = args
+
+    targets = [targets] unless $.isArray targets
+
+    params = $.extend {}, default_options, current_options, options
+    params.target = (lead.to_target_string(target) for target in targets)
+    params
+
   cmd = (doc, wrapped) ->
     wrapped._lead_cli_fn = wrapped
     wrapped._lead_doc = doc
@@ -118,11 +131,14 @@ create_ns = (context) ->
         context.success()
 
     example:
-      fn 'Makes a clickable code example', (string) ->
+      fn 'Makes a clickable code example', (string, opts) ->
         $pre = $ '<pre class="example">'
         CodeMirror.runMode string, 'coffeescript', $pre.get(0)
         $pre.on 'click', ->
-          run string
+          if opts?.run ? true
+            run string
+          else
+            set_code string
         context.$result.append $pre
         context.success()
 
@@ -134,10 +150,49 @@ create_ns = (context) ->
         cli.example 'lead.functions'
         cli.pre 'to see what you can do with Graphite.'
 
+    docs:
+      cmd 'Shows the documentation for a graphite function', (fn) ->
+        if fn?
+          fn = fn._lead[1]._lead_ if fn._lead
+          dl = graphite_function_docs[fn]
+          if dl?
+            pres = dl.getElementsByTagName 'pre'
+            examples = []
+            for pre in pres
+              for line in pre.innerText.split '\n'
+                if line.indexOf('&target=') == 0
+                  examples.push line[8..]
+            context.$result.append dl.cloneNode true
+            for example in examples
+              cli.example "q(#{JSON.stringify example})", run: false
+          else
+            cli.pre 'Documentation not found'
+          context.success()
+        else
+          names = (name for name of graphite_function_docs)
+          names.sort()
+          for name in names
+            sig = $(graphite_function_docs[name].getElementsByTagName('dt')[0]).text().trim()
+            cli.example "docs #{JSON.stringify name}  # #{sig}"
+          context.success()
+
     clear:
       cmd 'Clears the screen', ->
         $output.empty()
         context.success()
+
+    options:
+      fn 'Gets or sets options', (options) ->
+        if options?
+          $.extend current_options, options
+        current_options
+
+
+    defaults:
+      cmd 'Gets or sets default options', (options) ->
+        if options?
+          $.extend default_options, options
+        cli.object default_options
 
     url:
       fn 'Generates a URL for a Graphite image', (args...) ->
@@ -202,13 +257,17 @@ create_ns = (context) ->
 
   cli
 
+set_code = (code) ->
+  editor.setValue code
+  editor.focus()
+  editor.setCursor(line: editor.lineCount() - 1)
+
+
 run = (string) ->
   $entry = $ '<div class="entry"/>'
   $input = $ '<pre class="input">'
   $input.on 'click', ->
-    editor.setValue string
-    editor.focus()
-    editor.setCursor(line: editor.lineCount() - 1)
+    set_code string
 
   $result = $ '<div class="result">'
 
@@ -229,21 +288,27 @@ run = (string) ->
   functions = {}
 
   lead.define_functions functions, lead.functions
-
-  `with (ns) { with (functions) {`
-  result = eval "//@ sourceURL=console-coffeescript.js\n" +  CoffeeScript.compile(string, bare: true)
-  unless result == _lead_finished
-    if result?._lead_cli_fn
-      result._lead_cli_fn()
-    else if result?._lead
-      lead_string = lead.to_string result
-      ns.pre "What do you want to do with #{lead_string}?"
-      safe_string = JSON.stringify lead_string
-      for f in ['data', 'img', 'url']
-        ns.example "#{f} #{safe_string}"
-    else
-      ns.object result
-  `}}`
+  try
+    `with (ns) { with (functions) {`
+    result = eval "//@ sourceURL=console-coffeescript.js\n" +  CoffeeScript.compile(string, bare: true)
+    unless result == _lead_finished
+      if result?._lead_cli_fn
+        result._lead_cli_fn()
+      else if result?._lead
+        lead_string = lead.to_string result
+        if $.type(result) == 'function'
+          ns.pre "#{lead_string} is a Graphite function"
+          ns.docs result
+        else
+          ns.pre "What do you want to do with #{lead_string}?"
+          safe_string = JSON.stringify lead_string
+          for f in ['data', 'img', 'url']
+            ns.example "#{f} #{safe_string}"
+      else
+        ns.object result
+    `}}`
+  catch e
+    ns.pre printStackTrace({e}).join('\n')
 
   $output.append $entry
 

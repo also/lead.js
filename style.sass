@@ -4,6 +4,9 @@ body
   width: 100%
   color: #333
 
+em
+  font-style: italic
+
 pre
   font-family: monospace
 
@@ -40,6 +43,9 @@ pre
     margin-bottom: 8px
 
   .result
+
+    .cm-comment
+      color: #aaa
     margin-bottom: 16px
 
     .example
@@ -47,6 +53,23 @@ pre
       border: 1px solid #eee
       padding: 6px
       cursor: pointer
+
+    // docs pulled from sphinx
+    dl.function
+      a
+        display: none
+      dt
+        margin: 0.5em
+        font-family: monospace
+        font-weight: bold
+        font-size: 16px
+      dd
+        margin-left: 2em
+        font-family: helvetica, arial, sans-serif
+
+        p, pre
+          margin: 0.5em 0
+          font-size: 16px
 
 .find-results
   padding-left: 10px
