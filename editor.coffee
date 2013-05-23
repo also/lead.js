@@ -242,6 +242,7 @@ create_ns = (context) ->
 
     find:
       fn 'Finds named Graphite metrics using a wildcard query', (query) ->
+        query_parts = query.split '.'
         url = "#{base_url}/metrics/find?query=#{encodeURIComponent query}&format=completer"
         $.ajax
           url: url
@@ -252,13 +253,20 @@ create_ns = (context) ->
               $li = $ '<li class="cm-string"/>'
               text = node.path
               text += '*' if node.is_leaf == '0'
+              node_parts = text.split '.'
+              for part, i in node_parts
+                if i > 0
+                  $li.append '.'
+                $span = $ '<span>'
+                $span.addClass 'light' if part == query_parts[i]
+                $span.text part
+                $li.append $span
               do (text) ->
                 $li.on 'click', ->
                   if node.is_leaf == '0'
                     run "find #{JSON.stringify text}"
                   else
                     run "q(#{JSON.stringify text})"
-              $li.text text
               $ul.append $li
             context.$result.append $ul
             context.success()
