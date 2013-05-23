@@ -37,9 +37,9 @@ editor = CodeMirror $code.get(0),
   autofocus: true
   viewportMargin: Infinity
 
-$output.css 'padding-bottom': $code.height() + 'px'
+$output.css 'padding-bottom': ($code.height() + 60) + 'px'
 editor.on 'viewportChange', ->
-  $output.css 'padding-bottom': $code.height() + 'px'
+  $output.css 'padding-bottom': ($code.height() + 60 ) + 'px'
 
 scroll_to_result = ->
   setTimeout ->
@@ -90,7 +90,7 @@ create_ns = (context) ->
 
   fn = (doc, wrapped) ->
     wrapped._lead_cli_fn = ->
-      cli.pre 'Did you forget to call a function?'
+      cli.text 'Did you forget to call a function?'
     wrapped._lead_doc = doc
     wrapped
 
@@ -113,14 +113,14 @@ create_ns = (context) ->
     help:
       cmd 'Shows this help', ->
         commands = ("  #{cmd}:\n    #{cli[cmd]._lead_doc}" for cmd in cli_commands).join('\n\n')
-        cli.pre "Check out these awesome built-in functions:\n\n#{commands}"
+        cli.text "Check out these awesome built-in functions:\n\n#{commands}"
 
     object:
       fn 'Prints an object as JSON', output_object
 
-    pre:
-      fn 'Prints a preformatted string', (string) ->
-        $pre = $ '<pre class="cm-string">'
+    text:
+      fn 'Prints text', (string) ->
+        $pre = $ '<p>'
         $pre.text string
         context.$result.append $pre
         context.success()
@@ -144,11 +144,11 @@ create_ns = (context) ->
 
     intro:
       cmd 'Shows the intro message', ->
-        cli.pre "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+        cli.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
         cli.example "find '*'"
-        cli.pre 'Look at'
-        cli.example 'lead.functions'
-        cli.pre 'to see what you can do with Graphite.'
+        cli.text 'Look at'
+        cli.example 'docs'
+        cli.text 'to see what you can do with Graphite.'
 
     docs:
       cmd 'Shows the documentation for a graphite function', (fn) ->
@@ -164,9 +164,9 @@ create_ns = (context) ->
                   examples.push line[8..]
             context.$result.append dl.cloneNode true
             for example in examples
-              cli.example "q(#{JSON.stringify example})", run: false
+              cli.example "img #{JSON.stringify example}", run: false
           else
-            cli.pre 'Documentation not found'
+            cli.text 'Documentation not found'
           context.success()
         else
           names = (name for name of graphite_function_docs)
@@ -212,6 +212,9 @@ create_ns = (context) ->
         query_string = $.param params, true
         $img = $ "<img src='#{base_url}/render?#{query_string}'/>"
         $img.on 'load', -> context.success()
+        $img.on 'error', ->
+          cli.text 'Failed to load image'
+          context.failure()
         context.$result.append($img)
         _lead_finished
 
@@ -265,13 +268,18 @@ set_code = (code) ->
 
 run = (string) ->
   $entry = $ '<div class="entry"/>'
-  $input = $ '<pre class="input">'
-  $input.on 'click', ->
-    set_code string
+  $input = $ '<div class="input"><span class="close"/></div>'
+  $pre = $ '<pre/>'
+  $input.on 'click', (e) ->
+    if $(e.target).hasClass 'close'
+      $entry.remove()
+    else
+      set_code string
 
   $result = $ '<div class="result">'
 
-  CodeMirror.runMode string, 'coffeescript', $input.get(0)
+  CodeMirror.runMode string, 'coffeescript', $pre.get(0)
+  $input.append $pre
 
   $entry.append $input
   $entry.append $result
@@ -297,10 +305,10 @@ run = (string) ->
       else if result?._lead
         lead_string = lead.to_string result
         if $.type(result) == 'function'
-          ns.pre "#{lead_string} is a Graphite function"
+          ns.text "#{lead_string} is a Graphite function"
           ns.docs result
         else
-          ns.pre "What do you want to do with #{lead_string}?"
+          ns.text "What do you want to do with #{lead_string}?"
           safe_string = JSON.stringify lead_string
           for f in ['data', 'img', 'url']
             ns.example "#{f} #{safe_string}"
@@ -308,7 +316,10 @@ run = (string) ->
         ns.object result
     `}}`
   catch e
-    ns.pre printStackTrace({e}).join('\n')
+    $pre = $ '<pre class="error"/>'
+    $pre.text printStackTrace({e}).join('\n')
+    context.$result.append $pre
+    context.failure()
 
   $output.append $entry
 

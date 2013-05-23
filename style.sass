@@ -1,20 +1,43 @@
+$background: #fafafa
+$monospace: Monaco, Consolas, "Lucida Console", monospace
+
 body
   margin: 0
   position: absolute
   width: 100%
   color: #333
+  background-color: $background
+  font-size: 14px
+
+h1
+  width: 80%
+  margin: 60px auto
+
+  font-family: "Helvetica Neue"
+  font-weight: 600
+  font-size: 50px
 
 em
   font-style: italic
 
 pre
-  font-family: monospace
+  font-family: $monospace
+  line-height: 1.6em
 
 #code
-  border-top: 2px solid #aaa
-  width: 100%
+  border: 1px solid #D0E0EB
+  -webkit-border-radius: 8px
+  background: #fff
+  width: 80%
+  margin: auto
   position: fixed
-  bottom: 0
+  bottom: 15px
+  padding: 8px
+  left: 0
+  right: 0
+  margin-left: auto
+  margin-right: auto
+  -webkit-box-shadow: 0 0 4px #dedede, 0 0 20px 15px $background, 0 20px 0 $background
 
   height: auto
   .CodeMirror
@@ -27,32 +50,52 @@ pre
 #output
   min-height: 400px
   padding: 10px
+  width: 80%
+  margin: auto
 
   .input
+    position: relative
     margin-top: 10px
-    padding: 6px
+    margin-bottom: 18px
+    padding: 10px
     -webkit-border-radius: 6px
-    border: 1px solid #ddd
-    background-color: #efefef
+    border: 1px solid #d0d0d0
+    background-color: #fff
     cursor: pointer
     -webkit-transition: border-color 0.2s, background-color 0.2s
     &:hover
-      background-color: #ccc
+      background-color: #efefef
 
-  .input
-    margin-bottom: 8px
+    .close::before
+      content: '×'
+      position: absolute
+      right: 10px
+      top: 15px
+      font-weight: bold
+      color: #ddd
 
   .result
+    margin: 0 20px 16px 20px
 
     .cm-comment
       color: #aaa
-    margin-bottom: 16px
+    
+    p
+      font-family: "Helvetica Neue"
+      font-size: 14px
+      line-height: 1.7em
 
     .example
       margin: 10px 6px
-      border: 1px solid #eee
+      border: 1px solid #d0d0d0
       padding: 6px
       cursor: pointer
+
+    .error
+      border: 1px solid #faa
+      background-color: #fee
+      padding: 5px
+      -webkit-border-radius: 4px
 
     // docs pulled from sphinx
     dl.function
@@ -60,21 +103,57 @@ pre
         display: none
       dt
         margin: 0.5em
-        font-family: monospace
+        font-family: $monospace
         font-weight: bold
-        font-size: 16px
       dd
         margin-left: 2em
         font-family: helvetica, arial, sans-serif
 
         p, pre
           margin: 0.5em 0
-          font-size: 16px
 
 .find-results
   padding-left: 10px
   li
-    font-family: monospace
+    font-family: $monospace
     cursor: pointer
+    margin: 6px 0
     &:hover
       text-decoration: underline
+
+
+.cm-s-idle span
+  &.cm-comment
+    color: #919191
+  &.cm-keyword
+    color: #ff5600
+  &.cm-string
+    color: #00a33f
+  &.cm-builtin
+    font-weight: bold
+    color: #077
+  &.cm-special
+    font-weight: bold
+    color: #0aa
+  &.cm-reserved
+    font-weight: bold
+    background: #e22
+    color: #fff
+  &.cm-variable
+    color: black
+  &.cm-atom
+    color: #A535AE
+  &.cm-number
+    color: black
+  &.cm-meta
+    color: #555
+  &.cm-link
+    color: #3a3
+  &.cm-operator
+    color: #ff5600
+  &.cm-def
+    color: #21439c
+  &.cm-argument
+    color: #0076ad
+  &.cm-thisvar
+    color: #A535AE
