@@ -23,7 +23,7 @@ CodeMirror.keyMap.lead =
       spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
       cm.replaceSelection(spaces, "end", "+input")
   'Shift-Enter': (cm) ->
-    run cm.getValue()
+    setTimeout(-> run cm.getValue(), 1)
   fallthrough: ['default']
 
 $code = $ '#code'
@@ -113,7 +113,7 @@ create_ns = (context) ->
     help:
       cmd 'Shows this help', ->
         commands = ("  #{cmd}:\n    #{cli[cmd]._lead_doc}" for cmd in cli_commands).join('\n\n')
-        cli.text "Check out these awesome built-in functions:\n\n#{commands}"
+        cli.pre "Check out these awesome built-in functions:\n\n#{commands}"
 
     object:
       fn 'Prints an object as JSON', output_object
@@ -121,6 +121,13 @@ create_ns = (context) ->
     text:
       fn 'Prints text', (string) ->
         $pre = $ '<p>'
+        $pre.text string
+        context.$result.append $pre
+        context.success()
+
+    pre:
+      fn 'Prints preformatted text', (string) ->
+        $pre = $ '<pre>'
         $pre.text string
         context.$result.append $pre
         context.success()
@@ -141,6 +148,14 @@ create_ns = (context) ->
             set_code string
         context.$result.append $pre
         context.success()
+
+    source:
+      fn 'Shows source code with syntax highlighting', (language, string) ->
+        $pre = $ '<pre>'
+        CodeMirror.runMode string, 'javascript', $pre.get(0)
+        context.$result.append $pre
+        context.success()
+
 
     intro:
       cmd 'Shows the intro message', ->
@@ -295,31 +310,48 @@ run = (string) ->
   ns = create_ns context
   functions = {}
 
-  lead.define_functions functions, lead.functions
-  try
-    `with (ns) { with (functions) {`
-    result = eval "//@ sourceURL=console-coffeescript.js\n" +  CoffeeScript.compile(string, bare: true)
-    unless result == _lead_finished
-      if result?._lead_cli_fn
-        result._lead_cli_fn()
-      else if result?._lead
-        lead_string = lead.to_string result
-        if $.type(result) == 'function'
-          ns.text "#{lead_string} is a Graphite function"
-          ns.docs result
-        else
-          ns.text "What do you want to do with #{lead_string}?"
-          safe_string = JSON.stringify lead_string
-          for f in ['data', 'img', 'url']
-            ns.example "#{f} #{safe_string}"
-      else
-        ns.object result
-    `}}`
-  catch e
+  handle_exception = (e, compiled) ->
+    error printStackTrace({e}).join('\n')
+    ns.text 'Compiled JavaScript:'
+    ns.source 'javascript', compiled
+
+  error = (message) ->
     $pre = $ '<pre class="error"/>'
-    $pre.text printStackTrace({e}).join('\n')
+    $pre.text message
     context.$result.append $pre
     context.failure()
+
+  lead.define_functions functions, lead.functions
+  try
+    compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
+  catch e
+    if e instanceof SyntaxError
+      error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+    else
+      handle_exception e, compiled
+
+  if compiled?
+    try
+      `with (ns) { with (functions) {`
+      result = eval compiled
+      `}}`
+      unless result == _lead_finished
+        if result?._lead_cli_fn
+          result._lead_cli_fn()
+        else if result?._lead
+          lead_string = lead.to_string result
+          if $.type(result) == 'function'
+            ns.text "#{lead_string} is a Graphite function"
+            ns.docs result
+          else
+            ns.text "What do you want to do with #{lead_string}?"
+            safe_string = JSON.stringify lead_string
+            for f in ['data', 'img', 'url']
+              ns.example "#{f} #{safe_string}"
+        else
+          ns.object result
+    catch e
+      handle_exception e, compiled
 
   $output.append $entry
 
