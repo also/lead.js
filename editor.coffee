@@ -102,12 +102,6 @@ window.init_editor = ->
       _lead_finished
 
     json = (url) ->
-      $.ajax
-        url: url
-        dataType: 'json'
-        success: (response) ->
-          output_object response
-      _lead_finished
 
     cli =
       help:
@@ -238,7 +232,22 @@ window.init_editor = ->
           params = args_to_params args
           params.format = 'json'
           query_string = $.param params, true
-          json "#{base_url}/render?#{query_string}"
+          url = "#{base_url}/render?#{query_string}"
+          $.ajax
+            url: url
+            dataType: 'json'
+            success: (response) ->
+              for series in response
+                $header = $ '<h3>'
+                $header.text series.target
+                context.$result.append $header
+                $table = $ '<table>'
+                for [value, timestamp] in series.datapoints
+                  time = moment(timestamp * 1000)
+                  $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value.toFixed 3}</td></tr>"
+                context.$result.append $table
+                context.success()
+          _lead_finished
 
       find:
         fn 'Finds named Graphite metrics using a wildcard query', (query) ->
