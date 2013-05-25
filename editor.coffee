@@ -185,7 +185,7 @@ window.init_editor = ->
       docs:
         cmd 'Shows the documentation for a graphite function', (fn) ->
           if fn?
-            fn = fn._lead[1]._lead_ if fn._lead
+            fn = fn.to_js_string() if fn.to_js_string()
             dl = graphite_function_docs[fn]
             if dl?
               pres = dl.getElementsByTagName 'pre'
@@ -393,8 +393,10 @@ window.init_editor = ->
 
       q: do ->
         result = (targets...) ->
-          target_strings = targets.map String
-          _lead: ['q', {_lead_to_string: (-> target_strings.join ','), _lead_string_targets: target_strings}]
+          for t in targets
+            unless $.type(t) is 'string'
+              throw new TypeError "#{t} is not a string"
+          new lead.type.q targets.map(String)...
         result._lead_doc = 'Escapes a Graphite metric query'
         result
 
@@ -467,20 +469,21 @@ window.init_editor = ->
         unless result == _lead_finished
           if result?._lead_cli_fn
             result._lead_cli_fn()
-          else if result?._lead
+          else if lead.is_lead_node result
             lead_string = lead.to_string result
             if $.type(result) == 'function'
               ns.text "#{lead_string} is a Graphite function"
               ns.docs result
             else
               ns.text "What do you want to do with #{lead_string}?"
-              safe_string = JSON.stringify lead_string
               for f in ['data', 'graph', 'img', 'url']
-                ns.example "#{f} #{safe_string}"
+                ns.example "#{f} #{result.to_js_string()}"
           else
             ns.object result
-      catch e
-        handle_exception e, compiled
+      #catch e
+      #  handle_exception e, compiled
+      finally
+        #
 
     $entry.append $result
 

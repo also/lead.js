@@ -1,44 +1,62 @@
 window.lead = {}
 
+lead_type = ->
+
+create_type = (n, parent) ->
+  t = (@values...) -> @type = n
+  t.prototype = new parent
+  lead_type[n] = t
+
+lead.type = lead_type
+
+create_type n, lead.type for n in "pfq"
+lead.type.p::to_js_string =
+lead.type.p::to_target_string = ->
+  JSON.stringify @values[0]
+
+lead.type.f::to_target_string = ->
+  [name, args...] = @values
+  "#{name}(#{(a.to_target_string() for a in args).join ','})"
+
+lead.type.f::to_js_string = ->
+  [name, args...] = @values
+  "#{name}(#{(a.to_js_string() for a in args).join ','})"
+
+lead.type.q::to_target_string = ->
+  @values.join ','
+
+lead.type.q::to_js_string = ->
+  "q(#{(@values.map JSON.stringify).join ', '})"
+
+create_type n, lead.type.p for n in "nsi"
+lead.type.i::to_js_string = ->
+  @values[0]
+
 process_arg = (arg) ->
-  return _lead: arg._lead if arg._lead
+  return arg if arg instanceof lead.type
   if typeof arg is "number"
-    return _lead: ['n', _lead_: arg]
+    return new lead.type.n arg
   if $.type(arg) == 'string'
-    return _lead: ['s', _lead_: arg]
-  throw new Error('illegal argument ' + arg)
+    return new lead.type.s arg
+  throw new TypeError('illegal argument ' + arg)
 
 lead_fn = (name) ->
   result = (args...) ->
-    _lead: ['f', name, (process_arg arg for arg in args)...]
-  result._lead = ['i', _lead_: name]
+    new lead.type.f name, (process_arg arg for arg in args)...
+  result.type = 'i'
+  result.name = name
+  result.values = [name]
+  result.__proto__ = new lead.type.i
+
   result
 
 lead.define_functions = (ns, names) ->
   ns[name] = lead_fn name for name in names
 
-lead.to_tree = (node) ->
-  if node._lead_?
-    return node._lead_
-  unless node._lead?
-    throw new Error(node + " is not a lead node")
-  [type, values...] = node._lead
-  [type, (lead.to_tree value for value in values)...]
-
 lead.to_string = (node) ->
-  if node._lead_to_string?
-    return node._lead_to_string()
-  if node._lead_?
-    return JSON.stringify node._lead_
-  unless node._lead?
-    throw new Error(node + " is not a lead node")
-  [type, values...] = node._lead
-  switch type
-    when 'f'
-      [name, args...] = values
-      "#{name}(#{(lead.to_string a for a in args).join ','})"
-    else
-      lead.to_string values[0]
+  unless node instanceof lead.type
+    throw new TypeError(node + " is not a lead node")
+  node.to_target_string()
 
 lead.to_target_string = (node) ->
   if $.type(node) == 'string'
@@ -47,4 +65,4 @@ lead.to_target_string = (node) ->
     lead.to_string node
 
 lead.is_lead_node = (x) ->
-  x._lead or x._lead_
+  x instanceof lead.type
