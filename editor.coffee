@@ -244,7 +244,7 @@ window.init_editor = ->
                 $table = $ '<table>'
                 for [value, timestamp] in series.datapoints
                   time = moment(timestamp * 1000)
-                  $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value.toFixed 3}</td></tr>"
+                  $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
                 context.$result.append $table
                 context.success()
           _lead_finished
