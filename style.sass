@@ -10,17 +10,16 @@ body
   color: #333
   background-color: $background
   font-size: 14px
+  font-family: "Helvetica Neue"
 
 h1
   width: 80%
   margin: 60px auto
 
-  font-family: "Helvetica Neue"
   font-weight: 600
   font-size: 50px
 
 h3
-  font-family: "Helvetica Neue"
   font-weight: 600
   font-size: 20px
   margin: 10px 0
@@ -106,6 +105,13 @@ pre
       -webkit-border-radius: 4px
       margin-bottom: .5em
 
+    .legend
+      .color::before
+        content: '■ '
+      font: 12px $monospace
+      li
+        margin: 6px
+
     table
       border-collapse: collapse
       border-spacing: 0
@@ -115,12 +121,11 @@ pre
         background: #fff
         border: 1px solid #d0d0d0
         padding: 8px 14px
-        font-family: "Helvetica Neue"
         font-size: 14px
         &.number
           text-align: right
 
-    img
+    img, svg
       background-color: #fff
       padding: 3px
       -webkit-border-radius: 6px
@@ -139,6 +144,7 @@ pre
 
         p, pre
           margin: 0.5em 0
+
 
 .find-results
   padding-left: 10px
@@ -187,5 +193,21 @@ pre
     color: #0076ad
   &.cm-thisvar
     color: #A535AE
+
+svg
+  font-size: 10px
+
+  .axis
+    text
+      fill: #aaa
+    path, line
+      fill: none
+      stroke: #ccc
+      shape-rendering: crispEdges
+
+  .line
+    fill: none
+    stroke-width: 1px
+    stroke-linecap: square
 
 @import "./lib/codemirror-3.12/codemirror.css"

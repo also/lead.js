@@ -7,3 +7,4 @@
 //= require ./core.js
 //= require ./functions.js
 //= require ./editor.js
+//= require ./lib/d3.js
