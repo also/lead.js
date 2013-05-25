@@ -480,10 +480,8 @@ window.init_editor = ->
                 ns.example "#{f} #{result.to_js_string()}"
           else
             ns.object result
-      #catch e
-      #  handle_exception e, compiled
-      finally
-        #
+      catch e
+        handle_exception e, compiled
 
     $entry.append $result
 
