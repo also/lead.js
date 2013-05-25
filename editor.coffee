@@ -4,6 +4,8 @@ _lead_finished = new Object
 
 default_options = {}
 
+default_target_command = 'img'
+
 graphite_function_docs = {}
 $.getJSON 'functions.fjson', (data) ->
   prefix_length = "graphite.render.functions.".length
@@ -15,6 +17,17 @@ $.getJSON 'functions.fjson', (data) ->
     graphite_function_docs[tag.id[prefix_length..]] = tag.parentNode
 
 window.init_editor = ->
+  CodeMirror.commands.run = (cm) ->
+    setTimeout(-> run cm.getValue(), 1)
+
+  CodeMirror.commands.contextHelp = (cm) ->
+     cur = editor.getCursor()
+     token = cm.getTokenAt(cur)
+     if graphite_function_docs[token.string]
+       run "docs #{token.string}"
+     else if create_ns()[token.string]?
+       run "help #{token.string}"
+
   CodeMirror.keyMap.lead =
     Tab: (cm) ->
       if cm.somethingSelected()
@@ -22,8 +35,6 @@ window.init_editor = ->
       else
         spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
         cm.replaceSelection(spaces, "end", "+input")
-    'Shift-Enter': (cm) ->
-      setTimeout(-> run cm.getValue(), 1)
     fallthrough: ['default']
 
   $code = $ '#code'
@@ -36,6 +47,9 @@ window.init_editor = ->
     tabSize: 2
     autofocus: true
     viewportMargin: Infinity
+    extraKeys:
+      'Shift-Enter': 'run'
+      'F1': 'contextHelp'
 
   $output.css 'padding-bottom': ($code.height() + 60) + 'px'
   editor.on 'viewportChange', ->
@@ -90,7 +104,8 @@ window.init_editor = ->
 
     fn = (doc, wrapped) ->
       wrapped._lead_cli_fn = ->
-        cli.text 'Did you forget to call a function?'
+        cli.text "Did you forget to call a function? \"#{wrapped._lead_cli_name}\" must be called with arguments."
+        run "help #{wrapped._lead_cli_name}"
       wrapped._lead_doc = doc
       wrapped
 
@@ -105,9 +120,17 @@ window.init_editor = ->
 
     cli =
       help:
-        cmd 'Shows this help', ->
-          commands = ("  #{cmd}:\n    #{cli[cmd]._lead_doc}" for cmd in cli_commands).join('\n\n')
-          cli.pre "Check out these awesome built-in functions:\n\n#{commands}"
+        cmd 'Shows this help', (cmd) ->
+          if cmd?
+            cmd = cmd._lead_cli_name ? cmd
+            doc = cli[cmd]?._lead_doc
+            if doc
+              cli.pre "#{cmd}\n    #{doc}"
+            else
+              cli.pre "#{cmd} is not a command."
+          else
+            commands = ("  #{cmd}:\n    #{cli[cmd]._lead_doc}" for cmd in cli_commands).join('\n\n')
+            cli.pre "Check out these awesome built-in functions:\n\n#{commands}"
 
       object:
         fn 'Prints an object as JSON', output_object
@@ -173,7 +196,7 @@ window.init_editor = ->
                     examples.push line[8..]
               context.$result.append dl.cloneNode true
               for example in examples
-                cli.example "img #{JSON.stringify example}", run: false
+                cli.example "#{default_target_command} #{JSON.stringify example}", run: false
             else
               cli.text 'Documentation not found'
             context.success()
@@ -182,7 +205,7 @@ window.init_editor = ->
             names.sort()
             for name in names
               sig = $(graphite_function_docs[name].getElementsByTagName('dt')[0]).text().trim()
-              cli.example "docs #{JSON.stringify name}  # #{sig}"
+              cli.example "docs #{name}  # #{sig}"
             context.success()
 
       clear:
@@ -370,11 +393,13 @@ window.init_editor = ->
 
       q: do ->
         result = (targets...) ->
-          _lead: ['q', _lead_to_string: -> targets.join ',']
+          target_strings = targets.map String
+          _lead: ['q', {_lead_to_string: (-> target_strings.join ','), _lead_string_targets: target_strings}]
         result._lead_doc = 'Escapes a Graphite metric query'
         result
 
-    cli_commands = (k for k of cli)
+    cli_commands = for k, v of cli
+      v._lead_cli_name = k
     cli_commands.sort()
 
     cli
@@ -401,7 +426,7 @@ window.init_editor = ->
     $input.append $pre
 
     $entry.append $input
-    $entry.append $result
+    $output.append $entry
     context =
       $result: $result
       success: ->
@@ -450,13 +475,13 @@ window.init_editor = ->
             else
               ns.text "What do you want to do with #{lead_string}?"
               safe_string = JSON.stringify lead_string
-              for f in ['data', 'img', 'url']
+              for f in ['data', 'graph', 'img', 'url']
                 ns.example "#{f} #{safe_string}"
           else
             ns.object result
       catch e
         handle_exception e, compiled
 
-    $output.append $entry
+    $entry.append $result
 
   run 'intro'
