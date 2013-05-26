@@ -96,9 +96,14 @@ window.init_editor = ->
   editor.on 'viewportChange', ->
     $output.css 'padding-bottom': ($code.height() + 60 ) + 'px'
 
-  scroll_to_result = ->
+  scroll_to_result = ($result)->
+    top = if $result?
+      $result.offset().top
+    else
+      $(document).height()
+
     setTimeout ->
-      $('html, body').scrollTop $(document).height()
+      $('html, body').scrollTop top
     , 10
 
   window.create_ns = (context) ->
@@ -470,10 +475,10 @@ window.init_editor = ->
     context =
       $result: $result
       success: ->
-        scroll_to_result()
+        scroll_to_result $entry
         _lead_finished
       failure: ->
-        scroll_to_result()
+        scroll_to_result $entry
         _lead_finished
 
     ns = create_ns context
