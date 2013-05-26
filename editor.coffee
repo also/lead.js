@@ -314,8 +314,7 @@ window.init_editor = ->
         fn 'Gets or sets options', (options) ->
           if options?
             $.extend current_options, options
-          current_options
-
+          cli.object current_options
 
       defaults:
         cmd 'Gets or sets default options', (options) ->
