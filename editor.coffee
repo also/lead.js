@@ -7,6 +7,20 @@ default_target_command = 'img'
 previously_run = null
 
 graphite_function_docs = {}
+graphite_parameter_docs = {}
+graphite_parameter_doc_ids = {}
+$.getJSON 'render_api.fjson', (data) ->
+  html = $.parseHTML(data.body)[0]
+  parameters = html.querySelector 'div#graph-parameters'
+  a.remove() for a in parameters.querySelectorAll 'a.headerlink'
+  for section in parameters.querySelectorAll 'div.section'
+    name = $(section.querySelector 'h3').text()
+    graphite_parameter_docs[name] = section
+    graphite_parameter_doc_ids[section.id] = name
+
+has_docs = (name) ->
+  graphite_parameter_docs[name]? or graphite_parameter_doc_ids[name]? or graphite_function_docs[name]?
+
 $.getJSON 'functions.fjson', (data) ->
   prefix_length = "graphite.render.functions.".length
 
@@ -15,6 +29,18 @@ $.getJSON 'functions.fjson', (data) ->
     for a in tag.getElementsByTagName 'a'
       a.remove()
     graphite_function_docs[tag.id[prefix_length..]] = tag.parentNode
+
+token_after = (cm, token, line) ->
+  t = token
+  last_interesting_token = null
+  loop
+    next_token = cm.getTokenAt CodeMirror.Pos(line, t.end + 1)
+    if t.start == next_token.start
+      break
+    if next_token.type?
+      last_interesting_token = next_token
+    t = next_token
+  last_interesting_token
 
 suggest = (cm, showHints, options) ->
   cur = cm.getCursor()
@@ -42,6 +68,7 @@ suggest = (cm, showHints, options) ->
         to: CodeMirror.Pos cur.line, token.end - end_offset
   else
     s = token.string
+    next_token = token_after cm, token, cur.line
     list = []
     for k of create_ns()
       if k.indexOf(s) is 0
@@ -49,6 +76,11 @@ suggest = (cm, showHints, options) ->
     for k of graphite_function_docs
       if k.indexOf(s) is 0
         list.push k
+    for k of graphite_parameter_docs
+      if k.indexOf(s) is 0
+        suggestion = k
+        suggestion += ': ' unless next_token?.string is ':'
+        list.push suggestion
     showHints
       list: list
       from: CodeMirror.Pos cur.line, token.start
@@ -61,8 +93,8 @@ window.init_editor = ->
   CodeMirror.commands.contextHelp = (cm) ->
     cur = editor.getCursor()
     token = cm.getTokenAt(cur)
-    if graphite_function_docs[token.string]
-      run "docs #{token.string}"
+    if has_docs token.string
+      run "docs '#{token.string}'"
     else if create_ns()[token.string]?
       run "help #{token.string}"
 
@@ -230,10 +262,10 @@ window.init_editor = ->
           cli.text 'to see what you can do with Graphite.'
 
       docs:
-        cmd 'Shows the documentation for a graphite function', (fn) ->
-          if fn?
-            fn = fn.to_js_string() if fn.to_js_string()
-            dl = graphite_function_docs[fn]
+        cmd 'Shows the documentation for a graphite function or parameter', (name) ->
+          if name?
+            fn = name.to_js_string() if name.to_js_string?
+            dl = graphite_function_docs[name]
             if dl?
               pres = dl.getElementsByTagName 'pre'
               examples = []
@@ -245,14 +277,32 @@ window.init_editor = ->
               for example in examples
                 cli.example "#{default_target_command} #{JSON.stringify example}", run: false
             else
-              cli.text 'Documentation not found'
+              name = graphite_parameter_doc_ids[name] ? name
+              div = graphite_parameter_docs[name]
+              if div?
+                docs = $(div.cloneNode true)
+                docs.find('a').on 'click', (e) ->
+                  e.preventDefault()
+                  href = $(this).attr 'href'
+                  if href[0] is '#'
+                    run "docs '#{decodeURI href[1..]}'"
+                context.$result.append docs
+              else
+                cli.text 'Documentation not found'
             context.success()
           else
+            cli.html '<h3>Functions</h3>'
             names = (name for name of graphite_function_docs)
             names.sort()
             for name in names
               sig = $(graphite_function_docs[name].getElementsByTagName('dt')[0]).text().trim()
               cli.example "docs #{name}  # #{sig}"
+
+            cli.html '<h3>Parameters</h3>'
+            names = (name for name of graphite_parameter_docs)
+            names.sort()
+            for name in names
+              cli.example "docs '#{name}'"
             context.success()
 
       clear:
