@@ -28,6 +28,17 @@ window.init_editor = ->
      else if create_ns()[token.string]?
        run "help #{token.string}"
 
+   CodeMirror.commands.suggest = (cm) ->
+     cur = editor.getCursor()
+     token = cm.getTokenAt(cur)
+     if token.type is 'string'
+       open = token.string[0]
+       string = token.string[1..]
+       close = string[string.length - 1]
+       if open == close
+         string = string[...-1]
+       run "find #{JSON.stringify string}"
+
   CodeMirror.keyMap.lead =
     Tab: (cm) ->
       if cm.somethingSelected()
@@ -50,6 +61,7 @@ window.init_editor = ->
     extraKeys:
       'Shift-Enter': 'run'
       'F1': 'contextHelp'
+      'Ctrl-Space': 'suggest'
 
   $output.css 'padding-bottom': ($code.height() + 60) + 'px'
   editor.on 'viewportChange', ->
