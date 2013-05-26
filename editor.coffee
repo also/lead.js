@@ -14,28 +14,58 @@ $.getJSON 'functions.fjson', (data) ->
       a.remove()
     graphite_function_docs[tag.id[prefix_length..]] = tag.parentNode
 
+suggest = (cm, showHints, options) ->
+  cur = cm.getCursor()
+  token = cm.getTokenAt(cur)
+  if token.type is null
+    list = (k for k of graphite_function_docs)
+    showHints
+      list: list
+      from: CodeMirror.Pos cur.line, token.end
+      to: CodeMirror.Pos cur.line, token.end
+  else if token.type is 'string'
+    open = token.string[0]
+    string = token.string[1..]
+    close = string[string.length - 1]
+    if open == close
+      string = string[...-1]
+      end_offset = 1
+    else
+      end_offset = 0
+    lead.graphite.complete string, success: (response) ->
+      list = (node.path for node in response.metrics)
+      showHints
+        list: list
+        from: CodeMirror.Pos cur.line, token.start + 1
+        to: CodeMirror.Pos cur.line, token.end - end_offset
+  else
+    s = token.string
+    list = []
+    for k of create_ns()
+      if k.indexOf(s) is 0
+        list.push k
+    for k of graphite_function_docs
+      if k.indexOf(s) is 0
+        list.push k
+    showHints
+      list: list
+      from: CodeMirror.Pos cur.line, token.start
+      to: CodeMirror.Pos cur.line, token.end
+
 window.init_editor = ->
   CodeMirror.commands.run = (cm) ->
     setTimeout(-> run cm.getValue(), 1)
 
   CodeMirror.commands.contextHelp = (cm) ->
-     cur = editor.getCursor()
-     token = cm.getTokenAt(cur)
-     if graphite_function_docs[token.string]
-       run "docs #{token.string}"
-     else if create_ns()[token.string]?
-       run "help #{token.string}"
+    cur = editor.getCursor()
+    token = cm.getTokenAt(cur)
+    if graphite_function_docs[token.string]
+      run "docs #{token.string}"
+    else if create_ns()[token.string]?
+      run "help #{token.string}"
 
-   CodeMirror.commands.suggest = (cm) ->
-     cur = editor.getCursor()
-     token = cm.getTokenAt(cur)
-     if token.type is 'string'
-       open = token.string[0]
-       string = token.string[1..]
-       close = string[string.length - 1]
-       if open == close
-         string = string[...-1]
-       run "find #{JSON.stringify string}"
+  CodeMirror.commands.suggest = (cm) ->
+    CodeMirror.showHint cm, suggest, async: true
 
   CodeMirror.keyMap.lead =
     Tab: (cm) ->
@@ -48,7 +78,6 @@ window.init_editor = ->
 
   $code = $ '#code'
   $output = $ '#output'
-  #$code.height '100px'
 
   editor = CodeMirror $code.get(0),
     mode: 'coffeescript'
@@ -70,7 +99,7 @@ window.init_editor = ->
       $('html, body').scrollTop $(document).height()
     , 10
 
-  create_ns = (context) ->
+  window.create_ns = (context) ->
     current_options = {}
 
     args_to_params = (args) ->
