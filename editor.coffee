@@ -221,7 +221,6 @@ window.init_editor = ->
           context.$result.append $pre
           context.success()
 
-
       intro:
         cmd 'Shows the intro message', ->
           cli.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"

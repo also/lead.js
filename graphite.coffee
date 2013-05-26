@@ -25,34 +25,34 @@ lead.graphite =
       success: options.success
 
   args_to_params: ({args, default_options}) ->
-    is_target = (x) ->
-      $.type(x) == 'string' or lead.is_lead_node x
-
     if args.legnth == 0
       # you're doing it wrong
       {}
     if args.length == 1
       arg = args[0]
-      if arg.targets?
-        targets = arg.targets
+      targets = arg.targets ? arg.target
+      if targets?
         if arg.options
           options = arg.options
         else
-          options = arg
+          options = $.extend {}, arg
           delete options.targets
+          delete options.target
       else
         targets = args[0]
         options = {}
     else
       last = args[args.length - 1]
 
-      if is_target last
+      if $.type(last) == 'string' or lead.is_lead_node(last) or $.isArray last
         targets = args
         options = {}
       else
         [targets..., options] = args
 
     targets = [targets] unless $.isArray targets
+    # flatten one level of nested arrays
+    targets = Array.prototype.concat.apply [], targets
 
     params = $.extend {}, default_options, options
     params.target = (lead.to_target_string(target) for target in targets)
