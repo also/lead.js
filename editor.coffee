@@ -142,38 +142,7 @@ window.init_editor = ->
     current_options = {}
 
     args_to_params = (args) ->
-      is_target = (x) ->
-        $.type(x) == 'string' or lead.is_lead_node x
-
-      if args.legnth == 0
-        # you're doing it wrong
-        {}
-      if args.length == 1
-        arg = args[0]
-        if arg.targets
-          targets = arg.targets
-          if arg.options
-            options = arg.options
-          else
-            options = arg
-            delete options.targets
-        else
-          targets = args[0]
-          options = {}
-      else
-        last = args[args.length - 1]
-
-        if is_target last
-          targets = args
-          options = {}
-        else
-          [targets..., options] = args
-
-      targets = [targets] unless $.isArray targets
-
-      params = $.extend {}, default_options, current_options, options
-      params.target = (lead.to_target_string(target) for target in targets)
-      params
+      lead.graphite.args_to_params {args, default_options: $.extend({}, default_options, current_options)}
 
     cmd = (doc, wrapped) ->
       wrapped._lead_cli_fn = wrapped
@@ -323,6 +292,12 @@ window.init_editor = ->
             $.extend default_options, options
           context.success()
           default_options
+
+      params:
+        fn 'Generates the parameters for a Graphite render call', (args...) ->
+          result = args_to_params args
+          context.success()
+          result
 
       url:
         fn 'Generates a URL for a Graphite image', (args...) ->

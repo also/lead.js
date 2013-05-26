@@ -24,5 +24,37 @@ lead.graphite =
       dataType: 'json'
       success: options.success
 
+  args_to_params: ({args, default_options}) ->
+    is_target = (x) ->
+      $.type(x) == 'string' or lead.is_lead_node x
 
+    if args.legnth == 0
+      # you're doing it wrong
+      {}
+    if args.length == 1
+      arg = args[0]
+      if arg.targets?
+        targets = arg.targets
+        if arg.options
+          options = arg.options
+        else
+          options = arg
+          delete options.targets
+      else
+        targets = args[0]
+        options = {}
+    else
+      last = args[args.length - 1]
+
+      if is_target last
+        targets = args
+        options = {}
+      else
+        [targets..., options] = args
+
+    targets = [targets] unless $.isArray targets
+
+    params = $.extend {}, default_options, options
+    params.target = (lead.to_target_string(target) for target in targets)
+    params
 
