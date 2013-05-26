@@ -4,6 +4,8 @@ default_options = {}
 
 default_target_command = 'img'
 
+previously_run = null
+
 graphite_function_docs = {}
 $.getJSON 'functions.fjson', (data) ->
   prefix_length = "graphite.render.functions.".length
@@ -418,6 +420,15 @@ window.init_editor = ->
               context.success()
           _lead_finished
 
+      permalink:
+        cmd 'Create a link to the previously run statement', ->
+          a = document.createElement 'a'
+          a.href = location.href
+          a.search = '?' + encodeURIComponent btoa previously_run if previously_run?
+          a.innerText = a.href
+          context.$result.append a
+          context.success()
+
       q: do ->
         result = (targets...) ->
           for t in targets
@@ -507,9 +518,13 @@ window.init_editor = ->
                 ns.example "#{f} #{result.to_js_string()}"
           else
             ns.object result
+        previously_run = string
       catch e
         handle_exception e, compiled
 
     $entry.append $result
 
-  run 'intro'
+  if location.search isnt ''
+    run atob decodeURIComponent location.search[1..]
+  else
+    run 'intro'
