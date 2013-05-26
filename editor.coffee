@@ -111,7 +111,8 @@ window.init_editor = ->
 
     output_object = (o) ->
       $pre = $ '<pre>'
-      CodeMirror.runMode JSON.stringify(o, null, '  '), {name: 'javascript', json: true}, $pre.get(0)
+      s = JSON.stringify(o, null, '  ') or new String o
+      CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
       context.$result.append $pre
       context.success()
       _lead_finished
