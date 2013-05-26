@@ -1,5 +1,3 @@
-base_url = 'http://grodan.biz'
-
 _lead_finished = new Object
 
 default_options = {}
@@ -242,8 +240,7 @@ window.init_editor = ->
       url:
         fn 'Generates a URL for a Graphite image', (args...) ->
           params = args_to_params args
-          query_string = $.param params, true
-          url = "#{base_url}/render?#{query_string}"
+          url = lead.graphite.render_url params
           $a = $ "<a href='#{url}' target='blank'/>"
           $a.text url
           $pre = $ '<pre>'
@@ -254,8 +251,8 @@ window.init_editor = ->
       img:
         fn 'Renders a Graphite graph image', (args...) ->
           params = args_to_params args
-          query_string = $.param params, true
-          $img = $ "<img src='#{base_url}/render?#{query_string}'/>"
+          url = lead.graphite.render_url params
+          $img = $ "<img src='#{url}'/>"
           $img.on 'load', -> context.success()
           $img.on 'error', ->
             cli.text 'Failed to load image'
@@ -266,12 +263,7 @@ window.init_editor = ->
       data:
         fn 'Fetches Graphite graph data', (args...) ->
           params = args_to_params args
-          params.format = 'json'
-          query_string = $.param params, true
-          url = "#{base_url}/render?#{query_string}"
-          $.ajax
-            url: url
-            dataType: 'json'
+          lead.graphite.get_data params,
             success: (response) ->
               for series in response
                 $header = $ '<h3>'
@@ -289,11 +281,7 @@ window.init_editor = ->
         fn 'Graphs a Graphite target using d3', (args...) ->
           params = args_to_params args
           params.format = 'json'
-          query_string = $.param params, true
-          url = "#{base_url}/render?#{query_string}"
-          $.ajax
-            url: url
-            dataType: 'json'
+          lead.graphite.get_data params,
             success: (response) ->
               width = params.width or 800
               height = params.height or 400
@@ -375,10 +363,7 @@ window.init_editor = ->
       find:
         fn 'Finds named Graphite metrics using a wildcard query', (query) ->
           query_parts = query.split '.'
-          url = "#{base_url}/metrics/find?query=#{encodeURIComponent query}&format=completer"
-          $.ajax
-            url: url
-            dataType: 'json'
+          lead.graphite.complete query,
             success: (response) ->
               $ul = $ '<ul class="find-results"/>'
               for node in response.metrics
