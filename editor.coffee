@@ -264,7 +264,7 @@ window.init_editor = ->
       docs:
         cmd 'Shows the documentation for a graphite function or parameter', (name) ->
           if name?
-            fn = name.to_js_string() if name.to_js_string?
+            name = name.to_js_string() if name.to_js_string?
             dl = graphite_function_docs[name]
             if dl?
               pres = dl.getElementsByTagName 'pre'
