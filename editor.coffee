@@ -314,13 +314,15 @@ window.init_editor = ->
         fn 'Gets or sets options', (options) ->
           if options?
             $.extend current_options, options
-          cli.object current_options
+          context.success()
+          current_options
 
       defaults:
         cmd 'Gets or sets default options', (options) ->
           if options?
             $.extend default_options, options
-          cli.object default_options
+          context.success()
+          default_options
 
       url:
         fn 'Generates a URL for a Graphite image', (args...) ->
