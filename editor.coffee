@@ -165,9 +165,17 @@ window.init_editor = ->
     if define_parameters
       for k of lead.graphite.parameter_docs
         do (k) ->
+          fn = (value) ->
+            if value?
+              @current_options[k] = value
+            else
+              @current_options[k] ? @default_options[k]
+
           ops[k] = bind_op
             name: k
-            fn: (value) -> @current_options[k] = value
+            fn: fn
+            cli_fn: ->
+              @cli.object @cli[k]()
     
     context.cli = ops
 
