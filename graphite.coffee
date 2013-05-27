@@ -58,3 +58,29 @@ lead.graphite =
     params.target = (lead.to_target_string(target) for target in targets)
     params
 
+  function_docs: {}
+  parameter_docs: {}
+  parameter_doc_ids: {}
+
+  load_docs: ->
+    $.getJSON 'render_api.fjson', (data) =>
+      html = $.parseHTML(data.body)[0]
+      parameters = html.querySelector 'div#graph-parameters'
+      a.remove() for a in parameters.querySelectorAll 'a.headerlink'
+      for section in parameters.querySelectorAll 'div.section'
+        name = $(section.querySelector 'h3').text()
+        @parameter_docs[name] = section
+        @parameter_doc_ids[section.id] = name
+
+    $.getJSON 'functions.fjson', (data) =>
+      prefix_length = "graphite.render.functions.".length
+
+      html = $.parseHTML(data.body)[0]
+      for tag in html.getElementsByTagName 'dt'
+        for a in tag.getElementsByTagName 'a'
+          a.remove()
+        @function_docs[tag.id[prefix_length..]] = tag.parentNode
+
+  has_docs: (name) ->
+    @parameter_docs[name]? or @parameter_doc_ids[name]? or @function_docs[name]?
+

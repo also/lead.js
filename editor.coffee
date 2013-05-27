@@ -5,30 +5,7 @@ default_options = {}
 default_target_command = 'img'
 
 previously_run = null
-
-graphite_function_docs = {}
-graphite_parameter_docs = {}
-graphite_parameter_doc_ids = {}
-$.getJSON 'render_api.fjson', (data) ->
-  html = $.parseHTML(data.body)[0]
-  parameters = html.querySelector 'div#graph-parameters'
-  a.remove() for a in parameters.querySelectorAll 'a.headerlink'
-  for section in parameters.querySelectorAll 'div.section'
-    name = $(section.querySelector 'h3').text()
-    graphite_parameter_docs[name] = section
-    graphite_parameter_doc_ids[section.id] = name
-
-has_docs = (name) ->
-  graphite_parameter_docs[name]? or graphite_parameter_doc_ids[name]? or graphite_function_docs[name]?
-
-$.getJSON 'functions.fjson', (data) ->
-  prefix_length = "graphite.render.functions.".length
-
-  html = $.parseHTML(data.body)[0]
-  for tag in html.getElementsByTagName 'dt'
-    for a in tag.getElementsByTagName 'a'
-      a.remove()
-    graphite_function_docs[tag.id[prefix_length..]] = tag.parentNode
+lead.graphite.load_docs()
 
 token_after = (cm, token, line) ->
   t = token
@@ -46,7 +23,7 @@ suggest = (cm, showHints, options) ->
   cur = cm.getCursor()
   token = cm.getTokenAt(cur)
   if token.type is null
-    list = (k for k of graphite_function_docs)
+    list = (k for k of lead.graphite.function_docs)
     showHints
       list: list
       from: CodeMirror.Pos cur.line, token.end
@@ -73,10 +50,10 @@ suggest = (cm, showHints, options) ->
     for k of create_ns()
       if k.indexOf(s) is 0
         list.push k
-    for k of graphite_function_docs
+    for k of lead.graphite.function_docs
       if k.indexOf(s) is 0
         list.push k
-    for k of graphite_parameter_docs
+    for k of lead.graphite.parameter_docs
       if k.indexOf(s) is 0
         suggestion = k
         suggestion += ': ' unless next_token?.string is ':'
@@ -93,7 +70,7 @@ window.init_editor = ->
   CodeMirror.commands.contextHelp = (cm) ->
     cur = editor.getCursor()
     token = cm.getTokenAt(cur)
-    if has_docs token.string
+    if lead.graphite.has_docs token.string
       run "docs '#{token.string}'"
     else if create_ns()[token.string]?
       run "help #{token.string}"
@@ -233,7 +210,7 @@ window.init_editor = ->
         cmd 'Shows the documentation for a graphite function or parameter', (name) ->
           if name?
             name = name.to_js_string() if name.to_js_string?
-            dl = graphite_function_docs[name]
+            dl = lead.graphite.function_docs[name]
             if dl?
               pres = dl.getElementsByTagName 'pre'
               examples = []
@@ -245,8 +222,8 @@ window.init_editor = ->
               for example in examples
                 cli.example "#{default_target_command} #{JSON.stringify example}", run: false
             else
-              name = graphite_parameter_doc_ids[name] ? name
-              div = graphite_parameter_docs[name]
+              name = lead.graphite.parameter_doc_ids[name] ? name
+              div = lead.graphite.parameter_docs[name]
               if div?
                 docs = $(div.cloneNode true)
                 docs.find('a').on 'click', (e) ->
@@ -260,14 +237,14 @@ window.init_editor = ->
             context.success()
           else
             cli.html '<h3>Functions</h3>'
-            names = (name for name of graphite_function_docs)
+            names = (name for name of lead.graphite.function_docs)
             names.sort()
             for name in names
-              sig = $(graphite_function_docs[name].getElementsByTagName('dt')[0]).text().trim()
+              sig = $(lead.graphite.function_docs[name].getElementsByTagName('dt')[0]).text().trim()
               cli.example "docs #{name}  # #{sig}"
 
             cli.html '<h3>Parameters</h3>'
-            names = (name for name of graphite_parameter_docs)
+            names = (name for name of lead.graphite.parameter_docs)
             names.sort()
             for name in names
               cli.example "docs '#{name}'"
