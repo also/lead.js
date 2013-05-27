@@ -1,0 +1,3 @@
+[
+	{"keys": ["shift+enter"], "command": "execute_lead_js"}
+]
