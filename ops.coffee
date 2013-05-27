@@ -233,6 +233,16 @@ cmd 'permalink', 'Create a link to the previously run statement', ->
   @$result.append a
   @success()
 
+fn 'websocket', 'Runs commands from a web socket', (url) ->
+  ws = new WebSocket url
+  ws.onopen = => @cli.text 'Connected'
+  ws.onclose = =>
+    @cli.text 'Closed. Reconnect:'
+    @cli.example "websocket #{JSON.stringify url}"
+  ws.onmessage = (e) => @run e.data
+  ws.onerror = => @cli.text 'Error'
+  @success()
+
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets
     unless $.type(t) is 'string'
