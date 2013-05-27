@@ -401,6 +401,8 @@ window.init_editor = ->
 
     $entry.append $input
     $output.append $entry
+    scroll_to_result $entry
+
     context =
       $result: $result
       success: ->
