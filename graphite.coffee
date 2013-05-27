@@ -13,6 +13,10 @@ lead.graphite =
       url: lead.graphite.render_url params
       dataType: 'json'
       success: options.success
+      error: (response) ->
+        html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
+        msg = $(html[0].getElementsByTagName 'pre').text()
+        options.error msg
 
   complete: (query, options) ->
     params = 
