@@ -104,11 +104,12 @@ cmd 'docs', 'Shows the documentation for a graphite function or parameter', (nam
       div = lead.graphite.parameter_docs[name]
       if div?
         docs = $(div.cloneNode true)
+        context = @
         docs.find('a').on 'click', (e) ->
           e.preventDefault()
           href = $(this).attr 'href'
           if href[0] is '#'
-            @run "docs '#{decodeURI href[1..]}'"
+            context.run "docs '#{decodeURI href[1..]}'"
         @$result.append docs
       else
         @cli.text 'Documentation not found'
