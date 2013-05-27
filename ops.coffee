@@ -87,6 +87,7 @@ cmd 'intro', 'Shows the intro message', ->
 cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
   if name?
     name = name.to_js_string() if name.to_js_string?
+    name = name._lead_op?.name if name._lead_op?
     dl = lead.graphite.function_docs[name]
     if dl?
       pres = dl.getElementsByTagName 'pre'
