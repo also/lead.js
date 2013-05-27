@@ -447,7 +447,7 @@ window.init_editor = ->
             lead_string = lead.to_string result
             if $.type(result) == 'function'
               ns.text "#{lead_string} is a Graphite function"
-              ns.docs result
+              run "docs #{result.values[0]}"
             else
               ns.text "What do you want to do with #{lead_string}?"
               for f in ['data', 'graph', 'img', 'url']
