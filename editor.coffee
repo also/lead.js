@@ -1,6 +1,7 @@
 lead._finished = new Object
 
 default_options = {}
+define_parameters = true
 
 previously_run = null
 lead.graphite.load_docs()
@@ -161,6 +162,13 @@ window.init_editor = ->
     for k, op of lead.ops
       ops[k] = bind_op op
 
+    if define_parameters
+      for k of lead.graphite.parameter_docs
+        do (k) ->
+          ops[k] = bind_op
+            name: k
+            fn: (value) -> @current_options[k] = value
+    
     context.cli = ops
 
     functions = {}
