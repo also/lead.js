@@ -152,6 +152,7 @@ window.init_editor = ->
       run: run
       clear_output: -> $output.empty()
       previously_run: previously_run
+      hide_input: -> $input.hide()
 
     bind_op = (op) ->
       bound = (args...) -> op.fn.apply context, args

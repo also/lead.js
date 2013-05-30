@@ -134,6 +134,10 @@ cmd 'clear', 'Clears the screen and code', ->
   @set_code ''
   @success()
 
+cmd 'quiet', 'Hides the input box', ->
+  @hide_input()
+  @success()
+
 fn 'options', 'Gets or sets options', (options) ->
   if options?
     $.extend @current_options, options
