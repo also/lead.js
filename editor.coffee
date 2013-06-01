@@ -100,9 +100,8 @@ window.init_editor = ->
       'F1': 'contextHelp'
       'Ctrl-Space': 'suggest'
 
-  $output.css 'padding-bottom': ($code.height() + 60) + 'px'
   editor.on 'viewportChange', ->
-    $output.css 'padding-bottom': ($code.height() + 60 ) + 'px'
+    $('html, body').scrollTop $(document).height()
 
   scroll_to_result = ($result)->
     top = if $result?
