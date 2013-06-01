@@ -43,24 +43,35 @@ suggest = (cm, showHints, options) ->
         from: CodeMirror.Pos cur.line, token.start + 1
         to: CodeMirror.Pos cur.line, token.end - end_offset
   else
-    s = token.string
+    full_s = token.string
+    sub_s = full_s[...cur.ch-token.start]
     next_token = token_after cm, token, cur.line
-    list = []
-    for k of lead.ops
-      if k.indexOf(s) is 0
-        list.push k
-    for k of lead.graphite.function_docs
-      if k.indexOf(s) is 0
-        list.push k
-    for k of lead.graphite.parameter_docs
-      if k.indexOf(s) is 0
-        suggestion = k
-        suggestion += ': ' unless next_token?.string is ':'
-        list.push suggestion
-    showHints
-      list: list
-      from: CodeMirror.Pos cur.line, token.start
-      to: CodeMirror.Pos cur.line, token.end
+    collect_suggestions = (s) ->
+      list = []
+      for k of lead.ops
+        if k.indexOf(s) is 0
+          list.push k
+      for k of lead.graphite.function_docs
+        if k.indexOf(s) is 0
+          list.push k
+      for k of lead.graphite.parameter_docs
+        if k.indexOf(s) is 0
+          suggestion = k
+          suggestion += ': ' unless next_token?.string is ':'
+          list.push suggestion
+      list
+    list = collect_suggestions full_s
+    if list.length > 0
+      showHints
+        list: list
+        from: CodeMirror.Pos cur.line, token.start
+        to: CodeMirror.Pos cur.line, token.end
+    else
+      list = collect_suggestions sub_s
+      showHints
+        list: list
+        from: CodeMirror.Pos cur.line, token.start
+        to: CodeMirror.Pos cur.line, cur.ch
 
 window.init_editor = ->
   CodeMirror.commands.run = (cm) ->
