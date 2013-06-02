@@ -200,7 +200,13 @@ fn 'data', 'Fetches Graphite graph data', (args...) ->
           time = moment(timestamp * 1000)
           $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
         $result.append $table
-        @success()
+      @success()
+    error: (error) =>
+      $pre = $ '<pre class="error"/>'
+      $pre.text error
+      $result.append $pre
+      @failure()
+
   lead._finished
 
 fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
