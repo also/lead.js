@@ -106,6 +106,7 @@ window.init_editor = ->
     tabSize: 2
     autofocus: true
     viewportMargin: Infinity
+    gutters: ['error']
     extraKeys:
       'Shift-Enter': 'run'
       'F1': 'contextHelp'
@@ -113,6 +114,37 @@ window.init_editor = ->
 
   editor.on 'viewportChange', ->
     $('html, body').scrollTop $(document).height()
+
+  error_marks = []
+
+  compile = ->
+    m.clear() for m in error_marks
+    editor.clearGutter 'error'
+    try
+      CoffeeScript.compile editor.getValue()
+    catch e
+      {first_line, first_column, last_line, last_column} = e.location
+      if first_line == last_line and first_column == last_column
+        line = editor.getLine first_line
+        if last_column == line.length
+          first_column -= 1
+        else
+          last_column += 1
+      mark = editor.markText {line: first_line, ch: first_column}, {line: last_line, ch: last_column}, {className: 'error'}
+      error_marks = [mark]
+
+      for l in [first_line..last_line]
+        gutter = document.createElement 'div'
+        gutter.title = e.message
+        gutter.innerHTML = '&nbsp;'
+        gutter.className = 'errorMarker'
+        # TODO make this less annoying, enable it
+        #editor.setGutterMarker l, 'error', gutter
+
+  compile_timeout = null
+  editor.on 'change', ->
+    clearTimeout compile_timeout
+    compile_timeout = setTimeout compile, 200
 
   scroll_to_result = ($result)->
     top = if $result?

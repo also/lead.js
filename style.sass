@@ -3,6 +3,9 @@
 $background: #fafafa
 $monospace: Monaco, Consolas, "Lucida Console", monospace
 
+$error-fg: #faa
+$error-bg: #fee
+
 body
   margin: 0
   padding: 20px 10%
@@ -37,8 +40,25 @@ pre
   font-family: $monospace
   line-height: 1.6em
 
+  span.error
+    border-bottom: 2px dotted $error-fg
+
   .CodeMirror-lines
     padding: 0
+
+  .CodeMirror-gutters
+    border: none
+    background: transparent
+
+    .error
+      width: 4px
+
+  .errorMarker
+    position: relative
+    margin-top: .3em
+    width: 4px
+    height: 1em
+    background-color: $error-fg
 
     pre
       padding: 0
@@ -64,7 +84,6 @@ pre
       content: '×'
       position: absolute
       right: 10px
-      top: 15px
       font-weight: bold
       color: #ddd
 
@@ -86,8 +105,8 @@ pre
       cursor: pointer
 
     .error
-      border: 1px solid #faa
-      background-color: #fee
+      border: 1px solid $error-fg
+      background-color: $error-bg
       padding: 5px
       -webkit-border-radius: 4px
       margin-bottom: .5em
