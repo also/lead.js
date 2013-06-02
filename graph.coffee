@@ -28,6 +28,10 @@ lead.graph =
       .y((d) -> y d.value)
       .defined((d) -> d.value?)
 
+    if params.interpolate?
+      line.interpolate params.interpolate
+      area.interpolate params.interpolate
+
     line_mode = (d, i) ->
       if params.areaMode is 'all' or params.areaMode is 'stacked'
         'area'
