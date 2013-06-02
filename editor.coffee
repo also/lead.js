@@ -3,6 +3,8 @@ lead._finished = new Object
 default_options = {}
 define_parameters = true
 
+$output = null
+
 previously_run = null
 lead.graphite.load_docs()
 
@@ -73,44 +75,108 @@ suggest = (cm, showHints, options) ->
         from: CodeMirror.Pos cur.line, token.start
         to: CodeMirror.Pos cur.line, cur.ch
 
-window.init_editor = ->
-  CodeMirror.commands.run = (cm) ->
-    setTimeout(-> run cm.getValue(), 1)
+CodeMirror.commands.run = (cm) ->
+  setTimeout(cm.lead_context.run, 1)
 
-  CodeMirror.commands.contextHelp = (cm) ->
-    cur = editor.getCursor()
-    token = cm.getTokenAt(cur)
-    if lead.graphite.has_docs token.string
-      run "docs '#{token.string}'"
-    else if create_ns()[token.string]?
-      run "help #{token.string}"
+CodeMirror.commands.contextHelp = (cm) ->
+  cur = cm.getCursor()
+  token = cm.getTokenAt(cur)
+  if lead.graphite.has_docs token.string
+    run_in_available_context "docs '#{token.string}'"
+  else if lead.ops[token.string]?
+    run_in_available_context "help #{token.string}"
 
-  CodeMirror.commands.suggest = (cm) ->
-    CodeMirror.showHint cm, suggest, async: true
+CodeMirror.commands.suggest = (cm) ->
+  CodeMirror.showHint cm, suggest, async: true
 
-  CodeMirror.keyMap.lead =
-    Tab: (cm) ->
-      if cm.somethingSelected()
-        cm.indentSelection 'add'
+CodeMirror.keyMap.lead =
+  Tab: (cm) ->
+    if cm.somethingSelected()
+      cm.indentSelection 'add'
+    else
+      spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+      cm.replaceSelection(spaces, "end", "+input")
+  Up: (cm) ->
+    cur = cm.getCursor()
+    if cur.line is 0
+      previous_context = context_at_offset cm.lead_context, -1
+      if previous_context?
+        previous_context.editor.focus()
       else
-        spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-        cm.replaceSelection(spaces, "end", "+input")
-    fallthrough: ['default']
+        CodeMirror.Pass
+    else
+      CodeMirror.Pass
+  Down: (cm) ->
+    cur = cm.getCursor()
+    if cur.line is cm.lineCount() - 1
+      next_context = context_at_offset cm.lead_context, 1
+      if next_context?
+        next_context.editor.focus()
+      else
+        CodeMirror.Pass
+    else
+      CodeMirror.Pass
 
-  $code = $ '#code'
-  $output = $ '#output'
+  fallthrough: ['default']
+
+contexts = []
+
+clear_contexts = ->
+  $output.empty()
+  contexts = []
+
+context_at_offset = (context, offset) ->
+  index = contexts.indexOf context
+  contexts[index + offset]
+
+get_available_context = ->
+  last = contexts[contexts.length - 1]
+  if last?.editor.getValue() is '' and not last.used
+    return last
+  else
+    return null
+
+add_context = (code='') ->
+  context = get_available_context()
+  if context?
+    context.editor.setValue code
+  else
+    context = create_context $output, code
+    contexts.push context
+  {editor} = context
+  editor.focus()
+  editor.setCursor(line: editor.lineCount() - 1)
+  context
+
+run_in_available_context = (code) ->
+  add_context(code).run()
+
+create_context = ($target, code) ->
+  $entry = $ '<div class="entry"/>'
+  $code = $ '<div class="code"/>'
+  $entry.append $code
+  $result = $ '<div class="result">'
+  $entry.append $result
+
+  $target.append $entry
 
   editor = CodeMirror $code.get(0),
+    value: code
     mode: 'coffeescript'
     keyMap: 'lead'
     tabSize: 2
-    autofocus: true
     viewportMargin: Infinity
     gutters: ['error']
     extraKeys:
       'Shift-Enter': 'run'
       'F1': 'contextHelp'
       'Ctrl-Space': 'suggest'
+
+  context =
+    used: false
+    editor: editor
+    $entry: $entry
+  editor.lead_context = context
 
   editor.on 'viewportChange', ->
     $('html, body').scrollTop $(document).height()
@@ -156,31 +222,12 @@ window.init_editor = ->
       $('html, body').scrollTop top
     , 10
 
-  set_code = (code) ->
-    editor.setValue code
-    editor.focus()
-    editor.setCursor(line: editor.lineCount() - 1)
+  run = ->
+    context.used = true
+    $result.empty()
+    string = editor.getValue()
 
-  run = (string) ->
-    $entry = $ '<div class="entry"/>'
-    $input = $ '<div class="input"><span class="close"/></div>'
-    $pre = $ '<pre/>'
-    $input.on 'click', (e) ->
-      if $(e.target).hasClass 'close'
-        $entry.remove()
-      else
-        set_code string
-
-    $result = $ '<div class="result">'
-
-    CodeMirror.runMode string, 'coffeescript', $pre.get(0)
-    $input.append $pre
-
-    $entry.append $input
-    $output.append $entry
-    scroll_to_result $entry
-
-    context =
+    run_context =
       current_options: {}
       default_options: default_options
       $result: $result
@@ -190,14 +237,16 @@ window.init_editor = ->
       failure: ->
         scroll_to_result $entry
         lead._finished
-      set_code: set_code
-      run: run
-      clear_output: -> $output.empty()
+      set_code: add_context
+      run: run_in_available_context
+      clear_output: -> clear_contexts()
       previously_run: previously_run
-      hide_input: -> $input.hide()
+      hide_input: ->
+        # TODO this won't play nice with miving between contexts
+        $code.hide()
 
     bind_op = (op) ->
-      bound = (args...) -> op.fn.apply context, args
+      bound = (args...) -> op.fn.apply run_context, args
       bound._lead_op = op
       bound
 
@@ -220,7 +269,7 @@ window.init_editor = ->
             cli_fn: ->
               @cli.object @cli[k]()
     
-    context.cli = ops
+    run_context.cli = ops
 
     functions = {}
 
@@ -232,8 +281,8 @@ window.init_editor = ->
     error = (message) ->
       $pre = $ '<pre class="error"/>'
       $pre.text message
-      context.$result.append $pre
-      context.failure()
+      run_context.$result.append $pre
+      run_context.failure()
 
     lead.define_functions functions, lead.functions
     try
@@ -251,7 +300,7 @@ window.init_editor = ->
         `}}`
         unless result == lead._finished
           if result?._lead_op?
-            result._lead_op.cli_fn.apply(context)
+            result._lead_op.cli_fn.apply(run_context)
           else if lead.is_lead_node result
             lead_string = lead.to_string result
             if $.type(result) == 'function'
@@ -267,9 +316,16 @@ window.init_editor = ->
       catch e
         handle_exception e, compiled
 
-    $entry.append $result
+    add_context()
 
-  if location.search isnt ''
-    run atob decodeURIComponent location.search[1..]
+  context.run = run
+  context
+
+window.init_editor = ->
+  $output = $ '#output'
+  program = if location.search isnt ''
+    atob decodeURIComponent location.search[1..]
   else
-    run 'intro'
+    'intro'
+
+  run_in_available_context program

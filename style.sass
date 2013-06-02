@@ -32,7 +32,13 @@ pre
   font-family: $monospace
   line-height: 1.6em
 
-#code .CodeMirror, .input
+.entry .CodeMirror
+  height: auto
+
+  .CodeMirror-scroll
+    overflow-y: hidden
+    overflow-x: auto
+
   border: 1px solid #D0E0EB
   -webkit-border-radius: 8px
   background: #fff
@@ -64,22 +70,9 @@ pre
       padding: 0
 
 #code .CodeMirror
-  height: auto
-
-  .CodeMirror-scroll
-    overflow-y: hidden
-    overflow-x: auto
 
 #output
   .input
-    position: relative
-    margin-top: 10px
-    margin-bottom: 18px
-    cursor: pointer
-    -webkit-transition: border-color 0.2s, background-color 0.2s
-    &:hover
-      background-color: #efefef
-
     .close::before
       content: '×'
       position: absolute
