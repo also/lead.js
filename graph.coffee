@@ -37,10 +37,13 @@ lead.graph =
         'line'
 
     stack = d3.layout.stack()
+      .offset(params.areaOffset ? 'zero')
       .values((d) -> d.values)
       .x((d) -> d.time)
       .y((d) -> d.value)
-      .out((d, y0) -> d.y0 = y0)
+      .out((d, y0, y) ->
+        d.y0 = y0
+        d.value = y)
 
     line_fn = (d, i) ->
       mode = line_mode d, i
@@ -71,6 +74,8 @@ lead.graph =
 
     if params.areaMode is 'stacked'
       stack targets
+      value_min = null
+      value_max = null
       for {values} in targets
         for {value, y0} in values
           value += y0
