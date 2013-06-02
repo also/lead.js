@@ -82,9 +82,9 @@ CodeMirror.commands.contextHelp = (cm) ->
   cur = cm.getCursor()
   token = cm.getTokenAt(cur)
   if lead.graphite.has_docs token.string
-    run_in_available_context "docs '#{token.string}'"
+    run_in_info_context "docs '#{token.string}'"
   else if lead.ops[token.string]?
-    run_in_available_context "help #{token.string}"
+    run_in_info_context "help #{token.string}"
 
 CodeMirror.commands.suggest = (cm) ->
   CodeMirror.showHint cm, suggest, async: true
@@ -156,6 +156,18 @@ add_context = (code='') ->
 
 run_in_available_context = (code) ->
   add_context(code).run()
+  add_context()
+
+run_in_info_context = (code) ->
+  last = contexts[contexts.length - 1]
+  $target = $ '<div/>'
+  if last
+    last.$entry.before $target
+  else
+    $output.append $target
+  context = create_context $target, code
+  contexts.splice -1, 0, context
+  context.run code
 
 create_context = ($target, code) ->
   $entry = $ '<div class="entry"/>'
@@ -319,7 +331,7 @@ create_context = ($target, code) ->
             lead_string = lead.to_string result
             if $.type(result) == 'function'
               ops.text "#{lead_string} is a Graphite function"
-              run "docs #{result.values[0]}"
+              run_in_info_context "docs #{result.values[0]}"
             else
               ops.text "What do you want to do with #{lead_string}?"
               for f in ['data', 'graph', 'img', 'url']
@@ -330,7 +342,6 @@ create_context = ($target, code) ->
       catch e
         handle_exception e, compiled
 
-    add_context()
 
   context.run = run
   context
