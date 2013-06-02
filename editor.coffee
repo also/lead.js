@@ -116,6 +116,12 @@ CodeMirror.keyMap.lead =
         CodeMirror.Pass
     else
       CodeMirror.Pass
+  'Shift-Up': (cm) ->
+    previous_context = context_at_offset cm.lead_context, -1
+    if previous_context?
+      cm.setValue previous_context.editor.getValue()
+    else
+      CodeMirror.Pass
 
   fallthrough: ['default']
 
