@@ -137,7 +137,7 @@ context_at_offset = (context, offset) ->
 
 get_available_context = ->
   last = contexts[contexts.length - 1]
-  if last?.editor.getValue() is '' and not last.used
+  if last?.is_clean()
     return last
   else
     return null
@@ -182,6 +182,9 @@ create_context = ($target, code) ->
     used: false
     editor: editor
     $entry: $entry
+    is_clean: -> editor.getValue() is '' and not @.used
+
+
   editor.lead_context = context
 
   editor.on 'viewportChange', ->
