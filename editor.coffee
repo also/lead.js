@@ -236,7 +236,12 @@ create_context = ($target, code) ->
     run_context =
       current_options: {}
       default_options: default_options
-      $result: $result
+      output: ($elt) ->
+        $item = $ '<div class="item"/>'
+        if $elt?
+          $item.append $elt
+        $result.append $item
+        $item
       success: ->
         scroll_to_result $entry
         lead._finished
@@ -287,7 +292,7 @@ create_context = ($target, code) ->
     error = (message) ->
       $pre = $ '<pre class="error"/>'
       $pre.text message
-      run_context.$result.append $pre
+      run_context.output $pre
       run_context.failure()
 
     lead.define_functions functions, lead.functions

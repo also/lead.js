@@ -40,24 +40,24 @@ fn 'object', 'Prints an object as JSON', (o) ->
   $pre = $ '<pre>'
   s = JSON.stringify(o, null, '  ') or new String o
   CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
-  @$result.append $pre
+  @output $pre
   @success()
   lead._finished
 
 fn 'text', 'Prints text', (string) ->
   $pre = $ '<p>'
   $pre.text string
-  @$result.append $pre
+  @output $pre
   @success()
 
 fn 'pre', 'Prints preformatted text', (string) ->
   $pre = $ '<pre>'
   $pre.text string
-  @$result.append $pre
+  @output $pre
   @success()
 
 fn 'html', 'Adds some HTML', (html) ->
-  @$result.append html
+  @output html
   @success()
 
 fn 'example', 'Makes a clickable code example', (string, opts) ->
@@ -68,13 +68,13 @@ fn 'example', 'Makes a clickable code example', (string, opts) ->
       @run string
     else
       @set_code string
-  @$result.append $pre
+  @output $pre
   @success()
 
 fn 'source', 'Shows source code with syntax highlighting', (language, string) ->
   $pre = $ '<pre>'
   CodeMirror.runMode string, 'javascript', $pre.get(0)
-  @$result.append $pre
+  @output $pre
   @success()
 
 cmd 'intro', 'Shows the intro message', ->
@@ -85,6 +85,7 @@ cmd 'intro', 'Shows the intro message', ->
   @cli.text 'to see what you can do with Graphite.'
 
 cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
+  $result = @output()
   if name?
     name = name.to_js_string() if name.to_js_string?
     name = name._lead_op?.name if name._lead_op?
@@ -96,7 +97,7 @@ cmd 'docs', 'Shows the documentation for a graphite function or parameter', (nam
         for line in pre.innerText.split '\n'
           if line.indexOf('&target=') == 0
             examples.push line[8..]
-      @$result.append dl.cloneNode true
+      $result.append dl.cloneNode true
       for example in examples
         @cli.example "#{default_target_command} #{JSON.stringify example}", run: false
     else
@@ -110,7 +111,7 @@ cmd 'docs', 'Shows the documentation for a graphite function or parameter', (nam
           href = $(this).attr 'href'
           if href[0] is '#'
             context.run "docs '#{decodeURI href[1..]}'"
-        @$result.append docs
+        $result.append docs
       else
         @cli.text 'Documentation not found'
     @success()
@@ -162,7 +163,7 @@ fn 'url', 'Generates a URL for a Graphite image', (args...) ->
   $a.text url
   $pre = $ '<pre>'
   $pre.append $a
-  @$result.append($pre)
+  @output $pre
   @success()
 
 fn 'img', 'Renders a Graphite graph image', (args...) ->
@@ -173,35 +174,38 @@ fn 'img', 'Renders a Graphite graph image', (args...) ->
   $img.on 'error', (args...) =>
     @cli.text 'Failed to load image'
     @failure()
-  @$result.append($img)
+  @output $img
   lead._finished
 
 fn 'data', 'Fetches Graphite graph data', (args...) ->
+  $result = @output()
   params = args_to_params args, @
   lead.graphite.get_data params,
     success: (response) =>
       for series in response
         $header = $ '<h3>'
         $header.text series.target
-        @$result.append $header
+        $result.append $header
         $table = $ '<table>'
         for [value, timestamp] in series.datapoints
           time = moment(timestamp * 1000)
           $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-        @$result.append $table
+        $result.append $table
         @success()
   lead._finished
 
 fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
+  $result = @output()
   params = args_to_params args, @
   params.format = 'json'
   lead.graphite.get_data params,
     success: (response) =>
-      lead.graph.draw @$result.get(0), response, params
+      lead.graph.draw $result.get(0), response, params
       @success()
   lead._finished
 
 fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
+  $result = @output()
   query_parts = query.split '.'
   lead.graphite.complete query,
     success: (response) =>
@@ -225,7 +229,7 @@ fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
             else
               @run "q(#{JSON.stringify text})"
         $ul.append $li
-      @$result.append $ul
+      $result.append $ul
       @success()
   lead._finished
 
@@ -234,7 +238,7 @@ cmd 'permalink', 'Create a link to the previously run statement', ->
   a.href = location.href
   a.search = '?' + encodeURIComponent btoa @previously_run if @previously_run?
   a.innerText = a.href
-  @$result.append a
+  @output a
   @success()
 
 fn 'websocket', 'Runs commands from a web socket', (url) ->
@@ -252,4 +256,3 @@ fn 'q', 'Escapes a Graphite metric query', (targets...) ->
     unless $.type(t) is 'string'
       throw new TypeError "#{t} is not a string"
   new lead.type.q targets.map(String)...
-
