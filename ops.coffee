@@ -217,6 +217,11 @@ fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
     success: (response) =>
       lead.graph.draw $result.get(0), response, params
       @success()
+    error: (error) =>
+      $pre = $ '<pre class="error"/>'
+      $pre.text error
+      $result.append $pre
+      @failure()
   lead._finished
 
 fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->

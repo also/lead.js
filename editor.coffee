@@ -232,7 +232,7 @@ create_context = ($target, code) ->
   compile_timeout = null
   editor.on 'change', ->
     clearTimeout compile_timeout
-    compile_timeout = setTimeout compile, 200
+    compile_timeout = setTimeout (-> compile editor), 200
 
   scroll_to_result = ($result)->
     top = if $result?
