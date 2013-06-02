@@ -76,7 +76,8 @@ suggest = (cm, showHints, options) ->
         to: CodeMirror.Pos cur.line, cur.ch
 
 CodeMirror.commands.run = (cm) ->
-  setTimeout(cm.lead_context.run, 1)
+  cm.lead_context.run()
+  add_context()
 
 CodeMirror.commands.contextHelp = (cm) ->
   cur = cm.getCursor()
