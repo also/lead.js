@@ -19,6 +19,12 @@ lead.graph =
       .y((d) -> y d.value)
       .defined((d) -> d.value?)
 
+    transform_value =
+      if params.drawNullAsZero
+        (v) -> v ? 0
+      else
+        (v) -> v
+
     time_min = null
     time_max = null
     value_min = null
@@ -27,6 +33,7 @@ lead.graph =
       values = for [value, timestamp] in s.datapoints
         time_min = Math.min timestamp, time_min ? timestamp
         time_max = Math.max timestamp, time_max
+        value = transform_value value
         value_min = Math.min value, value_min ? value if value?
         value_max = Math.max value, value_max
         {value, time: moment(timestamp * 1000)}
@@ -35,24 +42,25 @@ lead.graph =
     time_min = moment(time_min * 1000)
     time_max = moment(time_max * 1000)
     x.domain [time_min.toDate(), time_max.toDate()]
-    y.domain [value_min, value_max]
+    y.domain [params.yMin ? value_min, params.yMax ? value_max]
 
     svg = d3.select(container).append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
+    g = svg
       .append("g")
         .attr("transform", "translate(#{margin.left},#{margin.top})")
 
-    svg.append('g')
+    g.append('g')
       .attr('class', 'x axis')
       .attr('transform', "translate(0, #{height})")
       .call(x_axis)
 
-    svg.append('g')
+    g.append('g')
       .attr('class', 'y axis')
       .call(y_axis)
 
-    target = svg.selectAll('.target')
+    target = g.selectAll('.target')
         .data(targets)
       .enter().append("g")
         .attr('class', 'target')
@@ -60,6 +68,7 @@ lead.graph =
     target.append("path")
         .attr('class', 'line')
         .attr('stroke', (d, i) -> color i)
+        .style('stroke-width', params.lineWidth)
         .attr('d', (d) -> line(d.values))
 
     legend = d3.select(container).append('ul')
@@ -73,3 +82,7 @@ lead.graph =
         .attr('class', 'color')
     legend_target.append('span')
         .text((d) -> d.name)
+  
+    if params.bgcolor?
+      svg.style 'background-color', params.bgcolor
+
