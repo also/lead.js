@@ -6,6 +6,7 @@
 //= require ./lib/codemirror-3.12/show-hint.js
 //= require ./lib/stacktrace-min-0.4.js
 //= require ./core.js
+//= require ./colors.js
 //= require ./functions.js
 //= require ./graph.js
 //= require ./graphite.js

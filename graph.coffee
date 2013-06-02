@@ -12,7 +12,9 @@ lead.graph =
     y = d3.scale.linear().range([height, 0])
     x_axis = d3.svg.axis().scale(x).orient('bottom')
     y_axis = d3.svg.axis().scale(y).orient('left')
-    color = d3.scale.category10()
+
+    colors = params.d3_colors ? lead.colors.d3.category10
+    color = d3.scale.ordinal().range colors
 
     area_opacity = params.areaAlpha ? 1.0
     line_opacity = 1.0
