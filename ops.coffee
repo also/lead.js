@@ -33,8 +33,17 @@ cmd 'help', 'Shows this help', (cmd) ->
   else
     cli_commands = (name for name of lead.ops)
     cli_commands.sort()
-    commands = ("  #{cmd}:\n    #{lead.ops[cmd].doc}" for cmd in cli_commands).join('\n\n')
-    @cli.pre "Check out these awesome built-in functions:\n\n#{commands}"
+    $dl = $ '<dl>'
+    for cmd in cli_commands
+      $tt = $ '<tt/>'
+      $tt.text cmd
+      $dt = $ '<dt/>'
+      $dt.append $tt
+      $dl.append $dt
+      $dd = $ '<dd/>'
+      $dd.text lead.ops[cmd].doc
+      $dl.append $dd
+    @output $dl
 
 fn 'object', 'Prints an object as JSON', (o) ->
   $pre = $ '<pre>'
