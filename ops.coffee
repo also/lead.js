@@ -94,12 +94,12 @@ cmd 'intro', 'Shows the intro message', ->
   @cli.text 'to see what you can do with Graphite.'
 
 cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
-  $result = @output()
   if name?
     name = name.to_js_string() if name.to_js_string?
     name = name._lead_op?.name if name._lead_op?
     dl = lead.graphite.function_docs[name]
     if dl?
+      $result = @output()
       pres = dl.getElementsByTagName 'pre'
       examples = []
       for pre in pres
@@ -112,6 +112,7 @@ cmd 'docs', 'Shows the documentation for a graphite function or parameter', (nam
     name = lead.graphite.parameter_doc_ids[name] ? name
     div = lead.graphite.parameter_docs[name]
     if div?
+      $result = @output()
       docs = $(div.cloneNode true)
       context = @
       docs.find('a').on 'click', (e) ->
