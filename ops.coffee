@@ -109,20 +109,19 @@ cmd 'docs', 'Shows the documentation for a graphite function or parameter', (nam
       $result.append dl.cloneNode true
       for example in examples
         @cli.example "#{default_target_command} #{JSON.stringify example}", run: false
-    else
-      name = lead.graphite.parameter_doc_ids[name] ? name
-      div = lead.graphite.parameter_docs[name]
-      if div?
-        docs = $(div.cloneNode true)
-        context = @
-        docs.find('a').on 'click', (e) ->
-          e.preventDefault()
-          href = $(this).attr 'href'
-          if href[0] is '#'
-            context.run "docs '#{decodeURI href[1..]}'"
-        $result.append docs
-      else
-        @cli.text 'Documentation not found'
+    name = lead.graphite.parameter_doc_ids[name] ? name
+    div = lead.graphite.parameter_docs[name]
+    if div?
+      docs = $(div.cloneNode true)
+      context = @
+      docs.find('a').on 'click', (e) ->
+        e.preventDefault()
+        href = $(this).attr 'href'
+        if href[0] is '#'
+          context.run "docs '#{decodeURI href[1..]}'"
+      $result.append docs
+    unless dl? or div?
+      @cli.text 'Documentation not found'
     @success()
   else
     @cli.html '<h3>Functions</h3>'
