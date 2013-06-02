@@ -197,11 +197,7 @@ create_context = ($target, code) ->
     $entry: $entry
     is_clean: -> editor.getValue() is '' and not @.used
 
-
   editor.lead_context = context
-
-  editor.on 'viewportChange', ->
-    $('html, body').scrollTop $(document).height()
 
   error_marks = []
 
