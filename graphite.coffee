@@ -1,9 +1,9 @@
-base_url = 'http://grodan.biz'
-
 lead.graphite =
+  base_url: null
+
   url: (path, params) ->
     query_string = $.param params, true
-    "#{base_url}/#{path}?#{query_string}"
+    "#{@base_url}/#{path}?#{query_string}"
 
   render_url: (params) -> lead.graphite.url 'render', params
 
