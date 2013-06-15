@@ -195,61 +195,64 @@ fn 'img', 'Renders a Graphite graph image', (args...) ->
 fn 'data', 'Fetches Graphite graph data', (args...) ->
   $result = @output()
   params = args_to_params args, @
-  lead.graphite.get_data params,
-    success: (response) =>
-      for series in response
-        $header = $ '<h3>'
-        $header.text series.target
-        $result.append $header
-        $table = $ '<table>'
-        for [value, timestamp] in series.datapoints
-          time = moment(timestamp * 1000)
-          $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-        $result.append $table
-      @success()
-    error: (error) =>
-      @cli.error error
-      @failure()
+  @async ->
+    lead.graphite.get_data params,
+      success: (response) =>
+        for series in response
+          $header = $ '<h3>'
+          $header.text series.target
+          $result.append $header
+          $table = $ '<table>'
+          for [value, timestamp] in series.datapoints
+            time = moment(timestamp * 1000)
+            $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
+          $result.append $table
+        @success()
+      error: (error) =>
+        @cli.error error
+        @failure()
 
 fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
   $result = @output()
   params = args_to_params args, @
   params.format = 'json'
-  lead.graphite.get_data params,
-    success: (response) =>
-      lead.graph.draw $result.get(0), response, params
-      @success()
-    error: (error) =>
-      @cli.error error
-      @failure()
+  @async ->
+    lead.graphite.get_data params,
+      success: (response) =>
+        lead.graph.draw $result.get(0), response, params
+        @success()
+      error: (error) =>
+        @cli.error error
+        @failure()
 
 fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
   $result = @output()
   query_parts = query.split '.'
-  lead.graphite.complete query,
-    success: (response) =>
-      $ul = $ '<ul class="find-results"/>'
-      for node in response.metrics
-        $li = $ '<li class="cm-string"/>'
-        text = node.path
-        text += '*' if node.is_leaf == '0'
-        node_parts = text.split '.'
-        for part, i in node_parts
-          if i > 0
-            $li.append '.'
-          $span = $ '<span>'
-          $span.addClass 'light' if part == query_parts[i]
-          $span.text part
-          $li.append $span
-        do (text) =>
-          $li.on 'click', =>
-            if node.is_leaf == '0'
-              @run "find #{JSON.stringify text}"
-            else
-              @run "q(#{JSON.stringify text})"
-        $ul.append $li
-      $result.append $ul
-      @success()
+  @async ->
+    lead.graphite.complete query,
+      success: (response) =>
+        $ul = $ '<ul class="find-results"/>'
+        for node in response.metrics
+          $li = $ '<li class="cm-string"/>'
+          text = node.path
+          text += '*' if node.is_leaf == '0'
+          node_parts = text.split '.'
+          for part, i in node_parts
+            if i > 0
+              $li.append '.'
+            $span = $ '<span>'
+            $span.addClass 'light' if part == query_parts[i]
+            $span.text part
+            $li.append $span
+          do (text) =>
+            $li.on 'click', =>
+              if node.is_leaf == '0'
+                @run "find #{JSON.stringify text}"
+              else
+                @run "q(#{JSON.stringify text})"
+          $ul.append $li
+        $result.append $ul
+        @success()
 
 cmd 'permalink', 'Create a link to the previously run statement', (code) ->
   a = document.createElement 'a'
@@ -262,28 +265,29 @@ cmd 'permalink', 'Create a link to the previously run statement', (code) ->
 
 fn 'websocket', 'Runs commands from a web socket', (url) ->
   ws = new WebSocket url
-  ws.onopen = => @cli.text 'Connected'
-  ws.onclose = =>
-    @cli.text 'Closed. Reconnect:'
-    @cli.example "websocket #{JSON.stringify url}"
-  ws.onmessage = (e) => @run e.data
-  ws.onerror = => @cli.error 'Error'
-  @success()
+  @async ->
+    ws.onopen = => @cli.text 'Connected'
+    ws.onclose = =>
+      @cli.text 'Closed. Reconnect:'
+      @cli.example "websocket #{JSON.stringify url}"
+    ws.onmessage = (e) => @run e.data
+    ws.onerror = => @cli.error 'Error'
 
 fn 'load', 'Loads a script from a URL', (url, options={}) ->
-  $.ajax
-    type: 'GET'
-    url: url
-    dataType: 'text'
-    success: (response) =>
-      if options.run
-        @run response
-      else
-        @set_code response
-      @success()
-    error: (response, status_text, error) =>
-      @cli.error status_text
-      @failure()
+  @async ->
+    $.ajax
+      type: 'GET'
+      url: url
+      dataType: 'text'
+      success: (response) =>
+        if options.run
+          @run response
+        else
+          @set_code response
+        @success()
+      error: (response, status_text, error) =>
+        @cli.error status_text
+        @failure()
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets

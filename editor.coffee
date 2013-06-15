@@ -267,6 +267,8 @@ create_context = ($target, code) ->
       hide_input: ->
         # TODO this won't play nice with moving between contexts
         $code.hide()
+      async: (fn) ->
+        fn.call(run_context)
 
     bind_op = (op) ->
       bound = (args...) ->
