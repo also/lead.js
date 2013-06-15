@@ -347,6 +347,9 @@ create_context = ($target, code) ->
 
 window.init_editor = ->
   $output = $ '#output'
+  rc = localStorage.lead_rc
+  if rc?
+    run_in_available_context rc
   program = if location.search isnt ''
     atob decodeURIComponent location.search[1..]
   else
