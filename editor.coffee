@@ -1,4 +1,4 @@
-lead._finished = new Object
+lead._ignore = new Object
 
 default_options = {}
 define_parameters = true
@@ -256,10 +256,10 @@ create_context = ($target, code) ->
         $item
       success: ->
         scroll_to_result $entry
-        lead._finished
+        lead._ignore
       failure: ->
         scroll_to_result $entry
-        lead._finished
+        lead._ignore
       set_code: add_context
       run: run_in_available_context
       clear_output: -> clear_contexts()
@@ -271,7 +271,7 @@ create_context = ($target, code) ->
     bind_op = (op) ->
       bound = (args...) ->
         # if the runction returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context, args)?._lead_cli_value ? lead._finished
+        op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
       bound._lead_op = op
       bound
 
@@ -323,7 +323,7 @@ create_context = ($target, code) ->
         `with (ops) { with (functions) {`
         result = eval compiled
         `}}`
-        unless result == lead._finished
+        unless result == lead._ignore
           if result?._lead_op?
             result._lead_op.cli_fn.apply(run_context)
           else if lead.is_lead_node result
