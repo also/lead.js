@@ -274,6 +274,22 @@ fn 'websocket', 'Runs commands from a web socket', (url) ->
   ws.onerror = => @cli.error 'Error'
   @success()
 
+fn 'load', 'Loads a script from a URL', (url, options={}) ->
+  $.ajax
+    type: 'GET'
+    url: url
+    dataType: 'text'
+    success: (response) =>
+      if options.run
+        @run response
+      else
+        @set_code response
+      @success()
+    error: (response, status_text, error) =>
+      @cli.error status_text
+      @failure()
+  lead._finished
+
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets
     unless $.type(t) is 'string'
