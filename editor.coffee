@@ -269,7 +269,9 @@ create_context = ($target, code) ->
         $code.hide()
 
     bind_op = (op) ->
-      bound = (args...) -> op.fn.apply run_context, args
+      bound = (args...) ->
+        # if the runction returned a value, unwrap it. otherwise, ignore it
+        op.fn.apply(run_context, args)?._lead_cli_value ? lead._finished
       bound._lead_op = op
       bound
 

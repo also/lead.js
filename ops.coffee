@@ -19,6 +19,8 @@ fn = (name, doc, wrapped, cli_fn) ->
 
   lead.ops[name] = result
 
+value = (value) -> _lead_cli_value: value
+
 args_to_params = (args, {default_options, current_options}) ->
   lead.graphite.args_to_params {args, default_options: $.extend({}, default_options, current_options)}
 
@@ -51,7 +53,6 @@ fn 'object', 'Prints an object as JSON', (o) ->
   CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
   @output $pre
   @success()
-  lead._finished
 
 fn 'text', 'Prints text', (string) ->
   $pre = $ '<p>'
@@ -158,18 +159,18 @@ fn 'options', 'Gets or sets options', (options) ->
   if options?
     $.extend @current_options, options
   @success()
-  @current_options
+  value @current_options
 
 cmd 'defaults', 'Gets or sets default options', (options) ->
   if options?
     $.extend @default_options, options
   @success()
-  @default_options
+  value @default_options
 
 fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
   result = args_to_params args, @
   @success()
-  result
+  value result
 
 fn 'url', 'Generates a URL for a Graphite image', (args...) ->
   params = args_to_params args, @
@@ -190,7 +191,6 @@ fn 'img', 'Renders a Graphite graph image', (args...) ->
     @cli.error 'Failed to load image'
     @failure()
   @output $img
-  lead._finished
 
 fn 'data', 'Fetches Graphite graph data', (args...) ->
   $result = @output()
@@ -211,8 +211,6 @@ fn 'data', 'Fetches Graphite graph data', (args...) ->
       @cli.error error
       @failure()
 
-  lead._finished
-
 fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
   $result = @output()
   params = args_to_params args, @
@@ -224,7 +222,6 @@ fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
     error: (error) =>
       @cli.error error
       @failure()
-  lead._finished
 
 fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
   $result = @output()
@@ -253,7 +250,6 @@ fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
         $ul.append $li
       $result.append $ul
       @success()
-  lead._finished
 
 cmd 'permalink', 'Create a link to the previously run statement', (code) ->
   a = document.createElement 'a'
@@ -288,7 +284,6 @@ fn 'load', 'Loads a script from a URL', (url, options={}) ->
     error: (response, status_text, error) =>
       @cli.error status_text
       @failure()
-  lead._finished
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets
