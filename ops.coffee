@@ -69,6 +69,12 @@ fn 'html', 'Adds some HTML', (html) ->
   @output html
   @success()
 
+fn 'error', 'Shows a preformatted error message', (message) ->
+  $pre = $ '<pre class="error"/>'
+  $pre.text message
+  @output $pre
+  @success()
+
 fn 'example', 'Makes a clickable code example', (string, opts) ->
   $pre = $ '<pre class="example">'
   CodeMirror.runMode string, 'coffeescript', $pre.get(0)
@@ -181,7 +187,7 @@ fn 'img', 'Renders a Graphite graph image', (args...) ->
   $img = $ "<img src='#{url}'/>"
   $img.on 'load', => @success()
   $img.on 'error', (args...) =>
-    @cli.text 'Failed to load image'
+    @cli.error 'Failed to load image'
     @failure()
   @output $img
   lead._finished
@@ -202,9 +208,7 @@ fn 'data', 'Fetches Graphite graph data', (args...) ->
         $result.append $table
       @success()
     error: (error) =>
-      $pre = $ '<pre class="error"/>'
-      $pre.text error
-      $result.append $pre
+      @cli.error error
       @failure()
 
   lead._finished
@@ -218,9 +222,7 @@ fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
       lead.graph.draw $result.get(0), response, params
       @success()
     error: (error) =>
-      $pre = $ '<pre class="error"/>'
-      $pre.text error
-      $result.append $pre
+      @cli.error error
       @failure()
   lead._finished
 
@@ -268,7 +270,7 @@ fn 'websocket', 'Runs commands from a web socket', (url) ->
     @cli.text 'Closed. Reconnect:'
     @cli.example "websocket #{JSON.stringify url}"
   ws.onmessage = (e) => @run e.data
-  ws.onerror = => @cli.text 'Error'
+  ws.onerror = => @cli.error 'Error'
   @success()
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->

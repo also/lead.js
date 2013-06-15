@@ -265,7 +265,7 @@ create_context = ($target, code) ->
       clear_output: -> clear_contexts()
       previously_run: previously_run
       hide_input: ->
-        # TODO this won't play nice with miving between contexts
+        # TODO this won't play nice with moving between contexts
         $code.hide()
 
     bind_op = (op) ->
@@ -297,7 +297,7 @@ create_context = ($target, code) ->
     functions = {}
 
     handle_exception = (e, compiled) ->
-      error printStackTrace({e}).join('\n')
+      ops.error printStackTrace({e}).join('\n')
       ops.text 'Compiled JavaScript:'
       ops.source 'javascript', compiled
 
