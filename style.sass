@@ -32,7 +32,7 @@ pre
   font-family: $monospace
   line-height: 1.6em
 
-.entry .CodeMirror
+.input .CodeMirror
   height: auto
 
   .CodeMirror-scroll
@@ -71,7 +71,10 @@ pre
 
 #code .CodeMirror
 
-#output
+#document
+  .cell
+    margin-bottom: 20px
+
   .input
     .close::before
       content: '×'
@@ -80,8 +83,9 @@ pre
       font-weight: bold
       color: #ddd
 
-  .result
-    margin: 20px 16px
+  .output
+    margin-left: 16px
+    margin-right: 16px
 
     .cm-comment
       color: #aaa

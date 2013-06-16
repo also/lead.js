@@ -3,7 +3,7 @@ lead._ignore = new Object
 default_options = {}
 define_parameters = true
 
-$output = null
+$document = null
 
 previously_run = null
 lead.graphite.load_docs()
@@ -76,7 +76,7 @@ suggest = (cm, showHints, options) ->
         to: CodeMirror.Pos cur.line, cur.ch
 
 CodeMirror.commands.run = (cm) ->
-  cm.lead_context.run()
+  cm.lead_cell.run()
   add_context()
 
 CodeMirror.commands.contextHelp = (cm) ->
@@ -100,7 +100,7 @@ CodeMirror.keyMap.lead =
   Up: (cm) ->
     cur = cm.getCursor()
     if cur.line is 0
-      previous_context = context_at_offset cm.lead_context, -1
+      previous_context = context_at_offset cm.lead_cell, -1
       if previous_context?
         previous_context.editor.focus()
       else
@@ -110,7 +110,7 @@ CodeMirror.keyMap.lead =
   Down: (cm) ->
     cur = cm.getCursor()
     if cur.line is cm.lineCount() - 1
-      next_context = context_at_offset cm.lead_context, 1
+      next_context = context_at_offset cm.lead_cell, 1
       if next_context?
         next_context.editor.focus()
       else
@@ -118,7 +118,7 @@ CodeMirror.keyMap.lead =
     else
       CodeMirror.Pass
   'Shift-Up': (cm) ->
-    previous_context = context_at_offset cm.lead_context, -1
+    previous_context = context_at_offset cm.lead_cell, -1
     if previous_context?
       cm.setValue previous_context.editor.getValue()
     else
@@ -129,7 +129,7 @@ CodeMirror.keyMap.lead =
 contexts = []
 
 clear_contexts = ->
-  $output.empty()
+  $document.empty()
   contexts = []
 
 context_at_offset = (context, offset) ->
@@ -148,7 +148,7 @@ add_context = (code='') ->
   if context?
     context.editor.setValue code
   else
-    context = create_context $output, code
+    context = create_input_cell $document, code
     contexts.push context
   {editor} = context
   editor.focus()
@@ -159,25 +159,24 @@ run_in_available_context = (code) ->
   add_context(code).run()
   add_context()
 
+# Add an input cell above the last input cell
 run_in_info_context = (code) ->
   last = contexts[contexts.length - 1]
   $target = $ '<div/>'
   if last
-    last.$entry.before $target
+    last.$el.before $target
   else
-    $output.append $target
-  context = create_context $target, code
+    $document.append $target
+  context = create_input_cell $target, code
   contexts.splice -1, 0, context
   context.run code
 
-create_context = ($target, code) ->
-  $entry = $ '<div class="entry"/>'
+create_input_cell = ($target, code) ->
+  $el = $ '<div class="cell input"/>'
   $code = $ '<div class="code"/>'
-  $entry.append $code
-  $result = $ '<div class="result">'
-  $entry.append $result
+  $el.append $code
 
-  $target.append $entry
+  $target.append $el
 
   editor = CodeMirror $code.get(0),
     value: code
@@ -194,10 +193,14 @@ create_context = ($target, code) ->
   context =
     used: false
     editor: editor
-    $entry: $entry
+    $el: $el
+    hide: -> $el.hide()
     is_clean: -> editor.getValue() is '' and not @.used
+    run: ->
+      context.used = true
+      run context, editor.getValue()
 
-  editor.lead_context = context
+  editor.lead_cell = context
 
   error_marks = []
 
@@ -230,6 +233,18 @@ create_context = ($target, code) ->
     clearTimeout compile_timeout
     compile_timeout = setTimeout (-> compile editor), 200
 
+  context
+
+run = (input_cell, string) ->
+  $el = $ '<div class="cell output"/>'
+
+  if input_cell?
+    input_cell.$el.after $el
+    $top = input_cell.$el
+  else
+    $document.append $el
+    $top = $el
+
   scroll_to_result = ($result)->
     top = if $result?
       $result.offset().top
@@ -240,115 +255,109 @@ create_context = ($target, code) ->
       $('html, body').scrollTop top
     , 10
 
-  run = ->
-    context.used = true
-    $result.empty()
-    string = editor.getValue()
+  run_context =
+    current_options: {}
+    default_options: default_options
+    output: ($document) ->
+      $item = $ '<div class="item"/>'
+      if $document?
+        $item.append $document
+      $el.append $item
+      $item
+    success: ->
+      scroll_to_result $top
+      lead._ignore
+    failure: ->
+      scroll_to_result $top
+      lead._ignore
+    set_code: add_context
+    run: run_in_available_context
+    clear_output: -> clear_contexts()
+    previously_run: previously_run
+    hide_input: ->
+      # TODO this won't play nice with moving between contexts
+      if input_cell?
+        input_cell.hide()
+    async: (fn) ->
+      fn.call(run_context)
 
-    run_context =
-      current_options: {}
-      default_options: default_options
-      output: ($elt) ->
-        $item = $ '<div class="item"/>'
-        if $elt?
-          $item.append $elt
-        $result.append $item
-        $item
-      success: ->
-        scroll_to_result $entry
-        lead._ignore
-      failure: ->
-        scroll_to_result $entry
-        lead._ignore
-      set_code: add_context
-      run: run_in_available_context
-      clear_output: -> clear_contexts()
-      previously_run: previously_run
-      hide_input: ->
-        # TODO this won't play nice with moving between contexts
-        $code.hide()
-      async: (fn) ->
-        fn.call(run_context)
+  bind_op = (op) ->
+    bound = (args...) ->
+      # if the runction returned a value, unwrap it. otherwise, ignore it
+      op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
+    bound._lead_op = op
+    bound
 
-    bind_op = (op) ->
-      bound = (args...) ->
-        # if the runction returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
-      bound._lead_op = op
-      bound
+  ops = {}
+  for k, op of lead.ops
+    ops[k] = bind_op op
 
-    ops = {}
-    for k, op of lead.ops
-      ops[k] = bind_op op
-
-    if define_parameters
-      for k of lead.graphite.parameter_docs
-        do (k) ->
-          fn = (value) ->
-            if value?
-              @current_options[k] = value
-            else
-              @current_options[k] ? @default_options[k]
-
-          ops[k] = bind_op
-            name: k
-            fn: fn
-            cli_fn: ->
-              @cli.object @cli[k]()
-    
-    run_context.cli = ops
-
-    functions = {}
-
-    handle_exception = (e, compiled) ->
-      ops.error printStackTrace({e}).join('\n')
-      ops.text 'Compiled JavaScript:'
-      ops.source 'javascript', compiled
-
-    error = (message) ->
-      $pre = $ '<pre class="error"/>'
-      $pre.text message
-      run_context.output $pre
-      run_context.failure()
-
-    lead.define_functions functions, lead.functions
-    try
-      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-    catch e
-      if e instanceof SyntaxError
-        error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
-      else
-        handle_exception e, compiled
-
-    if compiled?
-      try
-        `with (ops) { with (functions) {`
-        result = eval compiled
-        `}}`
-        unless result == lead._ignore
-          if result?._lead_op?
-            result._lead_op.cli_fn.apply(run_context)
-          else if lead.is_lead_node result
-            lead_string = lead.to_string result
-            if $.type(result) == 'function'
-              ops.text "#{lead_string} is a Graphite function"
-              run_in_info_context "docs #{result.values[0]}"
-            else
-              ops.text "What do you want to do with #{lead_string}?"
-              for f in ['data', 'graph', 'img', 'url']
-                ops.example "#{f} #{result.to_js_string()}"
+  if define_parameters
+    for k of lead.graphite.parameter_docs
+      do (k) ->
+        fn = (value) ->
+          if value?
+            @current_options[k] = value
           else
-            ops.object result
-        previously_run = string
-      catch e
-        handle_exception e, compiled
+            @current_options[k] ? @default_options[k]
+
+        ops[k] = bind_op
+          name: k
+          fn: fn
+          cli_fn: ->
+            @cli.object @cli[k]()
+
+  run_context.cli = ops
+
+  functions = {}
+
+  handle_exception = (e, compiled) ->
+    ops.error printStackTrace({e}).join('\n')
+    ops.text 'Compiled JavaScript:'
+    ops.source 'javascript', compiled
+
+  error = (message) ->
+    $pre = $ '<pre class="error"/>'
+    $pre.text message
+    run_context.output $pre
+    run_context.failure()
+
+  lead.define_functions functions, lead.functions
+  try
+    compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
+  catch e
+    if e instanceof SyntaxError
+      error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+    else
+      handle_exception e, compiled
+
+  if compiled?
+    try
+      `with (ops) { with (functions) {`
+      result = eval compiled
+      `}}`
+      unless result == lead._ignore
+        if result?._lead_op?
+          result._lead_op.cli_fn.apply(run_context)
+        else if lead.is_lead_node result
+          lead_string = lead.to_string result
+          if $.type(result) == 'function'
+            ops.text "#{lead_string} is a Graphite function"
+            run_in_info_context "docs #{result.values[0]}"
+          else
+            ops.text "What do you want to do with #{lead_string}?"
+            for f in ['data', 'graph', 'img', 'url']
+              ops.example "#{f} #{result.to_js_string()}"
+        else
+          ops.object result
+      previously_run = string
+    catch e
+      handle_exception e, compiled
 
 
-  context.run = run
-  context
 
 window.init_editor = ->
-  $output = $ '#output'
+  $document = $ '#document'
   rc = localStorage.lead_rc
   if rc?
     run_in_available_context rc
