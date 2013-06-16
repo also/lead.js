@@ -120,6 +120,7 @@ CodeMirror.keyMap.lead =
     previous_context = context_at_offset cm.lead_cell, -1
     if previous_context?
       cm.setValue previous_context.editor.getValue()
+      cm.setCursor(line: cm.lineCount() - 1)
     else
       CodeMirror.Pass
 
