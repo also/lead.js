@@ -398,18 +398,21 @@ handle_file_list = (files) ->
 
 load_file = (file) ->
   if file.type.indexOf('image') < 0
-    console.log file.type
     reader = new FileReader
     reader.onload = (e) ->
-      try
-        notebook = JSON.parse e.target.result
-      catch e
-        console.log e
-        return
-      version = notebook.lead_js_version
-      unless version?
-        console.log "#{file.name} isn't a lead.js notebook"
-      import_notebook notebook
+      [_..., extension] = file.name.split '.'
+      if extension is 'coffee'
+        add_context e.target.result
+      else
+        try
+          notebook = JSON.parse e.target.result
+        catch e
+          console.log e
+          return
+        version = notebook.lead_js_version
+        unless version?
+          console.log "#{file.name} isn't a lead.js notebook"
+        import_notebook notebook
     reader.readAsText file
 
 window.init_editor = ->
