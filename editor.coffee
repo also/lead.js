@@ -83,9 +83,9 @@ CodeMirror.commands.contextHelp = (cm) ->
   cur = cm.getCursor()
   token = cm.getTokenAt(cur)
   if lead.graphite.has_docs token.string
-    run_in_info_context "docs '#{token.string}'"
+    run_in_info_context cm.lead_cell, "docs '#{token.string}'"
   else if lead.ops[token.string]?
-    run_in_info_context "help #{token.string}"
+    run_in_info_context cm.lead_cell, "help #{token.string}"
 
 CodeMirror.commands.suggest = (cm) ->
   CodeMirror.showHint cm, suggest, async: true
@@ -144,39 +144,42 @@ get_available_context = ->
     return null
 
 add_context = (code='') ->
-  context = get_available_context()
-  if context?
-    context.editor.setValue code
+  cell = get_available_context()
+  if cell?
+    cell.editor.setValue code
   else
-    context = create_input_cell $document, code
-    contexts.push context
-  {editor} = context
+    cell = create_input_cell code
+    $document.append cell.$el
+    cell.rendered()
+    contexts.push cell
+
+  {editor} = cell
   editor.focus()
   editor.setCursor(line: editor.lineCount() - 1)
-  context
+  cell
 
 run_in_available_context = (code) ->
   add_context(code).run()
   add_context()
 
 # Add an input cell above the last input cell
-run_in_info_context = (code) ->
+run_in_info_context = (current_cell, code) ->
   last = contexts[contexts.length - 1]
-  $target = $ '<div/>'
-  if last
-    last.$el.before $target
+  cell = create_input_cell code
+  if current_cell?
+    current_cell.$el.before cell.$el
+    index = contexts.indexOf cell
   else
-    $document.append $target
-  context = create_input_cell $target, code
-  contexts.splice -1, 0, context
-  context.run code
+    $document.append cell.$el
+    index = -1
+  cell.rendered()
+  contexts.splice index, 0, cell
+  cell.run code
 
-create_input_cell = ($target, code) ->
+create_input_cell = (code) ->
   $el = $ '<div class="cell input"/>'
   $code = $ '<div class="code"/>'
   $el.append $code
-
-  $target.append $el
 
   editor = CodeMirror $code.get(0),
     value: code
@@ -193,6 +196,7 @@ create_input_cell = ($target, code) ->
   context =
     used: false
     editor: editor
+    rendered: -> editor.refresh()
     $el: $el
     hide: -> $el.hide()
     is_clean: -> editor.getValue() is '' and not @.used
@@ -258,10 +262,10 @@ run = (input_cell, string) ->
   run_context =
     current_options: {}
     default_options: default_options
-    output: ($document) ->
+    output: (output) ->
       $item = $ '<div class="item"/>'
-      if $document?
-        $item.append $document
+      if output?
+        $item.append output
       $el.append $item
       $item
     success: ->
@@ -343,7 +347,7 @@ run = (input_cell, string) ->
           lead_string = lead.to_string result
           if $.type(result) == 'function'
             ops.text "#{lead_string} is a Graphite function"
-            run_in_info_context "docs #{result.values[0]}"
+            run_in_info_context input_cell, "docs #{result.values[0]}"
           else
             ops.text "What do you want to do with #{lead_string}?"
             for f in ['data', 'graph', 'img', 'url']
