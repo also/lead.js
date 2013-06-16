@@ -19,7 +19,7 @@ fn = (name, doc, wrapped, cli_fn) ->
 
   lead.ops[name] = result
 
-value = (value) -> _lead_cli_value: value
+lead.value = (value) -> _lead_cli_value: value
 
 args_to_params = (args, {default_options, current_options}) ->
   lead.graphite.args_to_params {args, default_options: $.extend({}, default_options, current_options)}
@@ -159,18 +159,18 @@ fn 'options', 'Gets or sets options', (options) ->
   if options?
     $.extend @current_options, options
   @success()
-  value @current_options
+  lead.value @current_options
 
 cmd 'defaults', 'Gets or sets default options', (options) ->
   if options?
     $.extend @default_options, options
   @success()
-  value @default_options
+  lead.value @default_options
 
 fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
   result = args_to_params args, @
   @success()
-  value result
+  lead.value result
 
 fn 'url', 'Generates a URL for a Graphite image', (args...) ->
   params = args_to_params args, @
@@ -293,4 +293,4 @@ fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets
     unless $.type(t) is 'string'
       throw new TypeError "#{t} is not a string"
-  value new lead.type.q targets.map(String)...
+  lead.value new lead.type.q targets.map(String)...
