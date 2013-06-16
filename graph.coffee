@@ -91,6 +91,9 @@ lead.graph =
     time_min = moment(time_min * 1000)
     time_max = moment(time_max * 1000)
     x.domain [time_min.toDate(), time_max.toDate()]
+    if value_min == value_max
+      value_min = Math.round(value_min) - 1
+      value_max = Math.round(value_max) + 1
     y.domain [params.yMin ? value_min, params.yMax ? value_max]
 
     svg = d3.select(container).append('svg')
