@@ -259,15 +259,18 @@ run = (input_cell, string) ->
       $('html, body').scrollTop top
     , 10
 
-  run_context =
-    current_options: {}
-    default_options: default_options
-    output: (output) ->
+  output = ($target) ->
+    (output) ->
       $item = $ '<div class="item"/>'
       if output?
         $item.append output
-      $el.append $item
+      $target.append $item
       $item
+
+  run_context =
+    current_options: {}
+    default_options: default_options
+    output: output $el
     success: ->
       scroll_to_result $top
       lead._ignore
@@ -281,7 +284,12 @@ run = (input_cell, string) ->
     hide_input: -> remove_cell input_cell
     value: (value) -> _lead_cli_value: value
     async: (fn) ->
-      fn.call(run_context)
+      $item = $ '<div class="async"/>'
+      @output $item
+
+      nested_context = $.extend {}, run_context,
+        output: output $item
+      fn.call(nested_context)
 
   bind_op = (op) ->
     bound = (args...) ->

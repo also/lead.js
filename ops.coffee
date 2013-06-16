@@ -191,9 +191,9 @@ fn 'img', 'Renders a Graphite graph image', (args...) ->
   @output $img
 
 fn 'data', 'Fetches Graphite graph data', (args...) ->
-  $result = @output()
   params = args_to_params args, @
   @async ->
+    $result = @output()
     lead.graphite.get_data params,
       success: (response) =>
         for series in response
@@ -211,10 +211,10 @@ fn 'data', 'Fetches Graphite graph data', (args...) ->
         @failure()
 
 fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
-  $result = @output()
   params = args_to_params args, @
   params.format = 'json'
   @async ->
+    $result = @output()
     lead.graphite.get_data params,
       success: (response) =>
         lead.graph.draw $result.get(0), response, params
@@ -224,9 +224,9 @@ fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
         @failure()
 
 fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
-  $result = @output()
   query_parts = query.split '.'
   @async ->
+    $result = @output()
     lead.graphite.complete query,
       success: (response) =>
         $ul = $ '<ul class="find-results"/>'
