@@ -99,7 +99,7 @@ CodeMirror.keyMap.lead =
   Up: (cm) ->
     cur = cm.getCursor()
     if cur.line is 0
-      previous_context = context_at_offset cm.lead_cell, -1
+      previous_context = input_cell_at_offset cm.lead_cell, -1
       if previous_context?
         previous_context.editor.focus()
       else
@@ -109,7 +109,7 @@ CodeMirror.keyMap.lead =
   Down: (cm) ->
     cur = cm.getCursor()
     if cur.line is cm.lineCount() - 1
-      next_context = context_at_offset cm.lead_cell, 1
+      next_context = input_cell_at_offset cm.lead_cell, 1
       if next_context?
         next_context.editor.focus()
       else
@@ -117,7 +117,7 @@ CodeMirror.keyMap.lead =
     else
       CodeMirror.Pass
   'Shift-Up': (cm) ->
-    previous_context = context_at_offset cm.lead_cell, -1
+    previous_context = input_cell_at_offset cm.lead_cell, -1
     if previous_context?
       cm.setValue previous_context.editor.getValue()
       cm.setCursor(line: cm.lineCount() - 1)
@@ -132,11 +132,11 @@ clear_contexts = ->
   $document.empty()
   contexts = []
 
-context_at_offset = (context, offset) ->
-  index = contexts.indexOf context
+input_cell_at_offset = (cell, offset) ->
+  index = contexts.indexOf cell
   contexts[index + offset]
 
-get_available_context = ->
+get_available_input_cell = ->
   last = contexts[contexts.length - 1]
   if last?.is_clean()
     return last
@@ -149,7 +149,7 @@ remove_cell = (cell) ->
   contexts.splice index, 1
 
 add_context = (code='') ->
-  cell = get_available_context()
+  cell = get_available_input_cell()
   if cell?
     cell.editor.setValue code
   else
@@ -281,7 +281,7 @@ run = (input_cell, string) ->
     set_code: add_context
     run: run_in_available_context
     clear_output: -> clear_contexts()
-    previously_run: -> context_at_offset(input_cell, -1).editor.getValue()
+    previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
     hide_input: -> remove_cell input_cell
     value: (value) -> _lead_cli_value: value
     async: (fn) ->
