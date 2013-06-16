@@ -15,7 +15,16 @@ lead.graphite =
       success: options.success
       error: (response) ->
         html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
-        msg = $(html[0].getElementsByTagName 'pre').text()
+        pre = $(html[0].getElementsByTagName 'pre')
+        if pre.length > 0
+          # graphite style error message in a pre
+          msg = pre.text()
+        else
+          for n in html
+            pre = n.querySelectorAll 'pre.exception_value'
+            if pre.length > 0
+              msg = pre[0].innerText
+              break
         options.error msg
 
   complete: (query, options) ->
