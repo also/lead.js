@@ -5,7 +5,6 @@ define_parameters = true
 
 $document = null
 
-previously_run = null
 lead.graphite.load_docs()
 
 token_after = (cm, token, line) ->
@@ -274,7 +273,7 @@ run = (input_cell, string) ->
     set_code: add_context
     run: run_in_available_context
     clear_output: -> clear_contexts()
-    previously_run: previously_run
+    previously_run: -> context_at_offset(input_cell, -1).editor.getValue()
     hide_input: ->
       # TODO this won't play nice with moving between contexts
       if input_cell?
@@ -351,7 +350,6 @@ run = (input_cell, string) ->
               ops.example "#{f} #{result.to_js_string()}"
         else
           ops.object result
-      previously_run = string
     catch e
       handle_exception e, compiled
 

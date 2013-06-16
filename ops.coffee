@@ -254,10 +254,10 @@ fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
         $result.append $ul
         @success()
 
-cmd 'permalink', 'Create a link to the previously run statement', (code) ->
+cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
   a = document.createElement 'a'
   a.href = location.href
-  code ?= @previously_run
+  code ?= @previously_run()
   a.search = '?' + encodeURIComponent btoa code
   a.innerText = a.href
   @output a
