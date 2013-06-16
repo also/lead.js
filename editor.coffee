@@ -142,6 +142,11 @@ get_available_context = ->
   else
     return null
 
+remove_cell = (cell) ->
+  index = contexts.indexOf cell
+  cell.$el.remove()
+  contexts.splice index, 1
+
 add_context = (code='') ->
   cell = get_available_context()
   if cell?
@@ -274,9 +279,7 @@ run = (input_cell, string) ->
     clear_output: -> clear_contexts()
     previously_run: -> context_at_offset(input_cell, -1).editor.getValue()
     hide_input: ->
-      # TODO this won't play nice with moving between contexts
-      if input_cell?
-        input_cell.hide()
+      remove_cell input_cell
     async: (fn) ->
       fn.call(run_context)
 
