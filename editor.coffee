@@ -202,7 +202,8 @@ create_input_cell = (code) ->
     is_clean: -> editor.getValue() is '' and not @.used
     run: ->
       context.used = true
-      run context, editor.getValue()
+      context.output_cell?.$el.remove()
+      context.output_cell = run context, editor.getValue()
 
   editor.lead_cell = context
 
@@ -242,12 +243,8 @@ create_input_cell = (code) ->
 run = (input_cell, string) ->
   $el = $ '<div class="cell output"/>'
 
-  if input_cell?
-    input_cell.$el.after $el
-    $top = input_cell.$el
-  else
-    $document.append $el
-    $top = $el
+  input_cell.$el.after $el
+  $top = input_cell.$el
 
   scroll_to_result = ($result)->
     top = if $result?
@@ -358,7 +355,7 @@ run = (input_cell, string) ->
     catch e
       handle_exception e, compiled
 
-
+  $el: $el
 
 window.init_editor = ->
   $document = $ '#document'
