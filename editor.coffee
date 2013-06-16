@@ -163,7 +163,6 @@ run_in_available_context = (code) ->
 
 # Add an input cell above the last input cell
 run_in_info_context = (current_cell, code) ->
-  last = contexts[contexts.length - 1]
   cell = create_input_cell code
   if current_cell?
     current_cell.$el.before cell.$el
