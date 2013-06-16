@@ -90,6 +90,20 @@ pre
     margin-left: 16px
     margin-right: 16px
 
+    .async
+      &::after
+        content: attr(data-async-status)
+        display: block
+        padding: 6px 8px
+        margin-top: 3px
+        -webkit-border-bottom-right-radius: 6px
+        -webkit-border-bottom-left-radius: 6px
+        background-color: #eee
+        border-bottom: 1px solid #ddd
+        font-size: 0.8em
+        color: #bbb
+
+
     .cm-comment
       color: #aaa
 

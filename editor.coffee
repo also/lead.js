@@ -256,6 +256,35 @@ create_input_cell = (code) ->
 
   context
 
+bind_cli = (run_context) ->
+  bind_op = (op) ->
+    bound = (args...) ->
+      # if the runction returned a value, unwrap it. otherwise, ignore it
+      op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
+    bound._lead_op = op
+    bound
+
+  ops = {}
+  for k, op of lead.ops
+    ops[k] = bind_op op
+
+  if define_parameters
+    for k of lead.graphite.parameter_docs
+      do (k) ->
+        fn = (value) ->
+          if value?
+            @current_options[k] = value
+          else
+            @value @current_options[k] ? @default_options[k]
+
+        ops[k] = bind_op
+          name: k
+          fn: fn
+          cli_fn: ->
+            @cli.object @cli[k]()
+  ops
+
+
 run = (input_cell, string) ->
   $el = $ '<div class="cell output"/>'
 
@@ -309,39 +338,30 @@ run = (input_cell, string) ->
 
     async: (fn) ->
       $item = $ '<div class="async"/>'
+      $item.attr 'data-async-status', 'loading'
       @output $item
+
+      start_time = new Date
+
+      duration = ->
+        ms = new Date - start_time
+        if ms >= 1000
+          s = (ms / 1000).toFixed 1
+          "#{s} s"
+        else
+          "#{ms} ms"
 
       nested_context = $.extend {}, run_context,
         output: output $item
+        success: ->
+          $item.attr 'data-async-status', "loaded in #{duration()}"
+        failure: ->
+          $item.attr 'data-async-status', "failed in #{duration()}"
+      nested_context.cli = bind_cli nested_context
       fn.call(nested_context)
 
-  bind_op = (op) ->
-    bound = (args...) ->
-      # if the runction returned a value, unwrap it. otherwise, ignore it
-      op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
-    bound._lead_op = op
-    bound
 
-  ops = {}
-  for k, op of lead.ops
-    ops[k] = bind_op op
-
-  if define_parameters
-    for k of lead.graphite.parameter_docs
-      do (k) ->
-        fn = (value) ->
-          if value?
-            @current_options[k] = value
-          else
-            @value @current_options[k] ? @default_options[k]
-
-        ops[k] = bind_op
-          name: k
-          fn: fn
-          cli_fn: ->
-            @cli.object @cli[k]()
-
-  run_context.cli = ops
+  run_context.cli = ops = bind_cli run_context
 
   functions = {}
 

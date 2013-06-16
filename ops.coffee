@@ -183,12 +183,13 @@ fn 'url', 'Generates a URL for a Graphite image', (args...) ->
 fn 'img', 'Renders a Graphite graph image', (args...) ->
   params = args_to_params args, @
   url = lead.graphite.render_url params
-  $img = $ "<img src='#{url}'/>"
-  $img.on 'load', => @success()
-  $img.on 'error', (args...) =>
-    @cli.error 'Failed to load image'
-    @failure()
-  @output $img
+  @async ->
+    $img = $ "<img src='#{url}'/>"
+    $img.on 'load', => @success()
+    $img.on 'error', (args...) =>
+      @cli.error 'Failed to load image'
+      @failure()
+    @output $img
 
 fn 'data', 'Fetches Graphite graph data', (args...) ->
   params = args_to_params args, @
