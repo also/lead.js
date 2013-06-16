@@ -278,8 +278,8 @@ run = (input_cell, string) ->
     run: run_in_available_context
     clear_output: -> clear_contexts()
     previously_run: -> context_at_offset(input_cell, -1).editor.getValue()
-    hide_input: ->
-      remove_cell input_cell
+    hide_input: -> remove_cell input_cell
+    value: (value) -> _lead_cli_value: value
     async: (fn) ->
       fn.call(run_context)
 
@@ -301,7 +301,7 @@ run = (input_cell, string) ->
           if value?
             @current_options[k] = value
           else
-            @current_options[k] ? @default_options[k]
+            @value @current_options[k] ? @default_options[k]
 
         ops[k] = bind_op
           name: k
