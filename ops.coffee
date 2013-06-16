@@ -271,21 +271,27 @@ fn 'websocket', 'Runs commands from a web socket', (url) ->
     ws.onmessage = (e) => @run e.data
     ws.onerror = => @cli.error 'Error'
 
-fn 'load', 'Loads a script from a URL', (url, options={}) ->
-  @async ->
-    $.ajax
-      type: 'GET'
-      url: url
-      dataType: 'text'
-      success: (response) =>
-        if options.run
-          @run response
-        else
-          @set_code response
-        @success()
-      error: (response, status_text, error) =>
-        @cli.error status_text
-        @failure()
+cmd 'save', 'Saves the current notebook to a file', ->
+  @save()
+
+cmd 'load', 'Loads a script from a URL', (url, options={}) ->
+  if arguments.length is 0
+    @open_file()
+  else
+    @async ->
+      $.ajax
+        type: 'GET'
+        url: url
+        dataType: 'text'
+        success: (response) =>
+          if options.run
+            @run response
+          else
+            @set_code response
+          @success()
+        error: (response, status_text, error) =>
+          @cli.error status_text
+          @failure()
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets

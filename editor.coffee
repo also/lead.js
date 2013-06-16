@@ -4,6 +4,7 @@ default_options = {}
 define_parameters = true
 
 $document = null
+$file_picker = null
 
 lead.graphite.load_docs()
 
@@ -127,6 +128,17 @@ CodeMirror.keyMap.lead =
   fallthrough: ['default']
 
 contexts = []
+
+export_notebook = ->
+  lead_js_version: 0
+  cells: contexts.map (cell) ->
+    type: 'input'
+    value: cell.editor.getValue()
+
+import_notebook = (notebook) ->
+  for cell in notebook.cells
+    if cell.type is 'input'
+      add_context cell.value
 
 clear_contexts = ->
   $document.empty()
@@ -284,6 +296,17 @@ run = (input_cell, string) ->
     previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
     hide_input: -> remove_cell input_cell
     value: (value) -> _lead_cli_value: value
+    open_file: open_file_picker
+    save: ->
+      text = JSON.stringify export_notebook()
+      blob = new Blob [text], type: 'application/x-lead-notebook'
+      link = document.createElement 'a'
+      link.innerHTML = 'Download Notebook'
+      link.href = window.webkitURL.createObjectURL blob
+      link.download = 'notebook.lnb'
+      link.click()
+      @output link
+
     async: (fn) ->
       $item = $ '<div class="async"/>'
       @output $item
@@ -366,8 +389,39 @@ run = (input_cell, string) ->
 
   $el: $el
 
+open_file_picker = ->
+  $file_picker.trigger 'click'
+
+handle_file_list = (files) ->
+  for file in files
+    load_file file
+
+load_file = (file) ->
+  if file.type.indexOf('image') < 0
+    console.log file.type
+    reader = new FileReader
+    reader.onload = (e) ->
+      try
+        notebook = JSON.parse e.target.result
+      catch e
+        console.log e
+        return
+      version = notebook.lead_js_version
+      unless version?
+        console.log "#{file.name} isn't a lead.js notebook"
+      import_notebook notebook
+    reader.readAsText file
+
 window.init_editor = ->
   $document = $ '#document'
+  $file_picker = $ '#file'
+  $file_picker.on 'change', (e) ->
+    files = e.target.files
+    if files.length > 0
+      handle_file_list files
+      # reset the file picker so change is triggered again
+      $file_picker.val ''
+
   rc = localStorage.lead_rc
   if rc?
     run_in_available_context rc

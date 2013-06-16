@@ -1,4 +1,4 @@
-window.lead = {}
+window.lead = version: 1
 
 lead_type = ->
 
