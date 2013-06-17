@@ -13,4 +13,5 @@
 //= require ./graphite.js
 //= require ./ops.js
 //= require ./editor.js
+//= require ./github.js
 //= require ./lib/d3.js

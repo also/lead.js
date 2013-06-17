@@ -316,6 +316,7 @@ cmd 'load', 'Loads a script from a URL', (url, options={}) ->
           @failure()
 
 cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
+  gist = lead.github.to_gist_url gist
   @async ->
     $.ajax
       type: 'GET'

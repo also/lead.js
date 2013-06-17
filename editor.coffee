@@ -488,9 +488,16 @@ window.init_editor = ->
   rc = localStorage.lead_rc
   if rc?
     run_in_available_context rc
-  program = if location.search isnt ''
-    atob decodeURIComponent location.search[1..]
-  else
-    'intro'
 
-  run_in_available_context program
+  uri = URI location.href
+  fragment = uri.fragment()
+  if fragment.length > 0 and fragment[0] == '/'
+    id = fragment[1..]
+    run_in_available_context "gist #{JSON.stringify id}, run: true; quiet"
+  else
+    program = if location.search isnt ''
+      atob decodeURIComponent location.search[1..]
+    else
+      'intro'
+
+    run_in_available_context program
