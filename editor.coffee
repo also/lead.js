@@ -127,6 +127,9 @@ lead_editor_commands =
     else
       CodeMirror.Pass
 
+  save: (cm) ->
+    run_in_info_context cm.lead_cell, 'save'
+
 lead_key_map =
   Tab: (cm) ->
     if cm.somethingSelected()
