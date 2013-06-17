@@ -23,6 +23,17 @@ lead.github =
 
   default: 'github.com'
 
+  save_gist: (gist, options={}) ->
+    github_host = options.github ? lead.github.default
+    github = lead.github.githubs[github_host]
+    $.ajax
+      url: "#{github.api_base_url}/gists?access_token=#{github.access_token}"
+      type: 'post'
+      contentType: 'application/json'
+      data: JSON.stringify gist
+      success: options.success
+      error: options.error
+
   to_gist_url: (gist) ->
     build_url = (github, id) ->
       url = github.api_base_url + "/gists/#{id}"

@@ -6,6 +6,8 @@ define_parameters = true
 $document = null
 $file_picker = null
 
+lead.notebook_content_type = 'application/x-lead-notebook'
+
 lead.graphite.load_docs()
 
 token_after = (cm, token, line) ->
@@ -156,7 +158,7 @@ init_codemirror = ->
 
 contexts = []
 
-export_notebook = ->
+lead.export_notebook = ->
   lead_js_version: 0
   cells: contexts.map (cell) ->
     type: 'input'
@@ -353,8 +355,8 @@ run = (input_cell, string) ->
     value: (value) -> _lead_cli_value: value
     open_file: open_file_picker
     save: ->
-      text = JSON.stringify export_notebook()
-      blob = new Blob [text], type: 'application/x-lead-notebook'
+      text = JSON.stringify lead.export_notebook()
+      blob = new Blob [text], type: lead.notebook_content_type
       link = document.createElement 'a'
       link.innerHTML = 'Download Notebook'
       link.href = window.webkitURL.createObjectURL blob

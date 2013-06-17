@@ -316,11 +316,11 @@ cmd 'load', 'Loads a script from a URL', (url, options={}) ->
           @failure()
 
 cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
-  gist = lead.github.to_gist_url gist
+  url = lead.github.to_gist_url gist
   @async ->
     $.ajax
       type: 'GET'
-      url: gist
+      url: url
       dataType: 'json'
       success: (response) =>
         @success()
@@ -329,6 +329,22 @@ cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
       error: (response, status_text, error) =>
           @cli.error status_text
           @failure()
+
+cmd 'save_gist', 'Saves a notebook as a gist', ->
+  notebook = lead.export_notebook()
+  gist =
+    public: true
+    files:
+      'notebook.lnb':
+        content: JSON.stringify notebook
+  @async ->
+    lead.github.save_gist gist,
+      success: (result) =>
+        @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+        @success()
+      error: =>
+        @cli.error 'Save failed. Make sure your access token is configured correctly.'
+        @failure()
 
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
