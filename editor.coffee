@@ -162,10 +162,13 @@ export_notebook = ->
     type: 'input'
     value: cell.editor.getValue()
 
-import_notebook = (notebook) ->
+import_notebook = (notebook, options) ->
   for cell in notebook.cells
     if cell.type is 'input'
-      add_context cell.value
+      if options.run
+        run_in_available_context cell.value
+      else
+        add_context cell.value
 
 clear_contexts = ->
   $document.empty()
@@ -439,23 +442,34 @@ handle_file_list = (files) ->
   for file in files
     load_file file
 
+lead.handle_file = (file, options={}) ->
+  [_..., extension] = file.filename.split '.'
+  if extension is 'coffee'
+    if options.run
+      run_in_available_context file.content
+    else
+      add_context file.content
+  else
+    try
+      notebook = JSON.parse file.content
+    catch e
+      console.log e
+      return
+    version = notebook.lead_js_version
+    unless version?
+      console.log "#{file.name} isn't a lead.js notebook"
+      return
+    import_notebook notebook, options
+
 load_file = (file) ->
   if file.type.indexOf('image') < 0
     reader = new FileReader
     reader.onload = (e) ->
-      [_..., extension] = file.name.split '.'
-      if extension is 'coffee'
-        add_context e.target.result
-      else
-        try
-          notebook = JSON.parse e.target.result
-        catch e
-          console.log e
-          return
-        version = notebook.lead_js_version
-        unless version?
-          console.log "#{file.name} isn't a lead.js notebook"
-        import_notebook notebook
+      lead.handle_file
+        filename: file.name
+        content: e.target.result
+        type: file.type
+
     reader.readAsText file
 
 window.init_editor = ->

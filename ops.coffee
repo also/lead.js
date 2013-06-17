@@ -304,11 +304,12 @@ cmd 'load', 'Loads a script from a URL', (url, options={}) ->
         type: 'GET'
         url: url
         dataType: 'text'
-        success: (response) =>
-          if options.run
-            @run response
-          else
-            @set_code response
+        success: (response, status_text, xhr) =>
+          lead.handle_file
+            filename: URI(url).filename()
+            type: xhr.getResponseHeader 'content-type'
+            content: response
+          , options
           @success()
         error: (response, status_text, error) =>
           @cli.error status_text

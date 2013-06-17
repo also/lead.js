@@ -5,6 +5,7 @@
 //= require ./lib/codemirror-3.12/runmode.js
 //= require ./lib/codemirror-3.12/show-hint.js
 //= require ./lib/stacktrace-min-0.4.js
+//= require ./lib/URI.js
 //= require ./core.js
 //= require ./colors.js
 //= require ./functions.js
