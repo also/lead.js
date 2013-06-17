@@ -75,49 +75,23 @@ suggest = (cm, showHints, options) ->
         from: CodeMirror.Pos cur.line, token.start
         to: CodeMirror.Pos cur.line, cur.ch
 
-CodeMirror.commands.run = (cm) ->
-  cm.lead_cell.run()
-  add_context()
+lead_editor_commands =
+  run: (cm) ->
+    cm.lead_cell.run()
+    add_context()
 
-CodeMirror.commands.contextHelp = (cm) ->
-  cur = cm.getCursor()
-  token = cm.getTokenAt(cur)
-  if lead.graphite.has_docs token.string
-    run_in_info_context cm.lead_cell, "docs '#{token.string}'"
-  else if lead.ops[token.string]?
-    run_in_info_context cm.lead_cell, "help #{token.string}"
-
-CodeMirror.commands.suggest = (cm) ->
-  CodeMirror.showHint cm, suggest, async: true
-
-CodeMirror.keyMap.lead =
-  Tab: (cm) ->
-    if cm.somethingSelected()
-      cm.indentSelection 'add'
-    else
-      spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-      cm.replaceSelection(spaces, "end", "+input")
-  Up: (cm) ->
+  contextHelp: (cm) ->
     cur = cm.getCursor()
-    if cur.line is 0
-      previous_context = input_cell_at_offset cm.lead_cell, -1
-      if previous_context?
-        previous_context.editor.focus()
-      else
-        CodeMirror.Pass
-    else
-      CodeMirror.Pass
-  Down: (cm) ->
-    cur = cm.getCursor()
-    if cur.line is cm.lineCount() - 1
-      next_context = input_cell_at_offset cm.lead_cell, 1
-      if next_context?
-        next_context.editor.focus()
-      else
-        CodeMirror.Pass
-    else
-      CodeMirror.Pass
-  'Shift-Up': (cm) ->
+    token = cm.getTokenAt(cur)
+    if lead.graphite.has_docs token.string
+      run_in_info_context cm.lead_cell, "docs '#{token.string}'"
+    else if lead.ops[token.string]?
+      run_in_info_context cm.lead_cell, "help #{token.string}"
+
+  suggest: (cm) ->
+    CodeMirror.showHint cm, suggest, async: true
+
+  fill_with_last_value: (cm) ->
     previous_context = input_cell_at_offset cm.lead_cell, -1
     if previous_context?
       cm.setValue previous_context.editor.getValue()
@@ -125,7 +99,53 @@ CodeMirror.keyMap.lead =
     else
       CodeMirror.Pass
 
+  next_cell: (cm) ->
+    cell = input_cell_at_offset cm.lead_cell, 1
+    if cell?
+      cell.editor.focus()
+    else
+      CodeMirror.Pass
+
+  previous_cell: (cm) ->
+    cell = input_cell_at_offset cm.lead_cell, -1
+    if cell?
+      cell.editor.focus()
+    else
+      CodeMirror.Pass
+
+  maybe_next_cell: (cm) ->
+    cur = cm.getCursor()
+    if cur.line is cm.lineCount() - 1
+      lead_editor_commands.next_cell cm
+    else
+      CodeMirror.Pass
+
+  maybe_previous_cell: (cm) ->
+    cur = cm.getCursor()
+    if cur.line is 0
+      lead_editor_commands.previous_cell cm
+    else
+      CodeMirror.Pass
+
+lead_key_map =
+  Tab: (cm) ->
+    if cm.somethingSelected()
+      cm.indentSelection 'add'
+    else
+      spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+      cm.replaceSelection(spaces, "end", "+input")
+  Up: 'maybe_previous_cell'
+  Down: 'maybe_next_cell'
+  'Shift-Up': 'fill_with_last_value'
+  'Shift-Enter': 'run'
+  'F1': 'contextHelp'
+  'Ctrl-Space': 'suggest'
+
   fallthrough: ['default']
+
+init_codemirror = ->
+  CodeMirror.keyMap.lead = lead_key_map
+  $.extend CodeMirror.commands, lead_editor_commands
 
 contexts = []
 
@@ -204,10 +224,6 @@ create_input_cell = (code) ->
     tabSize: 2
     viewportMargin: Infinity
     gutters: ['error']
-    extraKeys:
-      'Shift-Enter': 'run'
-      'F1': 'contextHelp'
-      'Ctrl-Space': 'suggest'
 
   context =
     used: false
@@ -436,6 +452,7 @@ load_file = (file) ->
     reader.readAsText file
 
 window.init_editor = ->
+  init_codemirror()
   $document = $ '#document'
   $file_picker = $ '#file'
   $file_picker.on 'change', (e) ->
