@@ -435,37 +435,37 @@ run = (input_cell, string) ->
 
   $el: $el
 
-open_file_picker = ->
+opening_run_context = null
+
+open_file_picker = (run_context) ->
+  opening_run_context = run_context
   $file_picker.trigger 'click'
 
-handle_file_list = (files) ->
-  for file in files
-    load_file file
-
-lead.handle_file = (file, options={}) ->
-  [_..., extension] = file.filename.split '.'
-  if extension is 'coffee'
-    if options.run
-      run_in_available_context file.content
+lead.handle_file = (run_context, file, options={}) ->
+  if file.type.indexOf('image') < 0
+    [_..., extension] = file.filename.split '.'
+    if extension is 'coffee'
+      if options.run
+        run_in_available_context file.content
+      else
+        add_context file.content
     else
-      add_context file.content
-  else
-    try
-      notebook = JSON.parse file.content
-    catch e
-      console.log e
-      return
-    version = notebook.lead_js_version
-    unless version?
-      console.log "#{file.name} isn't a lead.js notebook"
-      return
-    import_notebook notebook, options
+      try
+        notebook = JSON.parse file.content
+      catch e
+        run_context.cli.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+        return
+      version = notebook.lead_js_version
+      unless version?
+        run_context.cli.error "File #{file.filename} isn't a lead.js notebook"
+        return
+      import_notebook notebook, options
 
-load_file = (file) ->
+load_file = (run_context, file) ->
   if file.type.indexOf('image') < 0
     reader = new FileReader
     reader.onload = (e) ->
-      lead.handle_file
+      lead.handle_file run_context,
         filename: file.name
         content: e.target.result
         type: file.type
@@ -476,12 +476,14 @@ window.init_editor = ->
   init_codemirror()
   $document = $ '#document'
   $file_picker = $ '#file'
+
   $file_picker.on 'change', (e) ->
-    files = e.target.files
-    if files.length > 0
-      handle_file_list files
-      # reset the file picker so change is triggered again
-      $file_picker.val ''
+    for file in e.target.files
+      load_file opening_run_context, file
+
+    opening_run_context = null
+    # reset the file picker so change is triggered again
+    $file_picker.val ''
 
   rc = localStorage.lead_rc
   if rc?

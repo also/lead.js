@@ -305,15 +305,30 @@ cmd 'load', 'Loads a script from a URL', (url, options={}) ->
         url: url
         dataType: 'text'
         success: (response, status_text, xhr) =>
-          lead.handle_file
+          @success()
+          lead.handle_file @,
             filename: URI(url).filename()
             type: xhr.getResponseHeader 'content-type'
             content: response
           , options
-          @success()
         error: (response, status_text, error) =>
           @cli.error status_text
           @failure()
+
+cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
+  @async ->
+    $.ajax
+      type: 'GET'
+      url: gist
+      dataType: 'json'
+      success: (response) =>
+        @success()
+        for name, file of response.files
+          lead.handle_file @, file, options
+      error: (response, status_text, error) =>
+          @cli.error status_text
+          @failure()
+
 
 fn 'q', 'Escapes a Graphite metric query', (targets...) ->
   for t in targets
