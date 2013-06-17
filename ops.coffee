@@ -45,6 +45,26 @@ cmd 'help', 'Shows this help', (cmd) ->
       $dl.append $dd
     @output $dl
 
+cmd 'keys', 'Shows the key bindings', ->
+  all_keys = {}
+  build_map = (map) ->
+    for key, command of map
+      unless key == 'fallthrough' or all_keys[key]?
+        all_keys[key] = command
+    fallthroughs = map.fallthrough
+    if fallthroughs?
+      build_map CodeMirror.keyMap[name] for name in fallthroughs
+  build_map CodeMirror.keyMap.lead
+
+  $table = $ '<table/>'
+  for key, command of all_keys
+    fn = CodeMirror.commands[command]
+    if fn
+      doc = fn.doc ? ''
+      kbd = key.split('-').map((k) -> "<kbd>#{k}</kbd>").join ' + '
+      $table.append "<tr><th>#{kbd}</th><td><strong>#{command}</strong></td><td>#{doc}</td></tr>"
+  @output $table
+
 fn 'object', 'Prints an object as JSON', (o) ->
   $pre = $ '<pre>'
   s = JSON.stringify(o, null, '  ') or new String o

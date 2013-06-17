@@ -75,12 +75,16 @@ suggest = (cm, showHints, options) ->
         from: CodeMirror.Pos cur.line, token.start
         to: CodeMirror.Pos cur.line, cur.ch
 
+cmd = (doc, fn) ->
+  fn.doc = doc
+  fn
+
 lead_editor_commands =
-  run: (cm) ->
+  run: cmd 'Runs the contents of the cell', (cm) ->
     cm.lead_cell.run()
     add_context()
 
-  contextHelp: (cm) ->
+  contextHelp: cmd 'Shows help for the token under the cursor', (cm) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
     if lead.graphite.has_docs token.string
@@ -88,10 +92,10 @@ lead_editor_commands =
     else if lead.ops[token.string]?
       run_in_info_context cm.lead_cell, "help #{token.string}"
 
-  suggest: (cm) ->
+  suggest: cmd 'Suggests a function or metric', (cm) ->
     CodeMirror.showHint cm, suggest, async: true
 
-  fill_with_last_value: (cm) ->
+  fill_with_last_value: cmd 'Replaces the cell with the contents of the previous cell', (cm) ->
     previous_context = input_cell_at_offset cm.lead_cell, -1
     if previous_context?
       cm.setValue previous_context.editor.getValue()
@@ -99,28 +103,28 @@ lead_editor_commands =
     else
       CodeMirror.Pass
 
-  next_cell: (cm) ->
+  next_cell: cmd 'Moves the cursor to the next cell', (cm) ->
     cell = input_cell_at_offset cm.lead_cell, 1
     if cell?
       cell.editor.focus()
     else
       CodeMirror.Pass
 
-  previous_cell: (cm) ->
+  previous_cell: cmd 'Moves the cursor to the previous cell', (cm) ->
     cell = input_cell_at_offset cm.lead_cell, -1
     if cell?
       cell.editor.focus()
     else
       CodeMirror.Pass
 
-  maybe_next_cell: (cm) ->
+  maybe_next_cell: cmd 'Moves the cursor to the next cell if the cursor is at the end', (cm) ->
     cur = cm.getCursor()
     if cur.line is cm.lineCount() - 1
       lead_editor_commands.next_cell cm
     else
       CodeMirror.Pass
 
-  maybe_previous_cell: (cm) ->
+  maybe_previous_cell: cmd  'Moves the cursor to the next cell if the cursor is at the end', (cm) ->
     cur = cm.getCursor()
     if cur.line is 0
       lead_editor_commands.previous_cell cm
