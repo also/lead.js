@@ -158,9 +158,9 @@ init_codemirror = ->
 
 contexts = []
 
-lead.export_notebook = ->
+export_notebook = (current_cell) ->
   lead_js_version: 0
-  cells: contexts.map (cell) ->
+  cells: contexts.filter((cell) -> cell != current_cell).map (cell) ->
     type: 'input'
     value: cell.editor.getValue()
 
@@ -312,7 +312,6 @@ bind_cli = (run_context) ->
             @cli.object @cli[k]()
   ops
 
-
 run = (input_cell, string) ->
   $el = $ '<div class="cell output"/>'
 
@@ -354,8 +353,9 @@ run = (input_cell, string) ->
     hide_input: -> remove_cell input_cell
     value: (value) -> _lead_cli_value: value
     open_file: open_file_picker
+    export_notebook: -> export_notebook input_cell
     save: ->
-      text = JSON.stringify lead.export_notebook()
+      text = JSON.stringify export_notebook input_cell
       blob = new Blob [text], type: lead.notebook_content_type
       link = document.createElement 'a'
       link.innerHTML = 'Download Notebook'

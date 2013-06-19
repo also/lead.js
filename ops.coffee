@@ -316,22 +316,26 @@ cmd 'load', 'Loads a script from a URL', (url, options={}) ->
           @failure()
 
 cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
-  url = lead.github.to_gist_url gist
-  @async ->
-    $.ajax
-      type: 'GET'
-      url: url
-      dataType: 'json'
-      success: (response) =>
-        @success()
-        for name, file of response.files
-          lead.handle_file @, file, options
-      error: (response, status_text, error) =>
-          @cli.error status_text
-          @failure()
+  if arguments.length is 0
+    @cli.save_gist()
+  else
+    url = lead.github.to_gist_url gist
+    @async ->
+      @cli.text "Loading gist #{gist}"
+      $.ajax
+        type: 'GET'
+        url: url
+        dataType: 'json'
+        success: (response) =>
+          @success()
+          for name, file of response.files
+            lead.handle_file @, file, options
+        error: (response, status_text, error) =>
+            @cli.error status_text
+            @failure()
 
 cmd 'save_gist', 'Saves a notebook as a gist', ->
-  notebook = lead.export_notebook()
+  notebook = @export_notebook()
   gist =
     public: true
     files:
@@ -341,6 +345,9 @@ cmd 'save_gist', 'Saves a notebook as a gist', ->
     lead.github.save_gist gist,
       success: (result) =>
         @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+        lead_uri = URI window.location.href
+        lead_uri.fragment "/#{result.html_url}"
+        @cli.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
         @success()
       error: =>
         @cli.error 'Save failed. Make sure your access token is configured correctly.'
