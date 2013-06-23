@@ -86,7 +86,7 @@ lead_editor_commands =
     cm.lead_cell.run()
     add_context()
 
-  contextHelp: cmd 'Shows help for the token under the cursor', (cm) ->
+  context_help: cmd 'Shows help for the token under the cursor', (cm) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
     if lead.graphite.has_docs token.string
@@ -147,7 +147,7 @@ lead_key_map =
   Down: 'maybe_next_cell'
   'Shift-Up': 'fill_with_last_value'
   'Shift-Enter': 'run'
-  'F1': 'contextHelp'
+  'F1': 'context_help'
   'Ctrl-Space': 'suggest'
 
   fallthrough: ['default']
@@ -287,7 +287,7 @@ create_input_cell = (code) ->
 bind_cli = (run_context) ->
   bind_op = (op) ->
     bound = (args...) ->
-      # if the runction returned a value, unwrap it. otherwise, ignore it
+      # if the function returned a value, unwrap it. otherwise, ignore it
       op.fn.apply(run_context, args)?._lead_cli_value ? lead._ignore
     bound._lead_op = op
     bound
