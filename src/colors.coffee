@@ -1,4 +1,4 @@
-#= require ./lib/colorbrewer.js
+#= require ../lib/colorbrewer.js
 lead.colors =
   d3: {}
   brewer: colorbrewer
