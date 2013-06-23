@@ -251,7 +251,7 @@ create_input_cell = (code) ->
       context.output_cell?.$el.remove()
       context.output_cell = run context, editor.getValue()
       context.input_number = input_number++
-      context.$el.attr 'data-cell-number', input_number
+      context.$el.attr 'data-cell-number', context.input_number
 
   editor.lead_cell = context
 
