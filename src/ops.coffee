@@ -65,6 +65,9 @@ cmd 'keys', 'Shows the key bindings', ->
       $table.append "<tr><th>#{kbd}</th><td><strong>#{command}</strong></td><td>#{doc}</td></tr>"
   @output $table
 
+fn 'In', 'Gets previous input', (n) ->
+  @value @get_input_value n
+
 fn 'object', 'Prints an object as JSON', (o) ->
   $pre = $ '<pre>'
   s = JSON.stringify(o, null, '  ') or new String o

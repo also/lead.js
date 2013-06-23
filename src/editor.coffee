@@ -160,6 +160,11 @@ init_codemirror = ->
 
 notebook = []
 
+nb =
+  get_input_cell_by_number: (notebook, number) ->
+    for cell in notebook
+      return cell if cell.input_number == number
+
 export_notebook = (current_cell) ->
   lead_js_version: 0
   cells: notebook.filter((cell) -> cell != current_cell).map (cell) ->
@@ -367,6 +372,9 @@ run = (input_cell, string) ->
       link.download = 'notebook.lnb'
       link.click()
       @output link
+    get_input_value: (number) ->
+      cell = nb.get_input_cell_by_number notebook, number
+      cell?.editor.getValue()
 
     async: (fn) ->
       $item = $ '<div class="async"/>'
