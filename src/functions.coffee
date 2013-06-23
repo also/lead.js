@@ -1,4 +1,4 @@
-window.lead.functions = [
+define -> [
  'currentBelow',
  'multiplySeries',
  'asPercent',

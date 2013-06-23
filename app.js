@@ -1,17 +1,1 @@
-//= require ./lib/coffee-script.js
-//= require ./lib/codemirror-3.12/codemirror.js
-//= require ./lib/codemirror-3.12/javascript.js
-//= require ./lib/codemirror-3.12/coffeescript.js
-//= require ./lib/codemirror-3.12/runmode.js
-//= require ./lib/codemirror-3.12/show-hint.js
 //= require ./lib/stacktrace-min-0.4.js
-//= require ./lib/URI.js
-//= require ./src/core.js
-//= require ./src/colors.js
-//= require ./src/functions.js
-//= require ./src/graph.js
-//= require ./src/graphite.js
-//= require ./src/ops.js
-//= require ./src/editor.js
-//= require ./src/github.js
-//= require ./lib/d3.js

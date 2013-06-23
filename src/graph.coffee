@@ -1,4 +1,6 @@
-lead.graph =
+define (require) ->
+  colors = require 'colors'
+
   draw: (container, data, params) ->
     width = params.width or 800
     height = params.height or 400
@@ -13,7 +15,7 @@ lead.graph =
     x_axis = d3.svg.axis().scale(x).orient('bottom')
     y_axis = d3.svg.axis().scale(y).orient('left')
 
-    colors = params.d3_colors ? lead.colors.d3.category10
+    colors = params.d3_colors ? colors.d3.category10
     color = d3.scale.ordinal().range colors
 
     area_opacity = params.areaAlpha ? 1.0
