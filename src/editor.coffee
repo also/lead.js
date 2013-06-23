@@ -10,6 +10,8 @@ lead.notebook_content_type = 'application/x-lead-notebook'
 
 lead.graphite.load_docs()
 
+input_number = 1
+
 token_after = (cm, token, line) ->
   t = token
   last_interesting_token = null
@@ -156,11 +158,11 @@ init_codemirror = ->
   CodeMirror.keyMap.lead = lead_key_map
   $.extend CodeMirror.commands, lead_editor_commands
 
-contexts = []
+notebook = []
 
 export_notebook = (current_cell) ->
   lead_js_version: 0
-  cells: contexts.filter((cell) -> cell != current_cell).map (cell) ->
+  cells: notebook.filter((cell) -> cell != current_cell).map (cell) ->
     type: 'input'
     value: cell.editor.getValue()
 
@@ -172,25 +174,25 @@ import_notebook = (notebook, options) ->
       else
         add_context cell.value
 
-clear_contexts = ->
+clear_notebook = ->
   $document.empty()
-  contexts = []
+  notebook = []
 
 input_cell_at_offset = (cell, offset) ->
-  index = contexts.indexOf cell
-  contexts[index + offset]
+  index = notebook.indexOf cell
+  notebook[index + offset]
 
 get_available_input_cell = ->
-  last = contexts[contexts.length - 1]
+  last = notebook[notebook.length - 1]
   if last?.is_clean()
     return last
   else
     return null
 
 remove_cell = (cell) ->
-  index = contexts.indexOf cell
+  index = notebook.indexOf cell
   cell.$el.remove()
-  contexts.splice index, 1
+  notebook.splice index, 1
 
 add_context = (code='') ->
   cell = get_available_input_cell()
@@ -200,7 +202,7 @@ add_context = (code='') ->
     cell = create_input_cell code
     $document.append cell.$el
     cell.rendered()
-    contexts.push cell
+    notebook.push cell
 
   {editor} = cell
   editor.focus()
@@ -216,12 +218,12 @@ run_in_info_context = (current_cell, code) ->
   cell = create_input_cell code
   if current_cell?
     current_cell.$el.before cell.$el
-    index = contexts.indexOf cell
+    index = notebook.indexOf cell
   else
     $document.append cell.$el
     index = -1
   cell.rendered()
-  contexts.splice index, 0, cell
+  notebook.splice index, 0, cell
   cell.run code
 
 create_input_cell = (code) ->
@@ -248,6 +250,8 @@ create_input_cell = (code) ->
       context.used = true
       context.output_cell?.$el.remove()
       context.output_cell = run context, editor.getValue()
+      context.input_number = input_number++
+      context.$el.attr 'data-cell-number', input_number
 
   editor.lead_cell = context
 
@@ -348,7 +352,7 @@ run = (input_cell, string) ->
       lead._ignore
     set_code: add_context
     run: run_in_available_context
-    clear_output: -> clear_contexts()
+    clear_output: -> clear_notebook()
     previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
     hide_input: -> remove_cell input_cell
     value: (value) -> _lead_cli_value: value

@@ -72,13 +72,21 @@ pre
     pre
       padding: 0
 
-#code .CodeMirror
-
 #document
   .cell
     margin-bottom: 20px
+    position: relative
 
   .input
+    &[data-cell-number]::before
+      position: absolute
+      right: 100%
+      padding: 8px 12px
+      font-family: $monospace
+      line-height: 1.6em
+      content: 'In[' attr(data-cell-number) ']'
+      color: #ddd
+
     .close::before
       content: '×'
       position: absolute
