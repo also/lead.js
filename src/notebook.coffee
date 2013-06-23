@@ -11,52 +11,48 @@ define (require) ->
 
   ignore = new Object
 
-  default_options = {}
   define_parameters = true
 
-  $document = null
   $file_picker = null
 
   notebook_content_type = 'application/x-lead-notebook'
 
   graphite.load_docs()
 
-  input_number = 1
-
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
     $.extend CodeMirror.commands, ed.commands
 
-  notebook = []
-
-  nb =
-    get_input_cell_by_number: (notebook, number) ->
-      for cell in notebook
-        return cell if cell.input_number == number
+  create_notebook = ->
+    notebook = []
+    notebook.input_number = 1
+    notebook.default_options = {}
+    notebook.$document = $ '<div class="document"/>'
+    notebook
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
-    cells: notebook.filter((cell) -> cell != current_cell).map (cell) ->
+    cells: current_cell.notebook.filter((cell) -> cell != current_cell).map (cell) ->
       type: 'input'
       value: cell.editor.getValue()
 
-  import_notebook = (notebook, options) ->
-    for cell in notebook.cells
+  import_notebook = (notebook, imported, options) ->
+    for cell in imported.cells
       if cell.type is 'input'
         if options.run
           run_in_available_context cell.value
         else
-          add_context cell.value
+          add_context notebook, cell.value
 
-  clear_notebook = ->
-    $document.empty()
-    notebook = []
+  clear_notebook = (notebook) ->
+    notebook.$document.empty()
+    notebook.length = 0
 
   input_cell_at_offset = (cell, offset) ->
-    index = notebook.indexOf cell
-    notebook[index + offset]
+    index = cell.notebook.indexOf cell
+    cell.notebook[index + offset]
 
-  get_available_input_cell = ->
+  get_available_input_cell = (notebook) ->
     last = notebook[notebook.length - 1]
     if last?.is_clean()
       return last
@@ -64,17 +60,17 @@ define (require) ->
       return null
 
   remove_cell = (cell) ->
-    index = notebook.indexOf cell
+    index = cell.notebook.indexOf cell
     cell.$el.remove()
-    notebook.splice index, 1
+    cell.notebook.splice index, 1
 
-  add_context = (code='') ->
-    cell = get_available_input_cell()
+  add_context = (notebook, code='') ->
+    cell = get_available_input_cell notebook
     if cell?
       cell.editor.setValue code
     else
-      cell = create_input_cell code
-      $document.append cell.$el
+      cell = create_input_cell notebook, code
+      notebook.$document.append cell.$el
       cell.rendered()
       notebook.push cell
 
@@ -83,24 +79,20 @@ define (require) ->
     editor.setCursor(line: editor.lineCount() - 1)
     cell
 
-  run_in_available_context = (code) ->
-    add_context(code).run()
-    add_context()
+  run_in_available_context = (notebook, code) ->
+    add_context(notebook, code).run()
+    add_context notebook
 
   # Add an input cell above the last input cell
   run_in_info_context = (current_cell, code) ->
-    cell = create_input_cell code
-    if current_cell?
-      current_cell.$el.before cell.$el
-      index = notebook.indexOf cell
-    else
-      $document.append cell.$el
-      index = -1
+    cell = create_input_cell current_cell.notebook, code
+    current_cell.$el.before cell.$el
+    index = notebook.indexOf cell
     cell.rendered()
-    notebook.splice index, 0, cell
+    current_cell.notebook.splice index, 0, cell
     cell.run code
 
-  create_input_cell = (code) ->
+  create_input_cell = (notebook, code) ->
     $el = $ '<div class="cell input"/>'
     $code = $ '<div class="code"/>'
     $el.append $code
@@ -114,6 +106,7 @@ define (require) ->
       gutters: ['error']
 
     context =
+      notebook: notebook
       used: false
       editor: editor
       rendered: -> editor.refresh()
@@ -124,7 +117,7 @@ define (require) ->
         context.used = true
         context.output_cell?.$el.remove()
         context.output_cell = run context, editor.getValue()
-        context.input_number = input_number++
+        context.input_number = notebook.input_number++
         context.$el.attr 'data-cell-number', context.input_number
 
     editor.lead_cell = context
@@ -161,6 +154,10 @@ define (require) ->
       compile_timeout = setTimeout (-> compile editor), 200
 
     context
+
+  get_input_cell_by_number = (notebook, number) ->
+    for cell in notebook
+      return cell if cell.input_number == number
 
   bind_cli = (run_context) ->
     bind_op = (op) ->
@@ -214,10 +211,12 @@ define (require) ->
         $target.append $item
         $item
 
+    notebook = input_cell.notebook
     run_context =
+      notebook: notebook
       ops: ops
       current_options: {}
-      default_options: default_options
+      default_options: notebook.default_options
       output: output $el
       success: ->
         scroll_to_result $top
@@ -225,9 +224,9 @@ define (require) ->
       failure: ->
         scroll_to_result $top
         ignore
-      set_code: add_context
-      run: run_in_available_context
-      clear_output: -> clear_notebook()
+      set_code: (code) -> add_context notebook, code
+      run: (code) -> run_in_available_context notebook, code
+      clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
       hide_input: -> remove_cell input_cell
       value: (value) -> _lead_cli_value: value
@@ -243,7 +242,7 @@ define (require) ->
         link.click()
         @output link
       get_input_value: (number) ->
-        cell = nb.get_input_cell_by_number notebook, number
+        cell = get_input_cell_by_number notebook, number
         cell?.editor.getValue()
 
       async: (fn) ->
@@ -331,9 +330,9 @@ define (require) ->
       [_..., extension] = file.filename.split '.'
       if extension is 'coffee'
         if options.run
-          run_in_available_context file.content
+          run_in_available_context run_context.notebook, file.content
         else
-          add_context file.content
+          add_context run_context.notebook, file.content
       else
         try
           imported = JSON.parse file.content
@@ -344,7 +343,7 @@ define (require) ->
         unless version?
           run_context.cli.error "File #{file.filename} isn't a lead.js notebook"
           return
-        import_notebook imported, options
+        import_notebook run_context.notebook, imported, options
 
   load_file = (run_context, file) ->
     if file.type.indexOf('image') < 0
@@ -357,11 +356,15 @@ define (require) ->
 
       reader.readAsText file
 
-  nb =
+  exports =
     init_editor: ->
       init_codemirror()
       $document = $ '#document'
       $file_picker = $ '#file'
+
+
+      notebook = create_notebook()
+      $document.append notebook.$document
 
       $file_picker.on 'change', (e) ->
         for file in e.target.files
@@ -373,24 +376,24 @@ define (require) ->
 
       rc = localStorage.lead_rc
       if rc?
-        run_in_available_context rc
+        run_in_available_context notebook, rc
 
       uri = URI location.href
       fragment = uri.fragment()
       if fragment.length > 0 and fragment[0] == '/'
         id = fragment[1..]
-        run_in_available_context "gist #{JSON.stringify id}, run: true; quiet"
+        run_in_available_context notebook, "gist #{JSON.stringify id}, run: true; quiet"
       else
         program = if location.search isnt ''
           atob decodeURIComponent location.search[1..]
         else
           'intro'
 
-        run_in_available_context program
+        run_in_available_context notebook, program
 
     run: (cell) ->
       cell.run()
-      add_context()
+      add_context cell.notebook
 
     handle_file: handle_file
 
@@ -411,4 +414,4 @@ define (require) ->
       else
         false
 
-  nb
+  exports
