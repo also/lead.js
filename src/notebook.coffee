@@ -231,7 +231,7 @@ define (require) ->
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
       hide_input: -> remove_cell input_cell
       value: (value) -> _lead_cli_value: value
-      open_file: open_file_picker
+      open_file: -> open_file_picker run_context
       export_notebook: -> export_notebook input_cell
       save: ->
         text = JSON.stringify export_notebook input_cell
