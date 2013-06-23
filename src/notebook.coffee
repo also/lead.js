@@ -24,15 +24,14 @@ define (require) ->
     $.extend CodeMirror.commands, ed.commands
 
   create_notebook = ->
-    notebook = []
-    notebook.input_number = 1
-    notebook.default_options = {}
-    notebook.$document = $ '<div class="document"/>'
-    notebook
+    cells: []
+    input_number: 1
+    default_options: {}
+    $document: $ '<div class="document"/>'
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
-    cells: current_cell.notebook.filter((cell) -> cell != current_cell).map (cell) ->
+    cells: current_cell.notebook.cells.filter((cell) -> cell != current_cell).map (cell) ->
       type: 'input'
       value: cell.editor.getValue()
 
@@ -46,23 +45,23 @@ define (require) ->
 
   clear_notebook = (notebook) ->
     notebook.$document.empty()
-    notebook.length = 0
+    notebook.cell.slength = 0
 
   input_cell_at_offset = (cell, offset) ->
-    index = cell.notebook.indexOf cell
+    index = cell.notebook.cells.indexOf cell
     cell.notebook[index + offset]
 
   get_available_input_cell = (notebook) ->
-    last = notebook[notebook.length - 1]
+    last = notebook.cells[notebook.cells.length - 1]
     if last?.is_clean()
       return last
     else
       return null
 
   remove_cell = (cell) ->
-    index = cell.notebook.indexOf cell
+    index = cell.notebook.cells.indexOf cell
     cell.$el.remove()
-    cell.notebook.splice index, 1
+    cell.notebook.cells.splice index, 1
 
   add_context = (notebook, code='') ->
     cell = get_available_input_cell notebook
@@ -72,7 +71,7 @@ define (require) ->
       cell = create_input_cell notebook, code
       notebook.$document.append cell.$el
       cell.rendered()
-      notebook.push cell
+      notebook.cells.push cell
 
     {editor} = cell
     editor.focus()
@@ -87,9 +86,9 @@ define (require) ->
   run_in_info_context = (current_cell, code) ->
     cell = create_input_cell current_cell.notebook, code
     current_cell.$el.before cell.$el
-    index = notebook.indexOf cell
+    index = notebook.cells.indexOf cell
     cell.rendered()
-    current_cell.notebook.splice index, 0, cell
+    current_cell.notebook.cells.splice index, 0, cell
     cell.run code
 
   create_input_cell = (notebook, code) ->
