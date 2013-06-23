@@ -49,7 +49,7 @@ define (require) ->
 
   input_cell_at_offset = (cell, offset) ->
     index = cell.notebook.cells.indexOf cell
-    cell.notebook[index + offset]
+    cell.notebook.cells[index + offset]
 
   get_available_input_cell = (notebook) ->
     last = notebook.cells[notebook.cells.length - 1]
@@ -412,5 +412,10 @@ define (require) ->
         true
       else
         false
+
+    cell_value: (cell) ->
+      cell.editor.getValue()
+
+    input_cell_at_offset: input_cell_at_offset
 
   exports

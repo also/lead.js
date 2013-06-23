@@ -99,9 +99,9 @@ define (require) ->
       CodeMirror.showHint cm, suggest, async: true
 
     fill_with_last_value: cmd 'Replaces the cell with the contents of the previous cell', (cm) ->
-      previous_context = input_cell_at_offset cm.lead_cell, -1
-      if previous_context?
-        cm.setValue previous_context.editor.getValue()
+      cell = notebook.input_cell_at_offset cm.lead_cell, -1
+      if cell?
+        cm.setValue notebook.cell_value cell
         cm.setCursor(line: cm.lineCount() - 1)
       else
         CodeMirror.Pass
