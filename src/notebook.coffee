@@ -43,13 +43,12 @@ define (require) ->
       type: 'input'
       value: cell.editor.getValue()
 
-  import_notebook = (notebook, imported, options) ->
-    for cell in imported.cells
-      if cell.type is 'input'
+  import_notebook = (notebook, cell, imported, options) ->
+    for imported_cell in imported.cells
+      if imported_cell.type is 'input'
+        cell = add_input_cell notebook, code: imported_cell.value, after: cell
         if options.run
-          run_in_available_context notebook, cell.value
-        else
-          add_context notebook, cell.value
+          cell.run()
     notebook
 
   clear_notebook = (notebook) ->
@@ -104,23 +103,11 @@ define (require) ->
 
     cell.rendered()
 
-  add_context = (notebook, code='') ->
-    cell = create_input_cell notebook
-    set_cell_value cell, code
-    insert_cell cell
-
-    {editor} = cell
-    editor.focus()
-    cell
-
   add_input_cell = (notebook, opts={}) ->
     cell = create_input_cell notebook
     set_cell_value cell, opts.code if opts.code?
     insert_cell cell, opts
     cell
-
-  run_in_available_context = (notebook, code) ->
-    add_context(notebook, code).run()
 
   # Add an input cell above the last input cell
   run_in_info_context = (current_cell, code) ->
@@ -284,9 +271,11 @@ define (require) ->
         scroll_to_result $top
         ignore
       set_code: (code) ->
-        cell = add_input_cell notebook, code: code, after: input_cell
-        add_context notebook, code
-      run: (code) -> run_in_available_context notebook, code
+        cell = add_input_cell notebook, code: code, after: run_context.cell
+        focus_cell cell
+      run: (code) ->
+        cell = add_input_cell notebook, code: code, after: run_context.cell
+        cell.run()
       clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
       hide_input: -> hide_cell input_cell
@@ -403,7 +392,7 @@ define (require) ->
         unless version?
           run_context.cli.error "File #{file.filename} isn't a lead.js notebook"
           return
-        import_notebook run_context.notebook, imported, options
+        import_notebook run_context.notebook, run_context.cell, imported, options
 
   load_file = (run_context, file) ->
     if file.type.indexOf('image') < 0
@@ -435,7 +424,7 @@ define (require) ->
 
       rc = localStorage.lead_rc
       if rc?
-        run_in_available_context notebook, rc
+        add_input_cell(notebook, code: rc).run()
 
       uri = URI location.href
       fragment = uri.fragment()
@@ -448,7 +437,7 @@ define (require) ->
         else
           'intro'
 
-      run_in_available_context notebook, program
+      add_input_cell(notebook, code: program).run()
       add_input_cell notebook
 
     run: (cell) ->
@@ -470,7 +459,7 @@ define (require) ->
     move_focus: (cell, offset) ->
       new_cell = input_cell_at_offset cell, offset
       if new_cell?
-        new_cell.editor.focus()
+        focus_cell new_cell
         true
       else
         false
