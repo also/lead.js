@@ -222,7 +222,7 @@ define (require) ->
             else
               @value @current_options[k] ? @default_options[k]
 
-          ops[k] = bind_op
+          bound_ops[k] = bind_op
             name: k
             fn: fn
             cli_fn: ->
