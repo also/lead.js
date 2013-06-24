@@ -19,6 +19,13 @@ define (require) ->
 
   graphite.load_docs()
 
+  forwards = +1
+  backwards = -1
+
+  is_input = (cell) -> cell.type is 'input'
+  is_output = (cell) -> cell.type is 'output'
+  visible = (cell) -> cell.visible
+
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
     $.extend CodeMirror.commands, ed.commands
@@ -47,64 +54,98 @@ define (require) ->
     notebook.$document.empty()
     notebook.cells.length = 0
 
-  input_cell_at_offset = (cell, offset) ->
-    index = cell.notebook.cells.indexOf cell
-    cell.notebook.cells[index + offset]
+  cell_index = (cell) ->
+    cell.notebook.cells.indexOf cell
 
-  get_available_input_cell = (notebook) ->
-    last = notebook.cells[notebook.cells.length - 1]
-    if last?.is_clean()
-      return last
-    else
-      return null
+  seek = (start_cell, direction, predicate) ->
+    notebook = start_cell.notebook
+    index = cell_index(start_cell) + direction
+    loop
+      cell = notebook.cells[index]
+      return unless cell?
+      return cell if predicate cell
+      index += direction
+
+  input_cell_at_offset = (cell, offset) ->
+    seek cell, offset, is_input
+
+  get_input_cell_by_number = (notebook, number) ->
+    for cell in notebook
+      return cell if cell.input_number == number
 
   remove_cell = (cell) ->
-    index = cell.notebook.cells.indexOf cell
+    index = cell_index cell
     cell.$el.remove()
     cell.notebook.cells.splice index, 1
 
-  add_context = (notebook, code='') ->
-    cell = get_available_input_cell notebook
-    if cell?
-      cell.editor.setValue code
+  hide_cell = (cell) ->
+    cell.visible = false
+    cell.$el.hide()
+
+  insert_cell = (cell, position={}) ->
+    if position.before?
+      offset = 0
+      current_cell = position.before
+      current_cell.$el.before cell.$el
+    else if position.after?
+      offset = 1
+      current_cell = position.after
+      current_cell.$el.after cell.$el
     else
-      cell = create_input_cell notebook, code
-      notebook.$document.append cell.$el
+      cell.notebook.$document.append cell.$el
+      cell.notebook.cells.push cell
       cell.rendered()
-      notebook.cells.push cell
+      return
+
+    index = cell_index current_cell
+    current_cell.notebook.cells.splice index + offset, 0, cell
+
+    cell.rendered()
+
+  add_context = (notebook, code='') ->
+    cell = create_input_cell notebook
+    set_cell_value cell, code
+    insert_cell cell
 
     {editor} = cell
     editor.focus()
-    editor.setCursor(line: editor.lineCount() - 1)
+    cell
+
+  add_input_cell = (notebook, opts={}) ->
+    cell = create_input_cell notebook
+    set_cell_value cell, opts.code if opts.code?
+    insert_cell cell, opts
     cell
 
   run_in_available_context = (notebook, code) ->
     add_context(notebook, code).run()
-    add_context notebook
 
   # Add an input cell above the last input cell
   run_in_info_context = (current_cell, code) ->
-    cell = create_input_cell current_cell.notebook, code
-    current_cell.$el.before cell.$el
-    index = notebook.cells.indexOf cell
-    cell.rendered()
-    current_cell.notebook.cells.splice index, 0, cell
-    cell.run code
+    cell = add_input_cell current_cell.notebook, code: code, before: current_cell
+    cell.run()
 
-  create_input_cell = (notebook, code) ->
+  run_after = (current_cell, code) ->
+    cell = add_input_cell current_cell.notebook, code: code, after: current_cell
+    cell.run()
+
+  create_input_cell = (notebook) ->
     $el = $ '<div class="cell input"/>'
     $code = $ '<div class="code"/>'
     $el.append $code
 
     editor = CodeMirror $code.get(0),
-      value: code
+      value: ''
       mode: 'coffeescript'
       keyMap: 'lead'
       tabSize: 2
       viewportMargin: Infinity
       gutters: ['error']
 
-    context =
+    editor.setCursor(line: editor.lineCount() - 1)
+
+    cell =
+      type: 'input'
       notebook: notebook
       used: false
       editor: editor
@@ -113,13 +154,13 @@ define (require) ->
       hide: -> $el.hide()
       is_clean: -> editor.getValue() is '' and not @.used
       run: ->
-        context.used = true
-        context.output_cell?.$el.remove()
-        context.output_cell = run context, editor.getValue()
-        context.input_number = notebook.input_number++
-        context.$el.attr 'data-cell-number', context.input_number
+        cell.used = true
+        cell.output_cell?.$el.remove()
+        cell.output_cell = run cell, editor.getValue()
+        cell.input_number = notebook.input_number++
+        cell.$el.attr 'data-cell-number', cell.input_number
 
-    editor.lead_cell = context
+    editor.lead_cell = cell
 
     error_marks = []
 
@@ -152,11 +193,10 @@ define (require) ->
       clearTimeout compile_timeout
       compile_timeout = setTimeout (-> compile editor), 200
 
-    context
+    cell
 
-  get_input_cell_by_number = (notebook, number) ->
-    for cell in notebook
-      return cell if cell.input_number == number
+  set_cell_value = (cell, value) ->
+    cell.editor.setValue value
 
   bind_cli = (run_context) ->
     bind_op = (op) ->
@@ -223,7 +263,9 @@ define (require) ->
       failure: ->
         scroll_to_result $top
         ignore
-      set_code: (code) -> add_context notebook, code
+      set_code: (code) ->
+        cell = add_input_cell notebook, code: code, after: input_cell
+        add_context notebook, code
       run: (code) -> run_in_available_context notebook, code
       clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
@@ -379,14 +421,15 @@ define (require) ->
       fragment = uri.fragment()
       if fragment.length > 0 and fragment[0] == '/'
         id = fragment[1..]
-        run_in_available_context notebook, "gist #{JSON.stringify id}, run: true; quiet"
+        program = "gist #{JSON.stringify id}, run: true; quiet"
       else
         program = if location.search isnt ''
           atob decodeURIComponent location.search[1..]
         else
           'intro'
 
-        run_in_available_context notebook, program
+      run_in_available_context notebook, program
+      add_input_cell notebook
 
     run: (cell) ->
       cell.run()
