@@ -55,6 +55,8 @@ define (require) ->
 
   clear_notebook = (notebook) ->
     notebook.$document.empty()
+    for cell in notebook.cells
+      cell.active = false
     notebook.cells.length = 0
 
   cell_index = (cell) ->
@@ -80,17 +82,18 @@ define (require) ->
     index = cell_index cell
     cell.$el.remove()
     cell.notebook.cells.splice index, 1
+    cell.active = false
 
   hide_cell = (cell) ->
     cell.visible = false
     cell.$el.hide()
 
   insert_cell = (cell, position={}) ->
-    if position.before?
+    if position.before?.active
       offset = 0
       current_cell = position.before
       current_cell.$el.before cell.$el
-    else if position.after?
+    else if position.after?.active
       offset = 1
       current_cell = position.after
       current_cell.$el.after cell.$el
@@ -144,6 +147,8 @@ define (require) ->
     cell =
       type: 'input'
       $el: $el
+      visible: true
+      active: true
       notebook: notebook
       used: false
       editor: editor
@@ -235,6 +240,8 @@ define (require) ->
     cell =
       type: 'output'
       $el: $ '<div class="cell output clean"/>'
+      visible: true
+      active: true
       notebook: notebook
       rendered: ->
       number: number
