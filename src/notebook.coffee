@@ -447,7 +447,7 @@ define (require) ->
           'intro'
 
       add_input_cell(notebook, code: program).run()
-      add_input_cell notebook
+      focus_cell add_input_cell notebook
 
     run: (cell) ->
       output_cell = cell.run()
