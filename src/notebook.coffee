@@ -33,6 +33,7 @@ define (require) ->
   create_notebook = ->
     cells: []
     input_number: 1
+    output_number: 1
     default_options: {}
     $document: $ '<div class="document"/>'
 
@@ -72,7 +73,7 @@ define (require) ->
 
   get_input_cell_by_number = (notebook, number) ->
     for cell in notebook
-      return cell if cell.input_number == number
+      return cell if cell.number == number and is_input cell
 
   remove_cell = (cell) ->
     index = cell_index cell
@@ -147,11 +148,11 @@ define (require) ->
 
     cell =
       type: 'input'
+      $el: $el
       notebook: notebook
       used: false
       editor: editor
       rendered: -> editor.refresh()
-      $el: $el
       hide: -> $el.hide()
       is_clean: -> editor.getValue() is '' and not @.used
       run: ->
@@ -159,8 +160,8 @@ define (require) ->
         remove_cell cell.output_cell if cell.output_cell?
         cell.output_cell = run cell, editor.getValue()
         insert_cell cell.output_cell, after: cell
-        cell.input_number = notebook.input_number++
-        cell.$el.attr 'data-cell-number', cell.input_number
+        cell.number = notebook.input_number++
+        cell.$el.attr 'data-cell-number', cell.number
         cell.output_cell
 
     editor.lead_cell = cell
@@ -233,10 +234,17 @@ define (require) ->
     bound_ops
 
   create_output_cell = (notebook) ->
-    $el: $ '<div class="cell output"/>'
-    type: 'output'
-    notebook: notebook
-    rendered: ->
+    number = notebook.output_number++
+
+    cell =
+      type: 'output'
+      $el: $ '<div class="cell output"/>'
+      notebook: notebook
+      rendered: ->
+      number: number
+
+    cell.$el.attr 'data-cell-number', cell.number
+    cell
 
   run = (input_cell, string) ->
     output_cell = create_output_cell input_cell.notebook
@@ -280,7 +288,7 @@ define (require) ->
       run: (code) -> run_in_available_context notebook, code
       clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
-      hide_input: -> remove_cell input_cell
+      hide_input: -> hide_cell input_cell
       value: (value) -> _lead_cli_value: value
       open_file: -> open_file_picker run_context
       export_notebook: -> export_notebook input_cell
@@ -379,10 +387,9 @@ define (require) ->
     if file.type.indexOf('image') < 0
       [_..., extension] = file.filename.split '.'
       if extension is 'coffee'
+        cell = add_input_cell run_context.notebook, code: file.content, after: run_context.cell
         if options.run
-          run_in_available_context run_context.notebook, file.content
-        else
-          add_context run_context.notebook, file.content
+          cell.run()
       else
         try
           imported = JSON.parse file.content

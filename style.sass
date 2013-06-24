@@ -78,15 +78,22 @@ pre
     margin-bottom: 20px
     position: relative
 
-  .input
+  .input, .output
     &[data-cell-number]::before
       position: absolute
       right: 100%
       padding: 8px 12px
       font-family: $monospace
       line-height: 1.6em
-      content: 'In[' attr(data-cell-number) ']'
       color: #ddd
+
+  .input
+    &[data-cell-number]::before
+      content: 'In[' attr(data-cell-number) ']'
+
+  .output
+    &[data-cell-number]::before
+      content: 'Out[' attr(data-cell-number) ']'
 
     .close::before
       content: '×'
@@ -95,10 +102,10 @@ pre
       font-weight: bold
       color: #ddd
 
-  .output
-    margin-left: 16px
-    margin-right: 16px
+    padding-left: 16px
+    padding-right: 16px
     line-height: 1.4em
+    min-height: 1em
 
     .user-html
       @include user-html
