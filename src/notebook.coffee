@@ -449,10 +449,11 @@ define (require) ->
       add_input_cell(notebook, code: program).run()
       focus_cell add_input_cell notebook
 
-    run: (cell) ->
+    run: (cell, opts={advance: true}) ->
       output_cell = cell.run()
-      new_cell = add_input_cell cell.notebook, after: output_cell, reuse: true
-      focus_cell new_cell
+      if opts.advance
+        new_cell = add_input_cell cell.notebook, after: output_cell, reuse: true
+        focus_cell new_cell
 
     handle_file: handle_file
 

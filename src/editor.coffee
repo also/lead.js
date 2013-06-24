@@ -86,8 +86,11 @@ define (require) ->
     fn
 
   commands =
-    run: cmd 'Runs the contents of the cell', (cm) ->
-      notebook.run cm.lead_cell
+    run: cmd 'Runs the contents of the cell and advances the cursor to the next cell', (cm) ->
+      notebook.run cm.lead_cell, advance: true
+
+    run_in_place: cmd 'Runs the contents of the cell and keeps the cursor in the cell', (cm) ->
+      notebook.run cm.lead_cell, advance: false
 
     context_help: cmd 'Shows help for the token under the cursor', (cm) ->
       cur = cm.getCursor()
@@ -141,6 +144,7 @@ define (require) ->
     Down: 'maybe_next_cell'
     'Shift-Up': 'fill_with_last_value'
     'Shift-Enter': 'run'
+    'Ctrl-Enter': 'run_in_place'
     'F1': 'context_help'
     'Ctrl-Space': 'suggest'
 
