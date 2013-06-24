@@ -233,7 +233,7 @@ define (require) ->
 
     cell =
       type: 'output'
-      $el: $ '<div class="cell output"/>'
+      $el: $ '<div class="cell output clean"/>'
       notebook: notebook
       rendered: ->
       number: number
@@ -257,6 +257,7 @@ define (require) ->
 
     output = ($target) ->
       (output) ->
+        $target.removeClass 'clean'
         $item = $ '<div class="item"/>'
         if output?
           $item.append output
