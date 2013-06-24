@@ -36,21 +36,21 @@ define ['lib/URI'], (URI) ->
         error: options.error
 
     to_gist_url: (gist) ->
-      build_url = (github, id) ->
-        url = github.api_base_url + "/gists/#{id}"
-        if github.access_token
-          url += "?access_token=#{github.access_token}"
+      build_url = (site, id) ->
+        url = site.api_base_url + "/gists/#{id}"
+        if site.access_token
+          url += "?access_token=#{site.access_token}"
         url
       gist = gist.toString()
       if gist.indexOf('http') != 0
-        github = github.githubs[github.default]
-        build_url github, gist
+        site = github.githubs[github.default]
+        build_url site, gist
       else
         uri = URI gist
-        github = github.get_github uri
+        site = github.get_github uri
 
         if github?
           [id, _...] = uri.filename().split '.'
-          build_url github, id
+          build_url site, id
         else
           gist
