@@ -45,7 +45,7 @@ define (require) ->
 
   clear_notebook = (notebook) ->
     notebook.$document.empty()
-    notebook.cell.slength = 0
+    notebook.cells.length = 0
 
   input_cell_at_offset = (cell, offset) ->
     index = cell.notebook.cells.indexOf cell
