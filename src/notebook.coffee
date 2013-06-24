@@ -323,8 +323,10 @@ define (require) ->
           output: output $item
           success: ->
             $item.attr 'data-async-status', "loaded in #{duration()}"
+            scroll_to_result $top
           failure: ->
             $item.attr 'data-async-status', "failed in #{duration()}"
+            scroll_to_result $top
         nested_context.cli = bind_cli nested_context
         fn.call(nested_context)
 
