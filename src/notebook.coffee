@@ -106,10 +106,11 @@ define (require) ->
     cell.rendered()
 
   add_input_cell = (notebook, opts={}) ->
-    if opts.after?
-      cell = seek opts.after, forwards, is_input
-    else if opts.before?
-      cell = seek opts.before, backwards, is_input
+    if opts.reuse
+      if opts.after?
+        cell = seek opts.after, forwards, is_input
+      else if opts.before?
+        cell = seek opts.before, backwards, is_input
     unless cell? and is_clean cell
       cell = create_input_cell notebook
       insert_cell cell, opts
@@ -450,7 +451,7 @@ define (require) ->
 
     run: (cell) ->
       output_cell = cell.run()
-      new_cell = add_input_cell cell.notebook, after: output_cell
+      new_cell = add_input_cell cell.notebook, after: output_cell, reuse: true
       focus_cell new_cell
 
     handle_file: handle_file
