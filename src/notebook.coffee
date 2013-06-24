@@ -24,7 +24,9 @@ define (require) ->
 
   is_input = (cell) -> cell.type is 'input'
   is_output = (cell) -> cell.type is 'output'
+  is_clean = (cell) -> cell.is_clean()
   visible = (cell) -> cell.visible
+  identity = (cell) -> true
 
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
@@ -58,7 +60,7 @@ define (require) ->
   cell_index = (cell) ->
     cell.notebook.cells.indexOf cell
 
-  seek = (start_cell, direction, predicate) ->
+  seek = (start_cell, direction, predicate=identity) ->
     notebook = start_cell.notebook
     index = cell_index(start_cell) + direction
     loop
@@ -104,9 +106,14 @@ define (require) ->
     cell.rendered()
 
   add_input_cell = (notebook, opts={}) ->
-    cell = create_input_cell notebook
+    if opts.after?
+      cell = seek opts.after, forwards, is_input
+    else if opts.before?
+      cell = seek opts.before, backwards, is_input
+    unless cell? and is_clean cell
+      cell = create_input_cell notebook
+      insert_cell cell, opts
     set_cell_value cell, opts.code if opts.code?
-    insert_cell cell, opts
     cell
 
   # Add an input cell above the last input cell
