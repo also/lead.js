@@ -9,6 +9,8 @@ requirejs.config
     'cm/coffeescript': ['cm/codemirror']
     'cm/runmode': ['cm/codemirror']
     'cm/show-hint': ['cm/codemirror']
+    'cm/markdown': ['cm/codemirror']
+    'cm/gfm': ['cm/gfm']
 
 # exclude optional URI modules
 define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']

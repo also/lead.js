@@ -268,7 +268,6 @@ define (require) ->
         nested_context.cli = bind_cli nested_context
         fn.call(nested_context)
 
-
     run_context.cli = cli = bind_cli run_context
 
     functions = {}
@@ -360,7 +359,6 @@ define (require) ->
       init_codemirror()
       $document = $ '#document'
       $file_picker = $ '#file'
-
 
       notebook = create_notebook()
       $document.append notebook.$document

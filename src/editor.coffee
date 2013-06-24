@@ -2,7 +2,6 @@ define (require) ->
   graphite = require 'graphite'
   ops = require 'ops'
 
-
   CodeMirror = require 'cm/codemirror'
   require 'cm/javascript'
   require 'cm/coffeescript'

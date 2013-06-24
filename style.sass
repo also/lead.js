@@ -1,4 +1,5 @@
 @import "./lib/reset"
+@import "./src/base"
 
 $background: #fafafa
 $monospace: Monaco, Consolas, "Lucida Console", monospace
@@ -99,6 +100,9 @@ pre
     margin-right: 16px
     line-height: 1.4em
 
+    .user-html
+      @include user-html
+
     .async
       &::after
         content: attr(data-async-status)
@@ -111,7 +115,6 @@ pre
         border-bottom: 1px solid #ddd
         font-size: 0.8em
         color: #bbb
-
 
     .cm-comment
       color: #aaa

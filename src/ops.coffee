@@ -1,5 +1,6 @@
 define (require) ->
   CodeMirror = require 'cm/codemirror'
+  marked = require 'lib/marked'
   lead = require 'core'
   graphite = require 'graphite'
   github = require 'github'
@@ -86,6 +87,11 @@ define (require) ->
     @output $pre
     @success()
 
+  fn 'md', 'Renders Markdown', (string) ->
+    $html = $ '<div class="user-html"/>'
+    $html.html marked string
+    @output $html
+
   fn 'text', 'Prints text', (string) ->
     $pre = $ '<p>'
     $pre.text string
@@ -99,7 +105,9 @@ define (require) ->
     @success()
 
   fn 'html', 'Adds some HTML', (html) ->
-    @output html
+    $html = $ '<div class="user-html"/>'
+    $html.html html
+    @output $html
     @success()
 
   fn 'error', 'Shows a preformatted error message', (message) ->
