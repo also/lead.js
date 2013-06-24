@@ -201,6 +201,7 @@ define (require) ->
 
   set_cell_value = (cell, value) ->
     cell.editor.setValue value
+    cell.editor.setCursor(line: cell.editor.lineCount() - 1)
 
   focus_cell = (cell) ->
     cell.editor.focus()
