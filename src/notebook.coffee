@@ -38,7 +38,7 @@ define (require) ->
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
-    cells: current_cell.notebook.cells.filter((cell) -> cell != current_cell).map (cell) ->
+    cells: current_cell.notebook.cells.filter((cell) -> cell != current_cell and is_input cell).map (cell) ->
       type: 'input'
       value: cell.editor.getValue()
 
@@ -46,9 +46,10 @@ define (require) ->
     for cell in imported.cells
       if cell.type is 'input'
         if options.run
-          run_in_available_context cell.value
+          run_in_available_context notebook, cell.value
         else
           add_context notebook, cell.value
+    notebook
 
   clear_notebook = (notebook) ->
     notebook.$document.empty()
@@ -155,10 +156,12 @@ define (require) ->
       is_clean: -> editor.getValue() is '' and not @.used
       run: ->
         cell.used = true
-        cell.output_cell?.$el.remove()
+        remove_cell cell.output_cell if cell.output_cell?
         cell.output_cell = run cell, editor.getValue()
+        insert_cell cell.output_cell, after: cell
         cell.input_number = notebook.input_number++
         cell.$el.attr 'data-cell-number', cell.input_number
+        cell.output_cell
 
     editor.lead_cell = cell
 
@@ -198,6 +201,9 @@ define (require) ->
   set_cell_value = (cell, value) ->
     cell.editor.setValue value
 
+  focus_cell = (cell) ->
+    cell.editor.focus()
+
   bind_cli = (run_context) ->
     bind_op = (op) ->
       bound = (args...) ->
@@ -226,10 +232,14 @@ define (require) ->
               @cli.object @cli[k]()
     bound_ops
 
-  run = (input_cell, string) ->
-    $el = $ '<div class="cell output"/>'
+  create_output_cell = (notebook) ->
+    $el: $ '<div class="cell output"/>'
+    type: 'output'
+    notebook: notebook
+    rendered: ->
 
-    input_cell.$el.after $el
+  run = (input_cell, string) ->
+    output_cell = create_output_cell input_cell.notebook
     $top = input_cell.$el
 
     scroll_to_result = ($result)->
@@ -252,11 +262,12 @@ define (require) ->
 
     notebook = input_cell.notebook
     run_context =
+      cell: output_cell
       notebook: notebook
       ops: ops
       current_options: {}
       default_options: notebook.default_options
-      output: output $el
+      output: output output_cell.$el
       success: ->
         scroll_to_result $top
         ignore
@@ -283,8 +294,7 @@ define (require) ->
         link.click()
         @output link
       get_input_value: (number) ->
-        cell = get_input_cell_by_number notebook, number
-        cell?.editor.getValue()
+        get_input_cell_by_number(notebook, number)?.editor.getValue()
 
       async: (fn) ->
         $item = $ '<div class="async"/>'
@@ -357,7 +367,7 @@ define (require) ->
       catch e
         handle_exception e, compiled
 
-    $el: $el
+    output_cell
 
   opening_run_context = null
 
@@ -432,8 +442,9 @@ define (require) ->
       add_input_cell notebook
 
     run: (cell) ->
-      cell.run()
-      add_context cell.notebook
+      output_cell = cell.run()
+      new_cell = add_input_cell cell.notebook, after: output_cell
+      focus_cell new_cell
 
     handle_file: handle_file
 
