@@ -323,6 +323,9 @@ define (require) ->
       clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
       hide_input: -> hide_cell input_cell
+      render: (o) ->
+        handle_renderable.call run_context, o
+        # TODO warn if not renderable
       value: (value) -> _lead_cli_value: value
       open_file: -> open_file_picker run_context
       export_notebook: -> export_notebook input_cell
