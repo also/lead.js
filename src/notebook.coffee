@@ -22,15 +22,43 @@ define (require) ->
   forwards = +1
   backwards = -1
 
+  # predicates for cells
   is_input = (cell) -> cell.type is 'input'
   is_output = (cell) -> cell.type is 'output'
   is_clean = (cell) -> cell.is_clean()
   visible = (cell) -> cell.visible
   identity = (cell) -> true
 
+
+  # statement result handlers. return truthy if handled.
+  ignored = (object) -> object == ignore
+
+  handle_cli_cmd = (object) ->
+    if object?._lead_op?
+      object._lead_op.cli_fn.apply(@)
+      true
+
+  handle_lead_node = (object) ->
+    if lead.is_lead_node object
+      lead_string = lead.to_string object
+      if $.type(object) == 'function'
+        @cli.text "#{lead_string} is a Graphite function"
+        run_in_info_context @input_cell, "docs #{object.values[0]}"
+      else
+        @cli.text "What do you want to do with #{lead_string}?"
+        for f in ['data', 'graph', 'img', 'url']
+          @cli.example "#{f} #{object.to_js_string()}"
+      true
+
+  handle_any_object = (object) ->
+    @cli.object object
+    true
+
+
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
     $.extend CodeMirror.commands, ed.commands
+
 
   create_notebook = ->
     cells: []
@@ -275,6 +303,7 @@ define (require) ->
     notebook = input_cell.notebook
     run_context =
       cell: output_cell
+      input_cell: input_cell
       notebook: notebook
       ops: ops
       current_options: {}
@@ -353,6 +382,17 @@ define (require) ->
       run_context.output $pre
       run_context.failure()
 
+    result_handlers =[
+      ignored,
+      handle_cli_cmd,
+      handle_lead_node,
+      handle_any_object
+    ]
+
+    display_object = (object) ->
+      for handler in result_handlers
+        return if handler.call run_context, object
+
     lead.define_functions functions, graphite_function_names
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
@@ -367,20 +407,7 @@ define (require) ->
         `with (cli) { with (functions) { with (vars) {`
         result = eval compiled
         `}}}`
-        unless result == ignore
-          if result?._lead_op?
-            result._lead_op.cli_fn.apply(run_context)
-          else if lead.is_lead_node result
-            lead_string = lead.to_string result
-            if $.type(result) == 'function'
-              cli.text "#{lead_string} is a Graphite function"
-              run_in_info_context input_cell, "docs #{result.values[0]}"
-            else
-              cli.text "What do you want to do with #{lead_string}?"
-              for f in ['data', 'graph', 'img', 'url']
-                cli.example "#{f} #{result.to_js_string()}"
-          else
-            cli.object result
+        display_object result
       catch e
         handle_exception e, compiled
 
