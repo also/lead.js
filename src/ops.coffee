@@ -228,9 +228,9 @@ define (require) ->
   fn 'data', 'Fetches Graphite graph data', (args...) ->
     params = args_to_params args, @
     @value @async ->
-      $result = @output()
       promise = graphite.get_data params
-      promise._lead_render = =>
+      promise._lead_render = ->
+        $result = @output()
         promise.done (response) =>
           for series in response
             $header = $ '<h3>'
@@ -268,7 +268,7 @@ define (require) ->
       promise = graphite.complete(query).then (response) ->
         response.metrics
 
-      promise._lead_render = =>
+      promise._lead_render = ->
         promise.done (metrics) =>
           $ul = $ '<ul class="find-results"/>'
           for node in metrics
