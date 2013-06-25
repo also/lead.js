@@ -111,9 +111,9 @@ define (require) ->
   add_input_cell = (notebook, opts={}) ->
     if opts.reuse
       if opts.after?
-        cell = seek opts.after, forwards, is_input
+        cell = seek opts.after, forwards, (cell) -> is_input(cell) and visible(cell)
       else if opts.before?
-        cell = seek opts.before, backwards, is_input
+        cell = seek opts.before, backwards, (cell) -> is_input(cell) and visible(cell)
     unless cell? and is_clean cell
       cell = create_input_cell notebook
       insert_cell cell, opts
