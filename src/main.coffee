@@ -11,6 +11,10 @@ requirejs.config
     'cm/show-hint': ['cm/codemirror']
     'cm/markdown': ['cm/codemirror']
     'cm/gfm': ['cm/gfm']
+    'lib/d3.v3':
+      exports: 'd3'
+    'lib/colorbrewer':
+      exports: 'colorbrewer'
 
 # exclude optional URI modules
 define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']

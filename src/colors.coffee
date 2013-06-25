@@ -1,5 +1,6 @@
-#= require ../lib/colorbrewer.js
-define ->
+define (require) ->
+  d3 = require 'lib/d3.v3'
+  colorbrewer = require 'lib/colorbrewer'
   colors =
     d3: {}
     brewer: colorbrewer
