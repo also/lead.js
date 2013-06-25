@@ -35,8 +35,12 @@ define (require) ->
 
   handle_cli_cmd = (object) ->
     if object?._lead_op?
-      object._lead_op.cli_fn.apply(@)
+      object._lead_op.cli_fn.apply @
       true
+
+  handle_renderable = (object) ->
+    if fn = object?._lead_render
+      fn.apply @
 
   handle_lead_node = (object) ->
     if lead.is_lead_node object
@@ -380,6 +384,7 @@ define (require) ->
     result_handlers =[
       ignored,
       handle_cli_cmd,
+      handle_renderable,
       handle_lead_node,
       handle_any_object
     ]

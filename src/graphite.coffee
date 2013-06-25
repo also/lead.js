@@ -10,6 +10,7 @@ define (require) ->
 
     render_url: (params) -> graphite.url 'render', params
 
+    # returns a promise
     get_data: (params, options) ->
       params.format = 'json'
       deferred = $.ajax
@@ -30,6 +31,7 @@ define (require) ->
               break
         msg
 
+    # returns a promise
     complete: (query) ->
       params = 
         query: encodeURIComponent query
