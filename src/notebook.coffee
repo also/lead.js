@@ -342,6 +342,7 @@ define (require) ->
     vars = lead: {github, graphite, colors}
 
     handle_exception = (e, compiled) ->
+      console.error e.stack
       cli.error printStackTrace({e}).join('\n')
       cli.text 'Compiled JavaScript:'
       cli.source 'javascript', compiled
