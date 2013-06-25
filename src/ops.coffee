@@ -5,6 +5,7 @@ define (require) ->
   graphite = require 'graphite'
   github = require 'github'
   graph = require 'graph'
+  URI = require 'lib/URI'
 
   notebook = null
   require ['notebook'], (nb) ->
