@@ -341,7 +341,7 @@ define (require) ->
       public: true
       files:
         'notebook.lnb':
-          content: JSON.stringify notebook
+          content: JSON.stringify notebook, undefined, 2
     @async ->
       promise = github.save_gist gist
       promise.done (result) =>
