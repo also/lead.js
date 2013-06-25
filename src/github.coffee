@@ -32,8 +32,6 @@ define ['lib/URI'], (URI) ->
         type: 'post'
         contentType: 'application/json'
         data: JSON.stringify gist
-        success: options.success
-        error: options.error
 
     to_gist_url: (gist) ->
       build_url = (site, id) ->

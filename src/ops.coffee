@@ -86,7 +86,6 @@ define (require) ->
     s = JSON.stringify(o, null, '  ') or new String o
     CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
     @output $pre
-    @success()
 
   fn 'md', 'Renders Markdown', (string) ->
     $html = $ '<div class="user-html"/>'
@@ -97,25 +96,21 @@ define (require) ->
     $pre = $ '<p>'
     $pre.text string
     @output $pre
-    @success()
 
   fn 'pre', 'Prints preformatted text', (string) ->
     $pre = $ '<pre>'
     $pre.text string
     @output $pre
-    @success()
 
   fn 'html', 'Adds some HTML', (html) ->
     $html = $ '<div class="user-html"/>'
     $html.html html
     @output $html
-    @success()
 
   fn 'error', 'Shows a preformatted error message', (message) ->
     $pre = $ '<pre class="error"/>'
     $pre.text message
     @output $pre
-    @success()
 
   fn 'example', 'Makes a clickable code example', (string, opts) ->
     $pre = $ '<pre class="example">'
@@ -126,13 +121,11 @@ define (require) ->
       else
         @set_code string
     @output $pre
-    @success()
 
   fn 'source', 'Shows source code with syntax highlighting', (language, string) ->
     $pre = $ '<pre>'
     CodeMirror.runMode string, 'javascript', $pre.get(0)
     @output $pre
-    @success()
 
   cmd 'intro', 'Shows the intro message', ->
     @cli.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
@@ -171,7 +164,6 @@ define (require) ->
         $result.append docs
       unless dl? or div?
         @cli.text 'Documentation not found'
-      @success()
     else
       @cli.html '<h3>Functions</h3>'
       names = (name for name of graphite.function_docs)
@@ -185,32 +177,26 @@ define (require) ->
       names.sort()
       for name in names
         @cli.example "docs '#{name}'"
-      @success()
 
   cmd 'clear', 'Clears the screen and code', ->
     @clear_output()
     @set_code ''
-    @success()
 
   cmd 'quiet', 'Hides the input box', ->
     @hide_input()
-    @success()
 
   fn 'options', 'Gets or sets options', (options) ->
     if options?
       $.extend @current_options, options
-    @success()
     @value @current_options
 
   cmd 'defaults', 'Gets or sets default options', (options) ->
     if options?
       $.extend @default_options, options
-    @success()
     @value @default_options
 
   fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
     result = args_to_params args, @
-    @success()
     @value result
 
   fn 'url', 'Generates a URL for a Graphite image', (args...) ->
@@ -221,80 +207,77 @@ define (require) ->
     $pre = $ '<pre>'
     $pre.append $a
     @output $pre
-    @success()
 
   fn 'img', 'Renders a Graphite graph image', (args...) ->
     params = args_to_params args, @
     url = graphite.render_url params
     @async ->
       $img = $ "<img src='#{url}'/>"
-      $img.on 'load', => @success()
-      $img.on 'error', (args...) =>
-        @cli.error 'Failed to load image'
-        @failure()
       @output $img
+      deferred = $.Deferred()
+      $img.on 'load', deferred.resolve
+      $img.on 'error', deferred.reject
+
+      promise = deferred.promise()
+      promise.fail (args...) =>
+        @cli.error 'Failed to load image'
 
   fn 'data', 'Fetches Graphite graph data', (args...) ->
     params = args_to_params args, @
     @async ->
       $result = @output()
-      graphite.get_data params,
-        success: (response) =>
-          for series in response
-            $header = $ '<h3>'
-            $header.text series.target
-            $result.append $header
-            $table = $ '<table>'
-            for [value, timestamp] in series.datapoints
-              time = moment(timestamp * 1000)
-              $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-            $result.append $table
-          @success()
-        error: (error) =>
-          @cli.error error
-          @failure()
+      promise = graphite.get_data params
+      promise.done (response) =>
+        for series in response
+          $header = $ '<h3>'
+          $header.text series.target
+          $result.append $header
+          $table = $ '<table>'
+          for [value, timestamp] in series.datapoints
+            time = moment(timestamp * 1000)
+            $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
+          $result.append $table
+      promise.fail (error) =>
+        @cli.error error
 
   fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
     params = args_to_params args, @
     params.format = 'json'
     @async ->
       $result = @output()
-      graphite.get_data params,
-        success: (response) =>
-          graph.draw $result.get(0), response, params
-          @success()
-        error: (error) =>
-          @cli.error error
-          @failure()
+      promise = graphite.get_data params
+      promise.done (response) =>
+        graph.draw $result.get(0), response, params
+      promise.fail (error) =>
+        @cli.error error
 
   fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
     query_parts = query.split '.'
     @async ->
       $result = @output()
-      graphite.complete query,
-        success: (response) =>
-          $ul = $ '<ul class="find-results"/>'
-          for node in response.metrics
-            $li = $ '<li class="cm-string"/>'
-            text = node.path
-            text += '*' if node.is_leaf == '0'
-            node_parts = text.split '.'
-            for part, i in node_parts
-              if i > 0
-                $li.append '.'
-              $span = $ '<span>'
-              $span.addClass 'light' if part == query_parts[i]
-              $span.text part
-              $li.append $span
-            do (text) =>
-              $li.on 'click', =>
-                if node.is_leaf == '0'
-                  @run "find #{JSON.stringify text}"
-                else
-                  @run "q(#{JSON.stringify text})"
-            $ul.append $li
-          $result.append $ul
-          @success()
+      promise = graphite.complete query
+      promise.done (response) =>
+        $ul = $ '<ul class="find-results"/>'
+        for node in response.metrics
+          $li = $ '<li class="cm-string"/>'
+          text = node.path
+          text += '*' if node.is_leaf == '0'
+          node_parts = text.split '.'
+          for part, i in node_parts
+            if i > 0
+              $li.append '.'
+            $span = $ '<span>'
+            $span.addClass 'light' if part == query_parts[i]
+            $span.text part
+            $li.append $span
+          do (text) =>
+            $li.on 'click', =>
+              if node.is_leaf == '0'
+                @run "find #{JSON.stringify text}"
+              else
+                @run "q(#{JSON.stringify text})"
+          $ul.append $li
+        $result.append $ul
 
   cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
     a = document.createElement 'a'
@@ -303,7 +286,6 @@ define (require) ->
     a.search = '?' + encodeURIComponent btoa code
     a.innerText = a.href
     @output a
-    @success()
 
   fn 'websocket', 'Runs commands from a web socket', (url) ->
     ws = new WebSocket url
@@ -323,20 +305,18 @@ define (require) ->
       @open_file()
     else
       @async ->
-        $.ajax
+        promise = $.ajax
           type: 'GET'
           url: url
           dataType: 'text'
-          success: (response, status_text, xhr) =>
-            @success()
-            notebook.handle_file @,
-              filename: URI(url).filename()
-              type: xhr.getResponseHeader 'content-type'
-              content: response
-            , options
-          error: (response, status_text, error) =>
-            @cli.error status_text
-            @failure()
+        promise.done (response, status_text, xhr) =>
+          notebook.handle_file @,
+            filename: URI(url).filename()
+            type: xhr.getResponseHeader 'content-type'
+            content: response
+          , options
+        promise.fail (response, status_text, error) =>
+          @cli.error status_text
 
   cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
     if arguments.length is 0
@@ -345,17 +325,15 @@ define (require) ->
       url = github.to_gist_url gist
       @async ->
         @cli.text "Loading gist #{gist}"
-        $.ajax
+        promise = $.ajax
           type: 'GET'
           url: url
           dataType: 'json'
-          success: (response) =>
-            @success()
-            for name, file of response.files
-              notebook.handle_file @, file, options
-          error: (response, status_text, error) =>
-              @cli.error status_text
-              @failure()
+        promise.done (response) =>
+          for name, file of response.files
+            notebook.handle_file @, file, options
+        promise.fail (response, status_text, error) =>
+          @cli.error status_text
 
   cmd 'save_gist', 'Saves a notebook as a gist', ->
     notebook = @export_notebook()
@@ -365,16 +343,14 @@ define (require) ->
         'notebook.lnb':
           content: JSON.stringify notebook
     @async ->
-      github.save_gist gist,
-        success: (result) =>
-          @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
-          lead_uri = URI window.location.href
-          lead_uri.fragment "/#{result.html_url}"
-          @cli.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
-          @success()
-        error: =>
-          @cli.error 'Save failed. Make sure your access token is configured correctly.'
-          @failure()
+      promise = github.save_gist gist
+      promise.done (result) =>
+        @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+        lead_uri = URI window.location.href
+        lead_uri.fragment "/#{result.html_url}"
+        @cli.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+      promise.fail =>
+        @cli.error 'Save failed. Make sure your access token is configured correctly.'
 
 
   fn 'q', 'Escapes a Graphite metric query', (targets...) ->

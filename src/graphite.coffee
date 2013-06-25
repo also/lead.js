@@ -12,25 +12,25 @@ define (require) ->
 
     get_data: (params, options) ->
       params.format = 'json'
-      $.ajax
+      deferred = $.ajax
         url: graphite.render_url params
         dataType: 'json'
-        success: options.success
-        error: (response) ->
-          html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
-          pre = $(html[0].getElementsByTagName 'pre')
-          if pre.length > 0
-            # graphite style error message in a pre
-            msg = pre.text()
-          else
-            for n in html
-              pre = n.querySelectorAll 'pre.exception_value'
-              if pre.length > 0
-                msg = pre[0].innerText
-                break
-          options.error msg
 
-    complete: (query, options) ->
+      deferred.then null, (response) ->
+        html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
+        pre = $(html[0].getElementsByTagName 'pre')
+        if pre.length > 0
+          # graphite style error message in a pre
+          msg = pre.text()
+        else
+          for n in html
+            pre = n.querySelectorAll 'pre.exception_value'
+            if pre.length > 0
+              msg = pre[0].innerText
+              break
+        msg
+
+    complete: (query) ->
       params = 
         query: encodeURIComponent query
         format: 'completer'
@@ -38,7 +38,6 @@ define (require) ->
       $.ajax
         url: graphite.url 'metrics/find', params
         dataType: 'json'
-        success: options.success
 
     args_to_params: ({args, default_options}) ->
       if args.legnth == 0

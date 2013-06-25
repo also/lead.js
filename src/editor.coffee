@@ -44,7 +44,8 @@ define (require) ->
         end_offset = 1
       else
         end_offset = 0
-      graphite.complete string, success: (response) ->
+      promise = graphite.complete string
+      promise.done (response) ->
         list = (node.path for node in response.metrics)
         showHints
           list: list

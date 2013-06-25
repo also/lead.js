@@ -310,12 +310,6 @@ define (require) ->
       current_options: {}
       default_options: notebook.default_options
       output: output output_cell.$el
-      success: ->
-        scroll_to_result $top
-        ignore
-      failure: ->
-        scroll_to_result $top
-        ignore
       set_code: (code) ->
         cell = add_input_cell notebook, code: code, after: run_context.cell
         focus_cell cell
@@ -357,14 +351,15 @@ define (require) ->
 
         nested_context = $.extend {}, run_context,
           output: output $item
-          success: ->
-            $item.attr 'data-async-status', "loaded in #{duration()}"
-            scroll_to_result $top
-          failure: ->
-            $item.attr 'data-async-status', "failed in #{duration()}"
-            scroll_to_result $top
+
         nested_context.cli = bind_cli nested_context
-        fn.call(nested_context)
+        promise = fn.call(nested_context)
+        promise.done ->
+          $item.attr 'data-async-status', "loaded in #{duration()}"
+          scroll_to_result $top
+        promise.fail ->
+          $item.attr 'data-async-status', "failed in #{duration()}"
+          scroll_to_result $top
 
     run_context.cli = cli = bind_cli run_context
 
@@ -381,7 +376,6 @@ define (require) ->
       $pre = $ '<pre class="error"/>'
       $pre.text message
       run_context.output $pre
-      run_context.failure()
 
     result_handlers =[
       ignored,
@@ -411,6 +405,8 @@ define (require) ->
         display_object result
       catch e
         handle_exception e, compiled
+
+      scroll_to_result $top
 
     output_cell
 
