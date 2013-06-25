@@ -470,7 +470,9 @@ define (require) ->
 
       rc = localStorage.lead_rc
       if rc?
-        add_input_cell(notebook, code: rc).run()
+        rc_cell = add_input_cell(notebook, code: rc)
+        rc_cell.run()
+        remove_cell rc_cell
 
       uri = URI location.href
       fragment = uri.fragment()
