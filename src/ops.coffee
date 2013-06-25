@@ -246,11 +246,16 @@ define (require) ->
       promise
 
   fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
-    params = args_to_params args, @
-    params.format = 'json'
     @async ->
       $result = @output()
-      promise = graphite.get_data params
+      if args[0].pipe?
+        promise = args[0]
+        # TODO shouldn't need to pass fake first arg
+        params = args_to_params([[], args[1..]...], @)
+      else
+        params = args_to_params args, @
+        params.format = 'json'
+        promise = graphite.get_data params
       promise.done (response) =>
         graph.draw $result.get(0), response, params
       promise.fail (error) =>
