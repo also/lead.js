@@ -26,9 +26,9 @@ define ['lib/URI'], (URI) ->
 
     save_gist: (gist, options={}) ->
       github_host = options.github ? github.default
-      github = github.githubs[github_host]
+      gh = github.githubs[github_host]
       $.ajax
-        url: "#{github.api_base_url}/gists?access_token=#{github.access_token}"
+        url: "#{gh.api_base_url}/gists?access_token=#{gh.access_token}"
         type: 'post'
         contentType: 'application/json'
         data: JSON.stringify gist
