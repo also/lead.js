@@ -43,7 +43,7 @@ define (require) ->
       lead_string = lead.to_string object
       if $.type(object) == 'function'
         @cli.text "#{lead_string} is a Graphite function"
-        run_in_info_context @input_cell, "docs #{object.values[0]}"
+        run_before @input_cell, "docs #{object.values[0]}"
       else
         @cli.text "What do you want to do with #{lead_string}?"
         for f in ['data', 'graph', 'img', 'url']
@@ -86,6 +86,7 @@ define (require) ->
     for cell in notebook.cells
       cell.active = false
     notebook.cells.length = 0
+
 
   cell_index = (cell) ->
     cell.notebook.cells.indexOf cell
@@ -148,8 +149,8 @@ define (require) ->
     set_cell_value cell, opts.code if opts.code?
     cell
 
-  # Add an input cell above the last input cell
-  run_in_info_context = (current_cell, code) ->
+  # run an input cell above the current cell
+  run_before = (current_cell, code) ->
     cell = add_input_cell current_cell.notebook, code: code, before: current_cell
     cell.run()
 
@@ -493,13 +494,13 @@ define (require) ->
     handle_file: handle_file
 
     save: (cell) ->
-      run_in_info_context cell, 'save'
+      run_before cell, 'save'
 
     context_help: (cell, token) ->
       if graphite.has_docs token
-        run_in_info_context cell, "docs '#{token}'"
+        run_before cell, "docs '#{token}'"
       else if ops[token]?
-        run_in_info_context cell, "help #{token}"
+        run_before cell, "help #{token}"
 
     move_focus: (cell, offset) ->
       new_cell = input_cell_at_offset cell, offset
