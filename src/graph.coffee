@@ -16,8 +16,7 @@ define (require) ->
     x_axis = d3.svg.axis().scale(x).orient('bottom')
     y_axis = d3.svg.axis().scale(y).orient('left')
 
-    colors = params.d3_colors ? colors.d3.category10
-    color = d3.scale.ordinal().range colors
+    color = d3.scale.ordinal().range params.d3_colors ? colors.d3.category10
 
     area_opacity = params.areaAlpha ? 1.0
     line_opacity = 1.0
