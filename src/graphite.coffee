@@ -1,5 +1,6 @@
 define (require) ->
   lead = require 'core'
+  _ = require 'lib/underscore'
 
   graphite =
     base_url: null
@@ -52,7 +53,7 @@ define (require) ->
           if arg.options
             options = arg.options
           else
-            options = $.extend {}, arg
+            options = _.extend clone arg
             delete options.targets
             delete options.target
         else
@@ -61,17 +62,17 @@ define (require) ->
       else
         last = args[args.length - 1]
 
-        if $.type(last) == 'string' or lead.is_lead_node(last) or $.isArray last
+        if _.isString == 'string' or lead.is_lead_node(last) or _.isArray last
           targets = args
           options = {}
         else
           [targets..., options] = args
 
-      targets = [targets] unless $.isArray targets
+      targets = [targets] unless _.isArray targets
       # flatten one level of nested arrays
       targets = Array.prototype.concat.apply [], targets
 
-      params = $.extend {}, default_options, options
+      params = _.extend {}, default_options, options
       params.target = (lead.to_target_string(target) for target in targets)
       params
 

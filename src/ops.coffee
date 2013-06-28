@@ -6,6 +6,7 @@ define (require) ->
   github = require 'github'
   graph = require 'graph'
   URI = require 'lib/URI'
+  _ = require 'lib/underscore'
 
   notebook = null
   require ['notebook'], (nb) ->
@@ -33,7 +34,7 @@ define (require) ->
     ops[name] = result
 
   args_to_params = (args, {default_options, current_options}) ->
-    graphite.args_to_params {args, default_options: $.extend({}, default_options, current_options)}
+    graphite.args_to_params {args, default_options: _.extend({}, default_options, current_options)}
 
   cmd 'help', 'Shows this help', (cmd) ->
     if cmd?
@@ -190,12 +191,12 @@ define (require) ->
 
   fn 'options', 'Gets or sets options', (options) ->
     if options?
-      $.extend @current_options, options
+      _.extend @current_options, options
     @value @current_options
 
   cmd 'defaults', 'Gets or sets default options', (options) ->
     if options?
-      $.extend @default_options, options
+      _.extend @default_options, options
     @value @default_options
 
   fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
@@ -369,7 +370,7 @@ define (require) ->
 
   fn 'q', 'Escapes a Graphite metric query', (targets...) ->
     for t in targets
-      unless $.type(t) is 'string'
+      unless _.isString t
         throw new TypeError "#{t} is not a string"
     @value new lead.type.q targets.map(String)...
 

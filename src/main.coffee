@@ -15,6 +15,8 @@ requirejs.config
       exports: 'd3'
     'lib/colorbrewer':
       exports: 'colorbrewer'
+    'lib/underscore':
+      exports: '_'
 
 # exclude optional URI modules
 define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']

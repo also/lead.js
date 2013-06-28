@@ -8,6 +8,7 @@ define (require) ->
   github = require 'github'
   colors = require 'colors'
   ops = require 'ops'
+  _ = require 'lib/underscore'
 
   ignore = new Object
 
@@ -45,7 +46,7 @@ define (require) ->
   handle_lead_node = (object) ->
     if lead.is_lead_node object
       lead_string = lead.to_string object
-      if $.type(object) == 'function'
+      if _.isFunction object
         @cli.text "#{lead_string} is a Graphite function"
         run_before @input_cell, "docs #{object.values[0]}"
       else
@@ -61,7 +62,7 @@ define (require) ->
 
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
-    $.extend CodeMirror.commands, ed.commands
+    _.extend CodeMirror.commands, ed.commands
 
 
   create_notebook = ->
@@ -327,7 +328,7 @@ define (require) ->
         $item = $ '<div class="renderable"/>'
         @output $item
 
-        nested_context = $.extend {}, run_context,
+        nested_context = _.extend {}, run_context,
           output: output $item
 
         nested_context.cli = bind_cli nested_context
@@ -363,7 +364,7 @@ define (require) ->
           else
             "#{ms} ms"
 
-        nested_context = $.extend {}, run_context,
+        nested_context = _.extend {}, run_context,
           output: output $item
 
         nested_context.cli = bind_cli nested_context
@@ -433,7 +434,7 @@ define (require) ->
 
   handle_file = (run_context, file, options={}) ->
     if file.type.indexOf('image') < 0
-      [_..., extension] = file.filename.split '.'
+      [prefix..., extension] = file.filename.split '.'
       if extension is 'coffee'
         cell = add_input_cell run_context.notebook, code: file.content, after: run_context.cell
         if options.run

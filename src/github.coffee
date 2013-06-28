@@ -48,7 +48,7 @@ define ['lib/URI'], (URI) ->
         site = github.get_github uri
 
         if github?
-          [id, _...] = uri.filename().split '.'
+          [id, rest...] = uri.filename().split '.'
           build_url site, id
         else
           gist

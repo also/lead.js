@@ -1,4 +1,6 @@
-define ->
+define (require) ->
+  _ = require 'lib/underscore'
+
   lead = version: 1
 
   lead_type = ->
@@ -37,7 +39,7 @@ define ->
     return arg if arg instanceof lead.type
     if typeof arg is "number"
       return new lead.type.n arg
-    if $.type(arg) == 'string'
+    if _.isString arg
       return new lead.type.s arg
     throw new TypeError('illegal argument ' + arg)
 
@@ -60,7 +62,7 @@ define ->
     node.to_target_string()
 
   lead.to_target_string = (node) ->
-    if $.type(node) == 'string'
+    if _.isString node
       node
     else
       lead.to_string node
