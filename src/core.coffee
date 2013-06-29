@@ -19,7 +19,7 @@ define (require) ->
   #  n: number
   #  s: string
   #  i: identifier
-  create_type n, lead.type for n in "pfqbi"
+  create_type n, lead.type for n in "pfqi"
 
   lead.type.f::to_target_string = ->
     [name, args...] = @values
@@ -35,12 +35,12 @@ define (require) ->
   lead.type.q::to_js_string = ->
     "q(#{(@values.map JSON.stringify).join ', '})"
 
-  # numbers and strings both use json serialization
+  # numbers, strings, and booleans use json serialization
   lead.type.p::to_js_string =
   lead.type.p::to_target_string = ->
     JSON.stringify @values[0]
 
-  create_type n, lead.type.p for n in "ns"
+  create_type n, lead.type.p for n in "nsb"
 
   # Graphite doesn't support escaped quotes in strings, so avoid including any if possible.
   lead.type.s::to_target_string = ->
