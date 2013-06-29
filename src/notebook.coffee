@@ -478,6 +478,7 @@ define (require) ->
       reader.readAsText file
 
   exports =
+    available_ops: available_ops
     init_editor: ->
       init_codemirror()
       $document = $ '#document'
@@ -528,7 +529,7 @@ define (require) ->
     context_help: (cell, token) ->
       if graphite.has_docs token
         run_before cell, "docs '#{token}'"
-      else if ops[token]?
+      else if available_ops(cell.notebook)[token]?
         run_before cell, "help #{token}"
 
     move_focus: (cell, offset) ->
