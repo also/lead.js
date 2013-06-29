@@ -1,6 +1,5 @@
 define (require) ->
   graphite = require 'graphite'
-  ops = require 'ops'
 
   CodeMirror = require 'cm/codemirror'
   require 'cm/javascript'
@@ -57,7 +56,7 @@ define (require) ->
       next_token = token_after cm, token, cur.line
       collect_suggestions = (s) ->
         list = []
-        for k of ops
+        for k of notebook.available_ops cm.lead_cell.notebook
           if k.indexOf(s) is 0
             list.push k
         for k of graphite.function_docs

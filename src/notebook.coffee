@@ -41,6 +41,10 @@ define (require) ->
   identity = (cell) -> true
 
 
+  available_ops = (notebook) ->
+    all_ops
+
+
   # statement result handlers. return truthy if handled.
   ignored = (object) -> object == ignore
 
