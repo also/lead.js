@@ -478,8 +478,11 @@ define (require) ->
 
       reader.readAsText file
 
-  exports =
-    available_ops: available_ops
+  exports = {
+    create_notebook
+    available_ops
+    input_cell_at_offset
+
     init_editor: ->
       init_codemirror()
       $document = $ '#document'
@@ -543,7 +546,6 @@ define (require) ->
 
     cell_value: (cell) ->
       cell.editor.getValue()
-
-    input_cell_at_offset: input_cell_at_offset
+  }
 
   exports

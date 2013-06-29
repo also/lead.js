@@ -3,6 +3,11 @@ ready = false
 # FIXME
 window.testing = true
 
+specs = [
+  'core',
+  'notebook'
+]
+
 loaded = ->
   if ready
     execJasmine()
@@ -10,7 +15,7 @@ loaded = ->
 
 window.require =
   callback: ->
-    requirejs ['spec/core.spec'], (core) ->
+    requirejs specs.map((s) -> "spec/#{s}.spec"), ->
       console.log 'loaded specs'
       loaded()
 
