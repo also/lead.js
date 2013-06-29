@@ -313,6 +313,14 @@ define (require) ->
         $('html, body').scrollTop top
       , 10
 
+    result_handlers =[
+      ignored,
+      handle_cli_cmd,
+      handle_renderable,
+      handle_lead_node,
+      handle_any_object
+    ]
+
     output = ($target) ->
       (output) ->
         $target.removeClass 'clean'
@@ -359,6 +367,15 @@ define (require) ->
         @cli.text 'Compiled JavaScript:'
         @cli.source 'javascript', compiled
 
+      error: (message) ->
+        $pre = $ '<pre class="error"/>'
+        $pre.text message
+        run_context.output $pre
+
+      display_object: (object) ->
+        for handler in result_handlers
+          return if handler.call run_context, object
+
       value: (value) -> _lead_cli_value: value
       open_file: -> open_file_picker run_context
       export_notebook: -> export_notebook input_cell
@@ -403,28 +420,18 @@ define (require) ->
 
     run_context.cli = cli = bind_cli run_context
 
-    error = (message) ->
-      $pre = $ '<pre class="error"/>'
-      $pre.text message
-      run_context.output $pre
+    run_in_context run_context, string
 
-    result_handlers =[
-      ignored,
-      handle_cli_cmd,
-      handle_renderable,
-      handle_lead_node,
-      handle_any_object
-    ]
+    scroll_to_result $top
 
-    display_object = (object) ->
-      for handler in result_handlers
-        return if handler.call run_context, object
+    output_cell
 
+  run_in_context = (run_context, string) ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
     catch e
       if e instanceof SyntaxError
-        error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         run_context.handle_exception e, compiled
 
@@ -433,13 +440,9 @@ define (require) ->
         `with (run_context.cli) { with (run_context.functions) { with (run_context.vars) {`
         result = eval compiled
         `}}}`
-        display_object result
+        run_context.display_object result
       catch e
         run_context.handle_exception e, compiled
-
-      scroll_to_result $top
-
-    output_cell
 
   opening_run_context = null
 
