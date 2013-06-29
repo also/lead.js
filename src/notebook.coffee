@@ -301,16 +301,21 @@ define (require) ->
 
   run = (input_cell, string) ->
     output_cell = create_output_cell input_cell.notebook
+
+    run_context = create_run_context input_cell, output_cell
+
+    run_in_context run_context, string
+
+    run_context.scroll_to_top()
+
+    output_cell
+
+  create_run_context = (input_cell, output_cell) ->
     $top = input_cell.$el
 
-    scroll_to_result = ($result)->
-      top = if $result?
-        $result.offset().top
-      else
-        $(document).height()
-
+    scroll_to_top = ->
       setTimeout ->
-        $('html, body').scrollTop top
+        $('html, body').scrollTop $top.offset().top
       , 10
 
     result_handlers =[
@@ -339,6 +344,7 @@ define (require) ->
       current_options: {}
       default_options: notebook.default_options
       output: output output_cell.$el
+      scroll_to_top: scroll_to_top
       functions: lead.define_functions {}, graphite_function_names
       vars: lead: {github, graphite, colors}
       set_code: (code) ->
@@ -413,18 +419,14 @@ define (require) ->
         promise = fn.call(nested_context)
         promise.done ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
-          scroll_to_result $top
+          scroll_to_top()
         promise.fail ->
           $item.attr 'data-async-status', "failed in #{duration()}"
-          scroll_to_result $top
+          scroll_to_top()
 
     run_context.cli = cli = bind_cli run_context
 
-    run_in_context run_context, string
-
-    scroll_to_result $top
-
-    output_cell
+    run_context
 
   run_in_context = (run_context, string) ->
     try
