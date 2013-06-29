@@ -302,7 +302,7 @@ define (require) ->
   run = (input_cell, string) ->
     output_cell = create_output_cell input_cell.notebook
 
-    run_context = create_run_context input_cell, output_cell
+    run_context = create_run_context output_cell, create_notebook_run_context input_cell
 
     run_in_context run_context, string
 
@@ -310,8 +310,37 @@ define (require) ->
 
     output_cell
 
-  create_run_context = (input_cell, output_cell) ->
-    $top = input_cell.$el
+  create_notebook_run_context = (input_cell) ->
+    notebook = input_cell.notebook
+    run_context =
+      notebook: notebook
+      input_cell: input_cell
+      default_options: notebook.default_options
+      set_code: (code) ->
+        cell = add_input_cell notebook, code: code, after: run_context.cell
+        focus_cell cell
+      run: (code) ->
+        cell = add_input_cell notebook, code: code, after: run_context.cell
+        cell.run()
+      clear_output: -> clear_notebook notebook
+      previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
+      hide_input: -> hide_cell input_cell
+      open_file: -> open_file_picker run_context
+      export_notebook: -> export_notebook input_cell
+      save: ->
+        text = JSON.stringify export_notebook input_cell
+        blob = new Blob [text], type: notebook_content_type
+        link = document.createElement 'a'
+        link.innerHTML = 'Download Notebook'
+        link.href = window.webkitURL.createObjectURL blob
+        link.download = 'notebook.lnb'
+        link.click()
+        @output link
+      get_input_value: (number) ->
+        get_input_cell_by_number(notebook, number)?.editor.getValue()
+
+  create_run_context = (output_cell, extra_contexts...) ->
+    $top = output_cell.$el
 
     scroll_to_top = ->
       setTimeout ->
@@ -335,27 +364,15 @@ define (require) ->
         $target.append $item
         $item
 
-    notebook = input_cell.notebook
     run_context =
       cell: output_cell
-      input_cell: input_cell
-      notebook: notebook
       ops: all_ops
       current_options: {}
-      default_options: notebook.default_options
       output: output output_cell.$el
       scroll_to_top: scroll_to_top
       functions: lead.define_functions {}, graphite_function_names
       vars: lead: {github, graphite, colors}
-      set_code: (code) ->
-        cell = add_input_cell notebook, code: code, after: run_context.cell
-        focus_cell cell
-      run: (code) ->
-        cell = add_input_cell notebook, code: code, after: run_context.cell
-        cell.run()
-      clear_output: -> clear_notebook notebook
-      previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
-      hide_input: -> hide_cell input_cell
+
       render: (o) ->
         $item = $ '<div class="renderable"/>'
         @output $item
@@ -383,19 +400,6 @@ define (require) ->
           return if handler.call run_context, object
 
       value: (value) -> _lead_cli_value: value
-      open_file: -> open_file_picker run_context
-      export_notebook: -> export_notebook input_cell
-      save: ->
-        text = JSON.stringify export_notebook input_cell
-        blob = new Blob [text], type: notebook_content_type
-        link = document.createElement 'a'
-        link.innerHTML = 'Download Notebook'
-        link.href = window.webkitURL.createObjectURL blob
-        link.download = 'notebook.lnb'
-        link.click()
-        @output link
-      get_input_value: (number) ->
-        get_input_cell_by_number(notebook, number)?.editor.getValue()
 
       async: (fn) ->
         $item = $ '<div class="async"/>'
@@ -425,6 +429,7 @@ define (require) ->
           scroll_to_top()
 
     run_context.cli = cli = bind_cli run_context
+    _.defaults run_context, extra_contexts...
 
     run_context
 
