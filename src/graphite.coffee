@@ -58,7 +58,7 @@ define (require) ->
           if arg.options
             options = arg.options
           else
-            options = _.extend clone arg
+            options = _.clone arg
             delete options.targets
             delete options.target
         else
