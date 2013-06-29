@@ -49,6 +49,15 @@ define ['core'], (core) ->
         result = fake_function fake_function
         expect(core.is_lead_node result).toBe true
 
+      it 'should not take array arguments', ->
+        expect(-> fake_function []).toThrow()
+
+      it 'should not take object arguments', ->
+        expect(-> fake_function {}).toThrow()
+
+      it 'should not take null arguments', ->
+        expect(-> fake_function null).toThrow()
+
       it 'should not escape backslashes in strings', ->
         result = fake_function '\\'
         expect(core.to_target_string result).not.toMatch /\\\\/
