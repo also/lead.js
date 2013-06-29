@@ -58,16 +58,6 @@ define ['core'], (core) ->
       it 'should not take null arguments', ->
         expect(-> fake_function null).toThrow()
 
-      it 'should not escape backslashes in strings', ->
-        result = fake_function '\\'
-        expect(core.to_target_string result).not.toMatch /\\\\/
-
-      it 'should not escape a single kind of quotes', ->
-        result = fake_function '"'
-        expect(core.to_target_string result).not.toMatch /\\/
-        result = fake_function "'"
-        expect(core.to_target_string result).not.toMatch /\\/
-
     describe 'raw strings', ->
       raw_string = null
 
@@ -112,3 +102,28 @@ define ['core'], (core) ->
 
       it 'should have their value as the js string', ->
         expect(core.to_js_string boolean).toBe 'false'
+
+    describe 'strings', ->
+      string = null
+
+      beforeEach ->
+        string = new core.type.s 'avocado'
+
+      it 'should be lead nodes', ->
+        expect(core.is_lead_node string).toBe true
+
+      it 'should have their quoted value as the target', ->
+        expect(core.to_target_string string).toBe "'avocado'"
+
+      it 'should have their json-serialized value as the js string', ->
+        expect(core.to_js_string string).toBe '"avocado"'
+
+      it 'should not escape backslashes', ->
+        s = new core.type.s '\\'
+        expect(core.to_target_string s).not.toMatch /\\\\/
+
+      it 'should not escape a single kind of quotes', ->
+        s = new core.type.s '"'
+        expect(core.to_target_string s).not.toMatch /\\/
+        s = new core.type.s "'"
+        expect(core.to_target_string s).not.toMatch /\\/
