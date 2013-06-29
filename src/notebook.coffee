@@ -1,14 +1,15 @@
 define (require) ->
+  $ = require 'lib/jquery'
+  _ = require 'lib/underscore'
+  URI = require 'lib/URI'
+  CoffeeScript = require 'lib/coffee-script'
   lead = require 'core'
   ed = require 'editor'
-  CoffeeScript = require 'lib/coffee-script'
-  $ = require 'lib/jquery'
   graphite = require 'graphite'
   graphite_function_names = require 'functions'
-  URI = require 'lib/URI'
   github = require 'github'
   colors = require 'colors'
-  _ = require 'lib/underscore'
+  context = require 'context'
 
   builtins = require 'builtins'
   graphite = require 'graphite'
@@ -21,9 +22,25 @@ define (require) ->
 
   all_ops = _.extend {}, _.map(lead_modules, (m) -> m.ops)...
 
-  ignore = new Object
-
   define_parameters = true
+
+  # FIXME needs to happen after graphite docs have loaded
+  ###
+  if define_parameters
+    for k of graphite.parameter_docs
+      do (k) ->
+        fn = (value) ->
+          if value?
+            @current_options[k] = value
+          else
+            @value @current_options[k] ? @default_options[k]
+
+        all_ops[k] =
+          name: k
+          fn: fn
+          cli_fn: ->
+            @cli.object @cli[k]()
+  ###
 
   $file_picker = null
 
@@ -44,35 +61,6 @@ define (require) ->
 
   available_ops = (notebook) ->
     all_ops
-
-
-  # statement result handlers. return truthy if handled.
-  ignored = (object) -> object == ignore
-
-  handle_cli_cmd = (object) ->
-    if object?._lead_op?
-      object._lead_op.cli_fn.apply @
-      true
-
-  handle_renderable = (object) ->
-    if fn = object?._lead_render
-      fn.apply @
-
-  handle_lead_node = (object) ->
-    if lead.is_lead_node object
-      lead_string = lead.to_string object
-      if _.isFunction object
-        @cli.text "#{lead_string} is a Graphite function"
-        run_before @input_cell, "docs #{object.values[0]}"
-      else
-        @cli.text "What do you want to do with #{lead_string}?"
-        for f in ['data', 'graph', 'img', 'url']
-          @cli.example "#{f} #{object.to_js_string()}"
-      true
-
-  handle_any_object = (object) ->
-    @cli.object object
-    true
 
 
   init_codemirror = ->
@@ -255,35 +243,6 @@ define (require) ->
   focus_cell = (cell) ->
     cell.editor.focus()
 
-  bind_cli = (run_context) ->
-    bind_op = (op) ->
-      bound = (args...) ->
-        # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context, args)?._lead_cli_value ? ignore
-      bound._lead_op = op
-      bound
-
-    bound_ops = {}
-    for module in lead_modules
-      for k, op of module.ops
-        bound_ops[k] = bind_op op
-
-    if define_parameters
-      for k of graphite.parameter_docs
-        do (k) ->
-          fn = (value) ->
-            if value?
-              @current_options[k] = value
-            else
-              @value @current_options[k] ? @default_options[k]
-
-          bound_ops[k] = bind_op
-            name: k
-            fn: fn
-            cli_fn: ->
-              @cli.object @cli[k]()
-    bound_ops
-
   create_output_cell = (notebook) ->
     number = notebook.output_number++
 
@@ -302,7 +261,11 @@ define (require) ->
   run = (input_cell, string) ->
     output_cell = create_output_cell input_cell.notebook
 
-    run_context = create_run_context output_cell, create_notebook_run_context input_cell
+    run_context = context.create_run_context output_cell,
+      extra_contexts: [create_notebook_run_context input_cell]
+      ops: all_ops
+      function_names: graphite_function_names
+      vars: lead: {github, graphite, colors}
 
     run_in_context run_context, string
 
@@ -338,100 +301,6 @@ define (require) ->
         @output link
       get_input_value: (number) ->
         get_input_cell_by_number(notebook, number)?.editor.getValue()
-
-  create_run_context = (output_cell, extra_contexts...) ->
-    $top = output_cell.$el
-
-    scroll_to_top = ->
-      setTimeout ->
-        $('html, body').scrollTop $top.offset().top
-      , 10
-
-    result_handlers =[
-      ignored,
-      handle_cli_cmd,
-      handle_renderable,
-      handle_lead_node,
-      handle_any_object
-    ]
-
-    output = ($target) ->
-      (output) ->
-        $target.removeClass 'clean'
-        $item = $ '<div class="item"/>'
-        if output?
-          $item.append output
-        $target.append $item
-        $item
-
-    run_context =
-      cell: output_cell
-      ops: all_ops
-      current_options: {}
-      output: output output_cell.$el
-      scroll_to_top: scroll_to_top
-      functions: lead.define_functions {}, graphite_function_names
-      vars: lead: {github, graphite, colors}
-
-      render: (o) ->
-        $item = $ '<div class="renderable"/>'
-        @output $item
-
-        nested_context = _.extend {}, run_context,
-          output: output $item
-
-        nested_context.cli = bind_cli nested_context
-        handle_renderable.call nested_context, o
-        # TODO warn if not renderable
-
-      handle_exception: (e, compiled) ->
-        console.error e.stack
-        @cli.error printStackTrace({e}).join('\n')
-        @cli.text 'Compiled JavaScript:'
-        @cli.source 'javascript', compiled
-
-      error: (message) ->
-        $pre = $ '<pre class="error"/>'
-        $pre.text message
-        run_context.output $pre
-
-      display_object: (object) ->
-        for handler in result_handlers
-          return if handler.call run_context, object
-
-      value: (value) -> _lead_cli_value: value
-
-      async: (fn) ->
-        $item = $ '<div class="async"/>'
-        $item.attr 'data-async-status', 'loading'
-        @output $item
-
-        start_time = new Date
-
-        duration = ->
-          ms = new Date - start_time
-          if ms >= 1000
-            s = (ms / 1000).toFixed 1
-            "#{s} s"
-          else
-            "#{ms} ms"
-
-        nested_context = _.extend {}, run_context,
-          output: output $item
-
-        nested_context.cli = bind_cli nested_context
-        promise = fn.call(nested_context)
-        promise.done ->
-          $item.attr 'data-async-status', "loaded in #{duration()}"
-          scroll_to_top()
-        promise.fail ->
-          $item.attr 'data-async-status', "failed in #{duration()}"
-          scroll_to_top()
-
-    run_context.cli = cli = bind_cli run_context
-    _.defaults run_context, extra_contexts...
-
-    run_context
 
   run_in_context = (run_context, string) ->
     try
