@@ -68,6 +68,9 @@ define (require) ->
     else
       lead.to_string node
 
+  lead.to_js_string = (node) ->
+    node.to_js_string()
+
   lead.is_lead_node = (x) ->
     x instanceof lead.type
 
