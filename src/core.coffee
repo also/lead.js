@@ -55,6 +55,7 @@ define (require) ->
 
   lead.define_functions = (ns, names) ->
     ns[name] = lead_fn name for name in names
+    ns
 
   lead.to_string = (node) ->
     unless node instanceof lead.type
