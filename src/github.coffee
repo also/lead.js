@@ -11,6 +11,7 @@
 
 define (require) ->
   URI = require 'lib/URI'
+  $ = require 'lib/jquery'
   modules = require 'modules'
 
   notebook = null

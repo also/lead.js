@@ -1,5 +1,6 @@
 define (require) ->
   _ = require 'lib/underscore'
+  $ = require 'lib/jquery'
   lead = require 'core'
   modules = require 'modules'
   graph = require 'graph'

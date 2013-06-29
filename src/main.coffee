@@ -12,6 +12,8 @@ requirejs.config
     'cm/show-hint': ['cm/codemirror']
     'cm/markdown': ['cm/codemirror']
     'cm/gfm': ['cm/gfm']
+    'lib/jquery':
+      exports: 'jQuery'
     'lib/d3.v3':
       exports: 'd3'
     'lib/colorbrewer':

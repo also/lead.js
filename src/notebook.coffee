@@ -2,6 +2,7 @@ define (require) ->
   lead = require 'core'
   ed = require 'editor'
   CoffeeScript = require 'lib/coffee-script'
+  $ = require 'lib/jquery'
   graphite = require 'graphite'
   graphite_function_names = require 'functions'
   URI = require 'lib/URI'
