@@ -1,6 +1,7 @@
 requirejs.config
   paths:
     lib: '../lib'
+    spec: '../spec'
     cm: '../lib/codemirror-3.12'
   shim:
     'cm/codemirror':
@@ -21,5 +22,7 @@ requirejs.config
 # exclude optional URI modules
 define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']
 
-requirejs ['notebook'], (notebook) ->
-  $ notebook.init_editor
+# TODO how is this supposed to work?
+unless window.testing
+  requirejs ['notebook'], (notebook) ->
+    $ notebook.init_editor
