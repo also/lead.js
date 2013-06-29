@@ -35,6 +35,14 @@ define (require) ->
   lead.type.i::to_js_string = ->
     @values[0]
 
+  lead.type.s::to_target_string = ->
+    s = @values[0]
+    if s.indexOf('"') >= 0 or s.indexOf("'") < 0
+      quoteChar = "'"
+    else
+      quoteChar = '"'
+    quoteChar + s.replace(quoteChar, "\\#{quoteChar}") + quoteChar
+
   process_arg = (arg) ->
     return arg if arg instanceof lead.type
     if typeof arg is "number"
