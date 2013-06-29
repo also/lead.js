@@ -231,7 +231,7 @@ define (require) ->
     @value @async ->
       $result = @output()
       promise = graphite.complete(query).then (response) ->
-        response.metrics
+        _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
 
       promise._lead_render = ->
         promise.done (metrics) =>
@@ -239,7 +239,7 @@ define (require) ->
           for node in metrics
             $li = $ '<li class="cm-string"/>'
             text = node.path
-            text += '*' if node.is_leaf == '0'
+            text += '*' unless node.is_leaf
             node_parts = text.split '.'
             for part, i in node_parts
               if i > 0
@@ -250,10 +250,11 @@ define (require) ->
               $li.append $span
             do (text) =>
               $li.on 'click', =>
-                if node.is_leaf == '0'
-                  @run "find #{JSON.stringify text}"
-                else
+                if node.is_leaf
                   @run "q(#{JSON.stringify text})"
+                else
+                  @run "find #{JSON.stringify text}"
+
             $ul.append $li
           $result.append $ul
       promise
