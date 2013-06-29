@@ -67,3 +67,18 @@ define ['core'], (core) ->
         expect(core.to_target_string result).not.toMatch /\\/
         result = fake_function "'"
         expect(core.to_target_string result).not.toMatch /\\/
+
+    describe 'raw strings', ->
+      raw_string = null
+
+      beforeEach ->
+        raw_string = new core.type.q 'raw_string'
+
+      it 'should be lead nodes', ->
+        expect(core.is_lead_node raw_string).toBe true
+
+      it 'should have their value as the target', ->
+        expect(core.to_target_string raw_string).toBe 'raw_string'
+
+      it 'should have their invocation as the js string', ->
+        expect(core.to_js_string raw_string).toBe 'q("raw_string")'
