@@ -82,3 +82,33 @@ define ['core'], (core) ->
 
       it 'should have their invocation as the js string', ->
         expect(core.to_js_string raw_string).toBe 'q("raw_string")'
+
+    describe 'numbers', ->
+      number = null
+
+      beforeEach ->
+        number = new core.type.n 99
+
+      it 'should be lead nodes', ->
+        expect(core.is_lead_node number).toBe true
+
+      it 'should have their value as the target', ->
+        expect(core.to_target_string number).toBe '99'
+
+      it 'should have their value as the js string', ->
+        expect(core.to_js_string number).toBe '99'
+
+    describe 'booleans', ->
+      boolean = null
+
+      beforeEach ->
+        boolean = new core.type.b false
+
+      it 'should be lead nodes', ->
+        expect(core.is_lead_node boolean).toBe true
+
+      it 'should have their value as the target', ->
+        expect(core.to_target_string boolean).toBe 'false'
+
+      it 'should have their value as the js string', ->
+        expect(core.to_js_string boolean).toBe 'false'
