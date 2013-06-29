@@ -12,7 +12,7 @@ define (require) ->
 
   lead.type = lead_type
 
-  create_type n, lead.type for n in "pfq"
+  create_type n, lead.type for n in "pfqb"
   lead.type.p::to_js_string =
   lead.type.p::to_target_string = ->
     JSON.stringify @values[0]
@@ -49,6 +49,8 @@ define (require) ->
       return new lead.type.n arg
     if _.isString arg
       return new lead.type.s arg
+    if _.isBoolean arg
+      return new lead.type.b arg
     throw new TypeError('illegal argument ' + arg)
 
   lead_fn = (name) ->
