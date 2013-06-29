@@ -7,8 +7,18 @@ define (require) ->
   URI = require 'lib/URI'
   github = require 'github'
   colors = require 'colors'
-  ops = require 'ops'
   _ = require 'lib/underscore'
+
+  builtins = require 'builtins'
+  graphite = require 'graphite'
+
+  lead_modules = [
+    builtins,
+    graphite,
+    github
+  ]
+
+  all_ops = _.extend {}, _.map(lead_modules, (m) -> m.ops)...
 
   ignore = new Object
 
@@ -249,8 +259,9 @@ define (require) ->
       bound
 
     bound_ops = {}
-    for k, op of ops
-      bound_ops[k] = bind_op op
+    for module in lead_modules
+      for k, op of module.ops
+        bound_ops[k] = bind_op op
 
     if define_parameters
       for k of graphite.parameter_docs
@@ -311,7 +322,7 @@ define (require) ->
       cell: output_cell
       input_cell: input_cell
       notebook: notebook
-      ops: ops
+      ops: all_ops
       current_options: {}
       default_options: notebook.default_options
       output: output output_cell.$el

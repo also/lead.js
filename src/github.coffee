@@ -9,8 +9,18 @@
 #   git.example.com/gist/1051
 #   git.example.com/api/v3/gists/1051?access_token=...
 
-define ['lib/URI'], (URI) ->
+define (require) ->
+  URI = require 'lib/URI'
+  modules = require 'modules'
+
+  notebook = null
+  require ['notebook'], (nb) ->
+    notebook = nb
+
+  {fn, cmd, ops} = modules.create()
+
   github =
+    ops: ops
     githubs:
       'github.com':
         api_base_url: 'https://api.github.com'
@@ -52,3 +62,40 @@ define ['lib/URI'], (URI) ->
           build_url site, id
         else
           gist
+
+
+  cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
+    if arguments.length is 0
+      @cli.save_gist()
+    else
+      url = github.to_gist_url gist
+      @async ->
+        @cli.text "Loading gist #{gist}"
+        promise = $.ajax
+          type: 'GET'
+          url: url
+          dataType: 'json'
+        promise.done (response) =>
+          for name, file of response.files
+            notebook.handle_file @, file, options
+        promise.fail (response, status_text, error) =>
+          @cli.error status_text
+
+  cmd 'save_gist', 'Saves a notebook as a gist', ->
+    notebook = @export_notebook()
+    gist =
+      public: true
+      files:
+        'notebook.lnb':
+          content: JSON.stringify notebook, undefined, 2
+    @async ->
+      promise = github.save_gist gist
+      promise.done (result) =>
+        @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+        lead_uri = URI window.location.href
+        lead_uri.fragment "/#{result.html_url}"
+        @cli.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+      promise.fail =>
+        @cli.error 'Save failed. Make sure your access token is configured correctly.'
+
+  github
