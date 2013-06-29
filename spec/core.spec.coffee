@@ -52,3 +52,9 @@ define ['core'], (core) ->
       it 'should not escape backslashes in strings', ->
         result = fake_function '\\'
         expect(core.to_target_string result).not.toMatch /\\\\/
+
+      it 'should not escape a single kind of quotes', ->
+        result = fake_function '"'
+        expect(core.to_target_string result).not.toMatch /\\/
+        result = fake_function "'"
+        expect(core.to_target_string result).not.toMatch /\\/
