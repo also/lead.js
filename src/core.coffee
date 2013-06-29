@@ -12,10 +12,14 @@ define (require) ->
 
   lead.type = lead_type
 
-  create_type n, lead.type for n in "pfqb"
-  lead.type.p::to_js_string =
-  lead.type.p::to_target_string = ->
-    JSON.stringify @values[0]
+  # Create the types:
+  #  f: function invocation
+  #  q: raw string
+  #  b: boolean
+  #  n: number
+  #  s: string
+  #  i: identifier
+  create_type n, lead.type for n in "pfqbi"
 
   lead.type.f::to_target_string = ->
     [name, args...] = @values
@@ -31,10 +35,14 @@ define (require) ->
   lead.type.q::to_js_string = ->
     "q(#{(@values.map JSON.stringify).join ', '})"
 
-  create_type n, lead.type.p for n in "nsi"
-  lead.type.i::to_js_string = ->
-    @values[0]
+  # numbers and strings both use json serialization
+  lead.type.p::to_js_string =
+  lead.type.p::to_target_string = ->
+    JSON.stringify @values[0]
 
+  create_type n, lead.type.p for n in "ns"
+
+  # Graphite doesn't support escaped quotes in strings, so avoid including any if possible.
   lead.type.s::to_target_string = ->
     s = @values[0]
     if s.indexOf('"') >= 0 or s.indexOf("'") < 0
@@ -42,6 +50,10 @@ define (require) ->
     else
       quoteChar = '"'
     quoteChar + s.replace(quoteChar, "\\#{quoteChar}") + quoteChar
+
+  lead.type.i::to_target_string = lead.type.s::to_target_string
+  lead.type.i::to_js_string = ->
+    @values[0]
 
   process_arg = (arg) ->
     return arg if arg instanceof lead.type

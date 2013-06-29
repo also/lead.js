@@ -23,7 +23,7 @@ define ['core'], (core) ->
         expect(core.is_lead_node result).toBe true
 
       it 'should have their name as a string as the target', ->
-        expect(core.to_target_string fake_function).toBe '"fake_function"'
+        expect(core.to_target_string fake_function).toBe "'fake_function'"
 
       it 'should return a result that has its invocation as the target string', ->
         result = fake_function()
