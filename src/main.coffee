@@ -26,5 +26,5 @@ define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']
 
 # TODO how is this supposed to work?
 unless window.testing
-  requirejs ['notebook'], (notebook) ->
-    $ notebook.init_editor
+  requirejs ['app'], (app) ->
+    $ app.init_app
