@@ -6,7 +6,8 @@ window.testing = true
 specs = [
   'core',
   'context',
-  'notebook'
+  'notebook',
+  'github'
 ]
 
 loaded = ->
