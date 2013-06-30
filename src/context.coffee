@@ -22,7 +22,7 @@ define (require) ->
       lead_string = core.to_string object
       if _.isFunction object
         @cli.text "#{lead_string} is a Graphite function"
-        run_before @input_cell, "docs #{object.values[0]}"
+        @cli.example "docs #{object.values[0]}"
       else
         @cli.text "What do you want to do with #{lead_string}?"
         for f in ['data', 'graph', 'img', 'url']
