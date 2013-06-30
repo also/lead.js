@@ -1,7 +1,6 @@
 define (require) ->
   $ = require 'lib/jquery'
   _ = require 'lib/underscore'
-  URI = require 'lib/URI'
   CoffeeScript = require 'lib/coffee-script'
   lead = require 'core'
   ed = require 'editor'
@@ -42,8 +41,6 @@ define (require) ->
             @cli.object @cli[k]()
   ###
 
-  $file_picker = null
-
   notebook_content_type = 'application/x-lead-notebook'
 
   graphite.load_docs()
@@ -69,11 +66,25 @@ define (require) ->
 
 
   create_notebook = ->
-    cells: []
-    input_number: 1
-    output_number: 1
-    default_options: {}
-    $document: $ '<div class="document"/>'
+    $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
+    $file_picker.on 'change', (e) ->
+      for file in e.target.files
+        load_file notebook.opening_run_context, file
+
+      notebook.opening_run_context = null
+      # reset the file picker so change is triggered again
+      $file_picker.val ''
+
+    $document = $ '<div class="document"/>'
+    $document.append $file_picker
+
+    notebook =
+      cells: []
+      input_number: 1
+      output_number: 1
+      default_options: {}
+      $document: $document
+      $file_picker: $file_picker
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
@@ -321,11 +332,9 @@ define (require) ->
       catch e
         run_context.handle_exception e, compiled
 
-  opening_run_context = null
-
   open_file_picker = (run_context) ->
-    opening_run_context = run_context
-    $file_picker.trigger 'click'
+    run_context.notebook.opening_run_context = run_context
+    run_context.notebook.$file_picker.trigger 'click'
 
   handle_file = (run_context, file, options={}) ->
     if file.type.indexOf('image') < 0
@@ -361,42 +370,13 @@ define (require) ->
     create_notebook
     available_ops
     input_cell_at_offset
+    init_codemirror
+    add_input_cell
+    remove_cell
+    focus_cell
 
-    init_editor: ->
-      init_codemirror()
-      $document = $ '#document'
-      $file_picker = $ '#file'
-
-      notebook = create_notebook()
-      $document.append notebook.$document
-
-      $file_picker.on 'change', (e) ->
-        for file in e.target.files
-          load_file opening_run_context, file
-
-        opening_run_context = null
-        # reset the file picker so change is triggered again
-        $file_picker.val ''
-
-      rc = localStorage.lead_rc
-      if rc?
-        rc_cell = add_input_cell(notebook, code: rc)
-        rc_cell.run()
-        remove_cell rc_cell
-
-      uri = URI location.href
-      fragment = uri.fragment()
-      if fragment.length > 0 and fragment[0] == '/'
-        id = fragment[1..]
-        program = "gist #{JSON.stringify id}, run: true; quiet"
-      else
-        program = if location.search isnt ''
-          atob decodeURIComponent location.search[1..]
-        else
-          'intro'
-
-      add_input_cell(notebook, code: program).run()
-      focus_cell add_input_cell notebook
+    run_cell: (cell) ->
+      cell.run()
 
     run: (cell, opts={advance: true}) ->
       output_cell = cell.run()
