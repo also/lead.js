@@ -7,7 +7,8 @@ specs = [
   'core',
   'context',
   'notebook',
-  'github'
+  'github',
+  'graphite'
 ]
 
 loaded = ->
