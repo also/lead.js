@@ -2,12 +2,32 @@ define (require) ->
   URI = require 'lib/URI'
   notebook = require 'notebook'
 
+  builtins = require 'builtins'
+  graphite = require 'graphite'
+  graphite_function_names = require 'functions'
+  github = require 'github'
+  colors = require 'colors'
+
+  lead_modules = [
+    builtins,
+    graphite,
+    github
+  ]
+
+  all_ops = _.extend {}, _.map(lead_modules, (m) -> m.ops)...
+
+  graphite.load_docs()
+
   init_app: ->
     notebook.init_codemirror()
 
     $document = $ '#document'
 
-    nb = notebook.create_notebook()
+    nb = notebook.create_notebook
+      ops: all_ops
+      function_names: graphite_function_names
+      vars: lead: {github, graphite, colors}
+
     $document.append nb.$document
     rc = localStorage.lead_rc
     if rc?

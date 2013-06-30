@@ -5,21 +5,7 @@ define (require) ->
   lead = require 'core'
   ed = require 'editor'
   graphite = require 'graphite'
-  graphite_function_names = require 'functions'
-  github = require 'github'
-  colors = require 'colors'
   context = require 'context'
-
-  builtins = require 'builtins'
-  graphite = require 'graphite'
-
-  lead_modules = [
-    builtins,
-    graphite,
-    github
-  ]
-
-  all_ops = _.extend {}, _.map(lead_modules, (m) -> m.ops)...
 
   define_parameters = true
 
@@ -43,8 +29,6 @@ define (require) ->
 
   notebook_content_type = 'application/x-lead-notebook'
 
-  graphite.load_docs()
-
   forwards = +1
   backwards = -1
 
@@ -57,7 +41,7 @@ define (require) ->
 
 
   available_ops = (notebook) ->
-    all_ops
+    notebook.ops
 
 
   init_codemirror = ->
@@ -65,7 +49,7 @@ define (require) ->
     _.extend CodeMirror.commands, ed.commands
 
 
-  create_notebook = ->
+  create_notebook = (defaults) ->
     $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
     $file_picker.on 'change', (e) ->
       for file in e.target.files
@@ -78,7 +62,7 @@ define (require) ->
     $document = $ '<div class="document"/>'
     $document.append $file_picker
 
-    notebook =
+    notebook = _.extend {}, defaults,
       cells: []
       input_number: 1
       output_number: 1
@@ -274,9 +258,9 @@ define (require) ->
 
     run_context = context.create_run_context output_cell.$el,
       extra_contexts: [create_notebook_run_context input_cell]
-      ops: all_ops
-      function_names: graphite_function_names
-      vars: lead: {github, graphite, colors}
+      vars: input_cell.notebook.vars
+      function_names: input_cell.notebook.function_names
+      ops: available_ops input_cell.notebook
 
     run_in_context run_context, string
 
