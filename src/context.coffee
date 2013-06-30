@@ -131,7 +131,7 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
 
-        nested_context.cli = bind_cli nested_context
+        nested_context.cli = bind_cli nested_context, ops
         promise = fn.call(nested_context)
         promise.done ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
