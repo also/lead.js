@@ -261,7 +261,7 @@ define (require) ->
   run = (input_cell, string) ->
     output_cell = create_output_cell input_cell.notebook
 
-    run_context = context.create_run_context output_cell,
+    run_context = context.create_run_context output_cell.$el,
       extra_contexts: [create_notebook_run_context input_cell]
       ops: all_ops
       function_names: graphite_function_names
@@ -273,10 +273,11 @@ define (require) ->
 
     output_cell
 
-  create_notebook_run_context = (input_cell) ->
+  create_notebook_run_context = (input_cell, output_cell) ->
     notebook = input_cell.notebook
     run_context =
       notebook: notebook
+      cell: output_cell
       input_cell: input_cell
       default_options: notebook.default_options
       set_code: (code) ->

@@ -8,7 +8,6 @@ define (require) ->
   # statement result handlers. return truthy if handled.
   ignored = (object) -> object == ignore
 
-
   handle_cli_cmd = (object) ->
     if object?._lead_op?
       object._lead_op.cli_fn.apply @
@@ -49,13 +48,12 @@ define (require) ->
 
     bound_ops
 
-  create_run_context = (output_cell, opts={}) ->
+  create_run_context = ($el, opts={}) ->
     {extra_contexts, ops, function_names, vars} = opts
-    $top = output_cell.$el
 
     scroll_to_top = ->
       setTimeout ->
-        $('html, body').scrollTop $top.offset().top
+        $('html, body').scrollTop $el.offset().top
       , 10
 
     result_handlers =[
@@ -76,10 +74,9 @@ define (require) ->
         $item
 
     run_context =
-      cell: output_cell
       ops: ops
       current_options: {}
-      output: output output_cell.$el
+      output: output $el
       scroll_to_top: scroll_to_top
       functions: core.define_functions {}, function_names
       vars: vars
