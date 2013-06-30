@@ -92,7 +92,7 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
 
-        nested_context.cli = bind_cli nested_context
+        nested_context.cli = bind_cli nested_context, cli
         handle_renderable.call nested_context, o
         # TODO warn if not renderable
 
