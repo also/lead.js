@@ -22,11 +22,14 @@ window.require =
 
 jasmineEnv = jasmine.getEnv()
 
-htmlReporter = new jasmine.HtmlReporter
-jasmineEnv.addReporter htmlReporter
+if window.configure_jasmine?
+  window.configure_jasmine jasmineEnv
+else
+  htmlReporter = new jasmine.HtmlReporter
+  jasmineEnv.addReporter htmlReporter
 
-jasmineEnv.specFilter = (spec) ->
-  htmlReporter.specFilter(spec)
+  jasmineEnv.specFilter = (spec) ->
+    htmlReporter.specFilter(spec)
 
 window.onload = ->
   loaded()

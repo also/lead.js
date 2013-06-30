@@ -1,0 +1,11 @@
+before_script:
+  - 'git clone https://github.com/also/simpleserver.git'
+  - 'ln -s simpleserver/config.ru .'
+  - 'BUNDLE_GEMFILE=simpleserver/Gemfile bundle install'
+  - 'BUNDLE_GEMFILE=simpleserver/Gemfile bundle exec rackup'
+  - 'sleep 3'
+
+script: phantomjs spec/phantom.js
+
+rvm:
+  - "1.9.3"
