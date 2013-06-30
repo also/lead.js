@@ -49,7 +49,11 @@ define (require) ->
     bound_ops
 
   create_run_context = ($el, opts={}) ->
-    {extra_contexts, ops, function_names, vars} = opts
+    {extra_contexts, ops, function_names, vars} = _.defaults {}, opts,
+      extra_contexts: []
+      ops: {}
+      function_names: []
+      vars: {}
 
     scroll_to_top = ->
       setTimeout ->

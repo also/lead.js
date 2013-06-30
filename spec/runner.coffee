@@ -5,6 +5,7 @@ window.testing = true
 
 specs = [
   'core',
+  'context',
   'notebook'
 ]
 
