@@ -7,8 +7,6 @@ define (require) ->
   require 'cm/runmode'
   require 'cm/show-hint'
 
-  require 'lib/stacktrace-min-0.4.js'
-
   notebook = null
   require ['notebook'], (nb) ->
     notebook = nb

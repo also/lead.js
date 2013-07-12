@@ -1,6 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
+  printStackTrace = require 'stacktrace-js'
   core = require 'core'
 
   ignore = new Object
