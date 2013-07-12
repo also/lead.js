@@ -1,37 +1,26 @@
-ready = false
+define ->
+  specs = [
+    'core',
+    'context',
+    'notebook',
+    'github',
+    'graphite'
+  ]
 
-specs = [
-  'core',
-  'context',
-  'notebook',
-  'github',
-  'graphite'
-]
-
-loaded = ->
-  if ready
-    execJasmine()
-  ready = true
-window.require.baseUrl = 'src'
-window.require.callback = ->
-  requirejs specs.map((s) -> "spec/#{s}.spec"), ->
+  require specs.map((s) -> "spec/#{s}.spec"), ->
     console.log 'loaded specs'
-    loaded()
+    require ['domReady!'], execJasmine
 
-jasmineEnv = jasmine.getEnv()
+  jasmineEnv = jasmine.getEnv()
 
-if window.configure_jasmine?
-  window.configure_jasmine jasmineEnv
-else
-  htmlReporter = new jasmine.HtmlReporter
-  jasmineEnv.addReporter htmlReporter
+  if window.configure_jasmine?
+    window.configure_jasmine jasmineEnv
+  else
+    htmlReporter = new jasmine.HtmlReporter
+    jasmineEnv.addReporter htmlReporter
 
-  jasmineEnv.specFilter = (spec) ->
-    htmlReporter.specFilter(spec)
+    jasmineEnv.specFilter = (spec) ->
+      htmlReporter.specFilter(spec)
 
-window.onload = ->
-  loaded()
-
-execJasmine = ->
-  jasmineEnv.execute()
-  console.log 'ran jasmine'
+  execJasmine = ->
+    jasmineEnv.execute()

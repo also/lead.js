@@ -9,6 +9,7 @@
     d3: '../lib/d3.v3'
     URIjs: '../lib/URI'
     'stacktrace-js': '../lib/stacktrace-min-0.4'
+    'domReady': '../lib/domReady'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'
