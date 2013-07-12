@@ -4,7 +4,7 @@ before_script:
   - 'BUNDLE_GEMFILE=simpleserver/Gemfile bundle install'
   - 'BUNDLE_GEMFILE=simpleserver/Gemfile bundle exec rackup &'
   - 'sleep 3'
-  - npm install --dev
+  - npm install
 
 script:
   - grunt
