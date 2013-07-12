@@ -1,6 +1,6 @@
 define (require) ->
   colors = require 'colors'
-  d3 = require 'lib/d3.v3'
+  d3 = require 'd3'
 
   draw: (container, data, params) ->
     width = params.width or 800

@@ -5,6 +5,7 @@ requirejs.config
     cm: '../lib/codemirror-3.12'
     underscore: '../lib/underscore'
     jquery: '../lib/jquery'
+    d3: '../lib/d3.v3'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'
@@ -16,7 +17,7 @@ requirejs.config
     'cm/gfm': ['cm/gfm']
     'jquery':
       exports: 'jQuery'
-    'lib/d3.v3':
+    'd3':
       exports: 'd3'
     'lib/colorbrewer':
       exports: 'colorbrewer'
