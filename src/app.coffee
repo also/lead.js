@@ -1,5 +1,5 @@
 define (require) ->
-  URI = require 'lib/URI'
+  URI = require 'URIjs'
   notebook = require 'notebook'
 
   builtins = require 'builtins'

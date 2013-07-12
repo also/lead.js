@@ -6,6 +6,7 @@ requirejs.config
     underscore: '../lib/underscore'
     jquery: '../lib/jquery'
     d3: '../lib/d3.v3'
+    URIjs: '../lib/URI'
     'stacktrace-js': '../lib/stacktrace-min-0.4'
   shim:
     'cm/codemirror':
@@ -28,7 +29,7 @@ requirejs.config
       exports: 'printStackTrace'
 
 # exclude optional URI modules
-define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']
+define(m, -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']
 
 # TODO how is this supposed to work?
 unless this.testing

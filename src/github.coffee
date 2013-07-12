@@ -10,7 +10,7 @@
 #   git.example.com/api/v3/gists/1051?access_token=...
 
 define (require) ->
-  URI = require 'lib/URI'
+  URI = require 'URIjs'
   $ = require 'jquery'
   modules = require 'modules'
 
