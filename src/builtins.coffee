@@ -1,7 +1,7 @@
 define (require) ->
   CodeMirror = require 'cm/codemirror'
   URI = require 'lib/URI'
-  $ = require 'lib/jquery'
+  $ = require 'jquery'
   marked = require 'lib/marked'
   lead = require 'core'
   modules = require 'modules'

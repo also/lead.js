@@ -1,6 +1,6 @@
 define (require) ->
-  $ = require 'lib/jquery'
-  _ = require 'lib/underscore'
+  $ = require 'jquery'
+  _ = require 'underscore'
   core = require 'core'
 
   ignore = new Object

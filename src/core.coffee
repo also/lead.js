@@ -1,5 +1,5 @@
 define (require) ->
-  _ = require 'lib/underscore'
+  _ = require 'underscore'
 
   lead = version: 1
 

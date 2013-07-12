@@ -3,6 +3,8 @@ requirejs.config
     lib: '../lib'
     spec: '../spec'
     cm: '../lib/codemirror-3.12'
+    underscore: '../lib/underscore'
+    jquery: '../lib/jquery'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'
@@ -12,19 +14,19 @@ requirejs.config
     'cm/show-hint': ['cm/codemirror']
     'cm/markdown': ['cm/codemirror']
     'cm/gfm': ['cm/gfm']
-    'lib/jquery':
+    'jquery':
       exports: 'jQuery'
     'lib/d3.v3':
       exports: 'd3'
     'lib/colorbrewer':
       exports: 'colorbrewer'
-    'lib/underscore':
+    'underscore':
       exports: '_'
 
 # exclude optional URI modules
 define("lib/#{m}", -> null) for m in ['IPv6', 'punycode', 'SecondLevelDomains']
 
 # TODO how is this supposed to work?
-unless window.testing
+unless this.testing
   requirejs ['app'], (app) ->
     $ app.init_app

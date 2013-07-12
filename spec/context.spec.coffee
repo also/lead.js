@@ -1,5 +1,5 @@
 define (require) ->
-  $ = require 'lib/jquery'
+  $ = require 'jquery'
   context = require 'context'
 
   describe 'contexts', ->

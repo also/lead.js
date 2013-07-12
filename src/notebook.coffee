@@ -1,6 +1,6 @@
 define (require) ->
-  $ = require 'lib/jquery'
-  _ = require 'lib/underscore'
+  $ = require 'jquery'
+  _ = require 'underscore'
   CoffeeScript = require 'lib/coffee-script'
   lead = require 'core'
   ed = require 'editor'
