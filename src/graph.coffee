@@ -6,6 +6,8 @@ define (require) ->
     width = params.width or 800
     height = params.height or 400
 
+    type = params.type or 'line'
+
     margin = top: 20, right: 80, bottom: 30, left: 80
 
     width -= margin.left + margin.right
@@ -18,47 +20,48 @@ define (require) ->
 
     color = d3.scale.ordinal().range params.d3_colors ? colors.d3.category10
 
-    area_opacity = params.areaAlpha ? 1.0
-    line_opacity = 1.0
+    if type is 'line'
+      area_opacity = params.areaAlpha ? 1.0
+      line_opacity = 1.0
 
-    area = d3.svg.area()
-      .x((d) -> x d.time)
-      .y0((d) -> y d.y0 ? 0)
-      .y1((d) -> y d.value + (d.y0 ? 0))
-      .defined((d) -> d.value?)
+      area = d3.svg.area()
+        .x((d) -> x d.time)
+        .y0((d) -> y d.y0 ? 0)
+        .y1((d) -> y d.value + (d.y0 ? 0))
+        .defined((d) -> d.value?)
 
-    line = d3.svg.line()
-      .x((d) -> x d.time)
-      .y((d) -> y d.value)
-      .defined((d) -> d.value?)
+      line = d3.svg.line()
+        .x((d) -> x d.time)
+        .y((d) -> y d.value)
+        .defined((d) -> d.value?)
 
-    if params.interpolate?
-      line.interpolate params.interpolate
-      area.interpolate params.interpolate
+      if params.interpolate?
+        line.interpolate params.interpolate
+        area.interpolate params.interpolate
 
-    line_mode = (d, i) ->
-      if params.areaMode is 'all' or params.areaMode is 'stacked'
-        'area'
-      else if params.areaMode is 'first' and i is 0
-        'area'
-      else
-        'line'
+      line_mode = (d, i) ->
+        if params.areaMode is 'all' or params.areaMode is 'stacked'
+          'area'
+        else if params.areaMode is 'first' and i is 0
+          'area'
+        else
+          'line'
 
-    stack = d3.layout.stack()
-      .offset(params.areaOffset ? 'zero')
-      .values((d) -> d.values)
-      .x((d) -> d.time)
-      .y((d) -> d.value)
-      .out((d, y0, y) ->
-        d.y0 = y0
-        d.value = y)
+      stack = d3.layout.stack()
+        .offset(params.areaOffset ? 'zero')
+        .values((d) -> d.values)
+        .x((d) -> d.time)
+        .y((d) -> d.value)
+        .out((d, y0, y) ->
+          d.y0 = y0
+          d.value = y)
 
-    line_fn = (d, i) ->
-      mode = line_mode d, i
-      if mode is 'line'
-        line
-      else
-        area
+      line_fn = (d, i) ->
+        mode = line_mode d, i
+        if mode is 'line'
+          line
+        else
+          area
 
     transform_value =
       if params.drawNullAsZero
@@ -119,14 +122,23 @@ define (require) ->
       .enter().append("g")
         .attr('class', 'target')
 
-    target.append("path")
-        .attr('class', line_mode)
-        .attr('stroke', (d, i) -> color i)
-        .style('stroke-width', (d, i) -> params.lineWidth)
-        .style('stroke-opacity', line_opacity)
-        .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
-        .style('fill-opacity', area_opacity)
-        .attr('d', (d, i) -> line_fn(d, i)(d.values))
+    if type is 'line'
+      target.append("path")
+          .attr('class', line_mode)
+          .attr('stroke', (d, i) -> color i)
+          .style('stroke-width', (d, i) -> params.lineWidth)
+          .style('stroke-opacity', line_opacity)
+          .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
+          .style('fill-opacity', area_opacity)
+          .attr('d', (d, i) -> line_fn(d, i)(d.values))
+    else if type is 'scatter'
+      target.selectAll('circle')
+          .data((d) -> d.values)
+        .enter().append("circle")
+          .attr('cx', (d) -> x d.time)
+          .attr('cy', (d) -> y d.value)
+          .attr('fill', (d, i, j) -> color j)
+          .attr('r', 2)
 
     legend = d3.select(container).append('ul')
         .attr('class', 'legend')

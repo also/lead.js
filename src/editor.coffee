@@ -44,7 +44,6 @@ define (require) ->
         end_offset = 0
       promise = graphite.complete string
       promise.done (list) ->
-
         showHints
           list: list
           from: CodeMirror.Pos cur.line, token.start + 1
