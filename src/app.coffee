@@ -4,6 +4,7 @@ define (require) ->
 
   builtins = require 'builtins'
   graphite = require 'graphite'
+  opentsdb = require 'opentsdb'
   graphite_function_names = require 'functions'
   github = require 'github'
   colors = require 'colors'
@@ -11,6 +12,7 @@ define (require) ->
   lead_modules = [
     builtins,
     graphite,
+    opentsdb,
     github
   ]
 
