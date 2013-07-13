@@ -1,6 +1,7 @@
 define (require) ->
   graphite = require 'graphite'
 
+  _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
   require 'cm/javascript'
   require 'cm/coffeescript'
@@ -42,8 +43,8 @@ define (require) ->
       else
         end_offset = 0
       promise = graphite.complete string
-      promise.done (response) ->
-        list = (node.path for node in response.metrics)
+      promise.done (list) ->
+
         showHints
           list: list
           from: CodeMirror.Pos cur.line, token.start + 1

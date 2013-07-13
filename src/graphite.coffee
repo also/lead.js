@@ -11,6 +11,11 @@ define (require) ->
     ops: ops
     base_url: null
 
+    is_pattern: (s) ->
+      for c in '*?[{'
+        return true if s.indexOf(c) >= 0
+      false
+
     url: (path, params) ->
       query_string = $.param params, true
       "#{@base_url}/#{path}?#{query_string}"
@@ -40,13 +45,25 @@ define (require) ->
 
     # returns a promise
     complete: (query) ->
-      params = 
+      params =
         query: encodeURIComponent query
         format: 'completer'
 
       $.ajax
         url: graphite.url 'metrics/find', params
         dataType: 'json'
+      .then (response) ->
+        parts = query.split('.')
+        pattern_parts = parts.map(graphite.is_pattern)
+        list = (node.path for node in response.metrics)
+        patterned_list = for path in list
+          result = for matched, i in path.split('.')
+            if pattern_parts[i]
+              parts[i]
+            else
+              matched
+          result.join '.'
+        _.uniq patterned_list.concat(list)
 
     args_to_params: ({args, default_options}) ->
       if args.legnth == 0
@@ -231,7 +248,13 @@ define (require) ->
     query_parts = query.split '.'
     @value @async ->
       $result = @output()
-      promise = graphite.complete(query).then (response) ->
+      params =
+        query: encodeURIComponent query
+        format: 'completer'
+      promise = $.ajax
+        url: graphite.url 'metrics/find', params
+        dataType: 'json'
+      .then (response) ->
         _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
 
       promise._lead_render = ->
