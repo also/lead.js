@@ -1,5 +1,11 @@
 define (require) ->
-	create: ->
+  settings = require 'settings'
+
+  create: (name) ->
+    if name?
+      module_settings = settings.with_prefix name
+    else
+      module_settings = settings
     ops = {}
 
     cmd = (name, doc, wrapped) ->
@@ -19,4 +25,4 @@ define (require) ->
 
       ops[name] = result
 
-    {cmd, fn, ops}
+    {cmd, fn, ops, settings: module_settings}

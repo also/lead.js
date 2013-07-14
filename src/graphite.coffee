@@ -5,11 +5,10 @@ define (require) ->
   modules = require 'modules'
   graph = require 'graph'
 
-  {fn, cmd, ops} = modules.create()
+  {fn, cmd, ops, settings} = modules.create 'graphite'
 
   graphite =
     ops: ops
-    base_url: null
 
     is_pattern: (s) ->
       for c in '*?[{'
@@ -18,7 +17,8 @@ define (require) ->
 
     url: (path, params) ->
       query_string = $.param params, true
-      "#{@base_url}/#{path}?#{query_string}"
+      base_url = settings.get 'base_url'
+      "#{base_url}/#{path}?#{query_string}"
 
     render_url: (params) -> graphite.url 'render', params
 

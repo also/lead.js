@@ -18,26 +18,27 @@ define (require) ->
   require ['notebook'], (nb) ->
     notebook = nb
 
-  {fn, cmd, ops} = modules.create()
+  {fn, cmd, ops, settings} = modules.create 'github'
+
+  settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
+  settings.set 'default', 'github.com'
 
   github =
     ops: ops
-    githubs:
-      'github.com':
-        api_base_url: 'https://api.github.com'
-
     get_github: (uri) ->
       hostname = uri.hostname()
       if hostname == 'gist.github.com' or hostname == 'api.github.com'
-        github.githubs['github.com']
+        host = 'github.com'
       else
-        github.githubs[hostname]
+        host = hostname
 
-    default: 'github.com'
+      settings.get 'githubs', host
+
+    default: -> settings.get 'default'
 
     save_gist: (gist, options={}) ->
-      github_host = options.github ? github.default
-      gh = github.githubs[github_host]
+      github_host = options.github ? github.default()
+      gh = settings.get 'githubs', github_host
       $.ajax
         url: "#{gh.api_base_url}/gists?access_token=#{gh.access_token}"
         type: 'post'
@@ -52,7 +53,7 @@ define (require) ->
         url
       gist = gist.toString()
       if gist.indexOf('http') != 0
-        site = github.githubs[github.default]
+        site = settings.get 'githubs', github.default()
         build_url site, gist
       else
         uri = URI gist

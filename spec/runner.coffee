@@ -1,6 +1,7 @@
 define ->
   specs = [
     'core',
+    'settings',
     'context',
     'notebook',
     'github',

@@ -2,10 +2,9 @@ define (require) ->
   $ = require 'jquery'
   modules = require 'modules'
 
-  {fn, cmd, ops} = modules.create()
+  {fn, cmd, ops, settings} = modules.create 'opentsdb'
 
   opentsdb =
-    base_url: null
     ops: ops
 
     to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
@@ -20,7 +19,8 @@ define (require) ->
     tsd: ({time_series, start, end, aggregation, group}) ->
       m = _.map time_series, opentsdb.to_metric_string
       params = {start, end, m, ascii: true}
-      $.get("#{opentsdb.base_url}/q?#{$.param params, true}")
+      base_url = settings.get 'base_url'
+      $.get("#{base_url}/q?#{$.param params, true}")
       .then (txt) ->
         all_series = {}
         group ?= opentsdb.group_by_name_and_tags
