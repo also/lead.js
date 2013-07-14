@@ -87,15 +87,21 @@ define (require) ->
       vars: vars
 
       render: (o) ->
-        $item = $ '<div class="renderable"/>'
+        @nested 'renderable', handle_renderable, o
+        # TODO warn if not renderable
+
+      nested: (className, fn, args...) ->
+        $item = $ "<div class='#{className}'/>"
+        @nested_item $item, fn, args...
+
+      nested_item: ($item, fn, args...) ->
         @output $item
 
         nested_context = _.extend {}, run_context,
           output: output $item
 
         nested_context.cli = bind_cli nested_context, cli
-        handle_renderable.call nested_context, o
-        # TODO warn if not renderable
+        fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
         console.error e.stack
@@ -117,7 +123,6 @@ define (require) ->
       async: (fn) ->
         $item = $ '<div class="async"/>'
         $item.attr 'data-async-status', 'loading'
-        @output $item
 
         start_time = new Date
 
@@ -129,11 +134,7 @@ define (require) ->
           else
             "#{ms} ms"
 
-        nested_context = _.extend {}, run_context,
-          output: output $item
-
-        nested_context.cli = bind_cli nested_context, ops
-        promise = fn.call(nested_context)
+        promise = @nested_item $item, fn
         promise.done ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
           scroll_to_top()
