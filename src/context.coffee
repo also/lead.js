@@ -44,8 +44,11 @@ define (require) ->
       bound
 
     bound_ops = {}
-    for k, op of ops
-      bound_ops[k] = bind_op op
+    _.map ops, (op, k) ->
+      bound = bind_op op
+      Object.defineProperty bound_ops, k,
+        get: -> bound
+        set: -> throw new Error "#{k} is reserved"
 
     bound_ops
 
