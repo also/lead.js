@@ -39,7 +39,7 @@ define (require) ->
     bind_op = (op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context, args)?._lead_cli_value ? ignore
+        op.fn.apply(run_context.root_context.current_context, args)?._lead_cli_value ? ignore
       bound._lead_op = op
       bound
 
@@ -86,6 +86,17 @@ define (require) ->
       functions: core.define_functions {}, function_names
       vars: vars
 
+      in_context: (context, fn) ->
+        previous_context = @root_context.current_context
+        @root_context.current_context = context
+        context_overridden = @root_context.context_overridden
+        @root_context.context_overridden = true
+        try
+          fn()
+        finally
+          @root_context.current_context = previous_context
+          @root_context.context_overridden = context_overridden
+
       render: (o) ->
         @nested 'renderable', handle_renderable, o
         # TODO warn if not renderable
@@ -99,7 +110,7 @@ define (require) ->
 
         nested_context = _.extend {}, run_context,
           output: output $item
-
+        nested_context.current_context = nested_context
         nested_context.cli = bind_cli nested_context, cli
         fn.apply nested_context, args
 
@@ -143,6 +154,8 @@ define (require) ->
           scroll_to_top()
 
     run_context.cli = cli = bind_cli run_context, ops
+    run_context.current_context = run_context
+    run_context.root_context = run_context
     _.defaults run_context, extra_contexts...
 
     run_context
