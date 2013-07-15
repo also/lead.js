@@ -111,7 +111,7 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
         nested_context.current_context = nested_context
-        nested_context.cli = bind_cli nested_context, cli
+        nested_context.cli = bind_cli nested_context, ops
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
