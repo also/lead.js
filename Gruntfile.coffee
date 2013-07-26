@@ -3,6 +3,12 @@ module.exports = (grunt) ->
   # Project configuration.
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
+    sass:
+      dist:
+        options:
+          bundleExec: true
+        files:
+          'style.css': 'style.sass'
     coffee:
       all:
         options:
@@ -28,6 +34,7 @@ module.exports = (grunt) ->
             SecondLevelDomains: 'empty:'
           optimize: 'none'
 
+  grunt.loadNpmTasks 'grunt-contrib-sass'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
 
