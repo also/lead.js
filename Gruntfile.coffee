@@ -8,7 +8,11 @@ module.exports = (grunt) ->
         options:
           bundleExec: true
         files:
-          'style.css': 'style.sass'
+          'build/style.css': 'style.sass'
+    concat:
+      css:
+        src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.12/codemirror.css']
+        dest: 'style.css'
     coffee:
       all:
         options:
@@ -35,10 +39,11 @@ module.exports = (grunt) ->
           optimize: 'none'
 
   grunt.loadNpmTasks 'grunt-contrib-sass'
+  grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
 
-  grunt.registerTask "default", ["coffee", 'requirejs-optimize-config', 'requirejs']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
