@@ -9,7 +9,7 @@ define (require) ->
   {fn, cmd, ops} = modules.create()
   cmd 'help', 'Shows this help', (cmd) ->
     if cmd?
-      cmd = cmd._lead_op?.name ? cmd
+      cmd = cmd._lead_context_fn?.name ? cmd
       doc = @ops[cmd]?.doc
       if doc
         @cli.pre "#{cmd}\n    #{doc}"
