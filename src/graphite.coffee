@@ -152,7 +152,7 @@ define (require) ->
               examples.push line[8..]
         $result.append dl.cloneNode true
         for example in examples
-          @cli.example "#{default_target_command} #{JSON.stringify example}", run: false
+          @fns.example "#{default_target_command} #{JSON.stringify example}", run: false
       name = graphite.parameter_doc_ids[name] ? name
       div = graphite.parameter_docs[name]
       if div?
@@ -166,20 +166,20 @@ define (require) ->
             context.run "docs '#{decodeURI href[1..]}'"
         $result.append docs
       unless dl? or div?
-        @cli.text 'Documentation not found'
+        @fns.text 'Documentation not found'
     else
-      @cli.html '<h3>Functions</h3>'
+      @fns.html '<h3>Functions</h3>'
       names = (name for name of graphite.function_docs)
       names.sort()
       for name in names
         sig = $(graphite.function_docs[name].getElementsByTagName('dt')[0]).text().trim()
-        @cli.example "docs #{name}  # #{sig}"
+        @fns.example "docs #{name}  # #{sig}"
 
-      @cli.html '<h3>Parameters</h3>'
+      @fns.html '<h3>Parameters</h3>'
       names = (name for name of graphite.parameter_docs)
       names.sort()
       for name in names
-        @cli.example "docs '#{name}'"
+        @fns.example "docs '#{name}'"
 
   fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
     result = args_to_params args, @
@@ -206,7 +206,7 @@ define (require) ->
 
       promise = deferred.promise()
       promise.fail (args...) =>
-        @cli.error 'Failed to load image'
+        @fns.error 'Failed to load image'
 
   fn 'data', 'Fetches Graphite graph data', (args...) ->
     params = args_to_params args, @
@@ -225,7 +225,7 @@ define (require) ->
               $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
             $result.append $table
         promise.fail (error) =>
-          @cli.error error
+          @fns.error error
       promise
 
   fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
@@ -242,7 +242,7 @@ define (require) ->
       promise.done (response) =>
         graph.draw $result.get(0), response, params
       promise.fail (error) =>
-        @cli.error error
+        @fns.error error
 
   fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
     query_parts = query.split '.'

@@ -12,9 +12,9 @@ define (require) ->
       cmd = cmd._lead_context_fn?.name ? cmd
       doc = @context_fns[cmd]?.doc
       if doc
-        @cli.pre "#{cmd}\n    #{doc}"
+        @fns.pre "#{cmd}\n    #{doc}"
       else
-        @cli.pre "#{cmd} is not a command."
+        @fns.pre "#{cmd} is not a command."
     else
       cli_commands = (name for name, c of @context_fns when c.doc?)
       cli_commands.sort()
@@ -103,11 +103,11 @@ define (require) ->
     @output $pre
 
   cmd 'intro', 'Shows the intro message', ->
-    @cli.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
-    @cli.example "find '*'"
-    @cli.text 'Look at'
-    @cli.example 'docs'
-    @cli.text 'to see what you can do with Graphite.'
+    @fns.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+    @fns.example "find '*'"
+    @fns.text 'Look at'
+    @fns.example 'docs'
+    @fns.text 'to see what you can do with Graphite.'
 
   cmd 'clear', 'Clears the screen and code', ->
     @clear_output()
@@ -137,12 +137,12 @@ define (require) ->
   fn 'websocket', 'Runs commands from a web socket', (url) ->
     ws = new WebSocket url
     @async ->
-      ws.onopen = => @cli.text 'Connected'
+      ws.onopen = => @fns.text 'Connected'
       ws.onclose = =>
-        @cli.text 'Closed. Reconnect:'
-        @cli.example "websocket #{JSON.stringify url}"
+        @fns.text 'Closed. Reconnect:'
+        @fns.example "websocket #{JSON.stringify url}"
       ws.onmessage = (e) => @run e.data
-      ws.onerror = => @cli.error 'Error'
+      ws.onerror = => @fns.error 'Error'
 
   cmd 'save', 'Saves the current notebook to a file', ->
     @save()
@@ -163,6 +163,6 @@ define (require) ->
             content: response
           , options
         promise.fail (response, status_text, error) =>
-          @cli.error status_text
+          @fns.error status_text
 
   {context_fns}

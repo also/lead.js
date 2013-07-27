@@ -68,11 +68,11 @@ define (require) ->
 
   cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
     if arguments.length is 0
-      @cli.save_gist()
+      @fns.save_gist()
     else
       url = github.to_gist_url gist
       @async ->
-        @cli.text "Loading gist #{gist}"
+        @fns.text "Loading gist #{gist}"
         promise = $.ajax
           type: 'GET'
           url: url
@@ -81,7 +81,7 @@ define (require) ->
           for name, file of response.files
             notebook.handle_file @, file, options
         promise.fail (response, status_text, error) =>
-          @cli.error status_text
+          @fns.error status_text
 
   cmd 'save_gist', 'Saves a notebook as a gist', ->
     notebook = @export_notebook()
@@ -93,11 +93,11 @@ define (require) ->
     @async ->
       promise = github.save_gist gist
       promise.done (result) =>
-        @cli.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+        @fns.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
         lead_uri = URI window.location.href
         lead_uri.fragment "/#{result.html_url}"
-        @cli.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+        @fns.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
       promise.fail =>
-        @cli.error 'Save failed. Make sure your access token is configured correctly.'
+        @fns.error 'Save failed. Make sure your access token is configured correctly.'
 
   github

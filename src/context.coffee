@@ -22,20 +22,20 @@ define (require) ->
     if core.is_lead_node object
       lead_string = core.to_string object
       if _.isFunction object
-        @cli.text "#{lead_string} is a Graphite function"
-        @cli.example "docs #{object.values[0]}"
+        @fns.text "#{lead_string} is a Graphite function"
+        @fns.example "docs #{object.values[0]}"
       else
-        @cli.text "What do you want to do with #{lead_string}?"
+        @fns.text "What do you want to do with #{lead_string}?"
         for f in ['data', 'graph', 'img', 'url']
-          @cli.example "#{f} #{object.to_js_string()}"
+          @fns.example "#{f} #{object.to_js_string()}"
       true
 
   handle_any_object = (object) ->
-    @cli.object object
+    @fns.object object
     true
 
 
-  bind_cli = (run_context, fns) ->
+  bind_context_fns = (run_context, fns) ->
     bind_fn = (op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
@@ -111,14 +111,14 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
         nested_context.current_context = nested_context
-        nested_context.cli = bind_cli nested_context, context_fns
+        nested_context.fns = bind_context_fns nested_context, context_fns
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
         console.error e.stack
-        @cli.error printStackTrace({e}).join('\n')
-        @cli.text 'Compiled JavaScript:'
-        @cli.source 'javascript', compiled
+        @fns.error printStackTrace({e}).join('\n')
+        @fns.text 'Compiled JavaScript:'
+        @fns.source 'javascript', compiled
 
       error: (message) ->
         $pre = $ '<pre class="error"/>'
@@ -153,7 +153,7 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
           scroll_to_top()
 
-    run_context.cli = cli = bind_cli run_context, context_fns
+    run_context.fns = fns = bind_context_fns run_context, context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
     _.defaults run_context, extra_contexts...

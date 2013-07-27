@@ -24,7 +24,7 @@ define (require) ->
           name: k
           fn: fn
           cli_fn: ->
-            @cli.object @cli[k]()
+            @fns.object @fns[k]()
   ###
 
   notebook_content_type = 'application/x-lead-notebook'
@@ -309,7 +309,7 @@ define (require) ->
 
     if compiled?
       try
-        `with (run_context.cli) { with (run_context.functions) { with (run_context.vars) {`
+        `with (run_context.fns) { with (run_context.functions) { with (run_context.vars) {`
         result = eval compiled
         `}}}`
         run_context.display_object result
@@ -331,11 +331,11 @@ define (require) ->
         try
           imported = JSON.parse file.content
         catch e
-          run_context.cli.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+          run_context.fns.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
           return
         version = imported.lead_js_version
         unless version?
-          run_context.cli.error "File #{file.filename} isn't a lead.js notebook"
+          run_context.fns.error "File #{file.filename} isn't a lead.js notebook"
           return
         import_notebook run_context.notebook, run_context.cell, imported, options
 

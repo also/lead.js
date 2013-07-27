@@ -16,7 +16,7 @@ define (require) ->
         module_name: module_name
         fn: wrapped
         cli_fn: cli_fn ? ->
-          @cli.text "Did you forget to call a function? \"#{result.name}\" must be called with arguments."
+          @fns.text "Did you forget to call a function? \"#{result.name}\" must be called with arguments."
           @run "help #{result.name}"
         doc: doc
         name: name
