@@ -9,9 +9,6 @@ define (require) ->
     ops = {}
 
     cmd = (name, doc, wrapped) ->
-      result = wrapped
-      result._lead_cli_fn = result
-
       fn name, doc, wrapped, wrapped
 
     fn = (name, doc, wrapped, cli_fn) ->
