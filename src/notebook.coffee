@@ -42,7 +42,8 @@ define (require) ->
 
 
   available_context_fns = (notebook) ->
-    _.extend {}, _.map(notebook.imports, (i) -> notebook.modules[i].context_fns)...
+    result = _.object _.map notebook.modules, (module, name) -> [name, module.context_fns]
+    _.extend result, _.map(notebook.imports, (i) -> notebook.modules[i].context_fns)...
 
 
   init_codemirror = ->

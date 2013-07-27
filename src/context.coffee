@@ -44,8 +44,11 @@ define (require) ->
       bound
 
     bound_fns = {}
-    for k, fn of fns
-      bound_fns[k] = bind_fn fn
+    for k, o of fns
+      if _.isFunction o.fn
+        bound_fns[k] = bind_fn o
+      else
+        bound_fns[k] = bind_context_fns run_context, o
 
     bound_fns
 
