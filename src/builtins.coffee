@@ -16,10 +16,10 @@ define (require) ->
       else
         @fns.pre "#{cmd} is not a command."
     else
-      cli_commands = (name for name, c of @context_fns when c.doc?)
-      cli_commands.sort()
+      documented_fns = (name for name, c of @context_fns when c.doc?)
+      documented_fns.sort()
       $dl = $ '<dl>'
-      for cmd in cli_commands
+      for cmd in documented_fns
         $tt = $ '<tt/>'
         $tt.text cmd
         $dt = $ '<dt/>'

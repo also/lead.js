@@ -9,9 +9,9 @@ define (require) ->
   # statement result handlers. return truthy if handled.
   ignored = (object) -> object == ignore
 
-  handle_cli_cmd = (object) ->
+  handle_cmd = (object) ->
     if object?._lead_context_fn?
-      object._lead_context_fn.cli_fn.apply @
+      object._lead_context_fn.cmd_fn.apply @
       true
 
   handle_renderable = (object) ->
@@ -39,7 +39,7 @@ define (require) ->
     bind_fn = (op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context.root_context.current_context, args)?._lead_cli_value ? ignore
+        op.fn.apply(run_context.root_context.current_context, args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
       bound
 
@@ -63,7 +63,7 @@ define (require) ->
 
     result_handlers =[
       ignored,
-      handle_cli_cmd,
+      handle_cmd,
       handle_renderable,
       handle_lead_node,
       handle_any_object
@@ -129,7 +129,7 @@ define (require) ->
         for handler in result_handlers
           return if handler.call run_context, object
 
-      value: (value) -> _lead_cli_value: value
+      value: (value) -> _lead_context_fn_value: value
 
       async: (fn) ->
         $item = $ '<div class="async"/>'

@@ -23,7 +23,7 @@ define (require) ->
         all_context_fns[k] =
           name: k
           fn: fn
-          cli_fn: ->
+          cmd_fn: ->
             @fns.object @fns[k]()
   ###
 
