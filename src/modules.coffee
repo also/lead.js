@@ -1,9 +1,9 @@
 define (require) ->
   settings = require 'settings'
 
-  create: (name) ->
-    if name?
-      module_settings = settings.with_prefix name
+  create: (module_name) ->
+    if module_name?
+      module_settings = settings.with_prefix module_name
     else
       module_settings = settings
     ops = {}
@@ -13,6 +13,7 @@ define (require) ->
 
     fn = (name, doc, wrapped, cli_fn) ->
       result =
+        module_name: module_name
         fn: wrapped
         cli_fn: cli_fn ? ->
           @cli.text "Did you forget to call a function? \"#{result.name}\" must be called with arguments."
