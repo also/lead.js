@@ -6,17 +6,17 @@ define (require) ->
   lead = require 'core'
   modules = require 'modules'
 
-  {fn, cmd, ops} = modules.create()
+  {fn, cmd, context_fns} = modules.create()
   cmd 'help', 'Shows this help', (cmd) ->
     if cmd?
       cmd = cmd._lead_context_fn?.name ? cmd
-      doc = @ops[cmd]?.doc
+      doc = @context_fns[cmd]?.doc
       if doc
         @cli.pre "#{cmd}\n    #{doc}"
       else
         @cli.pre "#{cmd} is not a command."
     else
-      cli_commands = (name for name, c of @ops when c.doc?)
+      cli_commands = (name for name, c of @context_fns when c.doc?)
       cli_commands.sort()
       $dl = $ '<dl>'
       for cmd in cli_commands
@@ -26,7 +26,7 @@ define (require) ->
         $dt.append $tt
         $dl.append $dt
         $dd = $ '<dd/>'
-        $dd.text @ops[cmd].doc
+        $dd.text @context_fns[cmd].doc
         $dl.append $dd
       @output $dl
 
@@ -165,4 +165,4 @@ define (require) ->
         promise.fail (response, status_text, error) =>
           @cli.error status_text
 
-  {ops}
+  {context_fns}

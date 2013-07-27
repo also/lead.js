@@ -16,7 +16,7 @@ define (require) ->
     github
   ]
 
-  all_ops = _.extend {}, _.map(lead_modules, (m) -> m.ops)...
+  all_context_fns = _.extend {}, _.map(lead_modules, (m) -> m.context_fns)...
 
   graphite.load_docs()
 
@@ -26,7 +26,7 @@ define (require) ->
     $document = $ '#document'
 
     nb = notebook.create_notebook
-      ops: all_ops
+      context_fns: all_context_fns
       function_names: graphite_function_names
       vars: lead: {github, graphite, colors}
 

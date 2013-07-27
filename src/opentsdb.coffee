@@ -2,10 +2,10 @@ define (require) ->
   $ = require 'jquery'
   modules = require 'modules'
 
-  {fn, cmd, ops, settings} = modules.create 'opentsdb'
+  {fn, cmd, context_fns, settings} = modules.create 'opentsdb'
 
   opentsdb =
-    ops: ops
+    context_fns: context_fns
 
     to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
       parts = [aggregation]

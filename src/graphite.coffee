@@ -5,10 +5,10 @@ define (require) ->
   modules = require 'modules'
   graph = require 'graph'
 
-  {fn, cmd, ops, settings} = modules.create 'graphite'
+  {fn, cmd, context_fns, settings} = modules.create 'graphite'
 
   graphite =
-    ops: ops
+    context_fns: context_fns
 
     is_pattern: (s) ->
       for c in '*?[{'

@@ -18,13 +18,13 @@ define (require) ->
   require ['notebook'], (nb) ->
     notebook = nb
 
-  {fn, cmd, ops, settings} = modules.create 'github'
+  {fn, cmd, context_fns, settings} = modules.create 'github'
 
   settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
   settings.set 'default', 'github.com'
 
   github =
-    ops: ops
+    context_fns: context_fns
     get_github: (uri) ->
       hostname = uri.hostname()
       if hostname == 'gist.github.com' or hostname == 'api.github.com'

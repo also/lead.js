@@ -6,7 +6,7 @@ define (require) ->
       module_settings = settings.with_prefix module_name
     else
       module_settings = settings
-    ops = {}
+    context_fns = {}
 
     cmd = (name, doc, wrapped) ->
       fn name, doc, wrapped, wrapped
@@ -21,6 +21,6 @@ define (require) ->
         doc: doc
         name: name
 
-      ops[name] = result
+      context_fns[name] = result
 
-    {cmd, fn, ops, settings: module_settings}
+    {cmd, fn, context_fns, settings: module_settings}

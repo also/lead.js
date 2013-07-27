@@ -20,7 +20,7 @@ define (require) ->
           else
             @value @current_options[k] ? @default_options[k]
 
-        all_ops[k] =
+        all_context_fns[k] =
           name: k
           fn: fn
           cli_fn: ->
@@ -40,8 +40,8 @@ define (require) ->
   identity = (cell) -> true
 
 
-  available_ops = (notebook) ->
-    notebook.ops
+  available_context_fns = (notebook) ->
+    notebook.context_fns
 
 
   init_codemirror = ->
@@ -260,7 +260,7 @@ define (require) ->
       extra_contexts: [create_notebook_run_context input_cell]
       vars: input_cell.notebook.vars
       function_names: input_cell.notebook.function_names
-      ops: available_ops input_cell.notebook
+      context_fns: available_context_fns input_cell.notebook
 
     run_in_context run_context, string
 
@@ -352,7 +352,7 @@ define (require) ->
 
   exports = {
     create_notebook
-    available_ops
+    available_context_fns
     input_cell_at_offset
     init_codemirror
     add_input_cell
@@ -376,7 +376,7 @@ define (require) ->
     context_help: (cell, token) ->
       if graphite.has_docs token
         run_before cell, "docs '#{token}'"
-      else if available_ops(cell.notebook)[token]?
+      else if available_context_fns(cell.notebook)[token]?
         run_before cell, "help #{token}"
 
     move_focus: (cell, offset) ->
