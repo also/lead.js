@@ -1,6 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
+  Q = require 'q'
   CoffeeScript = require 'lib/coffee-script'
   lead = require 'core'
   ed = require 'editor'
@@ -41,7 +42,7 @@ define (require) ->
 
 
   available_context_fns = (notebook) ->
-    notebook.context_fns
+    all_context_fns = _.extend {}, _.map(notebook.modules, (m) -> m.context_fns)...
 
 
   init_codemirror = ->
@@ -69,6 +70,19 @@ define (require) ->
       default_options: {}
       $document: $document
       $file_picker: $file_picker
+      modules: {}
+
+    created = Q.defer()
+    if notebook.imports.length > 0
+      require defaults.imports, (imported_modules...) ->
+        _.extend notebook.modules, _.object defaults.imports, imported_modules
+        console.log notebook.modules
+        created.resolve notebook
+      , (err) ->
+        created.reject err
+      created.promise
+    else
+      Q notebook
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
