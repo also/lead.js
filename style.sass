@@ -88,6 +88,13 @@ pre
       color: #ddd
 
   .input
+    .permalink
+      position: absolute
+      left: calc(100% + 1em)
+      color: #eee
+      text-decoration: underline
+      cursor: pointer
+
     &[data-cell-number]::before
       content: 'In[' attr(data-cell-number) ']'
 
