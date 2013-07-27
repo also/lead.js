@@ -50,6 +50,17 @@ define (require) ->
     _.extend CodeMirror.commands, ed.commands
 
 
+  load_modules = (module_names) ->
+    if module_names.length > 0
+      loaded = Q.defer()
+      require module_names, (imported_modules...) ->
+        loaded.resolve _.object module_names, imported_modules
+      , (err) ->
+        loaded.reject err
+      loaded.promise
+    else
+      Q {}
+
   create_notebook = (defaults) ->
     $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
     $file_picker.on 'change', (e) ->
@@ -72,17 +83,9 @@ define (require) ->
       $file_picker: $file_picker
       modules: {}
 
-    created = Q.defer()
-    if notebook.imports.length > 0
-      require defaults.imports, (imported_modules...) ->
-        _.extend notebook.modules, _.object defaults.imports, imported_modules
-        console.log notebook.modules
-        created.resolve notebook
-      , (err) ->
-        created.reject err
-      created.promise
-    else
-      Q notebook
+    load_modules(defaults.imports).then (modules) ->
+      _.extend notebook.modules, modules
+      notebook
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
