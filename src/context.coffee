@@ -10,8 +10,8 @@ define (require) ->
   ignored = (object) -> object == ignore
 
   handle_cli_cmd = (object) ->
-    if object?._lead_op?
-      object._lead_op.cli_fn.apply @
+    if object?._lead_context_fn?
+      object._lead_context_fn.cli_fn.apply @
       true
 
   handle_renderable = (object) ->
@@ -35,19 +35,19 @@ define (require) ->
     true
 
 
-  bind_cli = (run_context, ops) ->
-    bind_op = (op) ->
+  bind_cli = (run_context, fns) ->
+    bind_fn = (op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
         op.fn.apply(run_context.root_context.current_context, args)?._lead_cli_value ? ignore
-      bound._lead_op = op
+      bound._lead_context_fn = op
       bound
 
-    bound_ops = {}
-    for k, op of ops
-      bound_ops[k] = bind_op op
+    bound_fns = {}
+    for k, fn of fns
+      bound_fns[k] = bind_fn fn
 
-    bound_ops
+    bound_fns
 
   create_run_context = ($el, opts={}) ->
     {extra_contexts, ops, function_names, vars} = _.defaults {}, opts,
