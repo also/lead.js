@@ -12,6 +12,7 @@ define (require) ->
     'graphite'
     'opentsdb'
     'github'
+    'dsl'
   ]
 
   init_app: ->

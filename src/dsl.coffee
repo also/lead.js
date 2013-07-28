@@ -94,7 +94,7 @@ define (require) ->
     x instanceof dsl.type
 
   # TODO rename
-  dsl.handle_dsl_node = (object) ->
+  dsl.context_result_handler = (object) ->
     if dsl.is_dsl_node object
       lead_string = dsl.to_string object
       if _.isFunction object

@@ -2,6 +2,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   printStackTrace = require 'stacktrace-js'
+  modules = require 'modules'
   dsl = require 'dsl'
 
   ignore = new Object
@@ -17,6 +18,11 @@ define (require) ->
   handle_renderable = (object) ->
     if fn = object?._lead_render
       fn.apply @
+
+  handle_using_extension = (object) ->
+    handlers = modules.collect_extension_points @notebook.modules, 'context_result_handler'
+    context = @
+    _.find handlers, (handler) -> handler.call context, object
 
   handle_any_object = (object) ->
     @fns.object object
@@ -56,7 +62,7 @@ define (require) ->
       ignored,
       handle_cmd,
       handle_renderable,
-      dsl.handle_dsl_node,
+      handle_using_extension
       handle_any_object
     ]
 
