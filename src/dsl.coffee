@@ -93,4 +93,17 @@ define (require) ->
   dsl.is_dsl_node = (x) ->
     x instanceof dsl.type
 
+  # TODO rename
+  dsl.handle_dsl_node = (object) ->
+    if dsl.is_dsl_node object
+      lead_string = dsl.to_string object
+      if _.isFunction object
+        @fns.text "#{lead_string} is a Graphite function"
+        @fns.example "docs #{object.values[0]}"
+      else
+        @fns.text "What do you want to do with #{lead_string}?"
+        for f in ['data', 'graph', 'img', 'url']
+          @fns.example "#{f} #{object.to_js_string()}"
+      true
+
   dsl
