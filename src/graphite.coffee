@@ -5,11 +5,13 @@ define (require) ->
   dsl = require 'dsl'
   modules = require 'modules'
   graph = require 'graph'
+  function_names = require 'functions'
 
   {fn, cmd, context_fns, settings} = modules.create 'graphite'
 
   graphite =
     context_fns: context_fns
+    context_vars: -> dsl.define_functions {}, function_names
 
     init: ->
       docs = graphite.load_docs()

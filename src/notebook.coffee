@@ -262,7 +262,6 @@ define (require) ->
 
     run_context = context.create_run_context output_cell.$el,
       extra_contexts: [create_notebook_run_context input_cell]
-      function_names: input_cell.notebook.function_names
       context_fns: available_context_fns input_cell.notebook
 
     context.run_in_context run_context, string

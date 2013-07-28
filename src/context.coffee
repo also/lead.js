@@ -4,7 +4,6 @@ define (require) ->
   CoffeeScript = require 'lib/coffee-script'
   printStackTrace = require 'stacktrace-js'
   modules = require 'modules'
-  dsl = require 'dsl'
 
   ignore = new Object
 
@@ -24,6 +23,10 @@ define (require) ->
     handlers = modules.collect_extension_points @notebook.modules, 'context_result_handler'
     context = @
     _.find handlers, (handler) -> handler.call context, object
+
+  collect_context_vars = (context) ->
+    vars = modules.collect_extension_points context.notebook.modules, 'context_vars'
+    _.extend {}, _.map(vars, (v) -> if _.isFunction v then v.call context else v)...
 
   handle_any_object = (object) ->
     @fns.object object
@@ -48,10 +51,9 @@ define (require) ->
     bound_fns
 
   create_run_context = ($el, opts={}) ->
-    {extra_contexts, context_fns, function_names} = _.defaults {}, opts,
+    {extra_contexts, context_fns} = _.defaults {}, opts,
       extra_contexts: []
       context_fns: {}
-      function_names: []
 
     scroll_to_top = ->
       setTimeout ->
@@ -80,7 +82,6 @@ define (require) ->
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
-      functions: dsl.define_functions {}, function_names
 
       in_context: (context, fn) ->
         previous_context = @root_context.current_context
@@ -153,6 +154,7 @@ define (require) ->
     run_context.current_context = run_context
     run_context.root_context = run_context
     _.defaults run_context, extra_contexts...
+    run_context.vars = collect_context_vars run_context
 
     run_context
 
@@ -167,7 +169,7 @@ define (require) ->
 
     if compiled?
       try
-        `with (run_context.fns) { with (run_context.functions) {`
+        `with (run_context.fns) { with (run_context.vars) {`
         result = eval compiled
         `}}`
         run_context.display_object result

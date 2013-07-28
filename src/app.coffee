@@ -2,7 +2,6 @@ define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
 
-  graphite_function_names = require 'functions'
 
   imports = [
     'builtins'
@@ -19,7 +18,6 @@ define (require) ->
 
     nb = notebook.create_notebook
       imports: imports
-      function_names: graphite_function_names
 
     nb.done (nb) ->
       $document.append nb.$document
