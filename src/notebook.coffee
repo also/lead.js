@@ -22,7 +22,7 @@ define (require) ->
 
 
   available_context_fns = (notebook) ->
-    result = _.object _.map notebook.modules, (module, name) -> [name, module.context_fns]
+    result = _.object _.filter _.map(notebook.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
     _.extend result, _.map(notebook.imports, (i) -> notebook.modules[i].context_fns)...
 
 
