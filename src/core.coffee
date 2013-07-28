@@ -1,8 +1,6 @@
 define (require) ->
   _ = require 'underscore'
 
-  lead = version: 1
-
   lead_type = ->
 
   create_type = (n, parent) ->
