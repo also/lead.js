@@ -24,3 +24,6 @@ define (require) ->
       context_fns[name] = result
 
     {cmd, fn, context_fns, settings: module_settings}
+
+  collect_extension_points: (modules, ep) ->
+    _.flatten _.compact _.pluck  modules, ep
