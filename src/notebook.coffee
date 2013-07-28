@@ -270,11 +270,10 @@ define (require) ->
 
     output_cell
 
-  create_notebook_run_context = (input_cell, output_cell) ->
+  create_notebook_run_context = (input_cell) ->
     notebook = input_cell.notebook
     run_context =
       notebook: notebook
-      cell: output_cell
       input_cell: input_cell
       default_options: notebook.default_options
       set_code: (code) ->
