@@ -181,6 +181,7 @@ define (require) ->
       visible: true
       active: true
       notebook: notebook
+      context: create_input_context notebook
       used: false
       editor: editor
       rendered: -> editor.refresh()
@@ -256,7 +257,7 @@ define (require) ->
     output_cell = create_output_cell input_cell.notebook
 
     run_context = context.create_run_context output_cell.$el,
-      extra_contexts: [create_notebook_run_context input_cell]
+      extra_contexts: [input_cell.context, create_notebook_run_context input_cell]
 
     context.run_in_context run_context, string
 
@@ -264,12 +265,16 @@ define (require) ->
 
     output_cell
 
+  create_input_context = (notebook) ->
+    context.create_context
+      notebook: notebook
+      modules: notebook.modules
+      imports: notebook.imports
+
   create_notebook_run_context = (input_cell) ->
     notebook = input_cell.notebook
     run_context =
       notebook: notebook
-      modules: notebook.modules
-      imports: notebook.imports
       input_cell: input_cell
       default_options: notebook.default_options
       set_code: (code) ->

@@ -55,12 +55,10 @@ define (require) ->
 
     bound_fns
 
-  create_context = (extra_contexts) ->
-    context = _.extend {}, extra_contexts...
-    context_fns = collect_context_fns context
-    context.fns = fns = bind_context_fns context, context_fns
-    context.vars = collect_context_vars context
-    context
+  create_context = (base) ->
+    context = _.extend {}, base,
+      context_fns: collect_context_fns base
+      vars: collect_context_vars base
 
   create_run_context = ($el, opts={}) ->
     {extra_contexts} = _.extend {extra_contexts: []}, opts
@@ -87,7 +85,7 @@ define (require) ->
         $target.append $item
         $item
 
-    run_context = _.extend create_context(extra_contexts),
+    run_context = _.extend {}, extra_contexts...,
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
@@ -117,7 +115,7 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
         nested_context.current_context = nested_context
-        nested_context.fns = bind_context_fns nested_context, context_fns
+        nested_context.fns = bind_context_fns nested_context, run_context.context_fns
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
@@ -159,6 +157,7 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
           scroll_to_top()
 
+    run_context.fns = fns = bind_context_fns run_context, run_context.context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
 
@@ -183,4 +182,4 @@ define (require) ->
         run_context.handle_exception e, compiled
 
 
-  {create_run_context, run_in_context}
+  {create_context, create_run_context, run_in_context}
