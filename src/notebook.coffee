@@ -62,7 +62,7 @@ define (require) ->
     else
       Q {}
 
-  create_notebook = (defaults) ->
+  create_notebook = (opts) ->
     $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
     $file_picker.on 'change', (e) ->
       for file in e.target.files
@@ -75,7 +75,7 @@ define (require) ->
     $document = $ '<div class="document"/>'
     $document.append $file_picker
 
-    notebook = _.extend {}, defaults,
+    notebook = _.extend {imports: []}, opts,
       cells: []
       input_number: 1
       output_number: 1
@@ -84,7 +84,7 @@ define (require) ->
       $file_picker: $file_picker
       modules: {}
 
-    load_modules(defaults.imports).then (modules) ->
+    load_modules(notebook.imports ? []).then (modules) ->
       _.extend notebook.modules, modules
       notebook
 
