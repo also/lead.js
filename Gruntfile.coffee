@@ -3,6 +3,16 @@ module.exports = (grunt) ->
   # Project configuration.
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
+    sass:
+      dist:
+        options:
+          bundleExec: true
+        files:
+          'build/style.css': 'style.sass'
+    concat:
+      css:
+        src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.12/codemirror.css']
+        dest: 'style.css'
     coffee:
       all:
         options:
@@ -28,10 +38,12 @@ module.exports = (grunt) ->
             SecondLevelDomains: 'empty:'
           optimize: 'none'
 
+  grunt.loadNpmTasks 'grunt-contrib-sass'
+  grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
 
-  grunt.registerTask "default", ["coffee", 'requirejs-optimize-config', 'requirejs']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
