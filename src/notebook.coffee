@@ -9,23 +9,6 @@ define (require) ->
 
   define_parameters = true
 
-  # FIXME needs to happen after graphite docs have loaded
-  ###
-  if define_parameters
-    for k of graphite.parameter_docs
-      do (k) ->
-        fn = (value) ->
-          if value?
-            @current_options[k] = value
-          else
-            @value @current_options[k] ? @default_options[k]
-
-        all_context_fns[k] =
-          name: k
-          fn: fn
-          cmd_fn: ->
-            @fns.object @fns[k]()
-  ###
 
   notebook_content_type = 'application/x-lead-notebook'
 

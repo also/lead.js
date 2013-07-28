@@ -1,6 +1,7 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
+  Q = require 'q'
   dsl = require 'dsl'
   modules = require 'modules'
   graph = require 'graph'
@@ -9,6 +10,18 @@ define (require) ->
 
   graphite =
     context_fns: context_fns
+
+    init: ->
+      docs = graphite.load_docs()
+      .then ->
+        # TODO there's no way for this to be set by the time we get here
+        if settings.get 'define_parameters'
+          _.map graphite.parameter_docs, (v, k) ->
+            fn k, "Gets or sets Graphite parameter #{k}", (value) ->
+              if value?
+                @current_options[k] = value
+              else
+                @value @current_options[k] ? @default_options[k]
 
     is_pattern: (s) ->
       for c in '*?[{'
@@ -104,7 +117,7 @@ define (require) ->
     parameter_doc_ids: {}
 
     load_docs: ->
-      $.getJSON 'render_api.fjson', (data) =>
+      param_docs = $.getJSON 'render_api.fjson', (data) =>
         html = $.parseHTML(data.body)[0]
         parameters = html.querySelector 'div#graph-parameters'
         a.remove() for a in parameters.querySelectorAll 'a.headerlink'
@@ -113,7 +126,7 @@ define (require) ->
           @parameter_docs[name] = section
           @parameter_doc_ids[section.id] = name
 
-      $.getJSON 'functions.fjson', (data) =>
+      function_docs = $.getJSON 'functions.fjson', (data) =>
         prefix_length = "graphite.render.functions.".length
 
         html = $.parseHTML(data.body)[0]
@@ -121,6 +134,8 @@ define (require) ->
           for a in tag.getElementsByTagName 'a'
             a.remove()
           @function_docs[tag.id[prefix_length..]] = tag.parentNode
+
+      Q.all [param_docs, function_docs]
 
     has_docs: (name) ->
       @parameter_docs[name]? or @parameter_doc_ids[name]? or @function_docs[name]?

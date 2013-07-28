@@ -14,8 +14,6 @@ define (require) ->
     'github'
   ]
 
-  graphite.load_docs()
-
   init_app: ->
     notebook.init_codemirror()
 
