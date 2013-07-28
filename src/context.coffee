@@ -55,9 +55,15 @@ define (require) ->
 
     bound_fns
 
+  create_context = (extra_contexts) ->
+    context = _.extend {}, extra_contexts...
+    context_fns = collect_context_fns context
+    context.fns = fns = bind_context_fns context, context_fns
+    context.vars = collect_context_vars context
+    context
+
   create_run_context = ($el, opts={}) ->
-    {extra_contexts} = _.defaults {}, opts,
-      extra_contexts: []
+    {extra_contexts} = _.extend {extra_contexts: []}, opts
 
     scroll_to_top = ->
       setTimeout ->
@@ -81,7 +87,7 @@ define (require) ->
         $target.append $item
         $item
 
-    run_context =
+    run_context = _.extend create_context(extra_contexts),
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
@@ -155,10 +161,6 @@ define (require) ->
 
     run_context.current_context = run_context
     run_context.root_context = run_context
-    _.defaults run_context, extra_contexts...
-    context_fns = collect_context_fns run_context
-    run_context.fns = fns = bind_context_fns run_context, context_fns
-    run_context.vars = collect_context_vars run_context
 
     run_context
 
