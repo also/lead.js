@@ -7,8 +7,6 @@ define (require) ->
   graphite = require 'graphite'
   context = require 'context'
 
-  define_parameters = true
-
 
   notebook_content_type = 'application/x-lead-notebook'
 
