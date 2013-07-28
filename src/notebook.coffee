@@ -265,7 +265,7 @@ define (require) ->
       function_names: input_cell.notebook.function_names
       context_fns: available_context_fns input_cell.notebook
 
-    run_in_context run_context, string
+    context.run_in_context run_context, string
 
     run_context.scroll_to_top()
 
@@ -300,24 +300,6 @@ define (require) ->
         @output link
       get_input_value: (number) ->
         get_input_cell_by_number(notebook, number)?.editor.getValue()
-
-  run_in_context = (run_context, string) ->
-    try
-      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-    catch e
-      if e instanceof SyntaxError
-        run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
-      else
-        run_context.handle_exception e, compiled
-
-    if compiled?
-      try
-        `with (run_context.fns) { with (run_context.functions) {`
-        result = eval compiled
-        `}}`
-        run_context.display_object result
-      catch e
-        run_context.handle_exception e, compiled
 
   open_file_picker = (run_context) ->
     run_context.notebook.opening_run_context = run_context

@@ -1,6 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
+  CoffeeScript = require 'lib/coffee-script'
   printStackTrace = require 'stacktrace-js'
   modules = require 'modules'
   dsl = require 'dsl'
@@ -155,4 +156,23 @@ define (require) ->
 
     run_context
 
-  {create_run_context}
+  run_in_context = (run_context, string) ->
+    try
+      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
+    catch e
+      if e instanceof SyntaxError
+        run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+      else
+        run_context.handle_exception e, compiled
+
+    if compiled?
+      try
+        `with (run_context.fns) { with (run_context.functions) {`
+        result = eval compiled
+        `}}`
+        run_context.display_object result
+      catch e
+        run_context.handle_exception e, compiled
+
+
+  {create_run_context, run_in_context}
