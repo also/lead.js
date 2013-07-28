@@ -3,7 +3,6 @@ define (require) ->
   URI = require 'URIjs'
   $ = require 'jquery'
   marked = require 'lib/marked'
-  lead = require 'core'
   modules = require 'modules'
 
   {fn, cmd, context_fns} = modules.create()

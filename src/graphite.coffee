@@ -1,7 +1,7 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
-  lead = require 'core'
+  dsl = require 'dsl'
   modules = require 'modules'
   graph = require 'graph'
 
@@ -85,7 +85,7 @@ define (require) ->
       else
         last = args[args.length - 1]
 
-        if _.isString == 'string' or lead.is_lead_node(last) or _.isArray last
+        if _.isString == 'string' or dsl.is_dsl_node(last) or _.isArray last
           targets = args
           options = {}
         else
@@ -96,7 +96,7 @@ define (require) ->
       targets = Array.prototype.concat.apply [], targets
 
       params = _.extend {}, default_options, options
-      params.target = (lead.to_target_string(target) for target in targets)
+      params.target = (dsl.to_target_string(target) for target in targets)
       params
 
     function_docs: {}
@@ -135,7 +135,7 @@ define (require) ->
     for t in targets
       unless _.isString t
         throw new TypeError "#{t} is not a string"
-    @value new lead.type.q targets.map(String)...
+    @value new dsl.type.q targets.map(String)...
 
   cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
     if name?

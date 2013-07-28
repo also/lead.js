@@ -2,7 +2,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   printStackTrace = require 'stacktrace-js'
-  core = require 'core'
+  dsl = require 'dsl'
 
   ignore = new Object
 
@@ -18,9 +18,9 @@ define (require) ->
     if fn = object?._lead_render
       fn.apply @
 
-  handle_lead_node = (object) ->
-    if core.is_lead_node object
-      lead_string = core.to_string object
+  handle_dsl_node = (object) ->
+    if dsl.is_dsl_node object
+      lead_string = dsl.to_string object
       if _.isFunction object
         @fns.text "#{lead_string} is a Graphite function"
         @fns.example "docs #{object.values[0]}"
@@ -68,7 +68,7 @@ define (require) ->
       ignored,
       handle_cmd,
       handle_renderable,
-      handle_lead_node,
+      handle_dsl_node,
       handle_any_object
     ]
 
@@ -86,7 +86,7 @@ define (require) ->
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
-      functions: core.define_functions {}, function_names
+      functions: dsl.define_functions {}, function_names
       vars: vars
 
       in_context: (context, fn) ->

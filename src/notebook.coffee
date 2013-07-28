@@ -3,7 +3,6 @@ define (require) ->
   _ = require 'underscore'
   Q = require 'q'
   CoffeeScript = require 'lib/coffee-script'
-  lead = require 'core'
   ed = require 'editor'
   graphite = require 'graphite'
   context = require 'context'

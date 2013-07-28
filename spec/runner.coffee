@@ -1,6 +1,6 @@
 define ->
   specs = [
-    'core',
+    'dsl',
     'settings',
     'context',
     'notebook',
