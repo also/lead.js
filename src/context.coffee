@@ -9,9 +9,9 @@ define (require) ->
   # statement result handlers. return truthy if handled.
   ignored = (object) -> object == ignore
 
-  handle_cli_cmd = (object) ->
-    if object?._lead_op?
-      object._lead_op.cli_fn.apply @
+  handle_cmd = (object) ->
+    if object?._lead_context_fn?
+      object._lead_context_fn.cmd_fn.apply @
       true
 
   handle_renderable = (object) ->
@@ -22,37 +22,40 @@ define (require) ->
     if core.is_lead_node object
       lead_string = core.to_string object
       if _.isFunction object
-        @cli.text "#{lead_string} is a Graphite function"
-        @cli.example "docs #{object.values[0]}"
+        @fns.text "#{lead_string} is a Graphite function"
+        @fns.example "docs #{object.values[0]}"
       else
-        @cli.text "What do you want to do with #{lead_string}?"
+        @fns.text "What do you want to do with #{lead_string}?"
         for f in ['data', 'graph', 'img', 'url']
-          @cli.example "#{f} #{object.to_js_string()}"
+          @fns.example "#{f} #{object.to_js_string()}"
       true
 
   handle_any_object = (object) ->
-    @cli.object object
+    @fns.object object
     true
 
 
-  bind_cli = (run_context, ops) ->
-    bind_op = (op) ->
+  bind_context_fns = (run_context, fns) ->
+    bind_fn = (op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context.root_context.current_context, args)?._lead_cli_value ? ignore
-      bound._lead_op = op
+        op.fn.apply(run_context.root_context.current_context, args)?._lead_context_fn_value ? ignore
+      bound._lead_context_fn = op
       bound
 
-    bound_ops = {}
-    for k, op of ops
-      bound_ops[k] = bind_op op
+    bound_fns = {}
+    for k, o of fns
+      if _.isFunction o.fn
+        bound_fns[k] = bind_fn o
+      else
+        bound_fns[k] = bind_context_fns run_context, o
 
-    bound_ops
+    bound_fns
 
   create_run_context = ($el, opts={}) ->
-    {extra_contexts, ops, function_names, vars} = _.defaults {}, opts,
+    {extra_contexts, context_fns, function_names, vars} = _.defaults {}, opts,
       extra_contexts: []
-      ops: {}
+      context_fns: {}
       function_names: []
       vars: {}
 
@@ -63,7 +66,7 @@ define (require) ->
 
     result_handlers =[
       ignored,
-      handle_cli_cmd,
+      handle_cmd,
       handle_renderable,
       handle_lead_node,
       handle_any_object
@@ -79,7 +82,7 @@ define (require) ->
         $item
 
     run_context =
-      ops: ops
+      context_fns: context_fns
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
@@ -111,14 +114,14 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
         nested_context.current_context = nested_context
-        nested_context.cli = bind_cli nested_context, ops
+        nested_context.fns = bind_context_fns nested_context, context_fns
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
         console.error e.stack
-        @cli.error printStackTrace({e}).join('\n')
-        @cli.text 'Compiled JavaScript:'
-        @cli.source 'javascript', compiled
+        @fns.error printStackTrace({e}).join('\n')
+        @fns.text 'Compiled JavaScript:'
+        @fns.source 'javascript', compiled
 
       error: (message) ->
         $pre = $ '<pre class="error"/>'
@@ -129,7 +132,7 @@ define (require) ->
         for handler in result_handlers
           return if handler.call run_context, object
 
-      value: (value) -> _lead_cli_value: value
+      value: (value) -> _lead_context_fn_value: value
 
       async: (fn) ->
         $item = $ '<div class="async"/>'
@@ -153,7 +156,7 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
           scroll_to_top()
 
-    run_context.cli = cli = bind_cli run_context, ops
+    run_context.fns = fns = bind_context_fns run_context, context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
     _.defaults run_context, extra_contexts...

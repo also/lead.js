@@ -54,7 +54,7 @@ define (require) ->
       next_token = token_after cm, token, cur.line
       collect_suggestions = (s) ->
         list = []
-        for k of notebook.available_ops cm.lead_cell.notebook
+        for k of notebook.available_context_fns cm.lead_cell.notebook
           if k.indexOf(s) is 0
             list.push k
         for k of graphite.function_docs

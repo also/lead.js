@@ -1,6 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
+  Q = require 'q'
   CoffeeScript = require 'lib/coffee-script'
   lead = require 'core'
   ed = require 'editor'
@@ -20,11 +21,11 @@ define (require) ->
           else
             @value @current_options[k] ? @default_options[k]
 
-        all_ops[k] =
+        all_context_fns[k] =
           name: k
           fn: fn
-          cli_fn: ->
-            @cli.object @cli[k]()
+          cmd_fn: ->
+            @fns.object @fns[k]()
   ###
 
   notebook_content_type = 'application/x-lead-notebook'
@@ -40,8 +41,9 @@ define (require) ->
   identity = (cell) -> true
 
 
-  available_ops = (notebook) ->
-    notebook.ops
+  available_context_fns = (notebook) ->
+    result = _.object _.map notebook.modules, (module, name) -> [name, module.context_fns]
+    _.extend result, _.map(notebook.imports, (i) -> notebook.modules[i].context_fns)...
 
 
   init_codemirror = ->
@@ -49,7 +51,18 @@ define (require) ->
     _.extend CodeMirror.commands, ed.commands
 
 
-  create_notebook = (defaults) ->
+  load_modules = (module_names) ->
+    if module_names.length > 0
+      loaded = Q.defer()
+      require module_names, (imported_modules...) ->
+        loaded.resolve _.object module_names, imported_modules
+      , (err) ->
+        loaded.reject err
+      loaded.promise
+    else
+      Q {}
+
+  create_notebook = (opts) ->
     $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
     $file_picker.on 'change', (e) ->
       for file in e.target.files
@@ -62,13 +75,18 @@ define (require) ->
     $document = $ '<div class="document"/>'
     $document.append $file_picker
 
-    notebook = _.extend {}, defaults,
+    notebook = _.extend {imports: []}, opts,
       cells: []
       input_number: 1
       output_number: 1
       default_options: {}
       $document: $document
       $file_picker: $file_picker
+      modules: {}
+
+    load_modules(notebook.imports ? []).then (modules) ->
+      _.extend notebook.modules, modules
+      notebook
 
   export_notebook = (current_cell) ->
     lead_js_version: 0
@@ -260,7 +278,7 @@ define (require) ->
       extra_contexts: [create_notebook_run_context input_cell]
       vars: input_cell.notebook.vars
       function_names: input_cell.notebook.function_names
-      ops: available_ops input_cell.notebook
+      context_fns: available_context_fns input_cell.notebook
 
     run_in_context run_context, string
 
@@ -309,7 +327,7 @@ define (require) ->
 
     if compiled?
       try
-        `with (run_context.cli) { with (run_context.functions) { with (run_context.vars) {`
+        `with (run_context.fns) { with (run_context.functions) { with (run_context.vars) {`
         result = eval compiled
         `}}}`
         run_context.display_object result
@@ -331,11 +349,11 @@ define (require) ->
         try
           imported = JSON.parse file.content
         catch e
-          run_context.cli.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+          run_context.fns.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
           return
         version = imported.lead_js_version
         unless version?
-          run_context.cli.error "File #{file.filename} isn't a lead.js notebook"
+          run_context.fns.error "File #{file.filename} isn't a lead.js notebook"
           return
         import_notebook run_context.notebook, run_context.cell, imported, options
 
@@ -352,7 +370,7 @@ define (require) ->
 
   exports = {
     create_notebook
-    available_ops
+    available_context_fns
     input_cell_at_offset
     init_codemirror
     add_input_cell
@@ -376,7 +394,7 @@ define (require) ->
     context_help: (cell, token) ->
       if graphite.has_docs token
         run_before cell, "docs '#{token}'"
-      else if available_ops(cell.notebook)[token]?
+      else if available_context_fns(cell.notebook)[token]?
         run_before cell, "help #{token}"
 
     move_focus: (cell, offset) ->
