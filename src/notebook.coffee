@@ -21,11 +21,6 @@ define (require) ->
   identity = (cell) -> true
 
 
-  available_context_fns = (notebook) ->
-    result = _.object _.filter _.map(notebook.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
-    _.extend result, _.map(notebook.imports, (i) -> notebook.modules[i].context_fns)...
-
-
   init_codemirror = ->
     CodeMirror.keyMap.lead = ed.key_map
     _.extend CodeMirror.commands, ed.commands
@@ -262,7 +257,6 @@ define (require) ->
 
     run_context = context.create_run_context output_cell.$el,
       extra_contexts: [create_notebook_run_context input_cell]
-      context_fns: available_context_fns input_cell.notebook
 
     context.run_in_context run_context, string
 
@@ -274,6 +268,8 @@ define (require) ->
     notebook = input_cell.notebook
     run_context =
       notebook: notebook
+      modules: notebook.modules
+      imports: notebook.imports
       input_cell: input_cell
       default_options: notebook.default_options
       set_code: (code) ->
@@ -335,7 +331,6 @@ define (require) ->
 
   exports = {
     create_notebook
-    available_context_fns
     input_cell_at_offset
     init_codemirror
     add_input_cell

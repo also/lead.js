@@ -20,17 +20,22 @@ define (require) ->
       fn.apply @
 
   handle_using_extension = (object) ->
-    handlers = modules.collect_extension_points @notebook.modules, 'context_result_handler'
+    handlers = modules.collect_extension_points @modules, 'context_result_handler'
     context = @
     _.find handlers, (handler) -> handler.call context, object
-
-  collect_context_vars = (context) ->
-    vars = modules.collect_extension_points context.notebook.modules, 'context_vars'
-    _.extend {}, _.map(vars, (v) -> if _.isFunction v then v.call context else v)...
 
   handle_any_object = (object) ->
     @fns.object object
     true
+
+
+  collect_context_vars = (context) ->
+    vars = modules.collect_extension_points context.modules, 'context_vars'
+    _.extend {}, _.map(vars, (v) -> if _.isFunction v then v.call context else v)...
+
+  collect_context_fns = (context) ->
+    result = _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
+    _.extend result, _.map(context.imports, (i) -> context.modules[i].context_fns)...
 
 
   bind_context_fns = (run_context, fns) ->
@@ -51,9 +56,8 @@ define (require) ->
     bound_fns
 
   create_run_context = ($el, opts={}) ->
-    {extra_contexts, context_fns} = _.defaults {}, opts,
+    {extra_contexts} = _.defaults {}, opts,
       extra_contexts: []
-      context_fns: {}
 
     scroll_to_top = ->
       setTimeout ->
@@ -78,7 +82,6 @@ define (require) ->
         $item
 
     run_context =
-      context_fns: context_fns
       current_options: {}
       output: output $el
       scroll_to_top: scroll_to_top
@@ -150,10 +153,11 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
           scroll_to_top()
 
-    run_context.fns = fns = bind_context_fns run_context, context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
     _.defaults run_context, extra_contexts...
+    context_fns = collect_context_fns run_context
+    run_context.fns = fns = bind_context_fns run_context, context_fns
     run_context.vars = collect_context_vars run_context
 
     run_context
