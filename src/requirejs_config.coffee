@@ -10,6 +10,7 @@
     URIjs: '../lib/URI'
     'stacktrace-js': '../lib/stacktrace-min-0.4'
     'domReady': '../lib/domReady'
+    q: '../lib/q'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'
