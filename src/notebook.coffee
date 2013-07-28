@@ -181,8 +181,12 @@ define (require) ->
 
   create_input_cell = (notebook) ->
     $el = $ '<div class="cell input"/>'
+    $link = $ '<span class="permalink">link</span>'
     $code = $ '<div class="code"/>'
+    $el.append $link
     $el.append $code
+    $link.on 'click', ->
+      run_after cell.output_cell ? cell, 'permalink'
 
     editor = CodeMirror $code.get(0),
       value: ''
