@@ -2,10 +2,7 @@ define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
 
-  graphite = require 'graphite'
   graphite_function_names = require 'functions'
-  github = require 'github'
-  colors = require 'colors'
 
   imports = [
     'builtins'
@@ -23,7 +20,6 @@ define (require) ->
     nb = notebook.create_notebook
       imports: imports
       function_names: graphite_function_names
-      vars: lead: {github, graphite, colors}
 
     nb.done (nb) ->
       $document.append nb.$document

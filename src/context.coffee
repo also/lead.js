@@ -47,11 +47,10 @@ define (require) ->
     bound_fns
 
   create_run_context = ($el, opts={}) ->
-    {extra_contexts, context_fns, function_names, vars} = _.defaults {}, opts,
+    {extra_contexts, context_fns, function_names} = _.defaults {}, opts,
       extra_contexts: []
       context_fns: {}
       function_names: []
-      vars: {}
 
     scroll_to_top = ->
       setTimeout ->
@@ -81,7 +80,6 @@ define (require) ->
       output: output $el
       scroll_to_top: scroll_to_top
       functions: dsl.define_functions {}, function_names
-      vars: vars
 
       in_context: (context, fn) ->
         previous_context = @root_context.current_context

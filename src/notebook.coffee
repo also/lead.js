@@ -262,7 +262,6 @@ define (require) ->
 
     run_context = context.create_run_context output_cell.$el,
       extra_contexts: [create_notebook_run_context input_cell]
-      vars: input_cell.notebook.vars
       function_names: input_cell.notebook.function_names
       context_fns: available_context_fns input_cell.notebook
 
@@ -313,9 +312,9 @@ define (require) ->
 
     if compiled?
       try
-        `with (run_context.fns) { with (run_context.functions) { with (run_context.vars) {`
+        `with (run_context.fns) { with (run_context.functions) {`
         result = eval compiled
-        `}}}`
+        `}}`
         run_context.display_object result
       catch e
         run_context.handle_exception e, compiled
