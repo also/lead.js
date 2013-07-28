@@ -54,11 +54,12 @@ define (require) ->
     if module_names.length > 0
       loaded = Q.defer()
       require module_names, (imported_modules...) ->
-        _.each imported_modules, (module) -> module.init?()
         loaded.resolve _.object module_names, imported_modules
       , (err) ->
         loaded.reject err
-      loaded.promise
+      loaded.promise.then (imported_modules) ->
+        inits = Q.all _.compact _.map imported_modules, (module) ->  module.init?()
+        inits.then -> imported_modules
     else
       Q {}
 
