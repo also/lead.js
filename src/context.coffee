@@ -20,7 +20,7 @@ define (require) ->
       fn.apply @
 
   handle_using_extension = (object) ->
-    handlers = modules.collect_extension_points @modules, 'context_result_handler'
+    handlers = collect_extension_points @, 'context_result_handler'
     context = @
     _.find handlers, (handler) -> handler.call context, object
 
@@ -28,9 +28,11 @@ define (require) ->
     @fns.object object
     true
 
+  collect_extension_points = (context, extension_point) ->
+    modules.collect_extension_points context.modules, extension_point
 
   collect_context_vars = (context) ->
-    vars = modules.collect_extension_points context.modules, 'context_vars'
+    vars = collect_extension_points context, 'context_vars'
     _.extend {}, _.map(vars, (v) -> if _.isFunction v then v.call context else v)...
 
   collect_context_fns = (context) ->
@@ -182,4 +184,4 @@ define (require) ->
         run_context.handle_exception e, compiled
 
 
-  {create_context, create_run_context, run_in_context}
+  {create_context, create_run_context, run_in_context, collect_extension_points}

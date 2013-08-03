@@ -1,5 +1,7 @@
 define (require) ->
+  Q = require 'q'
   graphite = require 'graphite'
+  context = require 'context'
 
   _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
@@ -24,11 +26,15 @@ define (require) ->
       t = next_token
     last_interesting_token
 
+  collect_string_suggestions = (ctx, string) ->
+    Q.all(_.flatten _.map context.collect_extension_points(ctx, 'suggest_strings'), (fn) -> fn string)
+    .then (suggestions) -> _.flatten suggestions
+
   suggest = (cm, showHints, options) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
     if token.type is null
-      list = (k for k of graphite.function_docs)
+      list = (k for k of cm.lead_cell.context.vars)
       showHints
         list: list
         from: CodeMirror.Pos cur.line, token.end
@@ -42,7 +48,7 @@ define (require) ->
         end_offset = 1
       else
         end_offset = 0
-      promise = graphite.complete string
+      promise = collect_string_suggestions cm.lead_cell.context, string
       promise.done (list) ->
         showHints
           list: list

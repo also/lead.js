@@ -300,5 +300,7 @@ define (require) ->
           $result.append $ul
       promise
 
+  graphite.suggest_strings = graphite.complete
+
   graphite
 
