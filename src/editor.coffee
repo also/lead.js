@@ -1,7 +1,5 @@
 define (require) ->
   Q = require 'q'
-  graphite = require 'graphite'
-  context = require 'context'
 
   _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
@@ -10,6 +8,7 @@ define (require) ->
   require 'cm/runmode'
   require 'cm/show-hint'
 
+  context = require 'context'
   notebook = null
   require ['notebook'], (nb) ->
     notebook = nb
@@ -29,6 +28,9 @@ define (require) ->
   collect_string_suggestions = (ctx, string) ->
     Q.all(_.flatten _.map context.collect_extension_points(ctx, 'suggest_strings'), (fn) -> fn string)
     .then (suggestions) -> _.flatten suggestions
+
+  collect_key_suggestions = (ctx, string) ->
+    _.flatten _.map context.collect_extension_points(ctx, 'suggest_keys'), (fn) -> fn string
 
   suggest = (cm, showHints, options) ->
     cur = cm.getCursor()
@@ -63,15 +65,15 @@ define (require) ->
         for k of cm.lead_cell.context.context_fns
           if k.indexOf(s) is 0
             list.push k
-        for k of graphite.function_docs
+        for k of cm.lead_cell.context.vars
           if k.indexOf(s) is 0
             list.push k
-        for k of graphite.parameter_docs
-          if k.indexOf(s) is 0
-            suggestion = k
-            suggestion += ': ' unless next_token?.string is ':'
-            list.push suggestion
-        list
+        key_suggestions = collect_key_suggestions cm.lead_cell.context, s
+        unless next_token?.string is ':'
+          key_suggestions = _.map key_suggestions, (k) -> k + ':'
+
+        list.concat key_suggestions
+
       list = collect_suggestions full_s
       if list.length > 0
         showHints

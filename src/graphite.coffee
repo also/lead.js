@@ -80,6 +80,9 @@ define (require) ->
           result.join '.'
         _.uniq patterned_list.concat(list)
 
+    suggest_keys: (s) ->
+      _.filter _.keys(graphite.parameter_docs), (k) -> k.indexOf(s) is 0
+
     args_to_params: ({args, default_options}) ->
       if args.legnth == 0
         # you're doing it wrong
