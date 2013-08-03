@@ -359,7 +359,7 @@ define (require) ->
     context_help: (cell, token) ->
       if graphite.has_docs token
         run_before cell, "docs '#{token}'"
-      else if available_context_fns(cell.notebook)[token]?
+      else if cell.context.context_fns[token]?
         run_before cell, "help #{token}"
 
     move_focus: (cell, offset) ->
