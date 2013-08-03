@@ -140,7 +140,7 @@ define (require) ->
         cm.replaceSelection(spaces, "end", "+input")
     Up: 'maybe_previous_cell'
     Down: 'maybe_next_cell'
-    'Shift-Up': 'fill_with_last_value'
+    #'Shift-Up': 'fill_with_last_value'
     'Shift-Enter': 'run'
     'Ctrl-Enter': 'run_in_place'
     'F1': 'context_help'
