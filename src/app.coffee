@@ -27,6 +27,8 @@ define (require) ->
         notebook.run_cell rc_cell
         notebook.remove_cell rc_cell
 
+      window.onhashchange = -> window.location.reload()
+
       uri = URI location.href
       fragment = uri.fragment()
       if fragment.length > 0 and fragment[0] == '/'
