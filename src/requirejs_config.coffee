@@ -1,5 +1,7 @@
+default_includes = ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
+
 @require =
-  deps: ['bootstrap']
+  deps: ['bootstrap', default_includes...]
   paths:
     lib: '../lib'
     spec: '../spec'
