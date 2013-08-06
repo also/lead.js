@@ -1,6 +1,7 @@
 define (require) ->
-  colors = require 'colors'
   d3 = require 'd3'
+  moment = require 'moment'
+  colors = require 'colors'
 
   draw: (container, data, params) ->
     width = params.width or 800

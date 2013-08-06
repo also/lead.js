@@ -11,8 +11,9 @@ default_includes = ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
     d3: '../lib/d3.v3'
     URIjs: '../lib/URI'
     'stacktrace-js': '../lib/stacktrace-min-0.4'
-    'domReady': '../lib/domReady'
+    domReady: '../lib/domReady'
     q: '../lib/q'
+    moment: '../lib/moment'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'

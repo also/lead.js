@@ -2,6 +2,7 @@ define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
   Q = require 'q'
+  moment = require 'moment'
   dsl = require 'dsl'
   modules = require 'modules'
   graph = require 'graph'
