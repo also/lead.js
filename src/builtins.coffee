@@ -2,7 +2,7 @@ define (require) ->
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
   $ = require 'jquery'
-  marked = require 'lib/marked'
+  marked = require 'marked'
   modules = require 'modules'
 
   {fn, cmd, context_fns} = modules.create()

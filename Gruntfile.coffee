@@ -12,9 +12,17 @@ module.exports = (grunt) ->
     concat:
       css:
         src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.12/codemirror.css']
-        dest: 'style.css'
+        dest: 'dist/style.css'
+    copy:
+      nodejs:
+        files: [
+          expand: true
+          cwd: 'build'
+          src: ['node.*', 'dsl.*']
+          dest: 'dist/nodejs/'
+        ]
     coffee:
-      all:
+      source:
         options:
           sourceMap: true
         files: [
@@ -25,13 +33,25 @@ module.exports = (grunt) ->
           dest: 'build/'
           ext: '.js'
         ]
-    requirejs:
-      optimize:
+      tests:
         options:
-          name: 'main'
+          sourceMap: true
+        files: [
+          expand: true
+          flatten: true
+          cwd: 'spec'
+          src: ['*.spec.coffee']
+          dest: 'build/spec'
+          ext: '.spec.js'
+        ]
+    requirejs:
+      app:
+        options:
+          name: 'app'
+          include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
+          out: 'dist/lead-app.js'
           mainConfigFile: 'build/requirejs_optimize_config.js'
           baseUrl: 'build'
-          out: 'lead.js'
           paths:
             punycode: 'empty:'
             IPv6: 'empty:'
@@ -40,6 +60,7 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks 'grunt-contrib-sass'
   grunt.loadNpmTasks 'grunt-contrib-concat'
+  grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
 

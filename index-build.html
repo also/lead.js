@@ -4,8 +4,11 @@
 <title>lead.js</title>
 <meta charset="UTF-8">
 <script src="lib/require.js"></script>
-<script src="lead.js"></script>
-<link rel="stylesheet" href="style.css"/>
+<script src="dist/lead-app.js"></script>
+<script>
+require(['app'], function(app) { $(app.init_app) })
+</script>
+<link rel="stylesheet" href="dist/style.css"/>
 </head>
 <body class="cm-s-idle">
 <h1>lead.js</h1>

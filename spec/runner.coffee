@@ -1,4 +1,4 @@
-define ->
+define 'runner', (require) ->
   specs = [
     'dsl',
     'settings',
@@ -10,7 +10,7 @@ define ->
 
   require specs.map((s) -> "spec/#{s}.spec"), ->
     console.log 'loaded specs'
-    require ['domReady!'], execJasmine
+    execJasmine()
 
   jasmineEnv = jasmine.getEnv()
 

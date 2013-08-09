@@ -5,6 +5,7 @@
     "type": "git",
     "url": "https://github.com/also/lead.js"
   },
+  "main": "dist/nodejs/node.js",
   "dependencies": {
     "requirejs": "~2.1.8",
     "underscore": "~1.5.1",
@@ -19,6 +20,7 @@
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt-cli": "~0.1.9",
     "grunt-contrib-sass": "~0.4.1",
-    "grunt-contrib-concat": "~0.3.0"
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-copy": "~0.4.1"
   }
 }
