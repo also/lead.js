@@ -126,7 +126,7 @@ define (require) ->
       param_docs = $.getJSON 'render_api.fjson', (data) =>
         html = $.parseHTML(data.body)[0]
         parameters = html.querySelector 'div#graph-parameters'
-        a.remove() for a in parameters.querySelectorAll 'a.headerlink'
+        a.parentNode.removeChild(a) for a in parameters.querySelectorAll 'a.headerlink'
         for section in parameters.querySelectorAll 'div.section'
           name = $(section.querySelector 'h3').text()
           @parameter_docs[name] = section
@@ -138,7 +138,7 @@ define (require) ->
         html = $.parseHTML(data.body)[0]
         for tag in html.getElementsByTagName 'dt'
           for a in tag.getElementsByTagName 'a'
-            a.remove()
+            a.parentNode.removeChild(a)
           @function_docs[tag.id[prefix_length..]] = tag.parentNode
 
       Q.all [param_docs, function_docs]
