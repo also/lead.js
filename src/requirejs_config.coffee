@@ -30,7 +30,7 @@ default_includes = ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
       exports: 'jQuery'
     'd3':
       exports: 'd3'
-    'lib/colorbrewer':
+    'colorbrewer':
       exports: 'colorbrewer'
     'underscore':
       exports: '_'
