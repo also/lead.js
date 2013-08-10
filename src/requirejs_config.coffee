@@ -14,6 +14,9 @@ default_includes = ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
     domReady: '../lib/domReady'
     q: '../lib/q'
     moment: '../lib/moment'
+    marked: '../lib/marked'
+    'coffee-script': '../lib/coffee-script'
+    colorbrewer: '../lib/colorbrewer'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'

@@ -1,6 +1,6 @@
 define (require) ->
   d3 = require 'd3'
-  colorbrewer = require 'lib/colorbrewer'
+  colorbrewer = require 'colorbrewer'
   colors =
     d3: {}
     brewer: colorbrewer

@@ -2,7 +2,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   Q = require 'q'
-  CoffeeScript = require 'lib/coffee-script'
+  CoffeeScript = require 'coffee-script'
   ed = require 'editor'
   graphite = require 'graphite'
   context = require 'context'

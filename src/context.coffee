@@ -1,7 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
-  CoffeeScript = require 'lib/coffee-script'
+  CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
   modules = require 'modules'
 
