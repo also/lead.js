@@ -21,7 +21,7 @@ define (require) ->
   {fn, cmd, context_fns, settings} = modules.create 'github'
 
   settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
-  settings.set 'default', 'github.com'
+  settings.default 'default', 'github.com'
 
   github =
     context_fns: context_fns

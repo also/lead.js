@@ -23,6 +23,8 @@ define (require) ->
       set: (keys..., value) ->
         set data, value, prefix.concat keys
         @
+      default: (keys..., value) ->
+        @get(keys...) or @set keys..., value
 
     settings = with_prefix()
     settings.with_prefix = with_prefix

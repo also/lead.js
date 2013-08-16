@@ -16,6 +16,12 @@ define (require) ->
       s.set '1', '2', 'a_setting', 'a_value'
       expect(s.get '1', '2', 'a_setting').toBe 'a_value'
 
+    it 'can have defaults', ->
+      s.default 'a_setting', 'a_value'
+      expect(s.get 'a_setting').toBe 'a_value'
+      s.default 'a_setting', 'another_value'
+      expect(s.get 'a_setting').toBe 'a_value'
+
     it 'can be set using a prefix', ->
       s.with_prefix('a', 'b').set('a_setting', 'a_value')
       expect(s.get 'a', 'b', 'a_setting').toBe 'a_value'
