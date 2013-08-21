@@ -9,6 +9,7 @@ define (require) ->
     'opentsdb'
     'github'
     'dsl'
+    'http'
   ]
 
   init_app: ->

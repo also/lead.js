@@ -11,8 +11,8 @@
 
 define (require) ->
   URI = require 'URIjs'
-  $ = require 'jquery'
   modules = require 'modules'
+  http = require 'http'
 
   notebook = null
   require ['notebook'], (nb) ->
@@ -39,9 +39,8 @@ define (require) ->
     save_gist: (gist, options={}) ->
       github_host = options.github ? github.default()
       gh = settings.get 'githubs', github_host
-      $.ajax
+      http.post
         url: "#{gh.api_base_url}/gists?access_token=#{gh.access_token}"
-        type: 'post'
         contentType: 'application/json'
         data: JSON.stringify gist
 
@@ -73,10 +72,7 @@ define (require) ->
       url = github.to_gist_url gist
       @async ->
         @fns.text "Loading gist #{gist}"
-        promise = $.ajax
-          type: 'GET'
-          url: url
-          dataType: 'json'
+        promise = http.getJSON {url}
         promise.done (response) =>
           for name, file of response.files
             notebook.handle_file @, file, options

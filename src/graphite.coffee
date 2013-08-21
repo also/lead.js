@@ -7,6 +7,7 @@ define (require) ->
   modules = require 'modules'
   graph = require 'graph'
   function_names = require 'functions'
+  http = require 'http'
 
   {fn, cmd, context_fns, settings} = modules.create 'graphite'
 
@@ -41,7 +42,7 @@ define (require) ->
     # returns a promise
     get_data: (params, options) ->
       params.format = 'json'
-      deferred = $.ajax
+      deferred = http.get
         url: graphite.render_url params
         dataType: 'json'
 
@@ -65,7 +66,7 @@ define (require) ->
         query: encodeURIComponent query
         format: 'completer'
 
-      $.ajax
+      http.get
         url: graphite.url 'metrics/find', params
         dataType: 'json'
       .then (response) ->
@@ -123,7 +124,8 @@ define (require) ->
     parameter_doc_ids: {}
 
     load_docs: ->
-      param_docs = $.getJSON 'render_api.fjson', (data) =>
+      param_docs = http.getJSON(url: 'render_api.fjson')
+      .then (data) =>
         html = $.parseHTML(data.body)[0]
         parameters = html.querySelector 'div#graph-parameters'
         a.parentNode.removeChild(a) for a in parameters.querySelectorAll 'a.headerlink'
@@ -132,7 +134,8 @@ define (require) ->
           @parameter_docs[name] = section
           @parameter_doc_ids[section.id] = name
 
-      function_docs = $.getJSON 'functions.fjson', (data) =>
+      function_docs = http.getJSON(url: 'functions.fjson')
+      .then (data) =>
         prefix_length = "graphite.render.functions.".length
 
         html = $.parseHTML(data.body)[0]
@@ -272,7 +275,7 @@ define (require) ->
       params =
         query: encodeURIComponent query
         format: 'completer'
-      promise = $.ajax
+      promise = http.get
         url: graphite.url 'metrics/find', params
         dataType: 'json'
       .then (response) ->

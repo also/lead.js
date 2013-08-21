@@ -4,6 +4,7 @@ define (require) ->
   $ = require 'jquery'
   marked = require 'marked'
   modules = require 'modules'
+  http = require 'http'
   notebook = require 'notebook'
 
   {fn, cmd, context_fns} = modules.create()
@@ -152,8 +153,7 @@ define (require) ->
       @open_file()
     else
       @async ->
-        promise = $.ajax
-          type: 'GET'
+        promise = http.get
           url: url
           dataType: 'text'
         promise.done (response, status_text, xhr) =>
