@@ -4,6 +4,7 @@ define (require) ->
   $ = require 'jquery'
   marked = require 'marked'
   modules = require 'modules'
+  notebook = require 'notebook'
 
   {fn, cmd, context_fns} = modules.create()
   cmd 'help', 'Shows this help', (cmd) ->
