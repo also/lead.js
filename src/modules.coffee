@@ -1,4 +1,5 @@
 define (require) ->
+  Q = require 'q'
   settings = require 'settings'
 
   create: (module_name) ->
@@ -27,3 +28,16 @@ define (require) ->
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck  modules, ep
+
+  load_modules: (module_names) ->
+    if module_names.length > 0
+      loaded = Q.defer()
+      require module_names, (imported_modules...) ->
+        loaded.resolve _.object module_names, imported_modules
+      , (err) ->
+        loaded.reject err
+      loaded.promise.then (imported_modules) ->
+        inits = Q.all _.compact _.map imported_modules, (module) ->  module.init?()
+        inits.then -> imported_modules
+    else
+      Q {}

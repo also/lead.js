@@ -1,11 +1,11 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
-  Q = require 'q'
   CoffeeScript = require 'coffee-script'
   ed = require 'editor'
   graphite = require 'graphite'
   context = require 'context'
+  modules = require 'modules'
 
 
   notebook_content_type = 'application/x-lead-notebook'
@@ -25,19 +25,6 @@ define (require) ->
     CodeMirror.keyMap.lead = ed.key_map
     _.extend CodeMirror.commands, ed.commands
 
-
-  load_modules = (module_names) ->
-    if module_names.length > 0
-      loaded = Q.defer()
-      require module_names, (imported_modules...) ->
-        loaded.resolve _.object module_names, imported_modules
-      , (err) ->
-        loaded.reject err
-      loaded.promise.then (imported_modules) ->
-        inits = Q.all _.compact _.map imported_modules, (module) ->  module.init?()
-        inits.then -> imported_modules
-    else
-      Q {}
 
   create_notebook = (opts) ->
     $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -61,7 +48,7 @@ define (require) ->
       $file_picker: $file_picker
       modules: {}
 
-    load_modules(_.union notebook.imports, notebook.module_names).then (modules) ->
+    modules.load_modules(_.union notebook.imports, notebook.module_names).then (modules) ->
       _.extend notebook.modules, modules
       notebook
 
