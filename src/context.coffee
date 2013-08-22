@@ -11,9 +11,15 @@ define (require) ->
   ignored = (object) -> object == ignore
 
   handle_cmd = (object) ->
-    if object?._lead_context_fn?
-      object._lead_context_fn.cmd_fn.apply @
-      true
+    if (op = object?._lead_context_fn)?
+      if op.cmd_fn?
+        op.cmd_fn.apply @
+        true
+      else
+        @fns.text "Did you forget to call a function? \"#{object._lead_context_fn_bound_as}\" must be called with arguments."
+        @run "help #{object._lead_context_fn_bound_as}"
+        true
+
 
   handle_renderable = (object) ->
     if fn = object?._lead_render
@@ -40,20 +46,21 @@ define (require) ->
     _.extend result, _.map(context.imports, (i) -> context.modules[i].context_fns)...
 
 
-  bind_context_fns = (run_context, fns) ->
-    bind_fn = (op) ->
+  bind_context_fns = (run_context, fns, name_prefix='') ->
+    bind_fn = (name, op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
         op.fn.apply(run_context.root_context.current_context, args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
+      bound._lead_context_fn_bound_as = name
       bound
 
     bound_fns = {}
     for k, o of fns
       if _.isFunction o.fn
-        bound_fns[k] = bind_fn o
+        bound_fns[k] = bind_fn "#{name_prefix}#{k}", o
       else
-        bound_fns[k] = bind_context_fns run_context, o
+        bound_fns[k] = bind_context_fns run_context, o, k + '.'
 
     bound_fns
 

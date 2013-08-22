@@ -16,9 +16,7 @@ define (require) ->
       result =
         module_name: module_name
         fn: fn
-        cmd_fn: cmd_fn ? ->
-          @fns.text "Did you forget to call a function? \"#{result.name}\" must be called with arguments."
-          @run "help #{result.name}"
+        cmd_fn: cmd_fn
         doc: doc
         name: name
 

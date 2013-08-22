@@ -2,6 +2,7 @@ define (require) ->
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
   $ = require 'jquery'
+  _ = require 'underscore'
   marked = require 'marked'
   modules = require 'modules'
   http = require 'http'
@@ -9,11 +10,16 @@ define (require) ->
 
   {fn, cmd, context_fns} = modules.create()
   cmd 'help', 'Shows this help', (cmd) ->
-    if cmd?
-      cmd = cmd._lead_context_fn?.name ? cmd
-      doc = @context_fns[cmd]?.doc
+    if arguments.length > 0
+      if _.isString cmd
+        name = cmd
+        op = @context_fns[cmd]
+      else if cmd?
+        name = cmd._lead_context_fn_bound_as
+        op = cmd._lead_context_fn
+      doc = op?.doc
       if doc
-        @fns.pre "#{cmd}\n    #{doc}"
+        @fns.pre "#{name}\n    #{doc}"
       else
         @fns.pre "#{cmd} is not a command."
     else
