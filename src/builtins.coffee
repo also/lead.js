@@ -8,34 +8,41 @@ define (require) ->
   http = require 'http'
   notebook = require 'notebook'
 
+  help = (fns) ->
+    documented_fns = (name for name, c of fns when c?.doc?)
+    documented_fns.sort()
+    $dl = $ '<dl>'
+    for cmd in documented_fns
+      $tt = $ '<tt/>'
+      $tt.text cmd
+      $dt = $ '<dt/>'
+      $dt.append $tt
+      $dl.append $dt
+      $dd = $ '<dd/>'
+      $dd.text fns[cmd].doc
+      $dl.append $dd
+    $dl
+
+
   {fn, cmd, context_fns} = modules.create()
   cmd 'help', 'Shows this help', (cmd) ->
     if arguments.length > 0
       if _.isString cmd
-        name = cmd
         op = @context_fns[cmd]
-      else if cmd?
-        name = cmd._lead_context_fn_bound_as
-        op = cmd._lead_context_fn
-      doc = op?.doc
-      if doc
-        @fns.pre "#{name}\n    #{doc}"
-      else
+        fns = cmd: op if op?
+      else if cmd?._lead_context_name
+        name = cmd._lead_context_name
+        if cmd._lead_context_fn?
+          fns = {}
+          fns[name] = cmd._lead_context_fn
+        else
+          fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
+      unless fns?
         @fns.pre "#{cmd} is not a command."
+        return
     else
-      documented_fns = (name for name, c of @context_fns when c.doc?)
-      documented_fns.sort()
-      $dl = $ '<dl>'
-      for cmd in documented_fns
-        $tt = $ '<tt/>'
-        $tt.text cmd
-        $dt = $ '<dt/>'
-        $dt.append $tt
-        $dl.append $dt
-        $dd = $ '<dd/>'
-        $dd.text @context_fns[cmd].doc
-        $dl.append $dd
-      @output $dl
+      fns = @context_fns
+    @output help fns
 
   cmd 'keys', 'Shows the key bindings', ->
     all_keys = {}

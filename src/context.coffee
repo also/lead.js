@@ -16,8 +16,8 @@ define (require) ->
         op.cmd_fn.apply @
         true
       else
-        @fns.text "Did you forget to call a function? \"#{object._lead_context_fn_bound_as}\" must be called with arguments."
-        @run "help #{object._lead_context_fn_bound_as}"
+        @fns.text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
+        @run "help #{object._lead_context_name}"
         true
 
 
@@ -52,7 +52,7 @@ define (require) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
         op.fn.apply(run_context.root_context.current_context, args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
-      bound._lead_context_fn_bound_as = name
+      bound._lead_context_name = name
       bound
 
     bound_fns = {}
@@ -60,7 +60,7 @@ define (require) ->
       if _.isFunction o.fn
         bound_fns[k] = bind_fn "#{name_prefix}#{k}", o
       else
-        bound_fns[k] = bind_context_fns run_context, o, k + '.'
+        bound_fns[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, o, k + '.'
 
     bound_fns
 
