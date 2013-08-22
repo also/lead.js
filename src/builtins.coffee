@@ -6,7 +6,6 @@ define (require) ->
   marked = require 'marked'
   modules = require 'modules'
   http = require 'http'
-  notebook = require 'notebook'
 
   help = (fns) ->
     documented_fns = (name for name, c of fns when c?.doc?)
@@ -123,9 +122,6 @@ define (require) ->
     @fns.example 'docs'
     @fns.text 'to see what you can do with Graphite.'
 
-  cmd 'quiet', 'Hides the input box', ->
-    @hide_input()
-
   fn 'options', 'Gets or sets options', (options) ->
     if options?
       _.extend @current_options, options
@@ -153,25 +149,5 @@ define (require) ->
         @fns.example "websocket #{JSON.stringify url}"
       ws.onmessage = (e) => @run e.data
       ws.onerror = => @fns.error 'Error'
-
-  cmd 'save', 'Saves the current notebook to a file', ->
-    @save()
-
-  cmd 'load', 'Loads a script from a URL', (url, options={}) ->
-    if arguments.length is 0
-      @open_file()
-    else
-      @async ->
-        promise = http.get
-          url: url
-          dataType: 'text'
-        promise.done (response, status_text, xhr) =>
-          notebook.handle_file @,
-            filename: URI(url).filename()
-            type: xhr.getResponseHeader 'content-type'
-            content: response
-          , options
-        promise.fail (response, status_text, error) =>
-          @fns.error status_text
 
   {context_fns}

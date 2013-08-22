@@ -271,20 +271,8 @@ define (require) ->
       run: (code) ->
         cell = add_input_cell notebook, code: code, after: run_context.cell
         cell.run()
-      clear_output: -> clear_notebook notebook
       previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
-      hide_input: -> hide_cell input_cell
-      open_file: -> open_file_picker run_context
       export_notebook: -> export_notebook input_cell
-      save: ->
-        text = JSON.stringify export_notebook input_cell
-        blob = new Blob [text], type: notebook_content_type
-        link = document.createElement 'a'
-        link.innerHTML = 'Download Notebook'
-        link.href = window.webkitURL.createObjectURL blob
-        link.download = 'notebook.lnb'
-        link.click()
-        @output link
       get_input_value: (number) ->
         get_input_cell_by_number(notebook, number)?.editor.getValue()
 
@@ -324,6 +312,39 @@ define (require) ->
 
   cmd 'clear', 'Clears the notebook', ->
     clear_notebook @notebook
+
+  save = (input_cell) ->
+    text = JSON.stringify export_notebook input_cell
+    blob = new Blob [text], type: notebook_content_type
+    link = document.createElement 'a'
+    link.innerHTML = 'Download Notebook'
+    link.href = window.webkitURL.createObjectURL blob
+    link.download = 'notebook.lnb'
+    link.click()
+    link
+
+  cmd 'save', 'Saves the current notebook to a file', ->
+    @output save @input_cell
+
+  cmd 'load', 'Loads a script from a URL', (url, options={}) ->
+    if arguments.length is 0
+      open_file_picker @
+    else
+      @async ->
+        promise = http.get
+          url: url
+          dataType: 'text'
+        promise.done (response, status_text, xhr) =>
+          handle_file @,
+            filename: URI(url).filename()
+            type: xhr.getResponseHeader 'content-type'
+            content: response
+          , options
+        promise.fail (response, status_text, error) =>
+          @fns.error status_text
+
+  cmd 'quiet', 'Hides the input cell', ->
+    hide_cell @input_cell
 
   exports = {
     context_fns
