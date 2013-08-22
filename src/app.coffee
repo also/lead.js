@@ -2,14 +2,13 @@ define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
 
+  module_names = ['http', 'dsl']
 
   imports = [
     'builtins'
     'graphite'
     'opentsdb'
     'github'
-    'dsl'
-    'http'
   ]
 
   init_app: ->
@@ -17,8 +16,7 @@ define (require) ->
 
     $document = $ '#document'
 
-    nb = notebook.create_notebook
-      imports: imports
+    nb = notebook.create_notebook {imports, module_names}
 
     nb.done (nb) ->
       $document.append nb.$document

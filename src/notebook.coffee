@@ -52,7 +52,7 @@ define (require) ->
     $document = $ '<div class="document"/>'
     $document.append $file_picker
 
-    notebook = _.extend {imports: []}, opts,
+    notebook = _.extend {imports: [], module_names: []}, opts,
       cells: []
       input_number: 1
       output_number: 1
@@ -61,7 +61,7 @@ define (require) ->
       $file_picker: $file_picker
       modules: {}
 
-    load_modules(notebook.imports ? []).then (modules) ->
+    load_modules(_.union notebook.imports, notebook.module_names).then (modules) ->
       _.extend notebook.modules, modules
       notebook
 
