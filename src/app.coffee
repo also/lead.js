@@ -9,6 +9,7 @@ define (require) ->
     'graphite'
     'opentsdb'
     'github'
+    'notebook'
   ]
 
   init_app: ->

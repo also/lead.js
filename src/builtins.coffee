@@ -123,10 +123,6 @@ define (require) ->
     @fns.example 'docs'
     @fns.text 'to see what you can do with Graphite.'
 
-  cmd 'clear', 'Clears the screen and code', ->
-    @clear_output()
-    @set_code ''
-
   cmd 'quiet', 'Hides the input box', ->
     @hide_input()
 

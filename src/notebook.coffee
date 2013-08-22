@@ -7,6 +7,7 @@ define (require) ->
   context = require 'context'
   modules = require 'modules'
 
+  {fn, cmd, context_fns} = modules.create()
 
   notebook_content_type = 'application/x-lead-notebook'
 
@@ -321,7 +322,11 @@ define (require) ->
 
       reader.readAsText file
 
+  cmd 'clear', 'Clears the notebook', ->
+    clear_notebook @notebook
+
   exports = {
+    context_fns
     create_notebook
     input_cell_at_offset
     init_codemirror
