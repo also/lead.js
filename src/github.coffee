@@ -39,10 +39,7 @@ define (require) ->
     save_gist: (gist, options={}) ->
       github_host = options.github ? github.default()
       gh = settings.get 'githubs', github_host
-      http.post
-        url: "#{gh.api_base_url}/gists?access_token=#{gh.access_token}"
-        contentType: 'application/json'
-        data: JSON.stringify gist
+      http.post "#{gh.api_base_url}/gists?access_token=#{gh.access_token}", gist
 
     to_gist_url: (gist) ->
       build_url = (site, id) ->
@@ -72,7 +69,7 @@ define (require) ->
       url = github.to_gist_url gist
       @async ->
         @fns.text "Loading gist #{gist}"
-        promise = http.getJSON {url}
+        promise = http.get url
         promise.done (response) =>
           for name, file of response.files
             notebook.handle_file @, file, options

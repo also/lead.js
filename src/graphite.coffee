@@ -42,9 +42,7 @@ define (require) ->
     # returns a promise
     get_data: (params, options) ->
       params.format = 'json'
-      deferred = http.get
-        url: graphite.render_url params
-        dataType: 'json'
+      deferred = http.get graphite.render_url params
 
       deferred.then null, (response) ->
         html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
@@ -66,9 +64,7 @@ define (require) ->
         query: encodeURIComponent query
         format: 'completer'
 
-      http.get
-        url: graphite.url 'metrics/find', params
-        dataType: 'json'
+      http.get graphite.url 'metrics/find', params
       .then (response) ->
         parts = query.split('.')
         pattern_parts = parts.map(graphite.is_pattern)
@@ -124,7 +120,7 @@ define (require) ->
     parameter_doc_ids: {}
 
     load_docs: ->
-      param_docs = http.getJSON(url: 'render_api.fjson')
+      param_docs = http.get('render_api.fjson')
       .then (data) =>
         html = $.parseHTML(data.body)[0]
         parameters = html.querySelector 'div#graph-parameters'
@@ -134,7 +130,7 @@ define (require) ->
           @parameter_docs[name] = section
           @parameter_doc_ids[section.id] = name
 
-      function_docs = http.getJSON(url: 'functions.fjson')
+      function_docs = http.get('functions.fjson')
       .then (data) =>
         prefix_length = "graphite.render.functions.".length
 
@@ -275,9 +271,7 @@ define (require) ->
       params =
         query: encodeURIComponent query
         format: 'completer'
-      promise = http.get
-        url: graphite.url 'metrics/find', params
-        dataType: 'json'
+      promise = http.get(graphite.url 'metrics/find', params)
       .then (response) ->
         _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
 

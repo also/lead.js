@@ -331,9 +331,7 @@ define (require) ->
       open_file_picker @
     else
       @async ->
-        promise = http.get
-          url: url
-          dataType: 'text'
+        promise = http.get url, dataType: 'text'
         promise.done (response, status_text, xhr) =>
           handle_file @,
             filename: URI(url).filename()
