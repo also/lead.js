@@ -15,6 +15,7 @@
     marked: '../lib/marked'
     'coffee-script': '../lib/coffee-script'
     colorbrewer: '../lib/colorbrewer'
+    'graphite_docs': '../lib/graphite_docs'
   shim:
     'cm/codemirror':
         exports: 'CodeMirror'

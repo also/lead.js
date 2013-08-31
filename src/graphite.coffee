@@ -8,6 +8,7 @@ define (require) ->
   graph = require 'graph'
   function_names = require 'functions'
   http = require 'http'
+  docs = require 'graphite_docs'
 
   {fn, cmd, context_fns, settings} = modules.create 'graphite'
 
@@ -16,16 +17,14 @@ define (require) ->
     context_vars: -> dsl.define_functions {}, function_names
 
     init: ->
-      docs = graphite.load_docs()
-      .then ->
-        # TODO there's no way for this to be set by the time we get here
-        if settings.get 'define_parameters'
-          _.map graphite.parameter_docs, (v, k) ->
-            fn k, "Gets or sets Graphite parameter #{k}", (value) ->
-              if value?
-                @current_options[k] = value
-              else
-                @value @current_options[k] ? @default_options[k]
+      # TODO there's no way for this to be set by the time we get here
+      if settings.get 'define_parameters'
+        _.map docs.parameter_docs, (v, k) ->
+          fn k, "Gets or sets Graphite parameter #{k}", (value) ->
+            if value?
+              @current_options[k] = value
+            else
+              @value @current_options[k] ? @default_options[k]
 
     is_pattern: (s) ->
       for c in '*?[{'
@@ -79,7 +78,7 @@ define (require) ->
         _.uniq patterned_list.concat(list)
 
     suggest_keys: (s) ->
-      _.filter _.keys(graphite.parameter_docs), (k) -> k.indexOf(s) is 0
+      _.filter _.keys(docs.parameter_docs), (k) -> k.indexOf(s) is 0
 
     args_to_params: ({args, default_options}) ->
       if args.legnth == 0
@@ -115,35 +114,8 @@ define (require) ->
       params.target = (dsl.to_target_string(target) for target in targets)
       params
 
-    function_docs: {}
-    parameter_docs: {}
-    parameter_doc_ids: {}
-
-    load_docs: ->
-      param_docs = http.get('render_api.fjson')
-      .then (data) =>
-        html = $.parseHTML(data.body)[0]
-        parameters = html.querySelector 'div#graph-parameters'
-        a.parentNode.removeChild(a) for a in parameters.querySelectorAll 'a.headerlink'
-        for section in parameters.querySelectorAll 'div.section'
-          name = $(section.querySelector 'h3').text()
-          @parameter_docs[name] = section
-          @parameter_doc_ids[section.id] = name
-
-      function_docs = http.get('functions.fjson')
-      .then (data) =>
-        prefix_length = "graphite.render.functions.".length
-
-        html = $.parseHTML(data.body)[0]
-        for tag in html.getElementsByTagName 'dt'
-          for a in tag.getElementsByTagName 'a'
-            a.parentNode.removeChild(a)
-          @function_docs[tag.id[prefix_length..]] = tag.parentNode
-
-      Q.all [param_docs, function_docs]
-
     has_docs: (name) ->
-      @parameter_docs[name]? or @parameter_doc_ids[name]? or @function_docs[name]?
+      docs.parameter_docs[name]? or docs.parameter_doc_ids[name]? or docs.function_docs[name]?
 
 
   args_to_params = (args, {default_options, current_options}) ->
@@ -161,42 +133,36 @@ define (require) ->
     if name?
       name = name.to_js_string() if name.to_js_string?
       name = name._lead_context_fn?.name if name._lead_op?
-      dl = graphite.function_docs[name]
-      if dl?
+      function_docs = docs.function_docs[name]
+      if function_docs?
         $result = @output()
-        pres = dl.getElementsByTagName 'pre'
-        examples = []
-        for pre in pres
-          for line in pre.innerText.split '\n'
-            if line.indexOf('&target=') == 0
-              examples.push line[8..]
-        $result.append dl.cloneNode true
-        for example in examples
+        $result.append function_docs.docs
+        for example in function_docs.examples
           @fns.example "#{default_target_command} #{JSON.stringify example}", run: false
-      name = graphite.parameter_doc_ids[name] ? name
-      div = graphite.parameter_docs[name]
-      if div?
+      name = docs.parameter_doc_ids[name] ? name
+      parameter_docs = docs.parameter_docs[name]
+      if parameter_docs?
         $result = @output()
-        docs = $(div.cloneNode true)
+        $docs = $(parameter_docs)
         context = @
-        docs.find('a').on 'click', (e) ->
+        $docs.find('a').on 'click', (e) ->
           e.preventDefault()
           href = $(this).attr 'href'
           if href[0] is '#'
             context.run "docs '#{decodeURI href[1..]}'"
-        $result.append docs
-      unless dl? or div?
+        $result.append $docs
+      unless function_docs? or parameter_docs?
         @fns.text 'Documentation not found'
     else
       @fns.html '<h3>Functions</h3>'
-      names = (name for name of graphite.function_docs)
+      names = (name for name of docs.function_docs)
       names.sort()
       for name in names
-        sig = $(graphite.function_docs[name].getElementsByTagName('dt')[0]).text().trim()
-        @fns.example "docs #{name}  # #{sig}"
+        item = docs.function_docs[name]
+        @fns.example "docs #{name}  # #{item.signature}"
 
       @fns.html '<h3>Parameters</h3>'
-      names = (name for name of graphite.parameter_docs)
+      names = (name for name of docs.parameter_docs)
       names.sort()
       for name in names
         @fns.example "docs '#{name}'"
