@@ -39,7 +39,7 @@ define (require) ->
     render_url: (params) -> graphite.url 'render', params
 
     # returns a promise
-    get_data: (params, options) ->
+    get_data: (params) ->
       params.format = 'json'
       deferred = http.get graphite.render_url params
 
