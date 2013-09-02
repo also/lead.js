@@ -43,6 +43,7 @@ define (require) ->
 
   collect_context_fns = (context) ->
     result = _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
+    result._modules = _.clone result
     _.extend result, _.map(context.imports, (i) -> context.modules[i].context_fns)...
 
 
