@@ -230,7 +230,7 @@ define (require) ->
     @fns._modules.graph.graph data, params
 
   fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
-    finder = @fns.find query
+    finder = @fns._modules.graphite.find query
     finder.clicks.onValue (node) =>
       if node.is_leaf
         @run "q(#{JSON.stringify node.path})"

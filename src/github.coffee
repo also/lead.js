@@ -64,7 +64,7 @@ define (require) ->
 
   cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
     if arguments.length is 0
-      @fns.save_gist()
+      @fns._modules.github.save_gist()
     else
       url = github.to_gist_url gist
       @async ->
