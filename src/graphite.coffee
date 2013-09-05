@@ -1,11 +1,11 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
+  bacon = require 'bacon'
   Q = require 'q'
   moment = require 'moment'
   dsl = require 'dsl'
   modules = require 'modules'
-  graph = require 'graph'
   function_names = require 'functions'
   http = require 'http'
   docs = require 'graphite_docs'
@@ -38,44 +38,55 @@ define (require) ->
 
     render_url: (params) -> graphite.url 'render', params
 
+    parse_error_response: (response) ->
+      return 'request failed' unless response.responseText?
+      html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
+      pre = $(html[0].getElementsByTagName 'pre')
+      if pre.length > 0
+        # graphite style error message in a pre
+        msg = pre.text()
+      else
+        for n in html
+          pre = n.querySelectorAll 'pre.exception_value'
+          if pre.length > 0
+            msg = pre[0].innerText
+            break
+      msg
+
+    parse_find_response: (query, response) ->
+      parts = query.split('.')
+      pattern_parts = parts.map(graphite.is_pattern)
+      list = (node.path for node in response)
+      patterned_list = for path in list
+        result = for matched, i in path.split('.')
+          if pattern_parts[i]
+            parts[i]
+          else
+            matched
+        result.join '.'
+      _.uniq patterned_list.concat(list)
+
     # returns a promise
     get_data: (params) ->
       params.format = 'json'
       deferred = http.get graphite.render_url params
 
-      deferred.then null, (response) ->
-        html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
-        pre = $(html[0].getElementsByTagName 'pre')
-        if pre.length > 0
-          # graphite style error message in a pre
-          msg = pre.text()
-        else
-          for n in html
-            pre = n.querySelectorAll 'pre.exception_value'
-            if pre.length > 0
-              msg = pre[0].innerText
-              break
-        msg
+      deferred.then null, graphite.parse_error_response
 
     # returns a promise
     complete: (query) ->
+      graphite.find(query)
+      .then ({query, result}) ->
+        graphite.parse_find_response query, result
+
+    find: (query) ->
       params =
         query: encodeURIComponent query
         format: 'completer'
-
-      http.get graphite.url 'metrics/find', params
+      http.get(graphite.url 'metrics/find', params)
       .then (response) ->
-        parts = query.split('.')
-        pattern_parts = parts.map(graphite.is_pattern)
-        list = (node.path for node in response.metrics)
-        patterned_list = for path in list
-          result = for matched, i in path.split('.')
-            if pattern_parts[i]
-              parts[i]
-            else
-              matched
-          result.join '.'
-        _.uniq patterned_list.concat(list)
+        result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
+        {query, result}
 
     suggest_keys: (s) ->
       _.filter _.keys(docs.parameter_docs), (k) -> k.indexOf(s) is 0
@@ -117,9 +128,8 @@ define (require) ->
     has_docs: (name) ->
       docs.parameter_docs[name]? or docs.parameter_doc_ids[name]? or docs.function_docs[name]?
 
-
-  args_to_params = (args, {default_options, current_options}) ->
-    graphite.args_to_params {args, default_options: _.extend({}, default_options, current_options)}
+  args_to_params = (context, args) ->
+    graphite.args_to_params {args, default_options: context.options()}
 
   default_target_command = 'img'
 
@@ -168,11 +178,11 @@ define (require) ->
         @fns.example "docs '#{name}'"
 
   fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
-    result = args_to_params args, @
+    result = args_to_params @, args
     @value result
 
   fn 'url', 'Generates a URL for a Graphite image', (args...) ->
-    params = args_to_params args, @
+    params = args_to_params @, args
     url = graphite.render_url params
     $a = $ "<a href='#{url}' target='blank'/>"
     $a.text url
@@ -181,7 +191,7 @@ define (require) ->
     @output $pre
 
   fn 'img', 'Renders a Graphite graph image', (args...) ->
-    params = args_to_params args, @
+    params = args_to_params @, args
     url = graphite.render_url params
     @async ->
       $img = $ "<img src='#{url}'/>"
@@ -195,7 +205,7 @@ define (require) ->
         @fns.error 'Failed to load image'
 
   fn 'data', 'Fetches Graphite graph data', (args...) ->
-    params = args_to_params args, @
+    params = args_to_params @, args
     @value @async ->
       promise = graphite.get_data params
       promise._lead_render = ->
@@ -214,38 +224,32 @@ define (require) ->
           @fns.error error
       promise
 
-  fn 'graph', 'Graphs a Graphite target using d3', (args...) ->
-    @async ->
-      $result = @output()
-      if args[0].pipe?
-        promise = args[0]
-        # TODO shouldn't need to pass fake first arg
-        params = args_to_params([[], args[1..]...], @)
-      else
-        params = args_to_params args, @
-        params.format = 'json'
-        promise = graphite.get_data params
-      promise.done (response) =>
-        graph.draw $result.get(0), response, params
-      promise.fail (error) =>
-        @fns.error error
+  fn 'graph', 'Graphs Graphite data', (args...) ->
+    params = Bacon.constant(args).map(args_to_params, @)
+    data = params.map(graphite.get_data).flatMapLatest Bacon.fromPromise
+    @fns._modules.graph.graph data, params
 
-  fn 'find', 'Finds named Graphite metrics using a wildcard query', (query) ->
-    query_parts = query.split '.'
+  fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
+    finder = @fns.find query
+    finder.clicks.onValue (node) =>
+      if node.is_leaf
+        @run "q(#{JSON.stringify node.path})"
+      else
+        @run "browser #{JSON.stringify node.path + '*'}"
+    @value finder
+
+  fn 'find', 'Finds Graphite metrics', (query) ->
     @value @async ->
       $result = @output()
-      params =
-        query: encodeURIComponent query
-        format: 'completer'
-      promise = http.get(graphite.url 'metrics/find', params)
-      .then (response) ->
-        _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
+      promise = graphite.find query
 
       promise._lead_render = ->
-        promise.done (metrics) =>
+        promise.done ({query, result}) =>
+          query_parts = query.split '.'
           $ul = $ '<ul class="find-results"/>'
-          for node in metrics
+          for node in result
             $li = $ '<li class="cm-string"/>'
+            $li.data 'node', node
             text = node.path
             text += '*' unless node.is_leaf
             node_parts = text.split '.'
@@ -256,15 +260,13 @@ define (require) ->
               $span.addClass 'light' if part == query_parts[i]
               $span.text part
               $li.append $span
-            do (text) =>
-              $li.on 'click', =>
-                if node.is_leaf
-                  @run "q(#{JSON.stringify text})"
-                else
-                  @run "find #{JSON.stringify text}"
+
+            promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
 
             $ul.append $li
           $result.append $ul
+
+      promise.clicks = new Bacon.Bus
       promise
 
   graphite.suggest_strings = graphite.complete

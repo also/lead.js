@@ -117,7 +117,7 @@ define (require) ->
 
   cmd 'intro', 'Shows the intro message', ->
     @fns.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
-    @fns.example "find '*'"
+    @fns.example "browser '*'"
     @fns.text 'Look at'
     @fns.example 'docs'
     @fns.text 'to see what you can do with Graphite.'
@@ -126,11 +126,6 @@ define (require) ->
     if options?
       _.extend @current_options, options
     @value @current_options
-
-  cmd 'defaults', 'Gets or sets default options', (options) ->
-    if options?
-      _.extend @default_options, options
-    @value @default_options
 
   cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
     a = document.createElement 'a'

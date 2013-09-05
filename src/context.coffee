@@ -100,6 +100,8 @@ define (require) ->
       output: output $el
       scroll_to_top: scroll_to_top
 
+      options: -> @current_options
+
       in_context: (context, fn) ->
         previous_context = @root_context.current_context
         @root_context.current_context = context

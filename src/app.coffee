@@ -2,13 +2,14 @@ define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
 
-  module_names = ['http', 'dsl']
+  module_names = ['http', 'dsl', 'graph']
 
   imports = [
     'builtins'
     'graphite'
     'opentsdb'
     'github'
+    'input'
     'notebook'
   ]
 

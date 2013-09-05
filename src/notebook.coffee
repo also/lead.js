@@ -44,7 +44,6 @@ define (require) ->
       cells: []
       input_number: 1
       output_number: 1
-      default_options: {}
       $document: $document
       $file_picker: $file_picker
       modules: {}
@@ -264,7 +263,6 @@ define (require) ->
     run_context =
       notebook: notebook
       input_cell: input_cell
-      default_options: notebook.default_options
       set_code: (code) ->
         cell = add_input_cell notebook, code: code, after: run_context.cell
         focus_cell cell
