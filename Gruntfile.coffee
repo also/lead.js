@@ -48,7 +48,7 @@ module.exports = (grunt) ->
       app:
         options:
           name: 'app'
-          include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github']
+          include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github', 'input']
           out: 'dist/lead-app.js'
           mainConfigFile: 'build/requirejs_optimize_config.js'
           baseUrl: 'build'
