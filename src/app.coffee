@@ -1,8 +1,9 @@
 define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
+  settings = require 'settings'
 
-  module_names = ['http', 'dsl', 'graph']
+  module_names = ['http', 'dsl', 'graph', 'settings']
 
   imports = [
     'builtins'
@@ -17,6 +18,14 @@ define (require) ->
     notebook.init_codemirror()
 
     $document = $ '#document'
+
+    # TODO warn
+    try
+      _.each JSON.parse(localStorage.getItem 'lead_user_settings'), (v, k) -> settings.user_settings.set k, v
+    catch e
+      console.error 'failed loading user settings', e
+    settings.user_settings.changes.onValue ->
+      localStorage.setItem 'lead_user_settings', JSON.stringify settings.user_settings.get()
 
     nb = notebook.create_notebook {imports, module_names}
 
