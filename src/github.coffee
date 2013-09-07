@@ -82,7 +82,7 @@ define (require) ->
         site = github.get_github gist
 
         if github?
-          [id, rest...] = uri.filename().split '.'
+          [id, rest...] = URI(gist).filename().split '.'
           build_url site, id
         else
           gist
