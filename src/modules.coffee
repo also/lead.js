@@ -2,7 +2,7 @@ define (require) ->
   Q = require 'q'
   settings = require 'settings'
 
-  create: (module_name) ->
+  create: (module_name, definition_fn) ->
     if module_name?
       module_settings = settings.with_prefix module_name
     else
@@ -22,7 +22,11 @@ define (require) ->
 
       context_fns[name] = result
 
-    {cmd, fn, context_fns, settings: module_settings}
+    mod = {cmd, fn, context_fns, settings: module_settings}
+    if definition_fn?
+      _.extend {context_fns, settings}, definition_fn mod
+    else
+      mod
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck  modules, ep

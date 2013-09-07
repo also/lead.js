@@ -2,11 +2,7 @@ define (require) ->
   modules = require 'modules'
   http = require 'http'
 
-  {fn, cmd, context_fns, settings} = modules.create 'opentsdb'
-
-  opentsdb =
-    context_fns: context_fns
-
+  opentsdb = modules.create 'opentsdb', ({fn, cmd, settings}) ->
     to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
       parts = [aggregation]
       parts.push "#{downsample.period}-#{downsample.aggregation}" if downsample
@@ -39,7 +35,5 @@ define (require) ->
           target: name
           datapoints: _.sortBy points, ([v, t]) -> t
 
-  fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
-    @value @async -> opentsdb.tsd args...
-
-  opentsdb
+    fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
+      @value @async -> opentsdb.tsd args...

@@ -4,11 +4,11 @@ define (require) ->
   Bacon = require 'bacon'
 
   require ['modules'], (modules) ->
-    {fn, cmd, context_fns} = modules.create 'settings'
-    fn 'set', 'Sets a user setting', (keys..., value) ->
-      user_settings.set keys..., value
-    fn 'get', 'Gets a setting', (keys...) ->
-      @value global_settings.get keys...
+    {context_fns} = modules.create 'settings', ({fn}) ->
+      fn 'set', 'Sets a user setting', (keys..., value) ->
+        user_settings.set keys..., value
+      fn 'get', 'Gets a setting', (keys...) ->
+        @value global_settings.get keys...
     global_settings.context_fns = context_fns
 
   create = (overrides=get:->) ->

@@ -5,20 +5,16 @@ define (require) ->
   bacon = require 'bacon'
   modules = require 'modules'
 
-  {context_fns, fn, settings} = modules.create()
-
-  fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
-    @nested 'graph', ->
-      $result = @output()
-      stream = bacon.combineTemplate {data, params}
-      stream.onValue ({data, params}) =>
-        $result.empty()
-        graph.draw $result.get(0), data, params
-      stream.onError (error) =>
-        @cli.error error
-
-  graph =
-    context_fns: context_fns
+  graph = modules.create 'graph', ({fn, cmd, settings}) ->
+    fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
+      @nested 'graph', ->
+        $result = @output()
+        stream = bacon.combineTemplate {data, params}
+        stream.onValue ({data, params}) =>
+          $result.empty()
+          graph.draw $result.get(0), data, params
+        stream.onError (error) =>
+          @cli.error error
 
     draw: (container, data, params) ->
       width = params.width or 800

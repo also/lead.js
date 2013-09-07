@@ -10,10 +10,148 @@ define (require) ->
   http = require 'http'
   docs = require 'graphite_docs'
 
-  {fn, cmd, context_fns, settings} = modules.create 'graphite'
+  graphite = modules.create 'graphite', ({fn, cmd, settings}) ->
+    args_to_params = (context, args) ->
+      graphite.args_to_params {args, default_options: context.options()}
 
-  graphite =
-    context_fns: context_fns
+    default_target_command = 'img'
+
+    fn 'q', 'Escapes a Graphite metric query', (targets...) ->
+      for t in targets
+        unless _.isString t
+          throw new TypeError "#{t} is not a string"
+      @value new dsl.type.q targets.map(String)...
+
+    cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
+      if name?
+        name = name.to_js_string() if name.to_js_string?
+        name = name._lead_context_fn?.name if name._lead_op?
+        function_docs = docs.function_docs[name]
+        if function_docs?
+          $result = @output()
+          $result.append function_docs.docs
+          for example in function_docs.examples
+            @fns.example "#{default_target_command} #{JSON.stringify example}", run: false
+        name = docs.parameter_doc_ids[name] ? name
+        parameter_docs = docs.parameter_docs[name]
+        if parameter_docs?
+          $result = @output()
+          $docs = $(parameter_docs)
+          context = @
+          $docs.find('a').on 'click', (e) ->
+            e.preventDefault()
+            href = $(this).attr 'href'
+            if href[0] is '#'
+              context.run "docs '#{decodeURI href[1..]}'"
+          $result.append $docs
+        unless function_docs? or parameter_docs?
+          @fns.text 'Documentation not found'
+      else
+        @fns.html '<h3>Functions</h3>'
+        names = (name for name of docs.function_docs)
+        names.sort()
+        for name in names
+          item = docs.function_docs[name]
+          @fns.example "docs #{name}  # #{item.signature}"
+
+        @fns.html '<h3>Parameters</h3>'
+        names = (name for name of docs.parameter_docs)
+        names.sort()
+        for name in names
+          @fns.example "docs '#{name}'"
+
+    fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
+      result = args_to_params @, args
+      @value result
+
+    fn 'url', 'Generates a URL for a Graphite image', (args...) ->
+      params = args_to_params @, args
+      url = graphite.render_url params
+      $a = $ "<a href='#{url}' target='blank'/>"
+      $a.text url
+      $pre = $ '<pre>'
+      $pre.append $a
+      @output $pre
+
+    fn 'img', 'Renders a Graphite graph image', (args...) ->
+      params = args_to_params @, args
+      url = graphite.render_url params
+      @async ->
+        $img = $ "<img src='#{url}'/>"
+        @output $img
+        deferred = $.Deferred()
+        $img.on 'load', deferred.resolve
+        $img.on 'error', deferred.reject
+
+        promise = deferred.promise()
+        promise.fail (args...) =>
+          @fns.error 'Failed to load image'
+
+    fn 'data', 'Fetches Graphite graph data', (args...) ->
+      params = args_to_params @, args
+      @value @async ->
+        promise = graphite.get_data params
+        promise._lead_render = ->
+          $result = @output()
+          promise.done (response) =>
+            for series in response
+              $header = $ '<h3>'
+              $header.text series.target
+              $result.append $header
+              $table = $ '<table>'
+              for [value, timestamp] in series.datapoints
+                time = moment(timestamp * 1000)
+                $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
+              $result.append $table
+          promise.fail (error) =>
+            @fns.error error
+        promise
+
+    fn 'graph', 'Graphs Graphite data', (args...) ->
+      params = Bacon.constant(args).map(args_to_params, @)
+      data = params.map(graphite.get_data).flatMapLatest Bacon.fromPromise
+      @fns._modules.graph.graph data, params
+
+    fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
+      finder = @fns._modules.graphite.find query
+      finder.clicks.onValue (node) =>
+        if node.is_leaf
+          @run "q(#{JSON.stringify node.path})"
+        else
+          @run "browser #{JSON.stringify node.path + '*'}"
+      @value finder
+
+    fn 'find', 'Finds Graphite metrics', (query) ->
+      @value @async ->
+        $result = @output()
+        promise = graphite.find query
+
+        promise._lead_render = ->
+          promise.done ({query, result}) =>
+            query_parts = query.split '.'
+            $ul = $ '<ul class="find-results"/>'
+            for node in result
+              $li = $ '<li class="cm-string"/>'
+              $li.data 'node', node
+              text = node.path
+              text += '*' unless node.is_leaf
+              node_parts = text.split '.'
+              for part, i in node_parts
+                if i > 0
+                  $li.append '.'
+                $span = $ '<span>'
+                $span.addClass 'light' if part == query_parts[i]
+                $span.text part
+                $li.append $span
+
+              promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
+
+              $ul.append $li
+            $result.append $ul
+
+        promise.clicks = new Bacon.Bus
+        promise
+
     context_vars: -> dsl.define_functions {}, function_names
 
     init: ->
@@ -127,147 +265,6 @@ define (require) ->
 
     has_docs: (name) ->
       docs.parameter_docs[name]? or docs.parameter_doc_ids[name]? or docs.function_docs[name]?
-
-  args_to_params = (context, args) ->
-    graphite.args_to_params {args, default_options: context.options()}
-
-  default_target_command = 'img'
-
-  fn 'q', 'Escapes a Graphite metric query', (targets...) ->
-    for t in targets
-      unless _.isString t
-        throw new TypeError "#{t} is not a string"
-    @value new dsl.type.q targets.map(String)...
-
-  cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
-    if name?
-      name = name.to_js_string() if name.to_js_string?
-      name = name._lead_context_fn?.name if name._lead_op?
-      function_docs = docs.function_docs[name]
-      if function_docs?
-        $result = @output()
-        $result.append function_docs.docs
-        for example in function_docs.examples
-          @fns.example "#{default_target_command} #{JSON.stringify example}", run: false
-      name = docs.parameter_doc_ids[name] ? name
-      parameter_docs = docs.parameter_docs[name]
-      if parameter_docs?
-        $result = @output()
-        $docs = $(parameter_docs)
-        context = @
-        $docs.find('a').on 'click', (e) ->
-          e.preventDefault()
-          href = $(this).attr 'href'
-          if href[0] is '#'
-            context.run "docs '#{decodeURI href[1..]}'"
-        $result.append $docs
-      unless function_docs? or parameter_docs?
-        @fns.text 'Documentation not found'
-    else
-      @fns.html '<h3>Functions</h3>'
-      names = (name for name of docs.function_docs)
-      names.sort()
-      for name in names
-        item = docs.function_docs[name]
-        @fns.example "docs #{name}  # #{item.signature}"
-
-      @fns.html '<h3>Parameters</h3>'
-      names = (name for name of docs.parameter_docs)
-      names.sort()
-      for name in names
-        @fns.example "docs '#{name}'"
-
-  fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
-    result = args_to_params @, args
-    @value result
-
-  fn 'url', 'Generates a URL for a Graphite image', (args...) ->
-    params = args_to_params @, args
-    url = graphite.render_url params
-    $a = $ "<a href='#{url}' target='blank'/>"
-    $a.text url
-    $pre = $ '<pre>'
-    $pre.append $a
-    @output $pre
-
-  fn 'img', 'Renders a Graphite graph image', (args...) ->
-    params = args_to_params @, args
-    url = graphite.render_url params
-    @async ->
-      $img = $ "<img src='#{url}'/>"
-      @output $img
-      deferred = $.Deferred()
-      $img.on 'load', deferred.resolve
-      $img.on 'error', deferred.reject
-
-      promise = deferred.promise()
-      promise.fail (args...) =>
-        @fns.error 'Failed to load image'
-
-  fn 'data', 'Fetches Graphite graph data', (args...) ->
-    params = args_to_params @, args
-    @value @async ->
-      promise = graphite.get_data params
-      promise._lead_render = ->
-        $result = @output()
-        promise.done (response) =>
-          for series in response
-            $header = $ '<h3>'
-            $header.text series.target
-            $result.append $header
-            $table = $ '<table>'
-            for [value, timestamp] in series.datapoints
-              time = moment(timestamp * 1000)
-              $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-            $result.append $table
-        promise.fail (error) =>
-          @fns.error error
-      promise
-
-  fn 'graph', 'Graphs Graphite data', (args...) ->
-    params = Bacon.constant(args).map(args_to_params, @)
-    data = params.map(graphite.get_data).flatMapLatest Bacon.fromPromise
-    @fns._modules.graph.graph data, params
-
-  fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
-    finder = @fns._modules.graphite.find query
-    finder.clicks.onValue (node) =>
-      if node.is_leaf
-        @run "q(#{JSON.stringify node.path})"
-      else
-        @run "browser #{JSON.stringify node.path + '*'}"
-    @value finder
-
-  fn 'find', 'Finds Graphite metrics', (query) ->
-    @value @async ->
-      $result = @output()
-      promise = graphite.find query
-
-      promise._lead_render = ->
-        promise.done ({query, result}) =>
-          query_parts = query.split '.'
-          $ul = $ '<ul class="find-results"/>'
-          for node in result
-            $li = $ '<li class="cm-string"/>'
-            $li.data 'node', node
-            text = node.path
-            text += '*' unless node.is_leaf
-            node_parts = text.split '.'
-            for part, i in node_parts
-              if i > 0
-                $li.append '.'
-              $span = $ '<span>'
-              $span.addClass 'light' if part == query_parts[i]
-              $span.text part
-              $li.append $span
-
-            promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
-
-            $ul.append $li
-          $result.append $ul
-
-      promise.clicks = new Bacon.Bus
-      promise
 
   graphite.suggest_strings = graphite.complete
 
