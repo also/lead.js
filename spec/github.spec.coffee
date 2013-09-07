@@ -26,3 +26,18 @@ define (require) ->
     it 'handles gist api urls', ->
       gist_url = github.to_gist_url 'http://api.github.com/gists/5794205'
       expect(gist_url).toBe 'https://api.github.com/gists/5794205'
+
+    it 'handles repo contents api urls', ->
+      url = 'https://api.github.com/repos/also/lead.js/contents/examples/colors.coffee?ref=1f2c7e04666cd2fc5460805ca884faf25c1074b2'
+      repo_url = github.to_repo_url url
+      expect(repo_url).toBe url
+
+    it 'converts html urls to api urls', ->
+      url = 'https://github.com/also/lead.js/blob/master/examples/browser.coffee'
+      repo_url = github.to_repo_url url
+      expect(repo_url).toBe 'https://api.github.com/repos/also/lead.js/contents/examples/browser.coffee?ref=master'
+
+    it 'converts paths to api urls', ->
+      path = 'also/lead.js/examples/browser.coffee'
+      repo_url = github.to_repo_url path
+      expect(repo_url).toBe 'https://api.github.com/repos/also/lead.js/contents/examples/browser.coffee'
