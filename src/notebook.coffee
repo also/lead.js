@@ -247,7 +247,7 @@ define (require) ->
     run_context = context.create_run_context output_cell.$el,
       extra_contexts: [input_cell.context, create_notebook_run_context input_cell]
 
-    context.run_in_context run_context, string
+    context.run_coffeescript_in_context run_context, string
 
     run_context.scroll_to_top()
 

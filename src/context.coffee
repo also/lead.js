@@ -176,23 +176,23 @@ define (require) ->
 
     run_context
 
-  run_in_context = (run_context, string) ->
+  run_coffeescript_in_context = (run_context, string) ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
+      run_in_context run_context, compiled
     catch e
       if e instanceof SyntaxError
         run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         run_context.handle_exception e, compiled
 
-    if compiled?
-      try
-        `with (run_context.fns) { with (run_context.vars) {`
-        result = eval compiled
-        `}}`
-        run_context.display_object result
-      catch e
-        run_context.handle_exception e, compiled
+  run_in_context = (run_context, string) ->
+    try
+      `with (run_context.fns) { with (run_context.vars) {`
+      result = eval string
+      `}}`
+      run_context.display_object result
+    catch e
+      run_context.handle_exception e, string
 
-
-  {create_context, create_run_context, run_in_context, collect_extension_points}
+  {create_context, create_run_context, run_coffeescript_in_context, run_in_context, collect_extension_points}
