@@ -249,8 +249,6 @@ define (require) ->
 
     context.run_coffeescript_in_context run_context, string
 
-    run_context.scroll_to_top()
-
     output_cell
 
   create_input_context = (notebook) ->

@@ -73,11 +73,6 @@ define (require) ->
   create_run_context = ($el, opts={}) ->
     {extra_contexts} = _.extend {extra_contexts: []}, opts
 
-    scroll_to_top = ->
-      setTimeout ->
-        $('html, body').scrollTop $el.offset().top
-      , 10
-
     result_handlers =[
       ignored,
       handle_cmd,
@@ -98,7 +93,6 @@ define (require) ->
     run_context = _.extend {}, extra_contexts...,
       current_options: {}
       output: output $el
-      scroll_to_top: scroll_to_top
 
       options: -> @current_options
 
@@ -164,10 +158,8 @@ define (require) ->
         promise = @nested_item $item, fn
         promise.done ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
-          scroll_to_top()
         promise.fail ->
           $item.attr 'data-async-status', "failed in #{duration()}"
-          scroll_to_top()
         promise
 
     run_context.fns = fns = bind_context_fns run_context, run_context.context_fns
