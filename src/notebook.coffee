@@ -331,14 +331,15 @@ define (require) ->
     else
       @async ->
         promise = http.get url, dataType: 'text'
-        promise.done (response, status_text, xhr) =>
+        promise.then (response, status_text, xhr) =>
           handle_file @,
             filename: URI(url).filename()
             type: xhr.getResponseHeader 'content-type'
             content: response
           , options
-        promise.fail (response, status_text, error) =>
-          @fns.error status_text
+        promise.fail (response) =>
+          @fns.error response.statusText
+        promise
 
   cmd 'quiet', 'Hides the input cell', ->
     hide_cell @input_cell
