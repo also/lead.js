@@ -5,7 +5,9 @@
 <meta charset="UTF-8">
 <script src="src/requirejs_config.js"></script>
 <script data-main="src/app" src="lib/require.js"></script>
-<script src="src/main.js"></script>
+<script>
+require(['app'], function(app) { $(app.init_app) })
+</script>
 <link rel="stylesheet" href="dist/style.css"/>
 </head>
 <body class="cm-s-idle">
