@@ -126,6 +126,10 @@ define (require) ->
         @nested 'renderable', handle_renderable, o
         # TODO warn if not renderable
 
+      renderable: (o, fn) ->
+        o._lead_render = fn
+        o
+
       nested: (className, fn, args...) ->
         $item = $ "<div class='#{className}'/>"
         @nested_item $item, fn, args...

@@ -91,7 +91,7 @@ define (require) ->
       params = args_to_params @, args
       @value @async ->
         promise = graphite.get_data params
-        promise._lead_render = ->
+        @renderable promise, ->
           $result = @output()
           promise.done (response) =>
             for series in response
@@ -105,7 +105,6 @@ define (require) ->
               $result.append $table
           promise.fail (error) =>
             @error error
-        promise
 
     fn 'graph', 'Graphs Graphite data', (args...) ->
       params = Bacon.constant(args).map(args_to_params, @)
@@ -125,8 +124,9 @@ define (require) ->
       @value @async ->
         $result = @output()
         promise = graphite.find query
+        promise.clicks = new Bacon.Bus
 
-        promise._lead_render = ->
+        @renderable promise, ->
           promise.done ({query, result}) =>
             query_parts = query.split '.'
             $ul = $ '<ul class="find-results"/>'
@@ -148,9 +148,6 @@ define (require) ->
 
               $ul.append $li
             $result.append $ul
-
-        promise.clicks = new Bacon.Bus
-        promise
 
     context_vars: -> dsl.define_functions {}, function_names
 
