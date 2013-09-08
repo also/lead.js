@@ -5,7 +5,6 @@ define (require) ->
   CodeMirror = require 'cm/codemirror'
   require 'cm/javascript'
   require 'cm/coffeescript'
-  require 'cm/runmode'
   require 'cm/show-hint'
 
   context = require 'context'

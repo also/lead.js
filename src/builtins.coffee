@@ -1,5 +1,6 @@
 define (require) ->
   CodeMirror = require 'cm/codemirror'
+  require 'cm/runmode'
   URI = require 'URIjs'
   $ = require 'jquery'
   _ = require 'underscore'
