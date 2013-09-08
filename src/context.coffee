@@ -76,7 +76,6 @@ define (require) ->
   create_context = (base) ->
     context_fns = collect_context_fns base
     imported_context_fns = _.clone context_fns
-    imported_context_fns._modules = context_fns
     _.extend imported_context_fns, _.map(base.imports, (i) -> context_fns[i])...
 
     vars = collect_context_vars base
