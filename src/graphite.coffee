@@ -119,7 +119,7 @@ define (require) ->
           @run "q(#{JSON.stringify node.path})"
         else
           @run "browser #{JSON.stringify node.path + '*'}"
-      @value finder
+      @render finder
 
     fn 'find', 'Finds Graphite metrics', (query) ->
       @value @async ->
