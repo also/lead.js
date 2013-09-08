@@ -20,10 +20,10 @@ define (require) ->
         @run "help #{object._lead_context_name}"
         true
 
-
   handle_renderable = (object) ->
     if fn = object?._lead_render
       fn.apply @
+      true
 
   handle_using_extension = (object) ->
     handlers = collect_extension_points @, 'context_result_handler'
@@ -33,6 +33,7 @@ define (require) ->
   handle_any_object = (object) ->
     @object object
     true
+
 
   collect_extension_points = (context, extension_point) ->
     modules.collect_extension_points context.modules, extension_point
