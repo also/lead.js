@@ -170,6 +170,9 @@ define (require) ->
 
     run_context
 
+  scope = (run_context) ->
+    _.extend {}, run_context.fns, run_context.vars
+
   create_standalone_context = ($el, {imports, module_names}={}) ->
     create_base_context({imports: ['builtins'].concat(imports or []), module_names})
     .then (base_context) ->
@@ -187,11 +190,12 @@ define (require) ->
 
   run_in_context = (run_context, string) ->
     try
-      `with (run_context.fns) { with (run_context.vars) {`
+      context_scope = scope run_context
+      `with (context_scope) {`
       result = eval string
-      `}}`
+      `}`
       run_context.display_object result
     catch e
       run_context.handle_exception e, string
 
-  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, collect_extension_points}
+  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, scope, collect_extension_points}
