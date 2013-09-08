@@ -65,6 +65,10 @@ define (require) ->
 
     bound_fns
 
+  create_base_context = ({module_names, imports}) ->
+    modules.load_modules(_.union imports, module_names or []).then (modules) ->
+      {modules, imports}
+
   create_context = (base) ->
     context = _.extend {}, base,
       context_fns: collect_context_fns base
@@ -185,4 +189,4 @@ define (require) ->
     catch e
       run_context.handle_exception e, string
 
-  {create_context, create_run_context, run_coffeescript_in_context, run_in_context, collect_extension_points}
+  {create_base_context, create_context, create_run_context, run_coffeescript_in_context, run_in_context, collect_extension_points}

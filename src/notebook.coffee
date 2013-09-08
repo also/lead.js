@@ -66,16 +66,15 @@ define (require) ->
       $document = $ '<div class="document"/>'
       $document.append $file_picker
 
-      notebook = _.extend {imports: [], module_names: []}, opts,
+      notebook =
         cells: []
         input_number: 1
         output_number: 1
         $document: $document
         $file_picker: $file_picker
-        modules: {}
 
-      modules.load_modules(_.union notebook.imports, notebook.module_names).then (modules) ->
-        _.extend notebook.modules, modules
+      context.create_base_context(opts).then (base_context) ->
+        notebook.base_context = base_context
         notebook
 
     export_notebook = (current_cell) ->
@@ -276,10 +275,7 @@ define (require) ->
       output_cell
 
     create_input_context = (notebook) ->
-      context.create_context
-        notebook: notebook
-        modules: notebook.modules
-        imports: notebook.imports
+      context.create_context notebook.base_context
 
     create_notebook_run_context = (input_cell) ->
       notebook = input_cell.notebook
