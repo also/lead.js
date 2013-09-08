@@ -164,7 +164,7 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
         promise
 
-    run_context.fns = fns = bind_context_fns run_context, run_context.context_fns
+    run_context.fns = bind_context_fns run_context, run_context.context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
 
