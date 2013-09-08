@@ -38,13 +38,16 @@ define (require) ->
     modules.collect_extension_points context.modules, extension_point
 
   collect_context_vars = (context) ->
-    vars = collect_extension_points context, 'context_vars'
-    _.extend {}, _.map(vars, (v) -> if _.isFunction v then v.call context else v)...
+    module_vars = (module, name) ->
+      vars = module.context_vars
+      if _.isFunction vars
+        vars = vars.call context
+      [name, vars]
+
+    _.object _.filter _.map(context.modules, module_vars), ([n, f]) -> f
 
   collect_context_fns = (context) ->
-    result = _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
-    result._modules = _.clone result
-    _.extend result, _.map(context.imports, (i) -> context.modules[i].context_fns)...
+    _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
 
 
   bind_context_fns = (run_context, fns, name_prefix='') ->
@@ -70,9 +73,19 @@ define (require) ->
       {modules, imports}
 
   create_context = (base) ->
+    context_fns = collect_context_fns base
+    imported_context_fns = _.clone context_fns
+    imported_context_fns._modules = context_fns
+    _.extend imported_context_fns, _.map(base.imports, (i) -> context_fns[i])...
+
+    vars = collect_context_vars base
+    imported_vars = _.extend {}, _.map(base.imports, (i) -> vars[i])...
+
     context = _.extend {}, base,
-      context_fns: collect_context_fns base
-      vars: collect_context_vars base
+      context_fns: context_fns
+      imported_context_fns: imported_context_fns
+      vars: vars
+      imported_vars: imported_vars
 
   create_run_context = ($el, extra_contexts) ->
     result_handlers =[
@@ -123,7 +136,7 @@ define (require) ->
         nested_context = _.extend {}, run_context,
           output: output $item
         nested_context.current_context = nested_context
-        nested_context.fns = bind_context_fns nested_context, run_context.context_fns
+        nested_context.fns = bind_context_fns nested_context, run_context.imported_context_fns
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
@@ -164,14 +177,14 @@ define (require) ->
           $item.attr 'data-async-status', "failed in #{duration()}"
         promise
 
-    run_context.fns = bind_context_fns run_context, run_context.context_fns
+    run_context.fns = bind_context_fns run_context, run_context.imported_context_fns
     run_context.current_context = run_context
     run_context.root_context = run_context
 
     run_context
 
   scope = (run_context) ->
-    _.extend {}, run_context.fns, run_context.vars
+    _.extend {}, run_context.fns, run_context.imported_vars
 
   create_standalone_context = ($el, {imports, module_names}={}) ->
     create_base_context({imports: ['builtins'].concat(imports or []), module_names})

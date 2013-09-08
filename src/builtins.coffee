@@ -27,7 +27,7 @@ define (require) ->
     cmd 'help', 'Shows this help', (cmd) ->
       if arguments.length > 0
         if _.isString cmd
-          op = @context_fns[cmd]
+          op = @imported_context_fns[cmd]
           fns = cmd: op if op?
         else if cmd?._lead_context_name
           name = cmd._lead_context_name
@@ -40,7 +40,7 @@ define (require) ->
           @fns.pre "#{cmd} is not a command."
           return
       else
-        fns = @context_fns
+        fns = @imported_context_fns
       @output help fns
 
     cmd 'keys', 'Shows the key bindings', ->

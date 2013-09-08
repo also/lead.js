@@ -35,7 +35,7 @@ define (require) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
     if token.type is null
-      list = (k for k of cm.lead_cell.context.vars)
+      list = (k for k of cm.lead_cell.context.imported_vars)
       showHints
         list: list
         from: CodeMirror.Pos cur.line, token.end
@@ -61,10 +61,10 @@ define (require) ->
       next_token = token_after cm, token, cur.line
       collect_suggestions = (s) ->
         list = []
-        for k of cm.lead_cell.context.context_fns
+        for k of cm.lead_cell.context.imported_context_fns
           if k.indexOf(s) is 0
             list.push k
-        for k of cm.lead_cell.context.vars
+        for k of cm.lead_cell.context.imported_vars
           if k.indexOf(s) is 0
             list.push k
         key_suggestions = collect_key_suggestions cm.lead_cell.context, s
