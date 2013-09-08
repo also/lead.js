@@ -70,9 +70,7 @@ define (require) ->
       context_fns: collect_context_fns base
       vars: collect_context_vars base
 
-  create_run_context = ($el, opts={}) ->
-    {extra_contexts} = _.extend {extra_contexts: []}, opts
-
+  create_run_context = ($el, extra_contexts) ->
     result_handlers =[
       ignored,
       handle_cmd,
