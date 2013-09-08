@@ -18,6 +18,7 @@
     colorbrewer: '../lib/colorbrewer'
     'graphite_docs': '../lib/graphite_docs'
   shim:
+    URIjs: ['bootstrap']
     'cm/codemirror':
         exports: 'CodeMirror'
     'cm/javascript': ['cm/codemirror']
