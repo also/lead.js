@@ -158,7 +158,7 @@ define (require) ->
             "#{ms} ms"
 
         promise = @nested_item $item, fn
-        promise.done ->
+        promise.then ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
         promise.fail ->
           $item.attr 'data-async-status', "failed in #{duration()}"
