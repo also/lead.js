@@ -88,27 +88,27 @@ define (require) ->
     cmd 'load', 'Loads a file from GitHub', (path, options={}) ->
       url = github.to_repo_url path
       @async ->
-        @fns.text "Loading file #{path}"
+        @text "Loading file #{path}"
         promise = github.get_repo_contents(url)
         .then (file) =>
           notebook.handle_file @, file, options
         promise.fail (response) =>
-          @fns.error response.statusText
+          @error response.statusText
         promise
 
     cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
       if arguments.length is 0
-        @fns._modules.github.save_gist()
+        @github.save_gist()
       else
         url = github.to_gist_url gist
         @async ->
-          @fns.text "Loading gist #{gist}"
+          @text "Loading gist #{gist}"
           promise = http.get url
           promise.done (response) =>
             for name, file of response.files
               notebook.handle_file @, file, options
           promise.fail (response) =>
-            @fns.error response.statusText
+            @error response.statusText
 
     cmd 'save_gist', 'Saves a notebook as a gist', ->
       notebook = @export_notebook()
@@ -120,11 +120,11 @@ define (require) ->
       @async ->
         promise = github.save_gist gist
         promise.done (result) =>
-          @fns.html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+          @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
           lead_uri = URI window.location.href
           lead_uri.fragment "/#{result.html_url}"
-          @fns.html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+          @html "<a href='#{lead_uri}'>#{lead_uri}</a>"
         promise.fail =>
-          @fns.error 'Save failed. Make sure your access token is configured correctly.'
+          @error 'Save failed. Make sure your access token is configured correctly.'
 
     github

@@ -37,7 +37,7 @@ define (require) ->
           else
             fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
         unless fns?
-          @fns.pre "#{cmd} is not a command."
+          @pre "#{cmd} is not a command."
           return
       else
         fns = @imported_context_fns
@@ -116,11 +116,11 @@ define (require) ->
       @output $pre
 
     cmd 'intro', 'Shows the intro message', ->
-      @fns.text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
-      @fns.example "browser '*'"
-      @fns.text 'Look at'
-      @fns.example 'docs'
-      @fns.text 'to see what you can do with Graphite.'
+      @text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+      @example "browser '*'"
+      @text 'Look at'
+      @example 'docs'
+      @text 'to see what you can do with Graphite.'
 
     fn 'options', 'Gets or sets options', (options) ->
       if options?
@@ -138,9 +138,9 @@ define (require) ->
     fn 'websocket', 'Runs commands from a web socket', (url) ->
       ws = new WebSocket url
       @async ->
-        ws.onopen = => @fns.text 'Connected'
+        ws.onopen = => @text 'Connected'
         ws.onclose = =>
-          @fns.text 'Closed. Reconnect:'
-          @fns.example "websocket #{JSON.stringify url}"
+          @text 'Closed. Reconnect:'
+          @example "websocket #{JSON.stringify url}"
         ws.onmessage = (e) => @run e.data
-        ws.onerror = => @fns.error 'Error'
+        ws.onerror = => @error 'Error'

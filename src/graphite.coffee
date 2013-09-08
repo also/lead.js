@@ -31,7 +31,7 @@ define (require) ->
           $result = @output()
           $result.append function_docs.docs
           for example in function_docs.examples
-            @fns.example "#{default_target_command} #{JSON.stringify example}", run: false
+            @example "#{default_target_command} #{JSON.stringify example}", run: false
         name = docs.parameter_doc_ids[name] ? name
         parameter_docs = docs.parameter_docs[name]
         if parameter_docs?
@@ -45,20 +45,20 @@ define (require) ->
               context.run "docs '#{decodeURI href[1..]}'"
           $result.append $docs
         unless function_docs? or parameter_docs?
-          @fns.text 'Documentation not found'
+          @text 'Documentation not found'
       else
-        @fns.html '<h3>Functions</h3>'
+        @html '<h3>Functions</h3>'
         names = (name for name of docs.function_docs)
         names.sort()
         for name in names
           item = docs.function_docs[name]
-          @fns.example "docs #{name}  # #{item.signature}"
+          @example "docs #{name}  # #{item.signature}"
 
-        @fns.html '<h3>Parameters</h3>'
+        @html '<h3>Parameters</h3>'
         names = (name for name of docs.parameter_docs)
         names.sort()
         for name in names
-          @fns.example "docs '#{name}'"
+          @example "docs '#{name}'"
 
     fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
       result = args_to_params @, args
@@ -85,7 +85,7 @@ define (require) ->
 
         promise = deferred.promise()
         promise.fail (args...) =>
-          @fns.error 'Failed to load image'
+          @error 'Failed to load image'
 
     fn 'data', 'Fetches Graphite graph data', (args...) ->
       params = args_to_params @, args
@@ -104,16 +104,16 @@ define (require) ->
                 $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
               $result.append $table
           promise.fail (error) =>
-            @fns.error error
+            @error error
         promise
 
     fn 'graph', 'Graphs Graphite data', (args...) ->
       params = Bacon.constant(args).map(args_to_params, @)
       data = params.map(graphite.get_data).flatMapLatest Bacon.fromPromise
-      @fns._modules.graph.graph data, params
+      @graph.graph data, params
 
     fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
-      finder = @fns._modules.graphite.find query
+      finder = @graphite.find query
       finder.clicks.onValue (node) =>
         if node.is_leaf
           @run "q(#{JSON.stringify node.path})"

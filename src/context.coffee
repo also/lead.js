@@ -16,7 +16,7 @@ define (require) ->
         op.cmd_fn.apply @
         true
       else
-        @fns.text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
+        @text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
         @run "help #{object._lead_context_name}"
         true
 
@@ -31,7 +31,7 @@ define (require) ->
     _.find handlers, (handler) -> handler.call context, object
 
   handle_any_object = (object) ->
-    @fns.object object
+    @object object
     true
 
   collect_extension_points = (context, extension_point) ->
@@ -141,14 +141,9 @@ define (require) ->
 
       handle_exception: (e, compiled) ->
         console.error e.stack
-        @fns.error printStackTrace({e}).join('\n')
-        @fns.text 'Compiled JavaScript:'
-        @fns.source 'javascript', compiled
-
-      error: (message) ->
-        $pre = $ '<pre class="error"/>'
-        $pre.text message
-        run_context.output $pre
+        @error printStackTrace({e}).join('\n')
+        @text 'Compiled JavaScript:'
+        @source 'javascript', compiled
 
       display_object: (object) ->
         for handler in result_handlers
@@ -178,6 +173,14 @@ define (require) ->
         promise
 
     run_context.fns = bind_context_fns run_context, run_context.imported_context_fns
+    fns_and_vars = bind_context_fns run_context, run_context.context_fns
+    _.each run_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+    _.extend fns_and_vars, fns_and_vars.builtins
+    _.each fns_and_vars, (mod, name) ->
+      if run_context[name]?
+        console.warn mod._lead_context_name, 'would overwrite core'
+      else
+        run_context[name] = mod
     run_context.current_context = run_context
     run_context.root_context = run_context
 

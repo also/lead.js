@@ -25,7 +25,7 @@ define (require) ->
               content: response
             , options
           promise.fail (response) =>
-            @fns.error response.statusText
+            @error response.statusText
           promise
 
     cmd 'quiet', 'Hides the input cell', ->
