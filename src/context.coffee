@@ -66,7 +66,7 @@ define (require) ->
     bound_fns
 
   create_base_context = ({module_names, imports}) ->
-    modules.load_modules(_.union imports, module_names or []).then (modules) ->
+    modules.load_modules(_.union imports or [], module_names or []).then (modules) ->
       {modules, imports}
 
   create_context = (base) ->
@@ -170,6 +170,11 @@ define (require) ->
 
     run_context
 
+  create_standalone_context = ($el, {imports, module_names}={}) ->
+    create_base_context({imports: ['builtins'].concat(imports or []), module_names})
+    .then (base_context) ->
+      create_run_context $el, [create_context base_context]
+
   run_coffeescript_in_context = (run_context, string) ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
@@ -189,4 +194,4 @@ define (require) ->
     catch e
       run_context.handle_exception e, string
 
-  {create_base_context, create_context, create_run_context, run_coffeescript_in_context, run_in_context, collect_extension_points}
+  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, collect_extension_points}
