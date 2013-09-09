@@ -114,13 +114,10 @@ define (require) ->
       in_context: (context, fn) ->
         previous_context = @root_context.current_context
         @root_context.current_context = context
-        context_overridden = @root_context.context_overridden
-        @root_context.context_overridden = true
         try
           fn()
         finally
           @root_context.current_context = previous_context
-          @root_context.context_overridden = context_overridden
 
       render: (o) ->
         @nested 'renderable', handle_renderable, o
