@@ -4,5 +4,5 @@ requirejs.config
   nodeRequire: require
   baseUrl: __dirname
 
-for k in ['dsl']
+exports.require = (k) ->
   exports[k] = requirejs k
