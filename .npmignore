@@ -1,1 +1,16 @@
 .gitignore
+config.ru
+bundle
+src
+build
+spec
+Gemfile
+Gemfile.lock
+Gruntfile.coffee
+*.fjson
+*.html
+*.sass
+editor_plugins
+vendor
+tasks
+docs
