@@ -112,12 +112,12 @@ define (require) ->
       options: -> @current_options
 
       in_context: (context, fn) ->
-        previous_context = @root_context.current_context
-        @root_context.current_context = context
+        previous_context = run_context.current_context
+        run_context.current_context = context
         try
-          fn()
+          fn.apply(context)
         finally
-          @root_context.current_context = previous_context
+          run_context.current_context = previous_context
 
       render: (o) ->
         @nested 'renderable', handle_renderable, o
