@@ -7,6 +7,8 @@ define (require) ->
 
   ignore = new Object
 
+  running_context_binding = null
+
   # statement result handlers. return truthy if handled.
   ignored = (object) -> object == ignore
 
@@ -55,7 +57,7 @@ define (require) ->
     bind_fn = (name, op) ->
       bound = (args...) ->
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context.root_context.current_context, args)?._lead_context_fn_value ? ignore
+        op.fn.apply(run_context.active_context(), args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
       bound._lead_context_name = name
       bound
@@ -108,6 +110,11 @@ define (require) ->
     run_context = _.extend {}, extra_contexts...,
       current_options: {}
       output: output $el
+      active_context: ->
+        console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
+        run_context.current_context
+
+      running_context: -> running_context_binding
 
       options: -> @current_options
 
@@ -115,9 +122,31 @@ define (require) ->
         previous_context = run_context.current_context
         run_context.current_context = context
         try
-          fn.apply(context)
+          fn.apply context
         finally
           run_context.current_context = previous_context
+
+      in_running_context: (fn) ->
+        throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
+        run_context.in_context running_context_binding, fn
+
+      # returns a function that calls its argument in the current context
+      capture_context: ->
+        context = run_context.current_context
+        running_context = running_context_binding
+        (fn) ->
+          previous_running_context_binding = running_context_binding
+          running_context_binding = running_context
+          try
+            run_context.in_context context, -> fn.apply run_context.current_context
+          finally
+            running_context_binding = previous_running_context_binding
+
+      keeping_context: (fn) ->
+        restoring_context = run_context.capture_context()
+        ->
+          args = arguments
+          restoring_context -> fn.apply @, args
 
       render: (o) ->
         @nested 'renderable', handle_renderable, o
@@ -136,8 +165,7 @@ define (require) ->
 
         nested_context = _.extend {}, run_context,
           output: output $item
-        nested_context.current_context = nested_context
-        nested_context.fns = bind_context_fns nested_context, run_context.imported_context_fns
+        run_context.current_context = nested_context
         fn.apply nested_context, args
 
       handle_exception: (e, compiled) ->
@@ -183,7 +211,6 @@ define (require) ->
       else
         run_context[name] = mod
     run_context.current_context = run_context
-    run_context.root_context = run_context
 
     run_context
 
@@ -207,6 +234,8 @@ define (require) ->
 
   run_in_context = (run_context, string) ->
     try
+      previous_running_context_binding = running_context_binding
+      running_context_binding = run_context
       context_scope = scope run_context
       `with (context_scope) {`
       result = (-> eval string).call run_context
@@ -214,5 +243,7 @@ define (require) ->
       run_context.display_object result
     catch e
       run_context.handle_exception e, string
+    finally
+      running_context_binding = previous_running_context_binding
 
   {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, scope, collect_extension_points}
