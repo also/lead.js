@@ -1,8 +1,13 @@
 define (require) ->
+  _ = require 'underscore'
+  $ = require 'jquery'
   modules = require 'modules'
   http = require 'http'
 
   opentsdb = modules.create 'opentsdb', ({fn, cmd, settings}) ->
+    fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
+      @value @async -> opentsdb.tsd args...
+
     to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
       parts = [aggregation]
       parts.push "#{downsample.period}-#{downsample.aggregation}" if downsample
@@ -34,6 +39,3 @@ define (require) ->
         result = for name, points of all_series
           target: name
           datapoints: _.sortBy points, ([v, t]) -> t
-
-    fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
-      @value @async -> opentsdb.tsd args...
