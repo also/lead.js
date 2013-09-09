@@ -1,5 +1,6 @@
 define (require) ->
   Q = require 'q'
+  _ = require 'underscore'
   settings = require 'settings'
 
   create: (module_name, definition_fn) ->
