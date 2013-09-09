@@ -35,10 +35,8 @@ define (require) ->
     fn 'live', 'Updates when the property changes', (property, fn) ->
       $output = $ "<div class='live'/>"
       @nested_item $output, ->
-        context = @
         unless property.onValue?
           property = Bacon.combineTemplate property
-        property.onValue (v) ->
+        property.onValue @keeping_context (v) ->
           $output.empty()
-          context.in_context context, ->
-            fn v
+          fn v
