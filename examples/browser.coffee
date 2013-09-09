@@ -27,7 +27,7 @@ targets = targets.map (targets) -> _.map targets, (target) -> keepLastValue targ
 target_data = targets.flatMapLatest (t) -> bacon.fromPromise data t
 
 # graph the data
-run_context.graph.graph target_data
+@graph.graph target_data
 
 # create an input field. it will reflect the current search
 i = text_input()

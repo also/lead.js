@@ -209,7 +209,7 @@ define (require) ->
     try
       context_scope = scope run_context
       `with (context_scope) {`
-      result = eval string
+      result = (-> eval string).call run_context
       `}`
       run_context.display_object result
     catch e
