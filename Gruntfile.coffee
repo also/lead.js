@@ -16,10 +16,13 @@ module.exports = (grunt) ->
     copy:
       nodejs:
         files: [
-          expand: true
-          cwd: 'build'
-          src: ['node.*', 'dsl.*']
-          dest: 'dist/nodejs/'
+          {
+            expand: true
+            cwd: 'build'
+            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*']
+            dest: 'dist/nodejs/'
+          },
+          {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
         ]
     coffee:
       source:
