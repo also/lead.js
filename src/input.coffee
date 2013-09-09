@@ -1,7 +1,7 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
-  bacon = require 'bacon'
+  bacon = require 'baconjs'
   modules = require 'modules'
 
   input = modules.create 'input', ({fn}) ->

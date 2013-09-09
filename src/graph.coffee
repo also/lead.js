@@ -2,7 +2,7 @@ define (require) ->
   colors = require 'colors'
   d3 = require 'd3'
   moment = require 'moment'
-  bacon = require 'bacon'
+  bacon = require 'baconjs'
   modules = require 'modules'
 
   graph = modules.create 'graph', ({fn, cmd, settings}) ->

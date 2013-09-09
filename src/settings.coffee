@@ -1,7 +1,7 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
-  Bacon = require 'bacon'
+  Bacon = require 'baconjs'
 
   require ['modules'], (modules) ->
     {context_fns} = modules.create 'settings', ({fn}) ->

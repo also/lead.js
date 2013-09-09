@@ -10,7 +10,7 @@
     URIjs: '../lib/URI'
     'stacktrace-js': '../lib/stacktrace-min-0.4'
     domReady: '../lib/domReady'
-    bacon: '../lib/Bacon'
+    baconjs: '../lib/Bacon'
     q: '../lib/q'
     moment: '../lib/moment'
     marked: '../lib/marked'
@@ -29,7 +29,7 @@
     'cm/gfm': ['cm/gfm']
     'jquery':
       exports: 'jQuery'
-    'bacon':
+    'baconjs':
       deps: ['jquery']
     'd3':
       exports: 'd3'

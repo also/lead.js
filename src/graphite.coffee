@@ -1,7 +1,7 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
-  bacon = require 'bacon'
+  bacon = require 'baconjs'
   Q = require 'q'
   moment = require 'moment'
   dsl = require 'dsl'
