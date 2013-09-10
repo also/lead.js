@@ -118,35 +118,35 @@ define (require) ->
 
       options: -> @current_options
 
-      in_context: (context, fn) ->
+      in_context: (context, fn, args) ->
         previous_context = run_context.current_context
         run_context.current_context = context
         try
-          fn.apply context
+          fn.apply context, args
         finally
           run_context.current_context = previous_context
 
-      in_running_context: (fn) ->
+      in_running_context: (fn, args) ->
         throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-        run_context.in_context running_context_binding, fn
+        run_context.in_context running_context_binding, fn, args
 
       # returns a function that calls its argument in the current context
       capture_context: ->
         context = run_context.current_context
         running_context = running_context_binding
-        (fn) ->
+        (fn, args) ->
           previous_running_context_binding = running_context_binding
           running_context_binding = running_context
           try
-            run_context.in_context context, -> fn.apply run_context.current_context
+            run_context.in_context context, fn, args
           finally
             running_context_binding = previous_running_context_binding
 
+      # wraps a function so that it is called in the current context
       keeping_context: (fn) ->
         restoring_context = run_context.capture_context()
         ->
-          args = arguments
-          restoring_context -> fn.apply @, args
+          restoring_context fn, arguments
 
       render: (o) ->
         @nested 'renderable', handle_renderable, o
@@ -165,8 +165,7 @@ define (require) ->
 
         nested_context = _.extend {}, run_context,
           output: output $item
-        run_context.current_context = nested_context
-        fn.apply nested_context, args
+        run_context.in_context nested_context, fn, args
 
       handle_exception: (e, compiled) ->
         console.error e.stack
