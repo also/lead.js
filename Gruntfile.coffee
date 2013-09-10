@@ -19,7 +19,7 @@ module.exports = (grunt) ->
           {
             expand: true
             cwd: 'build'
-            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*']
+            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*', 'http.*']
             dest: 'dist/nodejs/'
           },
           {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
