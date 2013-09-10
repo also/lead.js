@@ -98,18 +98,11 @@ define (require) ->
       handle_any_object
     ]
 
-    output = ($target) ->
-      (output) ->
-        $target.removeClass 'clean'
-        $item = $ '<div class="item"/>'
-        if output?
-          $item.append output
-        $target.append $item
-        $item
 
     run_context = _.extend {}, extra_contexts...,
+      $el: $el
       current_options: {}
-      output: output $el
+      renderables: []
       active_context: ->
         console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
         run_context.current_context
@@ -148,6 +141,16 @@ define (require) ->
         ->
           restoring_context fn, arguments
 
+      add_renderable: (renderable) ->
+        run_context.current_context.renderables.push renderable
+
+      output: (output) ->
+        $item = $ '<div class="item"/>'
+        if output?
+          $item.append output
+        run_context.add_renderable _lead_render: -> $item
+        $item
+
       render: (o) ->
         @nested 'renderable', handle_renderable, o
         # TODO warn if not renderable
@@ -161,10 +164,14 @@ define (require) ->
         @nested_item $item, fn, args...
 
       nested_item: ($item, fn, args...) ->
-        @output $item
+        nested_renderables = []
+        run_context.add_renderable _lead_render: ->
+          children = _.map nested_renderables, (i) -> i._lead_render()
+          $item.append children
+          $item
 
         nested_context = _.extend {}, run_context,
-          output: output $item
+          renderables: nested_renderables
         run_context.in_context nested_context, fn, args
 
       handle_exception: (e, compiled) ->
@@ -239,6 +246,8 @@ define (require) ->
       `with (context_scope) {`
       result = (-> eval string).call run_context
       `}`
+      run_context.$el.removeClass 'clean'
+      run_context.$el.append _.map run_context.renderables, (r) -> r._lead_render()
       run_context.display_object result
     catch e
       run_context.handle_exception e, string
