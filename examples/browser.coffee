@@ -1,4 +1,4 @@
-bacon = require 'bacon'
+bacon = require 'baconjs'
 
 # an stream of things to search for
 search = new bacon.Bus
