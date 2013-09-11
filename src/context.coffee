@@ -98,11 +98,19 @@ define (require) ->
       handle_any_object
     ]
 
+    delayed_renderable_list_builder = ($item) ->
+      nested_renderables = []
+      add_renderable: (renderable) -> nested_renderables.push renderable
+      _lead_render: ->
+        children = _.map nested_renderables, (i) -> i._lead_render()
+        $item.append children
+        $item
+
 
     run_context = _.extend {}, extra_contexts...,
       $el: $el
       current_options: {}
-      renderables: []
+      renderable_list_builder: delayed_renderable_list_builder $el
       active_context: ->
         console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
         run_context.current_context
@@ -142,13 +150,16 @@ define (require) ->
           restoring_context fn, arguments
 
       add_renderable: (renderable) ->
-        run_context.current_context.renderables.push renderable
+        run_context.current_context.renderable_list_builder.add_renderable renderable
+
+      add_rendered: (rendered) ->
+        run_context.add_renderable _lead_render: -> rendered
 
       output: (output) ->
         $item = $ '<div class="item"/>'
         if output?
           $item.append output
-        run_context.add_renderable _lead_render: -> $item
+        run_context.add_rendered $item
         $item
 
       render: (o) ->
@@ -164,14 +175,10 @@ define (require) ->
         @nested_item $item, fn, args...
 
       nested_item: ($item, fn, args...) ->
-        nested_renderables = []
-        run_context.add_renderable _lead_render: ->
-          children = _.map nested_renderables, (i) -> i._lead_render()
-          $item.append children
-          $item
-
+        nested_renderable = delayed_renderable_list_builder $item
+        run_context.add_renderable nested_renderable
         nested_context = _.extend {}, run_context,
-          renderables: nested_renderables
+          renderable_list_builder: nested_renderable
         run_context.in_context nested_context, fn, args
 
       handle_exception: (e, compiled) ->
@@ -247,8 +254,8 @@ define (require) ->
       result = (-> eval string).call run_context
       `}`
       run_context.$el.removeClass 'clean'
-      run_context.$el.append _.map run_context.renderables, (r) -> r._lead_render()
       run_context.display_object result
+      run_context.renderable_list_builder._lead_render()
     catch e
       run_context.handle_exception e, string
     finally
