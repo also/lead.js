@@ -89,7 +89,7 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
-  create_run_context = ($el, extra_contexts) ->
+  create_run_context = (extra_contexts) ->
     result_handlers =[
       ignored,
       handle_cmd,
@@ -106,11 +106,9 @@ define (require) ->
         $item.append children
         $item
 
-
     run_context = _.extend {}, extra_contexts...,
-      $el: $el
       current_options: {}
-      renderable_list_builder: delayed_renderable_list_builder $el
+      renderable_list_builder: delayed_renderable_list_builder $ '<div/>'
       active_context: ->
         console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
         run_context.current_context
@@ -153,7 +151,11 @@ define (require) ->
         run_context.current_context.renderable_list_builder.add_renderable renderable
 
       add_rendered: (rendered) ->
-        run_context.add_renderable _lead_render: -> rendered
+        if rendered instanceof $
+          run_context.add_rendering -> rendered.clone()
+        else
+          run_context.add_rendering -> rendered
+      add_rendering: (rendering) -> run_context.add_renderable _lead_render: run_context.keeping_context(rendering)
 
       output: (output) ->
         $item = $ '<div class="item"/>'
@@ -174,11 +176,20 @@ define (require) ->
         $item = $ "<div class='#{className}'/>"
         @nested_item $item, fn, args...
 
-      nested_item: ($item, fn, args...) ->
-        nested_renderable = delayed_renderable_list_builder $item
-        run_context.add_renderable nested_renderable
+      create_nested_context: ($item) ->
+        renderable = delayed_renderable_list_builder $item
         nested_context = _.extend {}, run_context,
-          renderable_list_builder: nested_renderable
+          renderable_list_builder: renderable
+
+      detached:  (fn, args) ->
+        $item = $ "<div/>"
+        nested_context = run_context.create_nested_context $item
+        run_context.in_context nested_context, fn, args
+        nested_context.renderable_list_builder
+
+      nested_item: ($item, fn, args...) ->
+        nested_context = run_context.create_nested_context $item
+        run_context.add_renderable nested_context.renderable_list_builder
         run_context.in_context nested_context, fn, args
 
       handle_exception: (e, compiled) ->
@@ -233,7 +244,7 @@ define (require) ->
   create_standalone_context = ($el, {imports, module_names}={}) ->
     create_base_context({imports: ['builtins'].concat(imports or []), module_names})
     .then (base_context) ->
-      create_run_context $el, [create_context base_context]
+      create_run_context [create_context base_context]
 
   run_coffeescript_in_context = (run_context, string) ->
     try
@@ -253,12 +264,13 @@ define (require) ->
       `with (context_scope) {`
       result = (-> eval string).call run_context
       `}`
-      run_context.$el.removeClass 'clean'
       run_context.display_object result
-      run_context.renderable_list_builder._lead_render()
     catch e
       run_context.handle_exception e, string
     finally
       running_context_binding = previous_running_context_binding
 
-  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, scope, collect_extension_points}
+  render = (run_context) ->
+    run_context.renderable_list_builder._lead_render()
+
+  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, render, scope, collect_extension_points}

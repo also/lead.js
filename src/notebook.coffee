@@ -268,9 +268,11 @@ define (require) ->
     run = (input_cell, string) ->
       output_cell = create_output_cell input_cell.notebook
 
-      run_context = context.create_run_context output_cell.$el, [input_cell.context, create_notebook_run_context input_cell]
+      run_context = context.create_run_context [input_cell.context, create_notebook_run_context input_cell]
 
       context.run_coffeescript_in_context run_context, string
+
+      output_cell.$el.append context.render run_context
 
       output_cell
 

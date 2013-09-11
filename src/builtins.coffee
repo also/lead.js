@@ -41,7 +41,7 @@ define (require) ->
           return
       else
         fns = @imported_context_fns
-      @output help fns
+      @add_rendered help(fns)
 
     cmd 'keys', 'Shows the key bindings', ->
       all_keys = {}
@@ -61,7 +61,7 @@ define (require) ->
           doc = fn.doc ? ''
           kbd = key.split('-').map((k) -> "<kbd>#{k}</kbd>").join ' + '
           $table.append "<tr><th>#{kbd}</th><td><strong>#{command}</strong></td><td>#{doc}</td></tr>"
-      @output $table
+      @add_rendered $table
 
     fn 'In', 'Gets previous input', (n) ->
       @value @get_input_value n
@@ -70,7 +70,7 @@ define (require) ->
       $pre = $ '<pre>'
       s = JSON.stringify(o, null, '  ') or new String o
       CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
-      @output $pre
+      @add_rendered $pre
 
     fn 'render', 'Renders an object', (o) ->
       @render o
@@ -78,42 +78,43 @@ define (require) ->
     fn 'md', 'Renders Markdown', (string) ->
       $html = $ '<div class="user-html"/>'
       $html.html marked string
-      @output $html
+      @add_rendered $html
 
     fn 'text', 'Prints text', (string) ->
       $pre = $ '<p>'
       $pre.text string
-      @output $pre
+      @add_rendered $pre
 
     fn 'pre', 'Prints preformatted text', (string) ->
       $pre = $ '<pre>'
       $pre.text string
-      @output $pre
+      @add_rendered $pre
 
     fn 'html', 'Adds some HTML', (html) ->
       $html = $ '<div class="user-html"/>'
       $html.html html
-      @output $html
+      @add_rendered $html
 
     fn 'error', 'Shows a preformatted error message', (message) ->
       $pre = $ '<pre class="error"/>'
       $pre.text message
-      @output $pre
+      @add_rendered $pre
 
     fn 'example', 'Makes a clickable code example', (string, opts) ->
-      $pre = $ '<pre class="example">'
-      CodeMirror.runMode string, 'coffeescript', $pre.get(0)
-      $pre.on 'click', =>
-        if opts?.run ? true
-          @run string
-        else
-          @set_code string
-      @output $pre
+      @add_rendering ->
+        $pre = $ '<pre class="example">'
+        CodeMirror.runMode string, 'coffeescript', $pre.get(0)
+        $pre.on 'click', =>
+          if opts?.run ? true
+            @run string
+          else
+            @set_code string
+        $pre
 
     fn 'source', 'Shows source code with syntax highlighting', (language, string) ->
       $pre = $ '<pre>'
       CodeMirror.runMode string, 'javascript', $pre.get(0)
-      @output $pre
+      @add_rendered $pre
 
     cmd 'intro', 'Shows the intro message', ->
       @text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
@@ -133,7 +134,7 @@ define (require) ->
       code ?= @previously_run()
       a.search = '?' + encodeURIComponent btoa code
       a.innerText = a.href
-      @output a
+      @add_rendered a
 
     fn 'websocket', 'Runs commands from a web socket', (url) ->
       ws = new WebSocket url
