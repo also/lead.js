@@ -26,8 +26,6 @@ module.exports = (grunt) ->
         ]
     coffee:
       source:
-        options:
-          sourceMap: true
         files: [
           expand: true
           flatten: true
@@ -68,7 +66,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
