@@ -15,6 +15,9 @@ define (require) ->
     'notebook'
   ]
 
+  imports.push.apply imports, settings.get('app', 'imports') or []
+  module_names.push.apply imports, settings.get('app', 'module_names') or []
+
   init_app: ->
     notebook.init_codemirror()
 
