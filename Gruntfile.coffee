@@ -24,6 +24,12 @@ module.exports = (grunt) ->
           },
           {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
         ]
+      dist:
+        files: [
+          {src: 'build/config.js', dest: 'dist/config.js'}
+          {src: 'lib/require.js', dest: 'dist/require.js'},
+          {src: 'index-build.html', dest: 'dist/index.html'}
+        ]
     coffee:
       source:
         files: [
@@ -50,6 +56,7 @@ module.exports = (grunt) ->
         options:
           name: 'app'
           include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github', 'input']
+          excludeShallow: ['config']
           out: 'dist/lead-app.js'
           mainConfigFile: 'build/requirejs_optimize_config.js'
           baseUrl: 'build'
