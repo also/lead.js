@@ -281,4 +281,15 @@ define (require) ->
   render = (run_context) ->
     run_context.renderable_list_builder._lead_render()
 
-  {create_base_context, create_context, create_run_context, create_standalone_context, eval_coffeescript_in_context, eval_in_context, render, scope, collect_extension_points}
+  {
+    create_base_context,
+    create_context,
+    create_run_context,
+    create_standalone_context,
+    run_in_context,
+    eval_coffeescript_in_context,
+    eval_in_context,
+    render,
+    scope,
+    collect_extension_points
+  }
