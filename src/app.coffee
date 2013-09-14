@@ -2,6 +2,7 @@ define (require) ->
   URI = require 'URIjs'
   notebook = require 'notebook'
   settings = require 'settings'
+  config = require 'config'
 
   module_names = ['http', 'dsl', 'graph', 'settings']
 
@@ -13,6 +14,9 @@ define (require) ->
     'input'
     'notebook'
   ]
+
+  imports.push.apply imports, settings.get('app', 'imports') or []
+  module_names.push.apply imports, settings.get('app', 'module_names') or []
 
   init_app: ->
     notebook.init_codemirror()

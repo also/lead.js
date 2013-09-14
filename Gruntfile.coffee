@@ -24,10 +24,14 @@ module.exports = (grunt) ->
           },
           {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
         ]
+      dist:
+        files: [
+          {src: 'build/config.js', dest: 'dist/config.js'}
+          {src: 'lib/require.js', dest: 'dist/require.js'},
+          {src: 'index-build.html', dest: 'dist/index.html'}
+        ]
     coffee:
       source:
-        options:
-          sourceMap: true
         files: [
           expand: true
           flatten: true
@@ -52,6 +56,7 @@ module.exports = (grunt) ->
         options:
           name: 'app'
           include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github', 'input']
+          excludeShallow: ['config']
           out: 'dist/lead-app.js'
           mainConfigFile: 'build/requirejs_optimize_config.js'
           baseUrl: 'build'
@@ -68,7 +73,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
