@@ -54,3 +54,25 @@ define (require) ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, 'this.set_test_result(test_module.test_function())'
         expect(result).toBe 'test value'
+
+      it 'can use other contexts', ->
+        context_a = context.create_run_context [ctx]
+        context_b = context.create_run_context [ctx, {context_a}]
+        context.run_in_context context_a, ->
+          @function_in_context_a = =>
+            @value_in_context_a = 'a'
+        context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+        expect(context_a.value_in_context_a).toBe 'a'
+        expect(context_b.value_in_context_b).toBe 'a'
+
+      it 'can use the running context', ->
+        context_a = context.create_run_context [ctx]
+        context_b = context.create_run_context [ctx, {context_a}]
+        context.run_in_context context_a, ->
+          @function_in_context_a = =>
+            @in_running_context ->
+              @value_in_context_a = 'a'
+        context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+        expect(context_a.value_in_context_a).toBeUndefined()
+        expect(context_b.value_in_context_a).toBe 'a'
+        expect(context_b.value_in_context_b).toBe 'a'
