@@ -251,31 +251,34 @@ define (require) ->
     .then (base_context) ->
       create_run_context [create_context base_context]
 
-  run_coffeescript_in_context = (run_context, string) ->
+  eval_coffeescript_in_context = (run_context, string) ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      run_in_context run_context, compiled
+      eval_in_context run_context, compiled
     catch e
       if e instanceof SyntaxError
         run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         run_context.handle_exception e, compiled
 
-  run_in_context = (run_context, string) ->
-    try
-      previous_running_context_binding = running_context_binding
-      running_context_binding = run_context
+  eval_in_context = (run_context, string) ->
+    run_in_context run_context, ->
       context_scope = scope run_context
       `with (context_scope) {`
       result = (-> eval string).call run_context
       `}`
+      result
+
+  run_in_context = (run_context, fn) ->
+    try
+      previous_running_context_binding = running_context_binding
+      running_context_binding = run_context
+      result = fn.apply run_context
       run_context.display_object result
-    catch e
-      run_context.handle_exception e, string
     finally
       running_context_binding = previous_running_context_binding
 
   render = (run_context) ->
     run_context.renderable_list_builder._lead_render()
 
-  {create_base_context, create_context, create_run_context, create_standalone_context, run_coffeescript_in_context, run_in_context, render, scope, collect_extension_points}
+  {create_base_context, create_context, create_run_context, create_standalone_context, eval_coffeescript_in_context, eval_in_context, render, scope, collect_extension_points}

@@ -270,7 +270,7 @@ define (require) ->
 
       run_context = context.create_run_context [input_cell.context, create_notebook_run_context input_cell]
 
-      context.run_coffeescript_in_context run_context, string
+      context.eval_coffeescript_in_context run_context, string
 
       output_cell.$el.append context.render run_context
 
