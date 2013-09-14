@@ -56,8 +56,13 @@ define (require) ->
   bind_context_fns = (run_context, fns, name_prefix='') ->
     bind_fn = (name, op) ->
       bound = (args...) ->
+        active_context = run_context.active_context()
+        if @imported_context_fns? and @ != active_context
+          # it looks like this is a context, but not the current one
+          console.warn 'mismatched run context'
+          console.trace()
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(run_context.active_context(), args)?._lead_context_fn_value ? ignore
+        op.fn.apply(active_context, args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
       bound._lead_context_name = name
       bound

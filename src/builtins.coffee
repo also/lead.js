@@ -11,7 +11,7 @@ define (require) ->
   help = (fns) ->
     documented_fns = (name for name, c of fns when c?.doc?)
     documented_fns.sort()
-    $dl = $ '<dl>'
+    $dl = $ '<dl/>'
     for cmd in documented_fns
       $tt = $ '<tt/>'
       $tt.text cmd
