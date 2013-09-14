@@ -246,7 +246,7 @@ define (require) ->
   scope = (run_context) ->
     _.extend {}, run_context.fns, run_context.imported_vars
 
-  create_standalone_context = ($el, {imports, module_names}={}) ->
+  create_standalone_context = ({imports, module_names}={}) ->
     create_base_context({imports: ['builtins'].concat(imports or []), module_names})
     .then (base_context) ->
       create_run_context [create_context base_context]
