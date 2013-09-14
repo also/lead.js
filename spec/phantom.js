@@ -8,13 +8,11 @@ var url = 'http://localhost:9292/runner.html';
 page.open(url);
 
 function configureJasmine(env, phantom) {
-  reporter = new jasmine.Reporter();
-  reporter.reportRunnerResults = function(runner) {
+  var callback = function(runner) {
       var results = runner.results();
-
       window.callPhantom(results);
   };
-  env.addReporter(reporter);
+  env.addReporter(new jasmine.ConsoleReporter(function(msg) {console.log(msg);}, callback, true));
 }
 
 page.onInitialized = function() {
@@ -24,10 +22,6 @@ page.onInitialized = function() {
 };
 
 page.onCallback = function(results) {
-  console.log("total:  ", results.totalCount);
-  console.log("passed: ", results.passedCount);
-  console.log("failed: ", results.failedCount);
-
   if (results.failedCount > 0) {
     phantom.exit(1);
   }
