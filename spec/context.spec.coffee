@@ -50,6 +50,12 @@ define (require) ->
         context.eval_coffeescript_in_context run_context, '@set_test_result 1 + 1'
         expect(result).toBe 2
 
+      it 'can eval functions', ->
+        run_context = context.create_run_context [ctx, {set_test_result}]
+        context.eval_in_context run_context, ->
+          @set_test_result 1 + 1
+        expect(result).toBe 2
+
       it 'can run custom module functions', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, 'this.set_test_result(test_module.test_function())'

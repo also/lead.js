@@ -262,6 +262,8 @@ define (require) ->
         run_context.handle_exception e, compiled
 
   eval_in_context = (run_context, string) ->
+    if _.isFunction string
+      string = "(#{string}).apply(this);"
     run_in_context run_context, ->
       context_scope = scope run_context
       `with (context_scope) {`
