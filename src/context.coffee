@@ -120,7 +120,7 @@ define (require) ->
 
       running_context: -> running_context_binding
 
-      options: -> @current_options
+      options: -> run_context.current_context.current_options
 
       in_context: (context, fn, args) ->
         previous_context = run_context.current_context
@@ -170,7 +170,7 @@ define (require) ->
         $item
 
       render: (o) ->
-        @nested 'renderable', handle_renderable, o
+        run_context.current_context.nested 'renderable', handle_renderable, o
         # TODO warn if not renderable
 
       renderable: (o, fn) ->
@@ -179,7 +179,7 @@ define (require) ->
 
       nested: (className, fn, args...) ->
         $item = $ "<div class='#{className}'/>"
-        @nested_item $item, fn, args...
+        run_context.current_context.nested_item $item, fn, args...
 
       create_nested_context: ($item) ->
         renderable = delayed_renderable_list_builder $item
@@ -223,7 +223,7 @@ define (require) ->
           else
             "#{ms} ms"
 
-        promise = @nested_item $item, fn
+        promise = run_context.current_context.nested_item $item, fn
         promise.then ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
         promise.fail ->

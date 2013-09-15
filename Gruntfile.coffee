@@ -80,3 +80,14 @@ module.exports = (grunt) ->
     config = {}
     new Function(config_script).call(config)
     grunt.file.write 'build/requirejs_optimize_config.js', "requirejs(\n#{JSON.stringify config.require, undefined, 2});"
+
+  grunt.registerTask 'tests', 'Runs the Jasmine tests using PhantomJS', ->
+    done = this.async()
+    grunt.util.spawn cmd: 'phantomjs', args: ['spec/phantom.js'], (err, result, code) ->
+      if err?
+        grunt.log.error 'Tests failed'
+        grunt.log.error result.stdout
+        done false
+      else
+        grunt.log.ok 'Tests passed'
+        done()
