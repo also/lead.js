@@ -53,8 +53,8 @@ define (require) ->
       it 'can eval functions', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, ->
-          @set_test_result 1 + 1
-        expect(result).toBe 2
+          @set_test_result test_module.test_function()
+        expect(result).toBe 'test value'
 
       it 'can run custom module functions', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
@@ -82,3 +82,69 @@ define (require) ->
         expect(context_a.value_in_context_a).toBeUndefined()
         expect(context_b.value_in_context_a).toBe 'a'
         expect(context_b.value_in_context_b).toBe 'a'
+
+      it 'can keep the running context in an async function', ->
+        context_a = context.create_run_context [ctx]
+        context_b = context.create_run_context [ctx, {context_a}]
+        context.run_in_context context_a, ->
+          @function_in_context_a = =>
+            @in_running_context ->
+              @value_in_context_a = 'a'
+        context.eval_in_context context_b, ->
+          async = ->
+            @value_in_context_b = @context_a.function_in_context_a()
+          setTimeout @keeping_context(async), 0
+        waitsFor (-> context_b.value_in_context_b?), 1000
+        runs ->
+          expect(context_a.value_in_context_a).toBeUndefined()
+          expect(context_b.value_in_context_a).toBe 'a'
+          expect(context_b.value_in_context_b).toBe 'a'
+
+      it 'can use the running context when calling a function from another context', ->
+        context_a = context.create_run_context [ctx]
+        context_b = context.create_run_context [ctx, {context_a}]
+        context.run_in_context context_a, ->
+          @function_in_context_a = ->
+              @value_in_context_a = 'a'
+        context.eval_in_context context_b, ->
+          @value_in_context_b = @in_running_context @context_a.function_in_context_a
+        expect(context_a.value_in_context_a).toBeUndefined()
+        expect(context_b.value_in_context_a).toBe 'a'
+        expect(context_b.value_in_context_b).toBe 'a'
+
+      it 'can output in nested items', ->
+        context_a = context.create_run_context [ctx]
+        context.eval_in_context context_a,->
+          text 'a'
+          @nested 'nest', ->
+            text 'b'
+        $el = context.render context_a
+        expect($el.text()).toBe 'ab'
+
+      it 'can render renderables', ->
+        context_a = context.create_run_context [ctx]
+        context.eval_in_context context_a,->
+          text 'a'
+          @add_renderable @renderable {}, ->
+            $ '<p>b</p>'
+        $el = context.render context_a
+        expect($el.text()).toBe 'ab'
+
+      it "doesn't allow output functions directly in renderables", ->
+        context_a = context.create_run_context [ctx]
+        context.eval_in_context context_a,->
+          @add_renderable @renderable {}, ->
+            text 'b'
+        expect ->
+          $el = context.render context_a
+        .toThrow new Error 'Output functions not allowed inside a renderable'
+
+      it 'allows detached output functions in renderables', ->
+        context_a = context.create_run_context [ctx]
+        context.eval_in_context context_a,->
+          text 'a'
+          @add_renderable @renderable {}, ->
+            @render @detached ->
+              text 'b'
+        $el = context.render context_a
+        expect($el.text()).toBe 'ab'
