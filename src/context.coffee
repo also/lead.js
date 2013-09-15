@@ -23,8 +23,8 @@ define (require) ->
         true
 
   handle_renderable = (object) ->
-    if fn = object?._lead_render
-      fn.apply @
+    if object?._lead_render
+      @render object
       true
 
   handle_using_extension = (object) ->
