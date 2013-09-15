@@ -103,6 +103,12 @@ define (require) ->
       handle_any_object
     ]
 
+    immediate_renderable_list_builder = ($item) ->
+      add_renderable: (renderable) ->
+        $item.append render renderable
+
+      _lead_render: -> $item
+
     delayed_renderable_list_builder = ($item) ->
       nested_renderables = []
       rendered = false
@@ -241,7 +247,12 @@ define (require) ->
           else
             "#{ms} ms"
 
-        promise = run_context.current_context.nested_item $item, fn
+        renderable = immediate_renderable_list_builder $item
+        run_context.add_renderable renderable
+        nested_context = run_context.create_nested_context
+          renderable_list_builder: renderable
+
+        promise = run_context.in_context nested_context, fn
         promise.then ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
         promise.fail ->

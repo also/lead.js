@@ -168,3 +168,31 @@ define (require) ->
         waitsFor (-> result), 1000
         runs ->
           expect($el.text()).toBe 'abc'
+
+      it "doesn't allow output after render", ->
+        context_a = context.create_run_context [ctx, {set_test_result}]
+        context.eval_in_context context_a, ->
+          setTimeout =>
+            expect =>
+              @text 'a'
+            .toThrow new Error 'already rendered'
+            @set_test_result true
+          , 0
+        $el = context.render context_a
+        waitsFor (-> result), 1000
+
+      it 'allows output in an async block after render', ->
+        context_a = context.create_run_context [ctx, {set_test_result}]
+        context.eval_in_context context_a, ->
+          Q = require 'q'
+          @async ->
+            setTimeout @keeping_context ->
+              @text 'a'
+              @set_test_result true
+            , 0
+            Q true
+          @text 'b'
+        $el = context.render context_a
+        waitsFor (-> result), 1000
+        runs ->
+          expect($el.text()).toBe 'ab'
