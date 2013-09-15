@@ -114,6 +114,7 @@ define (require) ->
     run_context = _.extend {}, extra_contexts...,
       current_options: {}
       renderable_list_builder: delayed_renderable_list_builder $ '<div/>'
+      _lead_render: -> run_context.current_context.renderable_list_builder._lead_render()
       active_context: ->
         console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
         run_context.current_context
@@ -163,6 +164,8 @@ define (require) ->
           run_context.add_rendering -> rendered
 
       add_rendering: (rendering) -> run_context.add_renderable _lead_render: run_context.keeping_context(rendering)
+
+      render: (o) -> o._lead_render()
 
       output: (output) ->
         $item = $ '<div class="item"/>'
@@ -278,8 +281,8 @@ define (require) ->
     finally
       running_context_binding = previous_running_context_binding
 
-  render = (run_context) ->
-    run_context.renderable_list_builder._lead_render()
+  render = (o) ->
+    o._lead_render()
 
   {
     create_base_context,
