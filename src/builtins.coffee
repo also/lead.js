@@ -72,9 +72,6 @@ define (require) ->
       CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
       @add_rendered $pre
 
-    fn 'render', 'Renders an object', (o) ->
-      @render o
-
     fn 'md', 'Renders Markdown', (string) ->
       $html = $ '<div class="user-html"/>'
       $html.html marked string
