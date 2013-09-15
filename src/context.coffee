@@ -154,12 +154,14 @@ define (require) ->
 
       add_renderable: (renderable) ->
         run_context.current_context.renderable_list_builder.add_renderable renderable
+        ignore
 
       add_rendered: (rendered) ->
         if rendered instanceof $
           run_context.add_rendering -> rendered.clone()
         else
           run_context.add_rendering -> rendered
+
       add_rendering: (rendering) -> run_context.add_renderable _lead_render: run_context.keeping_context(rendering)
 
       output: (output) ->
@@ -170,7 +172,7 @@ define (require) ->
         $item
 
       render: (o) ->
-        run_context.current_context.nested 'renderable', handle_renderable, o
+        run_context.current_context.nested 'renderable', run_context.add_renderable, o
         # TODO warn if not renderable
 
       renderable: (o, fn) ->
