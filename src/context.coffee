@@ -169,6 +169,16 @@ define (require) ->
 
       render: (o) -> o._lead_render()
 
+      div: (contents) ->
+        $div = $('<div/>')
+        if contents?
+          if _.isFunction contents
+            return run_context.nested_item $div, contents
+          else
+            $div.append contents
+        run_context.add_rendered $div
+        $div
+
       output: (output) ->
         $item = $ '<div class="item"/>'
         if output?

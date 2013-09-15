@@ -157,11 +157,10 @@ define (require) ->
           text 'a'
           @add_renderable @renderable promise, ->
             @render @detached -> @async ->
-              $result = $ '<div class="result"/>'
+              $result = @div()
               promise.then =>
                 $result.text 'b'
                 @set_test_result true
-              @add_rendering -> $result
               promise
           text 'c'
         $el = context.render context_a
