@@ -24,7 +24,7 @@ define (require) ->
 
   handle_renderable = (object) ->
     if object?._lead_render
-      @render object
+      @add_renderable object
       true
 
   handle_using_extension = (object) ->
@@ -170,10 +170,6 @@ define (require) ->
           $item.append output
         run_context.add_rendered $item
         $item
-
-      render: (o) ->
-        run_context.current_context.nested 'renderable', run_context.add_renderable, o
-        # TODO warn if not renderable
 
       renderable: (o, fn) ->
         o._lead_render = fn
