@@ -175,26 +175,31 @@ define (require) ->
         $item
 
       renderable: (o, fn) ->
-        o._lead_render = fn
+        nested_context = run_context.create_nested_context
+          renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
+        o._lead_render = -> run_context.in_context nested_context, fn
         o
 
       nested: (className, fn, args...) ->
         $item = $ "<div class='#{className}'/>"
         run_context.current_context.nested_item $item, fn, args...
 
-      create_nested_context: ($item) ->
+      create_nested_renderable_context: ($item) ->
         renderable = delayed_renderable_list_builder $item
-        nested_context = _.extend {}, run_context,
+        run_context.create_nested_context
           renderable_list_builder: renderable
+
+      create_nested_context: (overrides) ->
+        nested_context = _.extend {}, run_context, overrides
 
       detached:  (fn, args) ->
         $item = $ "<div/>"
-        nested_context = run_context.create_nested_context $item
+        nested_context = run_context.create_nested_renderable_context $item
         run_context.in_context nested_context, fn, args
         nested_context.renderable_list_builder
 
       nested_item: ($item, fn, args...) ->
-        nested_context = run_context.create_nested_context $item
+        nested_context = run_context.create_nested_renderable_context $item
         run_context.add_renderable nested_context.renderable_list_builder
         run_context.in_context nested_context, fn, args
 
