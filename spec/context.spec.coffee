@@ -148,3 +148,24 @@ define (require) ->
               text 'b'
         $el = context.render context_a
         expect($el.text()).toBe 'ab'
+
+      it 'supports renderable async', ->
+        context_a = context.create_run_context [ctx, {set_test_result}]
+        context.eval_in_context context_a,->
+          Q = require 'q'
+          promise = Q true
+          text 'a'
+          @add_renderable @renderable promise, ->
+            @render @detached -> @async ->
+              $result = $ '<div class="result"/>'
+              promise.then =>
+                $result.text 'b'
+                @set_test_result true
+              @add_rendering -> $result
+              promise
+          text 'c'
+        $el = context.render context_a
+        expect($el.text()).toBe 'ac'
+        waitsFor (-> result), 1000
+        runs ->
+          expect($el.text()).toBe 'abc'
