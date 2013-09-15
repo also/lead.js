@@ -158,10 +158,7 @@ define (require) ->
         ignore
 
       add_rendered: (rendered) ->
-        if rendered instanceof $
-          run_context.add_rendering -> rendered.clone()
-        else
-          run_context.add_rendering -> rendered
+        run_context.add_rendering -> rendered
 
       add_rendering: (rendering) -> run_context.add_renderable _lead_render: run_context.keeping_context(rendering)
 
