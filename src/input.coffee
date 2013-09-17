@@ -7,7 +7,7 @@ define (require) ->
   input = modules.create 'input', ({fn}) ->
     fn 'text_input', 'A text input field', ->
       $input = $ '<input type="text"/>'
-      @output $input
+      @div $input
       property = $input.asEventStream('keyup').map((e) -> $(event.target).val()).toProperty("")
       property.set_value = (val) -> $input.val val
       @value property
@@ -23,20 +23,21 @@ define (require) ->
         $option.text v ? k
         $option.attr 'value', k
         $option
-      @output $select
+      @div $select
       @value $select.asEventStream('change').map((e) -> $(event.target).val()).toProperty($select.val())
 
     fn 'button', 'A button', (value) ->
       $button = $ '<button>'
-      @output $button
+      @div $button
       $button.text value
       @value $button.asEventStream('click')
 
     fn 'live', 'Updates when the property changes', (property, fn) ->
       $output = $ "<div class='live'/>"
+      # FIXME needs to use immediately rendered list
       @nested_item $output, ->
         unless property.onValue?
           property = Bacon.combineTemplate property
         property.onValue @keeping_context (v) ->
           $output.empty()
-          fn v
+          @apply_to fn, [v]
