@@ -186,7 +186,7 @@ define (require) ->
           if pre.length > 0
             msg = pre[0].innerText
             break
-      msg
+      msg ? 'Unknown error'
 
     parse_find_response: (query, response) ->
       parts = query.split('.')
