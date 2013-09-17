@@ -56,13 +56,12 @@ define (require) ->
   bind_context_fns = (run_context, fns, name_prefix='') ->
     bind_fn = (name, op) ->
       bound = (args...) ->
-        active_context = run_context.active_context()
-        if @imported_context_fns? and @ != active_context
+        if @imported_context_fns? and @ != run_context.current_context
           # it looks like this is a context, but not the current one
           console.warn 'mismatched run context'
           console.trace()
         # if the function returned a value, unwrap it. otherwise, ignore it
-        op.fn.apply(active_context, args)?._lead_context_fn_value ? ignore
+        op.fn.apply(run_context.current_context, args)?._lead_context_fn_value ? ignore
       bound._lead_context_fn = op
       bound._lead_context_name = name
       bound
@@ -122,56 +121,53 @@ define (require) ->
         $item.append children
         $item
 
-    run_context = _.extend {}, extra_contexts...,
+    run_context_prototype = _.extend {}, extra_contexts...,
       current_options: {}
       renderable_list_builder: delayed_renderable_list_builder $ '<div/>'
-      _lead_render: -> run_context.current_context.renderable_list_builder._lead_render()
-      active_context: ->
-        console.warn 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-        run_context.current_context
+      _lead_render: -> @renderable_list_builder._lead_render()
 
       running_context: -> running_context_binding
 
-      options: -> run_context.current_context.current_options
+      options: -> @current_options
 
-      in_context: (context, fn, args) ->
-        previous_context = run_context.current_context
-        run_context.current_context = context
+      apply_to: (fn, args) ->
+        previous_context = scope_context.current_context
+        scope_context.current_context = @
         try
-          fn.apply context, args
+          fn.apply @, args
         finally
-          run_context.current_context = previous_context
+          scope_context.current_context = previous_context
 
       in_running_context: (fn, args) ->
         throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-        run_context.in_context running_context_binding, fn, args
+        running_context_binding.apply_to fn, args
 
       # returns a function that calls its argument in the current context
       capture_context: ->
-        context = run_context.current_context
+        context = @
         running_context = running_context_binding
         (fn, args) ->
           previous_running_context_binding = running_context_binding
           running_context_binding = running_context
           try
-            run_context.in_context context, fn, args
+            context.apply_to fn, args
           finally
             running_context_binding = previous_running_context_binding
 
       # wraps a function so that it is called in the current context
       keeping_context: (fn) ->
-        restoring_context = run_context.capture_context()
+        restoring_context = @capture_context()
         ->
           restoring_context fn, arguments
 
       add_renderable: (renderable) ->
-        run_context.current_context.renderable_list_builder.add_renderable renderable
+        @renderable_list_builder.add_renderable renderable
         ignore
 
       add_rendered: (rendered) ->
-        run_context.add_rendering -> rendered
+        @add_rendering -> rendered
 
-      add_rendering: (rendering) -> run_context.add_renderable _lead_render: run_context.keeping_context(rendering)
+      add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
 
       render: (o) -> o._lead_render()
 
@@ -179,47 +175,47 @@ define (require) ->
         $div = $('<div/>')
         if contents?
           if _.isFunction contents
-            return run_context.nested_item $div, contents
+            return @nested_item $div, contents
           else
             $div.append contents
-        run_context.add_rendered $div
+        @add_rendered $div
         $div
 
       output: (output) ->
         $item = $ '<div class="item"/>'
         if output?
           $item.append output
-        run_context.add_rendered $item
+        @add_rendered $item
         $item
 
       renderable: (o, fn) ->
-        nested_context = run_context.create_nested_context
+        nested_context = @create_nested_context
           renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
-        o._lead_render = -> run_context.in_context nested_context, fn
+        o._lead_render = -> nested_context.apply_to fn
         o
 
       nested: (className, fn, args...) ->
         $item = $ "<div class='#{className}'/>"
-        run_context.current_context.nested_item $item, fn, args...
+        @nested_item $item, fn, args...
 
       create_nested_renderable_context: ($item) ->
         renderable = delayed_renderable_list_builder $item
-        run_context.create_nested_context
+        @create_nested_context
           renderable_list_builder: renderable
 
       create_nested_context: (overrides) ->
-        nested_context = _.extend {}, run_context, overrides
+        nested_context = _.extend create_new_run_context(@), overrides
 
       detached:  (fn, args) ->
         $item = $ "<div/>"
-        nested_context = run_context.create_nested_renderable_context $item
-        run_context.in_context nested_context, fn, args
+        nested_context = @create_nested_renderable_context $item
+        nested_context.apply_to fn, args
         nested_context.renderable_list_builder
 
       nested_item: ($item, fn, args...) ->
-        nested_context = run_context.create_nested_renderable_context $item
-        run_context.add_renderable nested_context.renderable_list_builder
-        run_context.in_context nested_context, fn, args
+        nested_context = @create_nested_renderable_context $item
+        @add_renderable nested_context.renderable_list_builder
+        nested_context.apply_to fn, args
 
       handle_exception: (e, compiled) ->
         console.error e.stack
@@ -229,7 +225,7 @@ define (require) ->
 
       display_object: (object) ->
         for handler in result_handlers
-          return if handler.call run_context, object
+          return if handler.call @, object
 
       value: (value) -> _lead_context_fn_value: value
 
@@ -248,29 +244,34 @@ define (require) ->
             "#{ms} ms"
 
         renderable = immediate_renderable_list_builder $item
-        run_context.add_renderable renderable
-        nested_context = run_context.create_nested_context
+        @add_renderable renderable
+        nested_context = @create_nested_context
           renderable_list_builder: renderable
 
-        promise = run_context.in_context nested_context, fn
+        promise = nested_context.apply_to fn
         promise.then ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
         promise.fail ->
           $item.attr 'data-async-status', "failed in #{duration()}"
         promise
 
-    run_context.fns = bind_context_fns run_context, run_context.imported_context_fns
-    fns_and_vars = bind_context_fns run_context, run_context.context_fns
-    _.each run_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
-    _.extend fns_and_vars, fns_and_vars.builtins
-    _.each fns_and_vars, (mod, name) ->
-      if run_context[name]?
-        console.warn mod._lead_context_name, 'would overwrite core'
-      else
-        run_context[name] = mod
-    run_context.current_context = run_context
+    scope_context = {}
+    run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
 
-    run_context
+    create_new_run_context = (parent) ->
+      new_context = Object.create parent
+
+      fns_and_vars = bind_context_fns new_context, new_context.context_fns
+      _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+      _.extend fns_and_vars, fns_and_vars.builtins
+      _.each fns_and_vars, (mod, name) ->
+        if run_context_prototype[name]?
+          console.warn mod._lead_context_name, 'would overwrite core'
+        else
+          new_context[name] = mod
+      new_context.current_context = new_context
+      new_context
+    run_context = scope_context.current_context = create_new_run_context run_context_prototype
 
   scope = (run_context) ->
     _.extend {}, run_context.fns, run_context.imported_vars
