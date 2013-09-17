@@ -189,9 +189,12 @@ define (require) ->
         $item
 
       renderable: (o, fn) ->
-        nested_context = @create_nested_context
-          renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
-        o._lead_render = -> nested_context.apply_to fn
+        if fn._lead_render?
+          o._lead_render = fn._lead_render
+        else
+          nested_context = @create_nested_context
+            renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
+          o._lead_render = -> nested_context.apply_to fn
         o
 
       nested: (className, fn, args...) ->
