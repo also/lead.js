@@ -28,14 +28,12 @@ define (require) ->
         name = name._lead_context_fn?.name if name._lead_op?
         function_docs = docs.function_docs[name]
         if function_docs?
-          $result = @output()
-          $result.append function_docs.docs
+          @div function_docs.docs
           for example in function_docs.examples
             @example "#{default_target_command} #{JSON.stringify example}", run: false
         name = docs.parameter_doc_ids[name] ? name
         parameter_docs = docs.parameter_docs[name]
         if parameter_docs?
-          $result = @output()
           $docs = $(parameter_docs)
           context = @
           $docs.find('a').on 'click', (e) ->
@@ -43,7 +41,7 @@ define (require) ->
             href = $(this).attr 'href'
             if href[0] is '#'
               context.run "docs '#{decodeURI href[1..]}'"
-          $result.append $docs
+          @div $docs
         unless function_docs? or parameter_docs?
           @text 'Documentation not found'
       else
@@ -71,40 +69,41 @@ define (require) ->
       $a.text url
       $pre = $ '<pre>'
       $pre.append $a
-      @output $pre
+      @add_rendered $pre
 
     fn 'img', 'Renders a Graphite graph image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
       @async ->
         $img = $ "<img src='#{url}'/>"
-        @output $img
-        deferred = $.Deferred()
+        @div $img
+        deferred = Q.defer()
         $img.on 'load', deferred.resolve
         $img.on 'error', deferred.reject
 
-        promise = deferred.promise()
+        promise = deferred.promise
         promise.fail (args...) =>
           @error 'Failed to load image'
+        promise
 
-    fn 'data', 'Fetches Graphite graph data', (args...) ->
+    fn 'table', 'Displays Graphite data in a table', (args...) ->
       params = args_to_params @, args
-      @value @async ->
+      @async ->
+        $result = @div()
         promise = graphite.get_data params
-        @renderable promise, ->
-          $result = @output()
-          promise.done (response) =>
-            for series in response
-              $header = $ '<h3>'
-              $header.text series.target
-              $result.append $header
-              $table = $ '<table>'
-              for [value, timestamp] in series.datapoints
-                time = moment(timestamp * 1000)
-                $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-              $result.append $table
-          promise.fail (error) =>
-            @error error
+        promise.done (response) =>
+          for series in response
+            $header = $ '<h3>'
+            $header.text series.target
+            $result.append $header
+            $table = $ '<table>'
+            for [value, timestamp] in series.datapoints
+              time = moment(timestamp * 1000)
+              $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
+            $result.append $table
+        promise.fail @keeping_context (error) =>
+          @error error
+        promise
 
     fn 'graph', 'Graphs Graphite data', (args...) ->
       params = Bacon.constant(args).map(args_to_params, @)
@@ -121,33 +120,34 @@ define (require) ->
       @add_renderable finder
 
     fn 'find', 'Finds Graphite metrics', (query) ->
-      @value @async ->
-        $result = @output()
-        promise = graphite.find query
-        promise.clicks = new Bacon.Bus
+      promise = graphite.find query
+      promise.clicks = new Bacon.Bus
 
-        @renderable promise, ->
-          promise.done ({query, result}) =>
-            query_parts = query.split '.'
-            $ul = $ '<ul class="find-results"/>'
-            for node in result
-              $li = $ '<li class="cm-string"/>'
-              $li.data 'node', node
-              text = node.path
-              text += '*' unless node.is_leaf
-              node_parts = text.split '.'
-              for part, i in node_parts
-                if i > 0
-                  $li.append '.'
-                $span = $ '<span>'
-                $span.addClass 'light' if part == query_parts[i]
-                $span.text part
-                $li.append $span
+      @value @renderable promise, @detached -> @async ->
+        $ul = $ '<ul class="find-results"/>'
+        @add_rendered $ul
+        promise.done ({query, result}) =>
+          query_parts = query.split '.'
+          for node in result
+            $li = $ '<li class="cm-string"/>'
+            $li.data 'node', node
+            text = node.path
+            text += '*' unless node.is_leaf
+            node_parts = text.split '.'
+            for part, i in node_parts
+              if i > 0
+                $li.append '.'
+              $span = $ '<span>'
+              $span.addClass 'light' if part == query_parts[i]
+              $span.text part
+              $li.append $span
 
-              promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
+            promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
 
-              $ul.append $li
-            $result.append $ul
+            $ul.append $li
+        promise.fail =>
+          @error 'Find request failed'
+        promise
 
     context_vars: -> dsl.define_functions {}, function_names
 
