@@ -11,8 +11,10 @@
 
 define (require) ->
   URI = require 'URIjs'
+  Q = require 'q'
   modules = require 'modules'
   http = require 'http'
+  global_settings = require 'settings'
 
   notebook = null
   require ['notebook'], (nb) ->
@@ -87,6 +89,7 @@ define (require) ->
 
     cmd 'load', 'Loads a file from GitHub', (path, options={}) ->
       url = github.to_repo_url path
+      ensure_access @, url
       @async ->
         @text "Loading file #{path}"
         promise = github.get_repo_contents(url)
@@ -96,19 +99,39 @@ define (require) ->
           @error response.statusText
         promise
 
+    ensure_access = (ctx, url) ->
+      unless url?
+        instance = settings.get 'githubs', github.default()
+      else
+        instance = github.get_github url
+      if instance? and instance.requires_access_token and not instance.access_token?
+        result = Q.defer()
+        ctx.text 'Please set a GitHub access token:'
+        input = ctx.input.text_input()
+        button = ctx.input.button('Save')
+        button.map(input).onValue (access_token) ->
+          domain = URI(url).hostname()
+          global_settings.user_settings.set 'github', 'githubs', domain, 'access_token', access_token
+          result.resolve()
+        result.promise
+      else
+        Q true
+
     cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
       if arguments.length is 0
         @github.save_gist()
       else
         url = github.to_gist_url gist
         @async ->
-          @text "Loading gist #{gist}"
-          promise = http.get url
-          promise.done (response) =>
-            for name, file of response.files
-              notebook.handle_file @, file, options
-          promise.fail (response) =>
-            @error response.statusText
+          authorized = ensure_access @, url
+          authorized.then =>
+            @text "Loading gist #{gist}"
+            promise = http.get url
+            promise.done (response) =>
+              for name, file of response.files
+                notebook.handle_file @, file, options
+            promise.fail (response) =>
+              @error response.statusText
 
     cmd 'save_gist', 'Saves a notebook as a gist', ->
       notebook = @export_notebook()
@@ -118,13 +141,15 @@ define (require) ->
           'notebook.lnb':
             content: JSON.stringify notebook, undefined, 2
       @async ->
-        promise = github.save_gist gist
-        promise.done (result) =>
-          @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
-          lead_uri = URI window.location.href
-          lead_uri.fragment "/#{result.html_url}"
-          @html "<a href='#{lead_uri}'>#{lead_uri}</a>"
-        promise.fail =>
-          @error 'Save failed. Make sure your access token is configured correctly.'
+        authorized = ensure_access @
+        authorized.then =>
+          promise = github.save_gist gist
+          promise.done (result) =>
+            @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
+            lead_uri = URI window.location.href
+            lead_uri.fragment "/#{result.html_url}"
+            @html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+          promise.fail =>
+            @error 'Save failed. Make sure your access token is configured correctly.'
 
     github
