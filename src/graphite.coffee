@@ -206,7 +206,7 @@ define (require) ->
       params.format = 'json'
       deferred = http.get graphite.render_url params
 
-      deferred.then null, graphite.parse_error_response
+      deferred.then null, (response) -> Q.reject graphite.parse_error_response response
 
     # returns a promise
     complete: (query) ->
