@@ -108,6 +108,21 @@ define (require) ->
 
       _lead_render: -> $item
 
+    delayed_then_immediate_renderable_list_builder = ($item) ->
+      renderables = []
+      rendered = false
+      add_renderable: (renderable) ->
+        if rendered
+          $item.append render renderable
+        else
+          renderables.push renderable
+      _lead_render: ->
+        unless rendered
+          rendered = true
+          children = _.map renderables, (i) -> i._lead_render()
+          $item.append children
+        $item
+
     delayed_renderable_list_builder = ($item) ->
       renderables = []
       rendered = false
@@ -123,7 +138,7 @@ define (require) ->
 
     run_context_prototype = _.extend {}, extra_contexts...,
       current_options: {}
-      renderable_list_builder: delayed_renderable_list_builder $ '<div/>'
+      renderable_list_builder: delayed_then_immediate_renderable_list_builder $ '<div/>'
       _lead_render: -> @renderable_list_builder._lead_render()
 
       running_context: -> running_context_binding
@@ -202,7 +217,7 @@ define (require) ->
         @nested_item $item, fn, args...
 
       create_nested_renderable_context: ($item) ->
-        renderable = delayed_renderable_list_builder $item
+        renderable = delayed_then_immediate_renderable_list_builder $item
         @create_nested_context
           renderable_list_builder: renderable
 

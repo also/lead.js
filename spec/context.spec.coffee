@@ -169,6 +169,8 @@ define (require) ->
         runs ->
           expect($el.text()).toBe 'abc'
 
+      # TODO reconsider this behavior
+      ###
       it "doesn't allow output after render", ->
         context_a = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context context_a, ->
@@ -180,6 +182,21 @@ define (require) ->
           , 0
         $el = context.render context_a
         waitsFor (-> result), 1000
+      ###
+
+      it "allows output after render", ->
+        context_a = context.create_run_context [ctx, {set_test_result}]
+        context.eval_in_context context_a, ->
+          text 'a'
+          setTimeout =>
+            @text 'c'
+            @set_test_result true
+          , 0
+          text 'b'
+        $el = context.render context_a
+        waitsFor (-> result), 1000
+        runs ->
+          expect($el.text()).toBe 'abc'
 
       it 'allows output in an async block after render', ->
         context_a = context.create_run_context [ctx, {set_test_result}]
