@@ -109,15 +109,15 @@ define (require) ->
       _lead_render: -> $item
 
     delayed_renderable_list_builder = ($item) ->
-      nested_renderables = []
+      renderables = []
       rendered = false
       add_renderable: (renderable) ->
         if rendered
           throw new Error 'already rendered'
-        nested_renderables.push renderable
+        renderables.push renderable
       _lead_render: ->
         rendered = true
-        children = _.map nested_renderables, (i) -> i._lead_render()
+        children = _.map renderables, (i) -> i._lead_render()
         $item.append children
         $item
 
