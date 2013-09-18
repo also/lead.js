@@ -51,29 +51,31 @@ define (require) ->
           site = settings.get 'githubs', github.default()
           path = path.substr 1 if path[0] == '/'
           [user, repo, segments...] = path.split '/'
-          url = "#{site.api_base_url}/repos/#{user}/#{repo}/contents/#{segments.join '/'}"
+          url = github.to_api_url site, "/repos/#{user}/#{repo}/contents/#{segments.join '/'}"
         else
           site = github.get_github path
           if path.indexOf(site.api_base_url) == 0
-            url = path
+            url = URI path
           else
             uri = URI path
             path = uri.pathname()
             path = path.substr 1 if path[0] == '/'
             [user, repo, x, ref, segments...] = path.split '/'
-            url = "#{site.api_base_url}/repos/#{user}/#{repo}/contents/#{segments.join '/'}?ref=#{ref}"
+            url = github.to_api_url site, "/repos/#{user}/#{repo}/contents/#{segments.join '/'}", {ref}
 
       save_gist: (gist, options={}) ->
         github_host = options.github ? github.default()
         gh = settings.get 'githubs', github_host
-        http.post "#{gh.api_base_url}/gists?access_token=#{gh.access_token}", gist
+        http.post github.to_api_url(gh, '/gists'), gist
+
+      to_api_url: (instance, path, params={}) ->
+        result = URI("#{instance.api_base_url}#{path}").setQuery(params)
+        result.setQuery('access_token', instance.access_token) if instance.access_token?
+        result
 
       to_gist_url: (gist) ->
         build_url = (site, id) ->
-          url = site.api_base_url + "/gists/#{id}"
-          if site.access_token
-            url += "?access_token=#{site.access_token}"
-          url
+          github.to_api_url site, "/gists/#{id}"
         gist = gist.toString()
         if gist.indexOf('http') != 0
           site = settings.get 'githubs', github.default()
@@ -85,37 +87,47 @@ define (require) ->
             [id, rest...] = URI(gist).filename().split '.'
             build_url site, id
           else
-            gist
+            URI gist
 
     cmd 'load', 'Loads a file from GitHub', (path, options={}) ->
       url = github.to_repo_url path
-      ensure_access @, url
       @async ->
-        @text "Loading file #{path}"
-        promise = github.get_repo_contents(url)
-        .then (file) =>
-          notebook.handle_file @, file, options
-        promise.fail (response) =>
-          @error response.statusText
-        promise
+        authorized = ensure_access @, url
+        authorized.then (url) =>
+          @text "Loading file #{path}"
+          promise = github.get_repo_contents(url)
+          .then (file) =>
+            notebook.handle_file @, file, options
+          promise.fail (response) =>
+            @error response.statusText
+          promise
 
     ensure_access = (ctx, url) ->
       unless url?
-        instance = settings.get 'githubs', github.default()
+        domain = github.default()
+        instance = settings.get 'githubs', domain
       else
         instance = github.get_github url
+        domain = url.hostname()
       if instance? and instance.requires_access_token and not instance.access_token?
         result = Q.defer()
         ctx.text 'Please set a GitHub access token:'
         input = ctx.input.text_input()
         button = ctx.input.button('Save')
-        button.map(input).onValue (access_token) ->
-          domain = URI(url).hostname()
+        user_details = button.map(input).flatMapLatest (access_token) ->
+          Bacon.combineTemplate
+            user: Bacon.fromPromise http.get github.to_api_url(instance, '/user').setQuery {access_token}
+            access_token: access_token
+          .changes()
+        user_details.onValue ({user, access_token}) =>
           global_settings.user_settings.set 'github', 'githubs', domain, 'access_token', access_token
-          result.resolve()
+          ctx.text "Logged in as #{user.name}"
+          result.resolve url?.setQuery {access_token}
+        user_details.onError =>
+          ctx.text "That access token didn't work. Try again?"
         result.promise
       else
-        Q true
+        Q url
 
     cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
       if arguments.length is 0
@@ -124,7 +136,7 @@ define (require) ->
         url = github.to_gist_url gist
         @async ->
           authorized = ensure_access @, url
-          authorized.then =>
+          authorized.then (url) =>
             @text "Loading gist #{gist}"
             promise = http.get url
             promise.done (response) =>
@@ -142,7 +154,7 @@ define (require) ->
             content: JSON.stringify notebook, undefined, 2
       @async ->
         authorized = ensure_access @
-        authorized.then =>
+        authorized.then (url) =>
           promise = github.save_gist gist
           promise.done (result) =>
             @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
