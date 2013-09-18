@@ -91,7 +91,7 @@ define (require) ->
       @async ->
         $result = @div()
         promise = graphite.get_data params
-        promise.done (response) =>
+        promise.then (response) =>
           for series in response
             $header = $ '<h3>'
             $header.text series.target
@@ -101,8 +101,9 @@ define (require) ->
               time = moment(timestamp * 1000)
               $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
             $result.append $table
-        promise.fail @keeping_context (error) =>
+        .fail (error) =>
           @error error
+          Q.reject error
         promise
 
     fn 'graph', 'Graphs Graphite data', (args...) ->
@@ -126,7 +127,7 @@ define (require) ->
       @value @renderable promise, @detached -> @async ->
         $ul = $ '<ul class="find-results"/>'
         @add_rendered $ul
-        promise.done ({query, result}) =>
+        promise.then ({query, result}) =>
           query_parts = query.split '.'
           for node in result
             $li = $ '<li class="cm-string"/>'
@@ -145,8 +146,9 @@ define (require) ->
             promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
 
             $ul.append $li
-        promise.fail =>
+        .fail (reason) =>
           @error 'Find request failed'
+          Q.reject reason
         promise
 
     context_vars: -> dsl.define_functions {}, function_names
