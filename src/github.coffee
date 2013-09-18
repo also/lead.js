@@ -159,6 +159,7 @@ define (require) ->
           promise.done (result) =>
             @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
             lead_uri = URI window.location.href
+            lead_uri.query null
             lead_uri.fragment "/#{result.html_url}"
             @html "<a href='#{lead_uri}'>#{lead_uri}</a>"
           promise.fail =>
