@@ -168,6 +168,32 @@ define (require) ->
       cell = add_input_cell current_cell.notebook, code: code, after: current_cell
       cell.run()
 
+    recompile = (error_marks, editor) ->
+      m.clear() for m in error_marks
+      editor.clearGutter 'error'
+      try
+        CoffeeScript.compile editor.getValue()
+        []
+      catch e
+        {first_line, first_column, last_line, last_column} = e.location
+        if first_line == last_line and first_column == last_column
+          line = editor.getLine first_line
+          if last_column == line.length
+            first_column -= 1
+          else
+            last_column += 1
+        mark = editor.markText {line: first_line, ch: first_column}, {line: last_line, ch: last_column}, {className: 'error'}
+
+        for l in [first_line..last_line]
+          gutter = document.createElement 'div'
+          gutter.title = e.message
+          gutter.innerHTML = '&nbsp;'
+          gutter.className = 'errorMarker'
+          # TODO make this less annoying, enable it
+          #editor.setGutterMarker l, 'error', gutter
+
+        [mark]
+
     create_input_cell = (notebook) ->
       $el = $ '<div class="cell input"/>'
       $link = $ '<span class="permalink">link</span>'
@@ -210,36 +236,10 @@ define (require) ->
 
       editor.lead_cell = cell
 
-      error_marks = []
-
-      compile = ->
-        m.clear() for m in error_marks
-        editor.clearGutter 'error'
-        try
-          CoffeeScript.compile editor.getValue()
-        catch e
-          {first_line, first_column, last_line, last_column} = e.location
-          if first_line == last_line and first_column == last_column
-            line = editor.getLine first_line
-            if last_column == line.length
-              first_column -= 1
-            else
-              last_column += 1
-          mark = editor.markText {line: first_line, ch: first_column}, {line: last_line, ch: last_column}, {className: 'error'}
-          error_marks = [mark]
-
-          for l in [first_line..last_line]
-            gutter = document.createElement 'div'
-            gutter.title = e.message
-            gutter.innerHTML = '&nbsp;'
-            gutter.className = 'errorMarker'
-            # TODO make this less annoying, enable it
-            #editor.setGutterMarker l, 'error', gutter
-
-      compile_timeout = null
-      editor.on 'change', ->
-        clearTimeout compile_timeout
-        compile_timeout = setTimeout (-> compile editor), 200
+      changes = ed.as_event_stream editor, 'change'
+      # scan changes for the side effect in in recompile
+      # we have to subscribe so that the events are sent
+      changes.debounce(200).scan([], recompile).onValue ->
 
       cell
 

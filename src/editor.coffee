@@ -1,5 +1,6 @@
 define (require) ->
   Q = require 'q'
+  Bacon = require 'baconjs'
 
   _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
@@ -11,6 +12,12 @@ define (require) ->
   notebook = null
   require ['notebook'], (nb) ->
     notebook = nb
+
+  as_event_stream = (cm, event_name, event_transformer) ->
+    Bacon.fromBinder (handler) ->
+      cm.on event_name, handler
+      -> cm.off event_name, handler
+    , event_transformer
 
   token_after = (cm, token, line) ->
     t = token
@@ -155,4 +162,4 @@ define (require) ->
 
     fallthrough: ['default']
 
-  {commands, key_map}
+  {commands, key_map, as_event_stream}
