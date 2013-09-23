@@ -93,6 +93,40 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
+  immediate_renderable_list_builder = ($item) ->
+    add_renderable: (renderable) ->
+      $item.append render renderable
+
+    _lead_render: -> $item
+
+  delayed_then_immediate_renderable_list_builder = ($item) ->
+    renderables = []
+    rendered = false
+    add_renderable: (renderable) ->
+      if rendered
+        $item.append render renderable
+      else
+        renderables.push renderable
+    _lead_render: ->
+      unless rendered
+        rendered = true
+        children = _.map renderables, (i) -> i._lead_render()
+        $item.append children
+      $item
+
+  delayed_renderable_list_builder = ($item) ->
+    renderables = []
+    rendered = false
+    add_renderable: (renderable) ->
+      if rendered
+        throw new Error 'already rendered'
+      renderables.push renderable
+    _lead_render: ->
+      rendered = true
+      children = _.map renderables, (i) -> i._lead_render()
+      $item.append children
+      $item
+
   create_run_context = (extra_contexts) ->
     result_handlers =[
       ignored,
@@ -102,39 +136,6 @@ define (require) ->
       handle_any_object
     ]
 
-    immediate_renderable_list_builder = ($item) ->
-      add_renderable: (renderable) ->
-        $item.append render renderable
-
-      _lead_render: -> $item
-
-    delayed_then_immediate_renderable_list_builder = ($item) ->
-      renderables = []
-      rendered = false
-      add_renderable: (renderable) ->
-        if rendered
-          $item.append render renderable
-        else
-          renderables.push renderable
-      _lead_render: ->
-        unless rendered
-          rendered = true
-          children = _.map renderables, (i) -> i._lead_render()
-          $item.append children
-        $item
-
-    delayed_renderable_list_builder = ($item) ->
-      renderables = []
-      rendered = false
-      add_renderable: (renderable) ->
-        if rendered
-          throw new Error 'already rendered'
-        renderables.push renderable
-      _lead_render: ->
-        rendered = true
-        children = _.map renderables, (i) -> i._lead_render()
-        $item.append children
-        $item
 
     run_context_prototype = _.extend {}, extra_contexts...,
       current_options: {}
