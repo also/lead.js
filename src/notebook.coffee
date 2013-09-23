@@ -65,13 +65,20 @@ define (require) ->
 
       $document = $ '<div class="document"/>'
       $document.append $file_picker
-
       notebook =
         cells: []
         input_number: 1
         output_number: 1
         $document: $document
         $file_picker: $file_picker
+        scrolls: $(window).asEventStream('scroll')
+        cell_run: new Bacon.Bus
+        cell_focused: new Bacon.Bus
+
+      scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil notebook.scrolls
+      scroll_to.log()
+      scroll_to.onValue (output_cell) ->
+        $('html, body').scrollTop output_cell.$el.offset().top
 
       context.create_base_context(opts).then (base_context) ->
         notebook.base_context = base_context
@@ -226,13 +233,7 @@ define (require) ->
         hide: -> $el.hide()
         is_clean: -> editor.getValue() is '' and not @.used
         run: ->
-          cell.used = true
-          remove_cell cell.output_cell if cell.output_cell?
-          cell.output_cell = run cell, editor.getValue()
-          insert_cell cell.output_cell, after: cell
-          cell.number = notebook.input_number++
-          cell.$el.attr 'data-cell-number', cell.number
-          cell.output_cell
+          run cell, editor.getValue()
 
       editor.lead_cell = cell
 
@@ -249,6 +250,7 @@ define (require) ->
 
     focus_cell = (cell) ->
       cell.editor.focus()
+      cell.notebook.cell_focused.push cell
 
     create_output_cell = (notebook) ->
       number = notebook.output_number++
@@ -267,10 +269,27 @@ define (require) ->
 
     run = (input_cell, string) ->
       output_cell = create_output_cell input_cell.notebook
+      input_cell.used = true
+      remove_cell input_cell.output_cell if input_cell.output_cell?
+      insert_cell output_cell, after: input_cell
+      input_cell.number = input_cell.notebook.input_number++
+      input_cell.$el.attr 'data-cell-number', input_cell.number
+      input_cell.output_cell = output_cell
 
       run_context = context.create_run_context [input_cell.context, create_notebook_run_context input_cell]
 
+      has_pending = run_context.pending.map (n) -> n > 0
+      # FIXME not sure why this is necessary; seems like a bug in Bacon
+      # without it, the skipWhile seems to be ignored
+      has_pending.subscribe ->
+      # a cell is "done enough" if there were no async tasks,
+      # or when the first async task completes
+      no_longer_pending = run_context.changes.skipWhile(has_pending)
+      output_cell.done = no_longer_pending.take(1).map -> output_cell
+
       context.eval_coffeescript_in_context run_context, string
+
+      input_cell.notebook.cell_run.push input_cell
 
       output_cell.$el.append context.render run_context
 

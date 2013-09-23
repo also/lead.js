@@ -136,11 +136,17 @@ define (require) ->
       handle_any_object
     ]
 
+    asyncs = new Bacon.Bus
 
     run_context_prototype = _.extend {}, extra_contexts...,
+      changes: new Bacon.Bus
+      pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
       renderable_list_builder: delayed_then_immediate_renderable_list_builder $ '<div/>'
-      _lead_render: -> @renderable_list_builder._lead_render()
+      _lead_render: ->
+        result = @renderable_list_builder._lead_render()
+        @changes.push true
+        result
 
       running_context: -> running_context_binding
 
@@ -268,6 +274,10 @@ define (require) ->
           renderable_list_builder: renderable
 
         promise = nested_context.apply_to fn
+        asyncs.push 1
+        promise.finally =>
+          asyncs.push -1
+          @changes.push true
         promise.then ->
           $item.attr 'data-async-status', "loaded in #{duration()}"
         promise.fail ->
