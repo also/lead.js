@@ -43,4 +43,4 @@ define (require) ->
 
     tsd: (params) ->
       http.get(opentsdb.data_url(params), dataType: 'text')
-      .then (txt) -> opentsdb.parse_text_response txt, group
+      .then (txt) -> opentsdb.parse_text_response txt, params.group
