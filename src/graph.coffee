@@ -2,6 +2,7 @@ define (require) ->
   colors = require 'colors'
   d3 = require 'd3'
   moment = require 'moment'
+  Q = require 'q'
   bacon = require 'baconjs'
   modules = require 'modules'
 
@@ -9,6 +10,7 @@ define (require) ->
     fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
       @nested 'graph', ->
         $result = @div()
+        data = bacon.fromPromise data if Q.isPromise data
         stream = bacon.combineTemplate {data, params}
         stream.onValue ({data, params}) =>
           $result.empty()
