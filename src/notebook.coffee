@@ -76,7 +76,6 @@ define (require) ->
         cell_focused: new Bacon.Bus
 
       scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil notebook.scrolls
-      scroll_to.log()
       scroll_to.onValue (output_cell) ->
         $('html, body').scrollTop output_cell.$el.offset().top
 
