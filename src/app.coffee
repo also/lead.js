@@ -13,6 +13,7 @@ define (require) ->
     'github'
     'input'
     'notebook'
+    'compat'
   ]
 
   imports.push.apply imports, settings.get('app', 'imports') or []

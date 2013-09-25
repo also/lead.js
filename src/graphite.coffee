@@ -106,11 +106,6 @@ define (require) ->
           Q.reject error
         promise
 
-    fn 'graph', 'Graphs Graphite data', (args...) ->
-      params = Bacon.constant(args).map(args_to_params, @)
-      data = params.map(graphite.get_data).flatMapLatest Bacon.fromPromise
-      @graph.graph data, params
-
     fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
       finder = @graphite.find query
       finder.clicks.onValue (node) =>
