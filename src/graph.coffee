@@ -39,9 +39,25 @@ define (require) ->
 
       mouse_over = new Bacon.Bus
       mouse_out = new Bacon.Bus
-      handle_hover = (s) ->
+      clicks = new Bacon.Bus
+      observe_mouse = (s) ->
         s.on('mouseover', (d, i) -> mouse_over.push i)
          .on('mouseout', (d, i) -> mouse_out.push i)
+         .on('click', (d, i) -> clicks.push i)
+
+      selected = clicks.scan _.map(data, -> true), (state, i) ->
+        new_state = _.clone state
+        new_state[i] = !new_state[i]
+        new_state
+      selected.onValue (s) ->
+        # TODO
+        if g?
+          legend.selectAll('li')
+            .data(s)
+            .classed 'deselected', (d) -> !d
+          g.selectAll('.target')
+            .data(s)
+            .classed 'deselected', (d) -> !d
 
       hover_selections = mouse_over.map (i) -> d3.select(container).selectAll ".target#{i}"
       hover_selections.onValue '.classed', 'hovered', true
@@ -161,7 +177,7 @@ define (require) ->
             .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
             .style('fill-opacity', area_opacity)
             .attr('d', (d, i) -> line_fn(d, i)(d.values))
-            .call(handle_hover)
+            .call(observe_mouse)
       else if type is 'scatter'
         target.selectAll('circle')
             .data((d) -> d.values)
@@ -178,7 +194,7 @@ define (require) ->
         .enter().append('li')
           .attr('class', (d, i) -> "target#{i}")
           .attr('data-target', (d) -> d.name)
-          .call(handle_hover)
+          .call(observe_mouse)
       legend_target.append('span')
           .style('color', (d, i) -> color i)
           .attr('class', 'color')

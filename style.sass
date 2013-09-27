@@ -157,6 +157,8 @@ pre
         margin: 6px
         &.hovered
           background-color: #ddd
+        &.deselected
+          opacity: 0.5
 
     table
       border-collapse: collapse
@@ -253,6 +255,9 @@ svg
     fill: none
     stroke-width: 1px
     stroke-linecap: square
+  .deselected
+    .line
+      opacity: 0.2
   .hovered
     .line
       stroke-width: 2px
