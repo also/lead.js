@@ -8,8 +8,11 @@ define (require) ->
     fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
       @value opentsdb.tsd args...
 
-    to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
-      parts = [aggregation]
+    to_metric_string: (time_series) ->
+      if _.isString time_series
+        time_series = metric_name: time_series
+      {aggregation, metric_name, downsample, tags} = time_series
+      parts = [aggregation ? 'sum']
       parts.push "#{downsample.period}-#{downsample.aggregation}" if downsample
       parts.push metric_name + '{' + _.map(tags, (tagv, tagk) -> "#{tagk}=#{tagv}").join(',') + '}'
       parts.join ':'
