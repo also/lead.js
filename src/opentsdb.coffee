@@ -6,7 +6,7 @@ define (require) ->
 
   opentsdb = modules.create 'opentsdb', ({fn, cmd, settings}) ->
     fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
-      @value @async -> opentsdb.tsd args...
+      @value opentsdb.tsd args...
 
     to_metric_string: ({aggregation, metric_name, downsample, tags}) ->
       parts = [aggregation]
