@@ -3,15 +3,15 @@ define (require) ->
   d3 = require 'd3'
   moment = require 'moment'
   Q = require 'q'
-  bacon = require 'baconjs'
+  Bacon = require 'baconjs'
   modules = require 'modules'
 
   graph = modules.create 'graph', ({fn, cmd, settings}) ->
     fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
       @nested 'graph', ->
         $result = @div()
-        data = bacon.fromPromise data if Q.isPromise data
-        stream = bacon.combineTemplate {data, params}
+        data = Bacon.fromPromise data if Q.isPromise data
+        stream = Bacon.combineTemplate {data, params}
         stream.onValue ({data, params}) =>
           $result.empty()
           graph.draw $result.get(0), data, params
@@ -36,6 +36,19 @@ define (require) ->
       y_axis = d3.svg.axis().scale(y).orient('left')
 
       color = d3.scale.ordinal().range params.d3_colors ? colors.d3.category10
+
+      mouse_over = new Bacon.Bus
+      mouse_out = new Bacon.Bus
+      handle_hover = (s) ->
+        s.on('mouseover', (d, i) -> mouse_over.push i)
+         .on('mouseout', (d, i) -> mouse_out.push i)
+
+      hover_selections = mouse_over.map (i) -> d3.select(container).selectAll ".target#{i}"
+      hover_selections.onValue '.classed', 'hovered', true
+      unhovers = hover_selections.merge(mouse_out)
+        .withStateMachine([], (previous, event) -> [[event], previous])
+        .filter _.identity
+      unhovers.onValue '.classed', 'hovered', false
 
       if type is 'line'
         area_opacity = params.areaAlpha ? 1.0
@@ -137,7 +150,7 @@ define (require) ->
       target = g.selectAll('.target')
           .data(targets)
         .enter().append("g")
-          .attr('class', 'target')
+          .attr('class', (d, i) -> "target target#{i}")
 
       if type is 'line'
         target.append("path")
@@ -148,6 +161,7 @@ define (require) ->
             .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
             .style('fill-opacity', area_opacity)
             .attr('d', (d, i) -> line_fn(d, i)(d.values))
+            .call(handle_hover)
       else if type is 'scatter'
         target.selectAll('circle')
             .data((d) -> d.values)
@@ -162,7 +176,9 @@ define (require) ->
       legend_target = legend.selectAll('li')
           .data(targets)
         .enter().append('li')
-          .attr('data-graphite-target', (d) -> d.name)
+          .attr('class', (d, i) -> "target#{i}")
+          .attr('data-target', (d) -> d.name)
+          .call(handle_hover)
       legend_target.append('span')
           .style('color', (d, i) -> color i)
           .attr('class', 'color')

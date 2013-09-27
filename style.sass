@@ -155,6 +155,8 @@ pre
       font: 12px $monospace
       li
         margin: 6px
+        &.hovered
+          background-color: #ddd
 
     table
       border-collapse: collapse
@@ -251,6 +253,9 @@ svg
     fill: none
     stroke-width: 1px
     stroke-linecap: square
+  .hovered
+    .line
+      stroke-width: 2px
 
 .CodeMirror-hints
   position: absolute
