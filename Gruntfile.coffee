@@ -75,7 +75,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
