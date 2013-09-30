@@ -9,6 +9,7 @@ define (require) ->
   function_names = require 'functions'
   http = require 'http'
   docs = require 'graphite_docs'
+  parser = require 'graphite_parser'
 
   graphite = modules.create 'graphite', ({fn, cmd, settings}) ->
     args_to_params = (context, args) ->
