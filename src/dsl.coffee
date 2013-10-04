@@ -39,6 +39,9 @@ define (require) ->
 
   create_type n, dsl.type.p for n in "nsb"
 
+  dsl.type.TRUE = new dsl.type.b true
+  dsl.type.FALSE = new dsl.type.b false
+
   # Graphite doesn't support escaped quotes in strings, so avoid including any if possible.
   dsl.type.s::to_target_string = ->
     s = @values[0]
