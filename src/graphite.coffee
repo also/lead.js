@@ -171,6 +171,8 @@ define (require) ->
 
     render_url: (params) -> graphite.url 'render', params
 
+    parse_target: (string) -> parser.parse string
+
     parse_error_response: (response) ->
       return 'request failed' unless response.responseText?
       html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
