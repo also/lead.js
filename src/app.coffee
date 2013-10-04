@@ -4,7 +4,7 @@ define (require) ->
   settings = require 'settings'
   config = require 'config'
 
-  module_names = ['http', 'dsl', 'graph', 'settings']
+  module_names = ['http', 'dsl', 'graph', 'settings', 'time']
 
   imports = [
     'builtins'
