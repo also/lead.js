@@ -19,11 +19,13 @@ module.exports = (grunt) ->
           {
             expand: true
             cwd: 'build'
-            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*', 'http.*']
+            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*', 'http.*', 'graphite_parser.*']
             dest: 'dist/nodejs/'
           },
           {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
         ]
+      parser:
+        files: [src: 'src/graphite_parser.js', dest: 'build/graphite_parser.js']
       dist:
         files: [
           {src: 'build/config.js', dest: 'dist/config.js'}
@@ -73,7 +75,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
+  grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
@@ -91,3 +93,9 @@ module.exports = (grunt) ->
       else
         grunt.log.ok 'Tests passed'
         done()
+
+  grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
+    PEG = require 'pegjs'
+    grammar = grunt.file.read 'src/graphite_grammar.peg'
+    parser = PEG.buildParser grammar
+    grunt.file.write 'src/graphite_parser.js', "define(function() {return #{parser.toSource()};});"

@@ -9,6 +9,7 @@ define (require) ->
   function_names = require 'functions'
   http = require 'http'
   docs = require 'graphite_docs'
+  parser = require 'graphite_parser'
 
   graphite = modules.create 'graphite', ({fn, cmd, settings}) ->
     args_to_params = (context, args) ->
@@ -169,6 +170,8 @@ define (require) ->
       "#{base_url}/#{path}?#{query_string}"
 
     render_url: (params) -> graphite.url 'render', params
+
+    parse_target: (string) -> parser.parse string
 
     parse_error_response: (response) ->
       return 'request failed' unless response.responseText?

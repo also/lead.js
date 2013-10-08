@@ -1,0 +1,98 @@
+{
+  var types = require('dsl').type;
+}
+
+start = expression
+
+time_offset
+  = sign:sign offsets:offset+ { return {sign: sign, offsets: offsets}; }
+
+integer "integer"
+  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+
+sign "sign"
+  = char:[+-]? { return {'': 1, '-': -1, '+': 1}[char]; }
+
+unit "unit"
+  = chars:[a-z]+ { return chars.join(''); }
+
+offset
+  = num:integer unit:unit { return {num: num, unit: unit}; }
+
+int_number
+  = sign:'-'? n:integer { return (sign === '-' ? -1 : 1) * parseInt(n, 10); }
+
+float_number
+  = sign:'-'? parts:(integer '.' integer) { return (sign === '-' ? -1 : 1) * parseFloat(parts.join('')); }
+
+sci_number
+  = (float_number / int_number) 'e'i int_number
+
+string
+  = parts:('"' double_string_chars '"' / "'" single_string_chars "'") { return new types.s(parts[1]); }
+
+double_string_chars
+  = chars:double_string_char+ { return chars.join(''); }
+
+single_string_chars
+  = chars:single_string_char+ { return chars.join(''); }
+
+double_string_char
+  = !('"' / '\\') char_:. { return char_; }
+
+single_string_char
+  = !("'" / '\\') char_:. { return char_; }
+
+boolean
+  = 'true'i { return types.TRUE; } / 'false'i { return types.FALSE; }
+
+number
+  = number:(sci_number / float_number / int_number) { return new types.n(number); }
+
+arg
+  = boolean / number / string / expression
+
+args
+  = head:arg tail:(',' _ arg)* {
+    var result = [head];
+    for (var i = 0; i < tail.length; i++) {
+      result.push(tail[i][2]);
+    }
+    return result;
+  }
+
+func
+  = first:[a-z_]i rest:[a-z0-9_]i* { return first + rest.join(''); }
+
+call
+  = name:func '(' args:args? ')' {
+    var typeArgs = [null, name];
+    if (args !== '') {
+      typeArgs = typeArgs.concat(args);
+    }
+    return new (types.f.bind.apply(types.f, typeArgs));
+   }
+
+metric_char
+  = [a-z0-9!#$%&"'*+.:;<=>?@\[\\\]^_`|~-]i
+
+metric_chars
+  = chars:metric_char* { return chars.join(''); }
+
+metric_group
+  = '{' inner:(metric_char / ',')+ '}' { return '{' + inner.join('') + '}'; }
+
+path "metric"
+  = head:metric_chars tail:(metric_group metric_chars)* {
+    var result = Array.prototype.concat.apply([head], tail).join('');
+    return result.length > 0 ? new types.q(result) : null;
+}
+
+expression
+  = call / path
+
+_ "whitespace"
+  = whitespace*
+
+whitespace
+  = [ \t]
