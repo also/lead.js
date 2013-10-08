@@ -24,7 +24,7 @@ targets = metric_names.map (names) -> _.map names, (name) -> q name
 targets = targets.map (targets) -> _.map targets, (target) -> keepLastValue target
 
 # fetch the data. this takes some time, so only keep the result from the most recent request.
-target_data = targets.flatMapLatest (t) -> bacon.fromPromise data t
+target_data = targets.flatMapLatest (t) -> bacon.fromPromise get_data t
 
 # graph the data
 @graph.graph target_data
@@ -51,7 +51,7 @@ live search, (n) ->
   # branch clicks are searches
   search.plug finder.clicks.filter((n) -> not n.is_leaf).map((n) -> n.path + '*')
 
-  render finder
+  @add_renderable finder
 
 # kick off a search for the root
 search.push '*'
