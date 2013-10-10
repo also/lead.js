@@ -32,6 +32,10 @@ define (require) ->
 
       x = d3.time.scale().range([0, width])
       y = d3.scale.linear().range([height, 0])
+
+      get_value = params.get_value or ([value, timestamp]) -> value
+      get_timestamp = params.get_timestamp or ([value, timestamp]) -> timestamp
+
       x_axis = d3.svg.axis().scale(x).orient('bottom')
       y_axis = d3.svg.axis().scale(y).orient('left')
 
@@ -120,7 +124,9 @@ define (require) ->
       value_min = null
       value_max = null
       targets = for s in data
-        values = for [value, timestamp] in s.datapoints
+        values = for datapoint in s.datapoints
+          value = get_value datapoint
+          timestamp = get_timestamp datapoint
           time_min = Math.min timestamp, time_min ? timestamp
           time_max = Math.max timestamp, time_max
           value = transform_value value
@@ -200,7 +206,7 @@ define (require) ->
           .attr('class', 'color')
       legend_target.append('span')
           .text((d) -> d.name)
-    
+
       if params.bgcolor?
         svg.style 'background-color', params.bgcolor
 
