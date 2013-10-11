@@ -5,6 +5,7 @@ define (require) ->
   Q = require 'q'
   Bacon = require 'baconjs'
   modules = require 'modules'
+  ui = require 'ui'
 
   graph = modules.create 'graph', ({fn, cmd, settings}) ->
     fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
@@ -69,6 +70,15 @@ define (require) ->
         .withStateMachine([], (previous, event) -> [[event], previous])
         .filter (e) -> e.classed?
       unhovers.onValue '.classed', 'hovered', false
+
+      tooltip = null
+      mouse_over.onValue (m) ->
+        tooltip?()
+        tooltip = ui.tooltip m.data.name, m.event
+
+      mouse_out.onValue (m) ->
+        tooltip?()
+        tooltip = null
 
       if type is 'line'
         area_opacity = params.areaAlpha ? 1.0
