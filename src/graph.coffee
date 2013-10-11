@@ -45,8 +45,8 @@ define (require) ->
       mouse_out = new Bacon.Bus
       clicks = new Bacon.Bus
       observe_mouse = (s) ->
-        s.on('mouseover', (d, i) -> mouse_over.push i)
-         .on('mouseout', (d, i) -> mouse_out.push i)
+        s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
+         .on('mouseout', (d, i) -> mouse_out.push {index: i, event: d3.event, data: d})
          .on('click', (d, i) -> clicks.push i)
 
       selected = clicks.scan _.map(data, -> true), (state, i) ->
@@ -63,11 +63,11 @@ define (require) ->
             .data(s)
             .classed 'deselected', (d) -> !d
 
-      hover_selections = mouse_over.map (i) -> d3.select(container).selectAll ".target#{i}"
+      hover_selections = mouse_over.map ({index}) -> d3.select(container).selectAll ".target#{index}"
       hover_selections.onValue '.classed', 'hovered', true
       unhovers = hover_selections.merge(mouse_out)
         .withStateMachine([], (previous, event) -> [[event], previous])
-        .filter _.identity
+        .filter (e) -> e.classed?
       unhovers.onValue '.classed', 'hovered', false
 
       if type is 'line'
