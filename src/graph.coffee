@@ -132,7 +132,7 @@ define (require) ->
           value = transform_value value
           value_min = Math.min value, value_min ? value if value?
           value_max = Math.max value, value_max
-          {value, time: moment(timestamp * 1000)}
+          {value, time: moment(timestamp * 1000), original: datapoint}
         {values, name: s.target}
 
       if params.areaMode is 'stacked'
