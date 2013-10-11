@@ -128,6 +128,7 @@ define (require) ->
     cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
       a = document.createElement 'a'
       a.href = location.href
+      a.hash = null
       code ?= @previously_run()
       a.search = '?' + encodeURIComponent btoa code
       a.innerText = a.href
