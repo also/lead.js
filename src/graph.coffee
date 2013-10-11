@@ -19,6 +19,37 @@ define (require) ->
         stream.onError (error) =>
           @error error
 
+    draw_pie: (container, data, params) ->
+      width = params.width or 800
+      height = params.height or 400
+      radius = Math.min(width, height) / 2
+
+      margin = top: 20, right: 80, bottom: 30, left: 80
+      color = d3.scale.ordinal().range params.d3_colors ? colors.d3.category10
+
+      get_value = params.get_value ? (d) -> d
+
+      arc = d3.svg.arc()
+        .outerRadius(radius - 10)
+        .innerRadius(0)
+
+      pie = d3.layout.pie().sort(null)
+
+      svg = d3.select(container).append('svg')
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+          .attr('transform', "translate(#{width / 2},#{height / 2})")
+
+      g = svg.selectAll('.arc')
+          .data(pie(data))
+        .enter().append('g')
+          .attr('class', 'arc')
+
+      g.append("path")
+          .attr("d", arc)
+          .style("fill", (d, i) -> color i)
+
     draw: (container, data, params) ->
       width = params.width or 800
       height = params.height or 400
