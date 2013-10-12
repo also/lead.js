@@ -1,4 +1,4 @@
-# types of githubs
+# types of github urls
 #
 # github.com
 #   gist.github.com/also/5794205
@@ -21,11 +21,11 @@ define (require) ->
     notebook = nb
 
   modules.create 'github', ({fn, cmd, settings}) ->
-    settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
+    settings.set 'sites', 'github.com', 'api_base_url', 'https://api.github.com'
     settings.default 'default', 'github.com'
 
     github =
-      get_github: (url) ->
+      get_site_from_url: (url) ->
         uri = URI url
         hostname = uri.hostname()
         if hostname == 'gist.github.com' or hostname == 'api.github.com'
@@ -33,7 +33,7 @@ define (require) ->
         else
           host = hostname
 
-        settings.get 'githubs', host
+        settings.get 'sites', host
 
       default: -> settings.get 'default'
 
@@ -48,12 +48,12 @@ define (require) ->
       to_repo_url: (path) ->
         path = path.toString()
         if path.indexOf('http') != 0
-          site = settings.get 'githubs', github.default()
+          site = settings.get 'sites', github.default()
           path = path.substr 1 if path[0] == '/'
           [user, repo, segments...] = path.split '/'
           url = github.to_api_url site, "/repos/#{user}/#{repo}/contents/#{segments.join '/'}"
         else
-          site = github.get_github path
+          site = github.get_site_from_url path
           if path.indexOf(site.api_base_url) == 0
             url = URI path
           else
@@ -65,12 +65,12 @@ define (require) ->
 
       save_gist: (gist, options={}) ->
         github_host = options.github ? github.default()
-        gh = settings.get 'githubs', github_host
+        gh = settings.get 'sites', github_host
         http.post github.to_api_url(gh, '/gists'), gist
 
-      to_api_url: (instance, path, params={}) ->
-        result = URI("#{instance.api_base_url}#{path}").setQuery(params)
-        result.setQuery('access_token', instance.access_token) if instance.access_token?
+      to_api_url: (site, path, params={}) ->
+        result = URI("#{site.api_base_url}#{path}").setQuery(params)
+        result.setQuery('access_token', site.access_token) if site.access_token?
         result
 
       to_gist_url: (gist) ->
@@ -78,10 +78,10 @@ define (require) ->
           github.to_api_url site, "/gists/#{id}"
         gist = gist.toString()
         if gist.indexOf('http') != 0
-          site = settings.get 'githubs', github.default()
+          site = settings.get 'sites', github.default()
           build_url site, gist
         else
-          site = github.get_github gist
+          site = github.get_site_from_url gist
 
           if github?
             [id, rest...] = URI(gist).filename().split '.'
@@ -105,22 +105,22 @@ define (require) ->
     ensure_access = (ctx, url) ->
       unless url?
         domain = github.default()
-        instance = settings.get 'githubs', domain
+        site = settings.get 'sites', domain
       else
-        instance = github.get_github url
+        site = github.get_site_from_url url
         domain = url.hostname()
-      if instance? and instance.requires_access_token and not instance.access_token?
+      if site? and site.requires_access_token and not site.access_token?
         result = Q.defer()
         ctx.text 'Please set a GitHub access token:'
         input = ctx.input.text_input()
         button = ctx.input.button('Save')
         user_details = button.map(input).flatMapLatest (access_token) ->
           Bacon.combineTemplate
-            user: Bacon.fromPromise http.get github.to_api_url(instance, '/user').setQuery {access_token}
+            user: Bacon.fromPromise http.get github.to_api_url(site, '/user').setQuery {access_token}
             access_token: access_token
           .changes()
         user_details.onValue ({user, access_token}) =>
-          global_settings.user_settings.set 'github', 'githubs', domain, 'access_token', access_token
+          global_settings.user_settings.set 'github', 'sites', domain, 'access_token', access_token
           ctx.text "Logged in as #{user.name}"
           result.resolve url?.setQuery {access_token}
         user_details.onError =>
