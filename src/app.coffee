@@ -19,6 +19,8 @@ define (require) ->
   imports.push.apply imports, settings.get('app', 'imports') or []
   module_names.push.apply imports, settings.get('app', 'module_names') or []
 
+  settings.set 'app', 'intro_command', 'intro'
+
   init_app: ->
     notebook.init_codemirror()
 
@@ -53,8 +55,11 @@ define (require) ->
         program = if location.search isnt ''
           atob decodeURIComponent location.search[1..]
         else
-          'intro'
+          intro_command = settings.get 'app', 'intro_command'
 
       first_cell = notebook.add_input_cell nb, code: program
-      notebook.run_cell first_cell
-      notebook.focus_cell notebook.add_input_cell nb
+      if program? and program != ''
+        notebook.run_cell first_cell
+        notebook.focus_cell notebook.add_input_cell nb
+      else
+        notebook.focus_cell first_cell
