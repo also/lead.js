@@ -94,7 +94,7 @@ define (require) ->
         if imported_cell.type is 'input'
           cell = add_input_cell notebook, code: imported_cell.value, after: cell
           if options.run
-            cell.run()
+            run cell
       notebook
 
     clear_notebook = (notebook) ->
@@ -168,11 +168,11 @@ define (require) ->
     # run an input cell above the current cell
     run_before = (current_cell, code) ->
       cell = add_input_cell current_cell.notebook, code: code, before: current_cell
-      cell.run()
+      run cell
 
     run_after = (current_cell, code) ->
       cell = add_input_cell current_cell.notebook, code: code, after: current_cell
-      cell.run()
+      run cell
 
     recompile = (error_marks, editor) ->
       m.clear() for m in error_marks
@@ -231,8 +231,6 @@ define (require) ->
         rendered: -> editor.refresh()
         hide: -> $el.hide()
         is_clean: -> editor.getValue() is '' and not @.used
-        run: ->
-          run cell, editor.getValue()
 
       editor.lead_cell = cell
 
@@ -266,7 +264,8 @@ define (require) ->
       cell.$el.attr 'data-cell-number', cell.number
       cell
 
-    run = (input_cell, string) ->
+    run = (input_cell) ->
+      string = input_cell.editor.getValue()
       output_cell = create_output_cell input_cell.notebook
       input_cell.used = true
       remove_cell input_cell.output_cell if input_cell.output_cell?
@@ -307,7 +306,7 @@ define (require) ->
           focus_cell cell
         run: (code) ->
           cell = add_input_cell notebook, code: code, after: run_context.cell
-          cell.run()
+          run cell
         previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
         export_notebook: -> export_notebook input_cell
         get_input_value: (number) ->
@@ -323,7 +322,7 @@ define (require) ->
         if extension is 'coffee'
           cell = add_input_cell run_context.notebook, code: file.content, after: run_context.cell
           if options.run
-            cell.run()
+            run cell
         else
           try
             imported = JSON.parse file.content
@@ -365,11 +364,8 @@ define (require) ->
       remove_cell
       focus_cell
 
-      run_cell: (cell) ->
-        cell.run()
-
       run: (cell, opts={advance: true}) ->
-        output_cell = cell.run()
+        output_cell = run cell
         if opts.advance
           new_cell = add_input_cell cell.notebook, after: output_cell, reuse: true
           focus_cell new_cell

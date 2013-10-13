@@ -45,7 +45,7 @@ define (require) ->
       rc = localStorage.lead_rc
       if rc?
         rc_cell = notebook.add_input_cell nb, code: rc
-        notebook.run_cell rc_cell
+        notebook.run rc_cell
         notebook.remove_cell rc_cell
 
       window.onhashchange = -> window.location.reload()
@@ -69,7 +69,6 @@ define (require) ->
 
       first_cell = notebook.add_input_cell nb, code: program
       if program? and program != ''
-        notebook.run_cell first_cell
-        notebook.focus_cell notebook.add_input_cell nb
+        notebook.run first_cell
       else
         notebook.focus_cell first_cell
