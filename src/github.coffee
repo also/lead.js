@@ -33,9 +33,10 @@ define (require) ->
         else
           host = hostname
 
-        settings.get 'sites', host
+        github.get_site host
 
       default: -> settings.get 'default'
+      get_site: (name) -> settings.get 'sites', name ? settings.get 'default'
 
       get_repo_contents: (url) ->
         http.get(url)
@@ -48,7 +49,7 @@ define (require) ->
       to_repo_url: (path) ->
         path = path.toString()
         if path.indexOf('http') != 0
-          site = settings.get 'sites', github.default()
+          site = github.get_site()
           path = path.substr 1 if path[0] == '/'
           [user, repo, segments...] = path.split '/'
           url = github.to_api_url site, "/repos/#{user}/#{repo}/contents/#{segments.join '/'}"
@@ -64,9 +65,8 @@ define (require) ->
             url = github.to_api_url site, "/repos/#{user}/#{repo}/contents/#{segments.join '/'}", {ref}
 
       save_gist: (gist, options={}) ->
-        github_host = options.github ? github.default()
-        gh = settings.get 'sites', github_host
-        http.post github.to_api_url(gh, '/gists'), gist
+        site = github.get_site options.github
+        http.post github.to_api_url(site, '/gists'), gist
 
       to_api_url: (site, path, params={}) ->
         result = URI("#{site.api_base_url}#{path}").setQuery(params)
@@ -78,7 +78,7 @@ define (require) ->
           github.to_api_url site, "/gists/#{id}"
         gist = gist.toString()
         if gist.indexOf('http') != 0
-          site = settings.get 'sites', github.default()
+          site = github.get_site()
           build_url site, gist
         else
           site = github.get_site_from_url gist
@@ -105,7 +105,7 @@ define (require) ->
     ensure_access = (ctx, url) ->
       unless url?
         domain = github.default()
-        site = settings.get 'sites', domain
+        site = github.get_site domain
       else
         site = github.get_site_from_url url
         domain = url.hostname()
