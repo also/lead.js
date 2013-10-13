@@ -3,6 +3,7 @@ define (require) ->
   notebook = require 'notebook'
   settings = require 'settings'
   config = require 'config'
+  github = require 'github'
 
   module_names = ['http', 'dsl', 'graph', 'settings']
 
@@ -20,6 +21,9 @@ define (require) ->
   module_names.push.apply imports, settings.get('app', 'module_names') or []
 
   settings.set 'app', 'intro_command', 'intro'
+  settings.set 'app', 'paths', 'also',
+    site: 'github.com'
+    repo: 'also/lead.js'
 
   init_app: ->
     notebook.init_codemirror()
@@ -49,8 +53,14 @@ define (require) ->
       uri = URI location.href
       fragment = uri.fragment()
       if fragment.length > 0 and fragment[0] == '/'
-        id = fragment[1..]
-        program = "gist #{JSON.stringify id}, run: true; quiet"
+        path = fragment[1..]
+        [repo_name, blob...] = path.split('/')
+        repo = settings.get 'app', 'paths', repo_name
+        if repo?
+          url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
+          program = "github.load #{JSON.stringify url}, run: true; quiet"
+        else
+          program = "gist #{JSON.stringify path}, run: true; quiet"
       else
         program = if location.search isnt ''
           atob decodeURIComponent location.search[1..]
