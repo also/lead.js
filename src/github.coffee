@@ -21,7 +21,7 @@ define (require) ->
     notebook = nb
 
   modules.create 'github', ({fn, cmd, settings}) ->
-    settings.set 'sites', 'github.com', 'api_base_url', 'https://api.github.com'
+    settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
     settings.default 'default', 'github.com'
 
     github =
@@ -36,7 +36,7 @@ define (require) ->
         github.get_site host
 
       default: -> settings.get 'default'
-      get_site: (name) -> settings.get 'sites', name ? settings.get 'default'
+      get_site: (name) -> settings.get 'githubs', name ? settings.get 'default'
 
       get_repo_contents: (url) ->
         http.get(url)
@@ -120,7 +120,7 @@ define (require) ->
             access_token: access_token
           .changes()
         user_details.onValue ({user, access_token}) =>
-          global_settings.user_settings.set 'github', 'sites', domain, 'access_token', access_token
+          global_settings.user_settings.set 'github', 'githubs', domain, 'access_token', access_token
           ctx.text "Logged in as #{user.name}"
           result.resolve url?.setQuery {access_token}
         user_details.onError =>
