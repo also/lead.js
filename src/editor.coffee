@@ -19,6 +19,26 @@ define (require) ->
       -> cm.off event_name, handler
     , event_transformer
 
+  add_error_mark = (cm, e) ->
+    {first_line, first_column, last_line, last_column} = e.location
+    if first_line == last_line and first_column == last_column
+      line = cm.getLine first_line
+      if last_column == line.length
+        first_column -= 1
+      else
+        last_column += 1
+    mark = cm.markText {line: first_line, ch: first_column}, {line: last_line, ch: last_column}, {className: 'error'}
+
+    for l in [first_line..last_line]
+      gutter = document.createElement 'div'
+      gutter.title = e.message
+      gutter.innerHTML = '&nbsp;'
+      gutter.className = 'errorMarker'
+      # TODO make this less annoying, enable it
+      #cm.setGutterMarker l, 'error', gutter
+
+    mark
+
   token_after = (cm, token, line) ->
     t = token
     last_interesting_token = null
@@ -162,4 +182,4 @@ define (require) ->
 
     fallthrough: ['default']
 
-  {commands, key_map, as_event_stream}
+  {commands, key_map, as_event_stream, add_error_mark}

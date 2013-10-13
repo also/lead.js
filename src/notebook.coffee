@@ -181,24 +181,7 @@ define (require) ->
         CoffeeScript.compile editor.getValue()
         []
       catch e
-        {first_line, first_column, last_line, last_column} = e.location
-        if first_line == last_line and first_column == last_column
-          line = editor.getLine first_line
-          if last_column == line.length
-            first_column -= 1
-          else
-            last_column += 1
-        mark = editor.markText {line: first_line, ch: first_column}, {line: last_line, ch: last_column}, {className: 'error'}
-
-        for l in [first_line..last_line]
-          gutter = document.createElement 'div'
-          gutter.title = e.message
-          gutter.innerHTML = '&nbsp;'
-          gutter.className = 'errorMarker'
-          # TODO make this less annoying, enable it
-          #editor.setGutterMarker l, 'error', gutter
-
-        [mark]
+        [ed.add_error_mark editor, e]
 
     create_input_cell = (notebook) ->
       $el = $ '<div class="cell input"/>'
