@@ -68,6 +68,10 @@ define (require) ->
         site = github.get_site options.github
         http.post github.to_api_url(site, '/gists'), gist
 
+      update_gist: (id, gist, options={}) ->
+        site = github.get_site options.github
+        http.patch github.to_api_url(site, "/gists/#{id}"), gist
+
       to_api_url: (site, path, params={}) ->
         result = URI("#{site.api_base_url}#{path}").setQuery(params)
         result.setQuery('access_token', site.access_token) if site.access_token?
@@ -145,7 +149,7 @@ define (require) ->
             promise.fail (response) =>
               @error response.statusText
 
-    cmd 'save_gist', 'Saves a notebook as a gist', ->
+    cmd 'save_gist', 'Saves a notebook as a gist', (id) ->
       notebook = @export_notebook()
       gist =
         public: true
@@ -155,7 +159,10 @@ define (require) ->
       @async ->
         authorized = ensure_access @
         authorized.then (url) =>
-          promise = github.save_gist gist
+          promise = if id?
+            github.update_gist id, gist
+          else
+            github.save_gist gist
           promise.done (result) =>
             @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
             lead_uri = URI window.location.href

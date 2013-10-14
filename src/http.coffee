@@ -9,6 +9,7 @@ define (require) ->
     fn 'get', 'Executes an HTTP GET', -> @value http.get.apply http, arguments
     fn 'post', 'Executes an HTTP POST', -> @value http.post.apply http, arguments
 
-    execute: (options) -> Q.when $.ajax options
-    get: (url, options) -> http.execute _.extend {url, dataType: 'json'}, options, type: 'get'
-    post: (url, data, options) -> http.execute _.extend {url, dataType: 'json', contentType: 'application/json', data: JSON.stringify data}, options, type: 'post'
+    execute: (url, options) -> Q.when $.ajax _.extend {url, dataType: 'json', contentType: 'application/json'}, options
+    get: (url, options) -> http.execute url, _.extend {}, options, type: 'get'
+    post: (url, data, options) -> http.execute url, _.extend {data: JSON.stringify data}, options, type: 'post'
+    patch: (url, data, options) -> http.execute url, _.extend {data: JSON.stringify data}, options, type: 'patch'
