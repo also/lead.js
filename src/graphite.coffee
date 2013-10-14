@@ -3,6 +3,7 @@ define (require) ->
   $ = require 'jquery'
   bacon = require 'baconjs'
   Q = require 'q'
+  URI = require 'URIjs'
   moment = require 'moment'
   dsl = require 'dsl'
   modules = require 'modules'
@@ -172,6 +173,14 @@ define (require) ->
     render_url: (params) -> graphite.url 'render', params
 
     parse_target: (string) -> parser.parse string
+
+    parse_url: (string) ->
+      url = new URI string
+      query = url.query true
+      targets = query.target or []
+      targets = [targets] unless _.isArray targets
+      targets: _.map targets, graphite.parse_target
+      options: _.omit query, 'target'
 
     parse_error_response: (response) ->
       return 'request failed' unless response.responseText?
