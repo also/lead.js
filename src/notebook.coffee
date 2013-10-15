@@ -2,6 +2,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   CoffeeScript = require 'coffee-script'
+  URI = require 'URIjs'
   ed = require 'editor'
   http = require 'http'
   graphite = require 'graphite'
@@ -17,12 +18,12 @@ define (require) ->
         open_file_picker @
       else
         @async ->
-          promise = http.get url, dataType: 'text'
-          promise.then (response, status_text, xhr) =>
+          promise = http.execute_xhr url, dataType: 'text', type: 'get'
+          promise.then (xhr) =>
             handle_file @,
               filename: URI(url).filename()
               type: xhr.getResponseHeader 'content-type'
-              content: response
+              content: xhr.responseText
             , options
           promise.fail (response) =>
             @error response.statusText
