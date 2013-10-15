@@ -2,8 +2,6 @@ define (require) ->
   expect = require 'expect'
   context = require 'context'
 
-  in_browser = (it) -> if window? then it else it.skip
-
   later = (done, fn) ->
     try
       fn()
@@ -13,7 +11,7 @@ define (require) ->
 
   describe 'contexts', ->
     describe 'base contexts', ->
-      in_browser(it) 'can be created', (done) ->
+      it 'can be created', (done) ->
         context.create_base_context(imports: ['builtins'])
         .then(-> done())
         .fail done
@@ -29,7 +27,7 @@ define (require) ->
         $el = context.render run_context
         expect($el.text()).to.be html
 
-    in_browser(describe) 'full contexts', ->
+    describe 'full conexts', ->
       ctx = null
       complete_callback = null
       on_complete = (fn, done) ->
@@ -110,6 +108,7 @@ define (require) ->
             @value_in_context_b = @context_a.function_in_context_a()
             complete()
           setTimeout @keeping_context(async), 0
+          null # https://github.com/also/lead.js/issues/94
         on_complete done, ->
           expect(context_a.value_in_context_a).to.be undefined
           expect(context_b.value_in_context_a).to.be 'a'

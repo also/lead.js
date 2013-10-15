@@ -1,3 +1,17 @@
+NODE_MODULES = [
+  'node'
+  'modules'
+  'dsl'
+  'settings'
+  'opentsdb'
+  'graphite'
+  'functions'
+  'context'
+  'http'
+  'graphite_parser'
+  'builtins'
+]
+
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
@@ -17,7 +31,7 @@ module.exports = (grunt) ->
           {
             expand: true
             cwd: 'build'
-            src: ['node.*', 'modules.*', 'dsl.*', 'settings.*', 'opentsdb.*', 'graphite.*', 'functions.*', 'context.*', 'http.*', 'graphite_parser.*']
+            src: NODE_MODULES.map (m) -> "#{m}.*"
             dest: 'dist/nodejs/'
           },
           {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}

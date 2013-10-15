@@ -8,6 +8,16 @@ define (require) ->
   modules = require 'modules'
   http = require 'http'
 
+  format_code = (code, language, target) ->
+    if CodeMirror.runMode?
+      if language == 'json'
+        opts = name: 'javascript', json: true
+      else
+        opts = name: language
+      CodeMirror.runMode code, opts, target.get(0)
+    else
+      target.text code
+
   help = (fns) ->
     documented_fns = (name for name, c of fns when c?.doc?)
     documented_fns.sort()
@@ -69,7 +79,7 @@ define (require) ->
     fn 'object', 'Prints an object as JSON', (o) ->
       $pre = $ '<pre>'
       s = JSON.stringify(o, null, '  ') or new String o
-      CodeMirror.runMode s, {name: 'javascript', json: true}, $pre.get(0)
+      format_code s, 'json', $pre
       @add_rendered $pre
 
     fn 'md', 'Renders Markdown', (string) ->
@@ -100,7 +110,7 @@ define (require) ->
     fn 'example', 'Makes a clickable code example', (string, opts) ->
       @add_rendering ->
         $pre = $ '<pre class="example">'
-        CodeMirror.runMode string, 'coffeescript', $pre.get(0)
+        format_code string, 'coffeescript', $pre
         $pre.on 'click', =>
           if opts?.run ? true
             @run string
@@ -110,7 +120,7 @@ define (require) ->
 
     fn 'source', 'Shows source code with syntax highlighting', (language, string) ->
       $pre = $ '<pre>'
-      CodeMirror.runMode string, 'javascript', $pre.get(0)
+      format_code string, language, $pre
       @add_rendered $pre
 
     cmd 'intro', 'Shows the intro message', ->
