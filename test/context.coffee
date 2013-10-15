@@ -1,14 +1,20 @@
 define (require) ->
+  expect = require 'expect'
   context = require 'context'
+
+  later = (done, fn) ->
+    try
+      fn()
+      done()
+    catch e
+      done e
 
   describe 'contexts', ->
     describe 'base contexts', ->
-      it 'can be created', ->
-        created = false
+      it 'can be created', (done) ->
         context.create_base_context(imports: ['builtins'])
-        .then ->
-          created = true
-        waitsFor (-> created), 1000
+        .then(-> done())
+        .fail done
 
     describe 'run contexts', ->
       it 'can be created', ->
@@ -19,47 +25,54 @@ define (require) ->
         html = 'hello, world'
         run_context.output html
         $el = context.render run_context
-        expect($el.text()).toBe html
+        expect($el.text()).to.be html
 
     describe 'full contexts', ->
       ctx = null
+      complete_callback = null
+      on_complete = (fn, done) ->
+        complete_callback = ->
+          later fn, done
       test_module =
         context_fns:
           test_function: fn: -> @value 'test value'
+          complete: fn: -> complete_callback()
       result = null
       set_test_result = (r) ->
         result = r
-      beforeEach ->
+
+      beforeEach (done) ->
+        complete_callback = ->
         ctx = null
         result = null
-        success = null
         context.create_base_context(imports: ['builtins'])
         .then (base_context) ->
           base_context.modules.test_module = test_module
           ctx = context.create_context base_context
-          success = true
-        waitsFor (-> success), 1000
+          ctx.imported_context_fns.complete = test_module.context_fns.complete
+          done()
+        .fail done # this won't actually get called: https://github.com/jrburke/requirejs/issues/911
 
       it 'can run javascript strings', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, 'this.set_test_result(1 + 1);'
-        expect(result).toBe 2
+        expect(result).to.be 2
 
       it 'can run coffeescript strings', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_coffeescript_in_context run_context, '@set_test_result 1 + 1'
-        expect(result).toBe 2
+        expect(result).to.be 2
 
       it 'can eval functions', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, ->
           @set_test_result test_module.test_function()
-        expect(result).toBe 'test value'
+        expect(result).to.be 'test value'
 
       it 'can run custom module functions', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context run_context, 'this.set_test_result(test_module.test_function())'
-        expect(result).toBe 'test value'
+        expect(result).to.be 'test value'
 
       it 'can use other contexts', ->
         context_a = context.create_run_context [ctx]
@@ -68,8 +81,8 @@ define (require) ->
           @function_in_context_a = =>
             @value_in_context_a = 'a'
         context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
-        expect(context_a.value_in_context_a).toBe 'a'
-        expect(context_b.value_in_context_b).toBe 'a'
+        expect(context_a.value_in_context_a).to.be 'a'
+        expect(context_b.value_in_context_b).to.be 'a'
 
       it 'can use the running context', ->
         context_a = context.create_run_context [ctx]
@@ -79,11 +92,11 @@ define (require) ->
             @in_running_context ->
               @value_in_context_a = 'a'
         context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
-        expect(context_a.value_in_context_a).toBeUndefined()
-        expect(context_b.value_in_context_a).toBe 'a'
-        expect(context_b.value_in_context_b).toBe 'a'
+        expect(context_a.value_in_context_a).to.be(undefined)
+        expect(context_b.value_in_context_a).to.be 'a'
+        expect(context_b.value_in_context_b).to.be 'a'
 
-      it 'can keep the running context in an async function', ->
+      it 'can keep the running context in an async function', (done) ->
         context_a = context.create_run_context [ctx]
         context_b = context.create_run_context [ctx, {context_a}]
         context.run_in_context context_a, ->
@@ -93,12 +106,12 @@ define (require) ->
         context.eval_in_context context_b, ->
           async = ->
             @value_in_context_b = @context_a.function_in_context_a()
+            complete()
           setTimeout @keeping_context(async), 0
-        waitsFor (-> context_b.value_in_context_b?), 1000
-        runs ->
-          expect(context_a.value_in_context_a).toBeUndefined()
-          expect(context_b.value_in_context_a).toBe 'a'
-          expect(context_b.value_in_context_b).toBe 'a'
+        on_complete done, ->
+          expect(context_a.value_in_context_a).to.be undefined
+          expect(context_b.value_in_context_a).to.be 'a'
+          expect(context_b.value_in_context_b).to.be 'a'
 
       it 'can use the running context when calling a function from another context', ->
         context_a = context.create_run_context [ctx]
@@ -108,9 +121,9 @@ define (require) ->
               @value_in_context_a = 'a'
         context.eval_in_context context_b, ->
           @value_in_context_b = @in_running_context @context_a.function_in_context_a
-        expect(context_a.value_in_context_a).toBeUndefined()
-        expect(context_b.value_in_context_a).toBe 'a'
-        expect(context_b.value_in_context_b).toBe 'a'
+        expect(context_a.value_in_context_a).to.be(undefined)
+        expect(context_b.value_in_context_a).to.be 'a'
+        expect(context_b.value_in_context_b).to.be 'a'
 
       it 'can output in nested items', ->
         context_a = context.create_run_context [ctx]
@@ -119,7 +132,7 @@ define (require) ->
           @nested 'nest', ->
             text 'b'
         $el = context.render context_a
-        expect($el.text()).toBe 'ab'
+        expect($el.text()).to.be 'ab'
 
       it 'can render renderables', ->
         context_a = context.create_run_context [ctx]
@@ -128,7 +141,7 @@ define (require) ->
           @add_renderable @renderable {}, ->
             $ '<p>b</p>'
         $el = context.render context_a
-        expect($el.text()).toBe 'ab'
+        expect($el.text()).to.be 'ab'
 
       it "doesn't allow output functions directly in renderables", ->
         context_a = context.create_run_context [ctx]
@@ -137,7 +150,8 @@ define (require) ->
             text 'b'
         expect ->
           $el = context.render context_a
-        .toThrow new Error 'Output functions not allowed inside a renderable'
+        .to.throwException (e) ->
+          expect(e.message).to.be 'Output functions not allowed inside a renderable'
 
       it 'allows detached output functions in renderables', ->
         context_a = context.create_run_context [ctx]
@@ -147,9 +161,9 @@ define (require) ->
             @render @detached ->
               text 'b'
         $el = context.render context_a
-        expect($el.text()).toBe 'ab'
+        expect($el.text()).to.be 'ab'
 
-      it 'supports renderable async', ->
+      it 'supports renderable async', (done) ->
         context_a = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context context_a,->
           Q = require 'q'
@@ -160,14 +174,13 @@ define (require) ->
               $result = @div()
               promise.then =>
                 $result.text 'b'
-                @set_test_result true
+                complete()
               promise
           text 'c'
         $el = context.render context_a
-        expect($el.text()).toBe 'ac'
-        waitsFor (-> result), 1000
-        runs ->
-          expect($el.text()).toBe 'abc'
+        expect($el.text()).to.be 'ac'
+        on_complete done, ->
+          expect($el.text()).to.be 'abc'
 
       # TODO reconsider this behavior
       ###
@@ -184,32 +197,30 @@ define (require) ->
         waitsFor (-> result), 1000
       ###
 
-      it "allows output after render", ->
+      it "allows output after render", (done) ->
         context_a = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context context_a, ->
           text 'a'
           setTimeout =>
             @text 'c'
-            @set_test_result true
+            complete()
           , 0
           text 'b'
         $el = context.render context_a
-        waitsFor (-> result), 1000
-        runs ->
-          expect($el.text()).toBe 'abc'
+        on_complete done, ->
+          expect($el.text()).to.be 'abc'
 
-      it 'allows output in an async block after render', ->
+      it 'allows output in an async block after render', (done) ->
         context_a = context.create_run_context [ctx, {set_test_result}]
         context.eval_in_context context_a, ->
           Q = require 'q'
           @async ->
             setTimeout @keeping_context ->
               @text 'a'
-              @set_test_result true
+              complete()
             , 0
             Q true
           @text 'b'
         $el = context.render context_a
-        waitsFor (-> result), 1000
-        runs ->
-          expect($el.text()).toBe 'ab'
+        on_complete done, ->
+          expect($el.text()).to.be 'ab'

@@ -12,6 +12,7 @@ define (require) ->
   tests = [
     'dsl'
     'settings'
+    'context'
   ]
 
   run_tests = ->
