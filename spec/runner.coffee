@@ -1,7 +1,5 @@
 define 'runner', (require) ->
   specs = [
-    'settings',
-    'context',
     'notebook',
     'github',
     'graphite'
