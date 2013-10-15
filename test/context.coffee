@@ -2,6 +2,8 @@ define (require) ->
   expect = require 'expect'
   context = require 'context'
 
+  in_browser = (it) -> if window? then it else it.skip
+
   later = (done, fn) ->
     try
       fn()
@@ -11,7 +13,7 @@ define (require) ->
 
   describe 'contexts', ->
     describe 'base contexts', ->
-      it 'can be created', (done) ->
+      in_browser(it) 'can be created', (done) ->
         context.create_base_context(imports: ['builtins'])
         .then(-> done())
         .fail done
@@ -27,7 +29,7 @@ define (require) ->
         $el = context.render run_context
         expect($el.text()).to.be html
 
-    describe 'full contexts', ->
+    in_browser(describe) 'full contexts', ->
       ctx = null
       complete_callback = null
       on_complete = (fn, done) ->
