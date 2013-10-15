@@ -14,6 +14,7 @@ define (require) ->
     'settings'
     'context'
     'graphite'
+    'github',
   ]
 
   run_tests = ->

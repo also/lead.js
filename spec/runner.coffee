@@ -1,7 +1,6 @@
 define 'runner', (require) ->
   specs = [
     'notebook',
-    'github',
   ]
 
   require specs.map((s) -> "spec/#{s}.spec"), ->
