@@ -51,6 +51,8 @@ module.exports = (grunt) ->
           dest: 'build/test'
           ext: '.js'
         ]
+    connect:
+      server: {}
     requirejs:
       app:
         options:
@@ -71,6 +73,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
+  grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadTasks 'tasks'
 
   grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']

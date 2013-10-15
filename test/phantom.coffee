@@ -2,7 +2,7 @@ page = require("webpage").create()
 page.onConsoleMessage = (msg) ->
   console.log msg
 
-url = "http://localhost:9292/test/runner.html"
+url = "http://localhost:8000/test/runner.html"
 page.open url
 page.onInitialized = ->
   page.evaluate ->
