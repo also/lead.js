@@ -5,6 +5,6 @@ for name, variations of colors.brewer
   for size, colors of variations
     output.push "<h4 style='margin-top: 1em'>#{size}</h4>"
     for color in colors
-      output.push "<p style='background-color: #{color}'>#{color}</p>"
+      output.push "<span style='background-color: #{color}; padding: 5px; display: inline-block;'>#{color}</span> "
 
-html output.join('')
+html output.join ''
