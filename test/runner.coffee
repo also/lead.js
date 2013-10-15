@@ -11,6 +11,7 @@ define (require) ->
   m.suite.emit 'pre-require', global, 'hack', m
   tests = [
     'dsl'
+    'settings'
   ]
 
   run_tests = ->
