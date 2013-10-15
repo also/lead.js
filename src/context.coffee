@@ -3,6 +3,7 @@ define (require) ->
   _ = require 'underscore'
   CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
+  Bacon = require 'baconjs'
   modules = require 'modules'
 
   ignore = new Object
