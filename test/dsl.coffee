@@ -1,4 +1,6 @@
-define ['dsl'], (dsl) ->
+define (require) ->
+  expect = require 'expect'
+  dsl = require 'dsl'
   describe 'dsl', ->
     describe 'functions', ->
       fake_function = null
@@ -8,54 +10,54 @@ define ['dsl'], (dsl) ->
 
       it 'should be created', ->
         functions = dsl.define_functions {}, ['fake_function']
-        expect(functions.fake_function).toBeDefined()
+        expect(functions.fake_function).to.be.ok()
 
       it 'should return', ->
         result = fake_function()
-        expect(result).not.toBeNull()
+        expect(result).not.to.be(null)
 
       it 'should be dsl nodes', ->
-        expect(dsl.is_dsl_node fake_function).toBe true
+        expect(dsl.is_dsl_node fake_function).to.be true
 
       it 'should return dsl nodes', ->
         result = fake_function()
-        expect(dsl.is_dsl_node result).toBe true
+        expect(dsl.is_dsl_node result).to.be true
 
       it 'should have their name as a string as the target', ->
-        expect(dsl.to_target_string fake_function).toBe "'fake_function'"
+        expect(dsl.to_target_string fake_function).to.be "'fake_function'"
 
       it 'should return a result that has its invocation as the target string', ->
         result = fake_function()
-        expect(dsl.to_target_string result).toBe 'fake_function()'
+        expect(dsl.to_target_string result).to.be 'fake_function()'
 
       it 'should return a result that has its invocation as the js string', ->
         result = fake_function()
-        expect(dsl.to_js_string result).toBe 'fake_function()'
+        expect(dsl.to_js_string result).to.be 'fake_function()'
 
       it 'should take string arguments', ->
         result = fake_function 'argument'
-        expect(dsl.is_dsl_node result).toBe true
+        expect(dsl.is_dsl_node result).to.be true
 
       it 'should take numeric arguments', ->
         result = fake_function 19
-        expect(dsl.is_dsl_node result).toBe true
+        expect(dsl.is_dsl_node result).to.be true
 
       it 'should take boolean arguments', ->
         result = fake_function false
-        expect(dsl.is_dsl_node result).toBe true
+        expect(dsl.is_dsl_node result).to.be true
 
       it 'should take function arguments', ->
         result = fake_function fake_function
-        expect(dsl.is_dsl_node result).toBe true
+        expect(dsl.is_dsl_node result).to.be true
 
       it 'should not take array arguments', ->
-        expect(-> fake_function []).toThrow()
+        expect(-> fake_function []).to.throwException()
 
       it 'should not take object arguments', ->
-        expect(-> fake_function {}).toThrow()
+        expect(-> fake_function {}).to.throwException()
 
       it 'should not take null arguments', ->
-        expect(-> fake_function null).toThrow()
+        expect(-> fake_function null).to.throwException()
 
     describe 'raw strings', ->
       raw_string = null
@@ -64,13 +66,13 @@ define ['dsl'], (dsl) ->
         raw_string = new dsl.type.q 'raw_string'
 
       it 'should be dsl nodes', ->
-        expect(dsl.is_dsl_node raw_string).toBe true
+        expect(dsl.is_dsl_node raw_string).to.be true
 
       it 'should have their value as the target', ->
-        expect(dsl.to_target_string raw_string).toBe 'raw_string'
+        expect(dsl.to_target_string raw_string).to.be 'raw_string'
 
       it 'should have their invocation as the js string', ->
-        expect(dsl.to_js_string raw_string).toBe 'q("raw_string")'
+        expect(dsl.to_js_string raw_string).to.be 'q("raw_string")'
 
     describe 'numbers', ->
       number = null
@@ -79,13 +81,13 @@ define ['dsl'], (dsl) ->
         number = new dsl.type.n 99
 
       it 'should be dsl nodes', ->
-        expect(dsl.is_dsl_node number).toBe true
+        expect(dsl.is_dsl_node number).to.be true
 
       it 'should have their value as the target', ->
-        expect(dsl.to_target_string number).toBe '99'
+        expect(dsl.to_target_string number).to.be '99'
 
       it 'should have their value as the js string', ->
-        expect(dsl.to_js_string number).toBe '99'
+        expect(dsl.to_js_string number).to.be '99'
 
     describe 'booleans', ->
       boolean = null
@@ -94,13 +96,13 @@ define ['dsl'], (dsl) ->
         boolean = new dsl.type.b false
 
       it 'should be dsl nodes', ->
-        expect(dsl.is_dsl_node boolean).toBe true
+        expect(dsl.is_dsl_node boolean).to.be true
 
       it 'should have their value as the target', ->
-        expect(dsl.to_target_string boolean).toBe 'false'
+        expect(dsl.to_target_string boolean).to.be 'false'
 
       it 'should have their value as the js string', ->
-        expect(dsl.to_js_string boolean).toBe 'false'
+        expect(dsl.to_js_string boolean).to.be 'false'
 
     describe 'strings', ->
       string = null
@@ -109,20 +111,20 @@ define ['dsl'], (dsl) ->
         string = new dsl.type.s 'avocado'
 
       it 'should be dsl nodes', ->
-        expect(dsl.is_dsl_node string).toBe true
+        expect(dsl.is_dsl_node string).to.be true
 
       it 'should have their quoted value as the target', ->
-        expect(dsl.to_target_string string).toBe "'avocado'"
+        expect(dsl.to_target_string string).to.be "'avocado'"
 
       it 'should have their json-serialized value as the js string', ->
-        expect(dsl.to_js_string string).toBe '"avocado"'
+        expect(dsl.to_js_string string).to.be '"avocado"'
 
       it 'should not escape backslashes', ->
         s = new dsl.type.s '\\'
-        expect(dsl.to_target_string s).not.toMatch /\\\\/
+        expect(dsl.to_target_string s).not.to.match /\\\\/
 
       it 'should not escape a single kind of quotes', ->
         s = new dsl.type.s '"'
-        expect(dsl.to_target_string s).not.toMatch /\\/
+        expect(dsl.to_target_string s).not.to.match /\\/
         s = new dsl.type.s "'"
-        expect(dsl.to_target_string s).not.toMatch /\\/
+        expect(dsl.to_target_string s).not.to.match /\\/

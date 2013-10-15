@@ -27,6 +27,8 @@
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "~0.4.1",
     "jsdom": "~0.8.4",
-    "pegjs": "~0.7.0"
+    "pegjs": "~0.7.0",
+    "mocha": "~1.13.0",
+    "expect.js": "~0.2.0"
   }
 }

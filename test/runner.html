@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+<title>lead.js test runner</title>
+<meta charset="UTF-8">
+<script src="/lib/require.js"></script>
+<script src="/dist/lead-app.js"></script>
+<script>
+requirejs.config({
+  baseUrl: '/build',
+  paths: {
+    mocha: '../node_modules/mocha/mocha',
+    'expect': '../node_modules/expect.js/expect'
+  },
+  shim: {expect: {exports: 'expect'}}
+});
+require(['test/runner'], function (runner) { runner.run(); });
+</script>
+<link rel="stylesheet" href="/node_modules/mocha/mocha.css"/>
+</head>
+<body>
+<div id="mocha"></div>
+</body>
+</html>

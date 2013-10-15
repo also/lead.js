@@ -1,6 +1,4 @@
 module.exports = (grunt) ->
-  
-  # Project configuration.
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
     sass:
@@ -43,6 +41,17 @@ module.exports = (grunt) ->
           ext: '.js'
         ]
       tests:
+        options:
+          sourceMap: true
+        files: [
+          expand: true
+          flatten: true
+          cwd: 'test'
+          src: ['*.coffee']
+          dest: 'build/test'
+          ext: '.js'
+        ]
+      specs:
         options:
           sourceMap: true
         files: [
