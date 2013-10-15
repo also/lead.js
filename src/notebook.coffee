@@ -285,11 +285,13 @@ define (require) ->
       run_context =
         notebook: notebook
         input_cell: input_cell
+        # TODO this seems like a weird way to get the output cell
+        output_cell: input_cell.output_cell
         set_code: (code) ->
-          cell = add_input_cell notebook, code: code, after: run_context.input_cell
+          cell = add_input_cell notebook, code: code, after: run_context.output_cell
           focus_cell cell
         run: (code) ->
-          cell = add_input_cell notebook, code: code, after: run_context.input_cell
+          cell = add_input_cell notebook, code: code, after: run_context.output_cell
           run cell
         previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
         export_notebook: -> export_notebook input_cell
@@ -304,7 +306,7 @@ define (require) ->
       if file.type.indexOf('image') < 0
         [prefix..., extension] = file.filename.split '.'
         if extension is 'coffee'
-          cell = add_input_cell run_context.notebook, code: file.content, after: run_context.input_cell
+          cell = add_input_cell run_context.notebook, code: file.content, after: run_context.output_cell
           if options.run
             run cell
         else
@@ -317,7 +319,7 @@ define (require) ->
           unless version?
             run_context.fns.error "File #{file.filename} isn't a lead.js notebook"
             return
-          import_notebook run_context.notebook, run_context.input_cell, imported, options
+          import_notebook run_context.notebook, run_context.output_cell, imported, options
 
     load_file = (run_context, file) ->
       if file.type.indexOf('image') < 0
