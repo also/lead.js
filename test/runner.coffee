@@ -14,8 +14,11 @@ define (require) ->
     'settings'
     'context'
     'graphite'
-    'github',
+    'github'
   ]
+  # TODO
+  if window?
+    tests.push 'notebook'
 
   run_tests = ->
     m.run (failed) ->

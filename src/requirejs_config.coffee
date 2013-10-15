@@ -2,7 +2,6 @@
   deps: ['bootstrap']
   paths:
     lib: '../lib'
-    spec: '../spec'
     cm: '../lib/codemirror-3.12'
     underscore: '../lib/underscore'
     jquery: '../lib/jquery'

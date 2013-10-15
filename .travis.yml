@@ -8,7 +8,6 @@ before_script:
 
 script:
   - grunt
-  - phantomjs spec/phantom.js
   - phantomjs build/test/phantom.js
   - node build/test/run_node.js
 
