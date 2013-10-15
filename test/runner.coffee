@@ -13,6 +13,7 @@ define (require) ->
     'dsl'
     'settings'
     'context'
+    'graphite'
   ]
 
   run_tests = ->
