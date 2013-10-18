@@ -192,6 +192,19 @@ define (require) ->
             .attr('cy', (d) -> y d.value)
             .attr('fill', (d, i, j) -> color j)
             .attr('r', 2)
+      else if type is  'bar'
+        target.selectAll('rect')
+            .data((d) -> d.values)
+          .enter().append('rect')
+            .attr('x', (d) -> x d.time)
+            .attr('y', (d) ->
+              if d.value > 0
+                y(0) - y d.value
+              else
+                y 0
+            )
+            .attr('width', 1)
+            .attr('height', (d) -> if d.value > 0 then y d.value else y(d.value) - y(0))
 
       legend = d3.select(container).append('ul')
           .attr('class', 'legend')
