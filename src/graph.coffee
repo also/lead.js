@@ -202,6 +202,7 @@ define (require) ->
             .attr('y', (d) -> if d.value > 0 then y d.value else zero)
             .attr('width', 1)
             .attr('height', (d) -> Math.abs zero - y d.value)
+            .attr('fill', (d, i, j) -> color j)
 
       legend = d3.select(container).append('ul')
           .attr('class', 'legend')
