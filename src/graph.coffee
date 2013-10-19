@@ -153,6 +153,8 @@ define (require) ->
         value_max = Math.round(value_max) + 1
       y.domain [params.yMin ? value_min, params.yMax ? value_max]
 
+      zero = y 0
+
       svg = d3.select(container).append('svg')
           .attr('width', width + margin.left + margin.right)
           .attr('height', height + margin.top + margin.bottom)
@@ -197,14 +199,9 @@ define (require) ->
             .data((d) -> d.values)
           .enter().append('rect')
             .attr('x', (d) -> x d.time)
-            .attr('y', (d) ->
-              if d.value > 0
-                y(0) - y d.value
-              else
-                y 0
-            )
+            .attr('y', (d) -> if d.value > 0 then y d.value else zero)
             .attr('width', 1)
-            .attr('height', (d) -> if d.value > 0 then y d.value else y(d.value) - y(0))
+            .attr('height', (d) -> Math.abs zero - y d.value)
 
       legend = d3.select(container).append('ul')
           .attr('class', 'legend')
