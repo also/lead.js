@@ -13,6 +13,18 @@ define (require) ->
   require ['notebook'], (nb) ->
     notebook = nb
 
+  create_editor = (target) ->
+    cm = CodeMirror target,
+      value: ''
+      mode: 'coffeescript'
+      keyMap: 'lead'
+      tabSize: 2
+      viewportMargin: Infinity
+      gutters: ['error']
+
+    cm.setCursor(line: cm.lineCount() - 1)
+    cm
+
   as_event_stream = (cm, event_name, event_transformer) ->
     Bacon.fromBinder (handler) ->
       cm.on event_name, handler
@@ -182,4 +194,4 @@ define (require) ->
 
     fallthrough: ['default']
 
-  {commands, key_map, as_event_stream, add_error_mark}
+  {commands, key_map, as_event_stream, add_error_mark, create_editor}

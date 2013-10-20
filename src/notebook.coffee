@@ -194,15 +194,7 @@ define (require) ->
       $link.on 'click', ->
         run_after cell.output_cell ? cell, 'permalink'
 
-      editor = CodeMirror $code.get(0),
-        value: ''
-        mode: 'coffeescript'
-        keyMap: 'lead'
-        tabSize: 2
-        viewportMargin: Infinity
-        gutters: ['error']
-
-      editor.setCursor(line: editor.lineCount() - 1)
+      editor = ed.create_editor $code.get 0
 
       cell =
         type: 'input'
