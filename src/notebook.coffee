@@ -3,6 +3,7 @@ define (require) ->
   _ = require 'underscore'
   CoffeeScript = require 'coffee-script'
   URI = require 'URIjs'
+  Bacon = require 'baconjs'
   ed = require 'editor'
   http = require 'http'
   graphite = require 'graphite'
