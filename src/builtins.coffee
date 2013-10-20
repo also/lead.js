@@ -78,7 +78,11 @@ define (require) ->
 
     fn 'object', 'Prints an object as JSON', (o) ->
       $pre = $ '<pre>'
-      s = JSON.stringify(o, null, '  ') or new String o
+      try
+        s = JSON.stringify(o, null, '  ')
+      catch
+        s = null
+      s ||= new String o
       format_code s, 'json', $pre
       @add_rendered $pre
 
