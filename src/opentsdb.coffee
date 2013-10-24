@@ -11,8 +11,9 @@ define (require) ->
     to_metric_string: (time_series) ->
       if _.isString time_series
         time_series = metric_name: time_series
-      {aggregation, metric_name, downsample, tags} = time_series
+      {aggregation, metric_name, downsample, tags, rate} = time_series
       parts = [aggregation ? 'sum']
+      parts.push 'rate' if rate
       parts.push "#{downsample.period}-#{downsample.aggregation}" if downsample
       parts.push metric_name + '{' + _.map(tags, (tagv, tagk) -> "#{tagk}=#{tagv}").join(',') + '}'
       parts.join ':'
