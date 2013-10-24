@@ -10,6 +10,11 @@ NODE_MODULES = [
   'http'
   'graphite_parser'
   'builtins'
+  'notebook'
+  'editor'
+  'compat'
+  'graph'
+  'colors'
 ]
 
 module.exports = (grunt) ->
@@ -34,7 +39,7 @@ module.exports = (grunt) ->
             src: NODE_MODULES.map (m) -> "#{m}.*"
             dest: 'dist/nodejs/'
           },
-          {expand: true, cwd: 'lib', src: 'graphite_docs.js', dest: 'dist/nodejs/'}
+          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'dist/nodejs/'}
         ]
       parser:
         files: [src: 'src/graphite_parser.js', dest: 'build/graphite_parser.js']
