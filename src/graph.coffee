@@ -1,6 +1,7 @@
 define (require) ->
   colors = require 'colors'
   d3 = require 'd3'
+  _ = require 'underscore'
   moment = require 'moment'
   Q = require 'q'
   Bacon = require 'baconjs'
