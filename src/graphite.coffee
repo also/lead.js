@@ -148,6 +148,9 @@ define (require) ->
           Q.reject reason
         promise
 
+    fn 'get_data', 'Fetches Graphite metric data', (args...) ->
+      @value graphite.get_data graphite.args_to_params {args, default_options: @options()}
+
     context_vars: -> dsl.define_functions {}, function_names
 
     init: ->
