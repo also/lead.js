@@ -2,6 +2,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   CoffeeScript = require 'coffee-script'
+  CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
   Bacon = require 'baconjs'
   ed = require 'editor'
