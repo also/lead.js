@@ -74,13 +74,14 @@ define (require) ->
         output_number: 1
         $document: $document
         $file_picker: $file_picker
-        scrolls: $(window).asEventStream('scroll')
         cell_run: new Bacon.Bus
         cell_focused: new Bacon.Bus
 
-      scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil notebook.scrolls
-      scroll_to.onValue (output_cell) ->
-        $('html, body').scrollTop output_cell.$el.offset().top
+      unless is_nodejs?
+        scrolls = $(window).asEventStream 'scroll'
+        scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil scrolls
+        scroll_to.onValue (output_cell) ->
+          $('html, body').scrollTop output_cell.$el.offset().top
 
       context.create_base_context(opts).then (base_context) ->
         notebook.base_context = base_context
