@@ -65,7 +65,7 @@ func
   = first:[a-z_]i rest:[a-z0-9_]i* { return first + rest.join(''); }
 
 call
-  = name:func '(' args:args? ')' {
+  = name:func '(' _ args:args? _ ')' {
     var typeArgs = [null, name];
     if (args !== '') {
       typeArgs = typeArgs.concat(args);
