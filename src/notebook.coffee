@@ -96,7 +96,8 @@ define (require) ->
     import_notebook = (notebook, cell, imported, options) ->
       for imported_cell in imported.cells
         if imported_cell.type is 'input'
-          cell = add_input_cell notebook, code: imported_cell.value, after: cell
+          cell = add_input_cell notebook, after: cell
+          set_cell_value cell, imported_cell.value
           if options.run
             run cell
       notebook
@@ -167,16 +168,17 @@ define (require) ->
       unless cell? and is_clean cell
         cell = create_input_cell notebook
         insert_cell cell, opts
-      set_cell_value cell, opts.code if opts.code?
       cell
 
     # run an input cell above the current cell
     eval_coffeescript_before = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, code: code, before: current_cell
+      cell = add_input_cell current_cell.notebook, before: current_cell
+      set_cell_value cell, code
       run cell
 
     eval_coffeescript_after = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, code: code, after: current_cell
+      cell = add_input_cell current_cell.notebook, after: current_cell
+      set_cell_value cell, code
       run cell
 
     recompile = (error_marks, editor) ->
@@ -304,11 +306,13 @@ define (require) ->
         # TODO rename
         set_code: (code) ->
           # TODO coffeescript
-          cell = add_input_cell notebook, code: code, after: run_context.output_cell
+          cell = add_input_cell notebook, after: run_context.output_cell
+          set_cell_value cell, code
           focus_cell cell
         run: (code) ->
           # TODO coffeescript
-          cell = add_input_cell notebook, code: code, after: run_context.output_cell
+          cell = add_input_cell notebook, after: run_context.output_cell
+          set_cell_value cell, code
           run cell
         # TODO does it make sense to use output cells here?
         previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
@@ -324,7 +328,9 @@ define (require) ->
       if file.type.indexOf('image') < 0
         [prefix..., extension] = file.filename.split '.'
         if extension is 'coffee'
-          cell = add_input_cell run_context.notebook, code: file.content, after: run_context.output_cell
+          cell = add_input_cell run_context.notebook, after: run_context.output_cell
+          # TODO cell type
+          set_cell_value cell, file.content
           if options.run
             run cell
         else if extension is 'md'

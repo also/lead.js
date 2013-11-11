@@ -72,8 +72,9 @@ define (require) ->
         else
           intro_command = settings.get 'app', 'intro_command'
 
-        first_cell = notebook.add_input_cell nb, code: program
+        first_cell = notebook.add_input_cell nb
         if program? and program != ''
+          notebook.set_cell_value first_cell program
           notebook.run first_cell
         else
           notebook.focus_cell first_cell
