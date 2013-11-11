@@ -1,3 +1,3 @@
 define (require) ->
-  require 'settings'
+  settings = require 'settings'
   console.warn 'using default configuration'
