@@ -254,7 +254,11 @@ define (require) ->
       input_cell.output_cell = output_cell
 
       run_context = context.create_run_context [input_cell.context, create_notebook_run_context input_cell]
+      run_into_output_cell string, run_context, output_cell
+      input_cell.notebook.cell_run.push input_cell
+      output_cell
 
+    run_into_output_cell = (string, run_context, output_cell) ->
       has_pending = run_context.pending.map (n) -> n > 0
       # FIXME not sure why this is necessary; seems like a bug in Bacon
       # without it, the skipWhile seems to be ignored
@@ -266,11 +270,7 @@ define (require) ->
 
       context.eval_coffeescript_in_context run_context, string
 
-      input_cell.notebook.cell_run.push input_cell
-
       output_cell.$el.append context.render run_context
-
-      output_cell
 
     create_input_context = (notebook) ->
       context.create_context notebook.base_context
