@@ -157,6 +157,7 @@ define (require) ->
 
       cell.rendered()
 
+    # TODO cell type
     add_input_cell = (notebook, opts={}) ->
       if opts.reuse
         if opts.after?
@@ -170,11 +171,11 @@ define (require) ->
       cell
 
     # run an input cell above the current cell
-    run_before = (current_cell, code) ->
+    eval_coffeescript_before = (current_cell, code) ->
       cell = add_input_cell current_cell.notebook, code: code, before: current_cell
       run cell
 
-    run_after = (current_cell, code) ->
+    eval_coffeescript_after = (current_cell, code) ->
       cell = add_input_cell current_cell.notebook, code: code, after: current_cell
       run cell
 
@@ -194,7 +195,7 @@ define (require) ->
       $el.append $link
       $el.append $code
       $link.on 'click', ->
-        run_after cell.output_cell ? cell, 'permalink'
+        eval_coffeescript_after cell.output_cell ? cell, 'permalink'
 
       editor = ed.create_editor $code.get 0
 
@@ -253,6 +254,7 @@ define (require) ->
       input_cell.$el.attr 'data-cell-number', input_cell.number
       input_cell.output_cell = output_cell
 
+      # TODO cell type
       run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
       eval_coffeescript_into_output_cell run_context, string
       input_cell.notebook.cell_run.push input_cell
@@ -299,10 +301,13 @@ define (require) ->
       notebook = cell.notebook
       run_context =
         notebook: notebook
+        # TODO rename
         set_code: (code) ->
+          # TODO coffeescript
           cell = add_input_cell notebook, code: code, after: run_context.output_cell
           focus_cell cell
         run: (code) ->
+          # TODO coffeescript
           cell = add_input_cell notebook, code: code, after: run_context.output_cell
           run cell
         # TODO does it make sense to use output cells here?
@@ -374,13 +379,13 @@ define (require) ->
       handle_file: handle_file
 
       save: (cell) ->
-        run_before cell, 'save'
+        eval_coffeescript_before cell, 'save'
 
       context_help: (cell, token) ->
         if graphite.has_docs token
-          run_before cell, "docs '#{token}'"
+          eval_coffeescript_before cell, "docs '#{token}'"
         else if cell.context.imported_context_fns[token]?
-          run_before cell, "help #{token}"
+          eval_coffeescript_before cell, "help #{token}"
 
       move_focus: (cell, offset) ->
         new_cell = input_cell_at_offset cell, offset
