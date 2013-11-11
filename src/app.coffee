@@ -56,10 +56,12 @@ define (require) ->
         repo = settings.get 'app', 'paths', repo_name
         if repo?
           url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
-          program = "github.load #{JSON.stringify url}, run: true"
+          program = ->
+            @github.load url, run: true
         else
-          program = "gist #{JSON.stringify path}, run: true"
-        notebook.eval_coffeescript_without_input_cell nb, program
+          program = ->
+            @github.gist path, run: true
+        notebook.run_without_input_cell nb, program
 
         first_cell = notebook.add_input_cell nb
         notebook.focus_cell first_cell
