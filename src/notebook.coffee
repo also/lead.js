@@ -253,7 +253,7 @@ define (require) ->
       input_cell.$el.attr 'data-cell-number', input_cell.number
       input_cell.output_cell = output_cell
 
-      run_context = context.create_run_context [input_cell.context, create_notebook_run_context input_cell]
+      run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
       run_into_output_cell string, run_context, output_cell
       input_cell.notebook.cell_run.push input_cell
       output_cell
@@ -274,29 +274,26 @@ define (require) ->
 
     run_without_input_cell = (notebook, string) ->
       output_cell = create_output_cell notebook
-      # TODO create_notebook_run_context
-      run_context = context.create_run_context [create_input_context(notebook)]
+      run_context = context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
       insert_cell output_cell
       run_into_output_cell string, run_context, output_cell
 
     create_input_context = (notebook) ->
       context.create_context notebook.base_context
 
-    create_notebook_run_context = (input_cell) ->
-      notebook = input_cell.notebook
+    create_notebook_run_context = (cell) ->
+      notebook = cell.notebook
       run_context =
         notebook: notebook
-        input_cell: input_cell
-        # TODO this seems like a weird way to get the output cell
-        output_cell: input_cell.output_cell
         set_code: (code) ->
           cell = add_input_cell notebook, code: code, after: run_context.output_cell
           focus_cell cell
         run: (code) ->
           cell = add_input_cell notebook, code: code, after: run_context.output_cell
           run cell
-        previously_run: -> input_cell_at_offset(input_cell, -1).editor.getValue()
-        export_notebook: -> export_notebook input_cell
+        # TODO does it make sense to use output cells here?
+        previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
+        export_notebook: -> export_notebook cell
         get_input_value: (number) ->
           get_input_cell_by_number(notebook, number)?.editor.getValue()
 
