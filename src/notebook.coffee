@@ -254,11 +254,12 @@ define (require) ->
       input_cell.output_cell = output_cell
 
       run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
-      run_into_output_cell string, run_context, output_cell
+      eval_coffeescript_into_output_cell run_context, string
       input_cell.notebook.cell_run.push input_cell
       output_cell
 
-    run_into_output_cell = (string, run_context, output_cell) ->
+    eval_coffeescript_into_output_cell = (run_context, string) ->
+      output_cell = run_context.output_cell
       has_pending = run_context.pending.map (n) -> n > 0
       # FIXME not sure why this is necessary; seems like a bug in Bacon
       # without it, the skipWhile seems to be ignored
@@ -272,11 +273,15 @@ define (require) ->
 
       output_cell.$el.append context.render run_context
 
-    run_without_input_cell = (notebook, string) ->
+    create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook
       run_context = context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
       insert_cell output_cell
-      run_into_output_cell string, run_context, output_cell
+      run_context
+
+    eval_coffeescript_without_input_cell = (notebook, string) ->
+      run_context = create_bare_output_cell_and_context notebook
+      eval_coffeescript_into_output_cell run_context, string
 
     create_input_context = (notebook) ->
       context.create_context notebook.base_context
@@ -348,7 +353,7 @@ define (require) ->
       add_input_cell
       remove_cell
       focus_cell
-      run_without_input_cell
+      eval_coffeescript_without_input_cell
 
       run: (cell, opts={advance: true}) ->
         output_cell = run cell

@@ -44,7 +44,7 @@ define (require) ->
       $document.append nb.$document
       rc = localStorage.lead_rc
       if rc?
-        notebook.run_without_input_cell nb, rc
+        notebook.eval_coffeescript_without_input_cell nb, rc
 
       window.onhashchange = -> window.location.reload()
 
@@ -59,7 +59,7 @@ define (require) ->
           program = "github.load #{JSON.stringify url}, run: true"
         else
           program = "gist #{JSON.stringify path}, run: true"
-        notebook.run_without_input_cell nb, program
+        notebook.eval_coffeescript_without_input_cell nb, program
 
         first_cell = notebook.add_input_cell nb
         notebook.focus_cell first_cell
