@@ -272,6 +272,13 @@ define (require) ->
 
       output_cell.$el.append context.render run_context
 
+    run_without_input_cell = (notebook, string) ->
+      output_cell = create_output_cell notebook
+      # TODO create_notebook_run_context
+      run_context = context.create_run_context [create_input_context(notebook)]
+      insert_cell output_cell
+      run_into_output_cell string, run_context, output_cell
+
     create_input_context = (notebook) ->
       context.create_context notebook.base_context
 
@@ -344,6 +351,7 @@ define (require) ->
       add_input_cell
       remove_cell
       focus_cell
+      run_without_input_cell
 
       run: (cell, opts={advance: true}) ->
         output_cell = run cell

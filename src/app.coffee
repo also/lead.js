@@ -44,9 +44,7 @@ define (require) ->
       $document.append nb.$document
       rc = localStorage.lead_rc
       if rc?
-        rc_cell = notebook.add_input_cell nb, code: rc
-        notebook.run rc_cell
-        notebook.remove_cell rc_cell
+        notebook.run_without_input_cell nb, rc
 
       window.onhashchange = -> window.location.reload()
 
@@ -58,17 +56,22 @@ define (require) ->
         repo = settings.get 'app', 'paths', repo_name
         if repo?
           url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
-          program = "github.load #{JSON.stringify url}, run: true; quiet"
+          program = "github.load #{JSON.stringify url}, run: true"
         else
-          program = "gist #{JSON.stringify path}, run: true; quiet"
+          program = "gist #{JSON.stringify path}, run: true"
+        notebook.run_without_input_cell nb, program
+
+        first_cell = notebook.add_input_cell nb
+        notebook.focus_cell first_cell
+
       else
         program = if location.search isnt ''
           atob decodeURIComponent location.search[1..]
         else
           intro_command = settings.get 'app', 'intro_command'
 
-      first_cell = notebook.add_input_cell nb, code: program
-      if program? and program != ''
-        notebook.run first_cell
-      else
-        notebook.focus_cell first_cell
+        first_cell = notebook.add_input_cell nb, code: program
+        if program? and program != ''
+          notebook.run first_cell
+        else
+          notebook.focus_cell first_cell
