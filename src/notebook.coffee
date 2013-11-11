@@ -327,6 +327,9 @@ define (require) ->
           cell = add_input_cell run_context.notebook, code: file.content, after: run_context.output_cell
           if options.run
             run cell
+        else if extension is 'md'
+          run_without_input_cell run_context.notebook, ->
+            @md file.content
         else
           try
             imported = JSON.parse file.content
