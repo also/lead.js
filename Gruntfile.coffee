@@ -93,7 +93,13 @@ module.exports = (grunt) ->
           tunnelTimeout: 5
           build: process.env.TRAVIS_JOB_ID
           concurrency: 3
-          browsers: [{browserName: "chrome", version: "28", platform: "OS X 10.6"}]
+          browsers: [
+            {browserName: "chrome", version: "28", platform: "OS X 10.6"}
+            {browserName: "ipad", version: "6.1", 'device-orientation': 'portrait', platform: 'OS X 10.8'}
+            {browserName: 'internet explorer', version: '11', platform: 'Windows 8.1'}
+            {browserName: 'chrome', version: '31', platform: 'Windows 8.1'}
+            {browserName: 'firefox', version: '25', platform: 'Linux'}
+          ]
           testname: "mocha tests"
           tags: ["master"]
 
