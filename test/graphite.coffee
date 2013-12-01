@@ -49,5 +49,5 @@ define (require) ->
     it "doesn't accept a single object", ->
       expect(-> graphite.args_to_params args: [{}]).to.throwException()
 
-    xit "doesn't accept a single array", ->
-      expect(-> graphite.args_to_params args: [[]]).to.throwException()
+    #xit "doesn't accept a single array", ->
+      #expect(-> graphite.args_to_params args: [[]]).to.throwException()
