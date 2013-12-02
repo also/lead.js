@@ -1,6 +1,6 @@
 # lead.js Quick Start
 
-**tl;dr** type CoffeeScript in the box, run it with `Shift + Enter`.
+**tl;dr** type CoffeeScript in the box, run it with `Shift + Enter`. Use `Ctrl + Space` to suggest function names, options, and metric names.
 
 ## Graphing
 
@@ -28,6 +28,16 @@ Which is obviously not valid CoffeeScript. We can't just use strings, like `sumS
 sumSeries(q('twitter.*.tweetcount'))
 ```
 
+## Autocompletion
+
+lead.js can suggest functions, metrics names and options using `Ctrl + Space`.
+
+![Suggest Function](autocomplete-function.png)
+
+![Suggest Option](autocomplete-option.png)
+
+Inside a string, this will suggest metric names. Elsewhere, it will suggest available functions and options.
+
 ## Sharing Your Work
 
 Next to any input cell, there's a "link" link. Clicking it will generate a link that runs the command in the cell. For our `randomWalkFunction` graph, the link would look like http://example.com/lead/?Z3JhcGggJ3JhbmRvbVdhbGtGdW5jdGlvbigiaGVsbG8td29ybGQiKSc%3D. You can sare this link with anyone who has access to your lead.js.
@@ -39,6 +49,6 @@ The most important bindings are:
 * `Shift + Enter`: Execute the current cell and create a new one underneath
 * `Ctrl + Enter`: Execute the current cell and keep the cursor there
 * `F1`: Show help for the command under the cursor
-* `Ctrl + Space`: Suggest a function or metric. Inside a string, this will suggest metric names. Elsewhere, it will suggest available functions.
+* `Ctrl + Space`: Suggest a function or metric. 
 
 Get a list of all key bindings using the `keys` command.
