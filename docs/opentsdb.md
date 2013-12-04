@@ -1,16 +1,20 @@
 # OpenTSDB
 
 ```coffeescript
-{time_series, start, end, aggregation, group}
+{start, end, aggregation, group, time_series}
 ```
 
-## `time_series`
+**`start`**, **`end`**: see [OpenTSDB Dates and Times](http://opentsdb.net/docs/build/html/user_guide/query/dates.html).
+
+**`time_series`**: a array of string (see [OpenTSDB Metric Query String Format](http://opentsdb.net/docs/build/html/api_http/query/index.html#metric-query-string-format)), or
 
 ```coffeescript
-{aggregation, metric_name, downsample, tags, rate}
+{metric_name, aggregation, downsample, tags, rate}
 ```
 
-## `downsample`
+**`aggregation`**: the name of an aggregation function to use. See [OpenTSDB Available Aggregators](http://opentsdb.net/docs/build/html/user_guide/query/aggregators.html#available-aggregators).
+
+**`downsample`**:
 
 ```coffeescript
 {period, aggregation}
