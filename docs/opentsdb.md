@@ -4,7 +4,9 @@
 {start, end, aggregation, group, time_series}
 ```
 
-**`start`**, **`end`**: see [OpenTSDB Dates and Times](http://opentsdb.net/docs/build/html/user_guide/query/dates.html).
+**`start`**:
+
+**`end`**: see [OpenTSDB Dates and Times](http://opentsdb.net/docs/build/html/user_guide/query/dates.html).
 
 **`time_series`**: a array of string (see [OpenTSDB Metric Query String Format](http://opentsdb.net/docs/build/html/api_http/query/index.html#metric-query-string-format)), or
 
