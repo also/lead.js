@@ -8,7 +8,7 @@
 
 **`end`**: see [OpenTSDB Dates and Times](http://opentsdb.net/docs/build/html/user_guide/query/dates.html).
 
-**`time_series`**: a array of string (see [OpenTSDB Metric Query String Format](http://opentsdb.net/docs/build/html/api_http/query/index.html#metric-query-string-format)), or
+**`time_series`**: an array of strings (see [OpenTSDB Metric Query String Format](http://opentsdb.net/docs/build/html/api_http/query/index.html#metric-query-string-format)), or
 
 ```coffeescript
 {metric_name, aggregation, downsample, tags, rate}
@@ -20,4 +20,20 @@
 
 ```coffeescript
 {period, aggregation}
+```
+
+## Examples
+
+```coffeescript
+graph tsd
+  start: '2d-ago'
+  end: '1d-ago'
+  time_series: [
+    'sys.cpu.user',
+    {
+      metric_name: 'sys.cpu.user', 
+      tags: {host: 'webserver01'}
+      downsample: {period: '10m', aggregation: 'max'}
+    }
+  ]`
 ```
