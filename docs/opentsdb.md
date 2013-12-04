@@ -35,5 +35,5 @@ graph tsd
       tags: {host: 'webserver01'}
       downsample: {period: '10m', aggregation: 'max'}
     }
-  ]`
+  ]
 ```
