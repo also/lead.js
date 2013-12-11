@@ -22,7 +22,7 @@ There's one important difference between the Graphite target language and Coffee
 sumSeries(twitter.*.tweetcount)
 ```
 
-Which is obviously not valid CoffeeScript. We can't just use strings, like `sumSeries("twitter.*.tweetcount")`, or Graphite won't interpert them as metrics. Instead, lead.js provides the `q` function to indicate a Graphite metric name. You use it like this:
+Which is obviously not valid CoffeeScript. We can't just use strings, like `sumSeries("twitter.*.tweetcount")`, or Graphite won't interpret them as metrics. Instead, lead.js provides the `q` function to indicate a Graphite metric name. You use it like this:
 
 ```coffeescript
 sumSeries(q('twitter.*.tweetcount'))
