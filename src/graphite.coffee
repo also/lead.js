@@ -215,7 +215,7 @@ define (require) ->
 
     transform_response: (response) ->
       if settings.get('type') == 'lead'
-        _.map response.results, ({name, start, step, values}) ->
+        _.map response, ({name, start, step, values}) ->
           target: name
           datapoints: _.map values, (v, i) ->
             [v, start + step * i]
@@ -232,7 +232,7 @@ define (require) ->
 
     # returns a promise
     complete: (query) ->
-      graphite.find(query)
+      graphite.find(query + '*')
       .then ({query, result}) ->
         graphite.parse_find_response query, result
 
