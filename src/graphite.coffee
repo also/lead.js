@@ -214,8 +214,7 @@ define (require) ->
       _.uniq patterned_list.concat(list)
 
     transform_response: (response) ->
-      if response.format == 'dense'
-        # this is actually a lead response
+      if settings.get('type') == 'lead'
         _.map response.results, ({name, start, step, values}) ->
           target: name
           datapoints: _.map values, (v, i) ->
@@ -238,13 +237,18 @@ define (require) ->
         graphite.parse_find_response query, result
 
     find: (query) ->
-      params =
-        query: encodeURIComponent query
-        format: 'completer'
-      http.get(graphite.url 'metrics/find', params)
-      .then (response) ->
-        result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
-        {query, result}
+      if settings.get('type') == 'lead'
+        http.get(graphite.url 'find', query: encodeURIComponent query).then (response) ->
+          result = _.map response, (m) -> {path: m.name, name: m.name, is_leaf: m['is-leaf']}
+          {query, result}
+      else
+        params =
+          query: encodeURIComponent query
+          format: 'completer'
+        http.get(graphite.url 'metrics/find', params)
+        .then (response) ->
+          result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
+          {query, result}
 
     suggest_keys: (s) ->
       _.filter _.keys(docs.parameter_docs), (k) -> k.indexOf(s) is 0
