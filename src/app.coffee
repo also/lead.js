@@ -74,7 +74,7 @@ define (require) ->
 
         first_cell = notebook.add_input_cell nb
         if program? and program != ''
-          notebook.set_cell_value first_cell program
+          notebook.set_cell_value first_cell, program
           notebook.run first_cell
         else
           notebook.focus_cell first_cell

@@ -378,6 +378,7 @@ define (require) ->
       focus_cell
       eval_coffeescript_without_input_cell
       run_without_input_cell
+      set_cell_value
 
       run: (cell, opts={advance: true}) ->
         output_cell = run cell
