@@ -213,12 +213,23 @@ define (require) ->
         result.join '.'
       _.uniq patterned_list.concat(list)
 
+    transform_response: (response) ->
+      if response.format == 'dense'
+        # this is actually a lead response
+        _.map response.results, ({name, start, step, values}) ->
+          target: name
+          datapoints: _.map values, (v, i) ->
+            [v, start + step * i]
+      else
+        transform_response
+
+
     # returns a promise
     get_data: (params) ->
       params.format = 'json'
       deferred = http.get graphite.render_url params
 
-      deferred.then null, (response) -> Q.reject graphite.parse_error_response response
+      deferred.then graphite.transform_response, (response) -> Q.reject graphite.parse_error_response response
 
     # returns a promise
     complete: (query) ->
