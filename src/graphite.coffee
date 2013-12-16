@@ -220,7 +220,7 @@ define (require) ->
           datapoints: _.map values, (v, i) ->
             [v, start + step * i]
       else
-        transform_response
+        response
 
 
     # returns a promise
