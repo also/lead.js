@@ -201,11 +201,11 @@ define (require) ->
       msg ? 'Unknown error'
 
     parse_find_response: (query, response) ->
-      parts = query.split('.')
-      pattern_parts = parts.map(graphite.is_pattern)
+      parts = query.split '.'
+      pattern_parts = parts.map graphite.is_pattern
       list = (node.path for node in response)
       patterned_list = for path in list
-        result = for matched, i in path.split('.')
+        result = for matched, i in path.split '.'
           if pattern_parts[i]
             parts[i]
           else
@@ -233,7 +233,10 @@ define (require) ->
     # returns a promise
     complete: (query) ->
       graphite.find(query + '*')
-      .then ({query, result}) ->
+      .then ({result}) ->
+        if settings.get('type') == 'lead'
+          for n in result
+            n.path += '.' unless n.is_leaf
         graphite.parse_find_response query, result
 
     find: (query) ->
