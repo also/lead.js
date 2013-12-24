@@ -97,7 +97,8 @@ define (require) ->
   immediate_renderable_list_builder = ($item) ->
     add_renderable: (renderable) ->
       $item.append render renderable
-
+    empty: ->
+      $item.empty()
     _lead_render: -> $item
 
   delayed_then_immediate_renderable_list_builder = ($item) ->
@@ -108,6 +109,9 @@ define (require) ->
         $item.append render renderable
       else
         renderables.push renderable
+    empty: ->
+      renderables.length = 0
+      $item.empty()
     _lead_render: ->
       unless rendered
         rendered = true
@@ -122,6 +126,10 @@ define (require) ->
       if rendered
         throw new Error 'already rendered'
       renderables.push renderable
+    empty: ->
+      if rendered
+        throw new Error 'already rendered'
+      renderables.length = 0
     _lead_render: ->
       rendered = true
       children = _.map renderables, (i) -> i._lead_render()
@@ -190,9 +198,12 @@ define (require) ->
       add_rendered: (rendered) ->
         @add_rendering -> rendered
 
+      # adds a function that can render
       add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
 
       render: (o) -> o._lead_render()
+
+      empty: -> @renderable_list_builder.empty()
 
       div: (contents) ->
         $div = $('<div/>')
