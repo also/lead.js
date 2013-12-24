@@ -23,7 +23,7 @@ define (require) ->
       it 'can output', ->
         run_context = context.create_run_context []
         html = 'hello, world'
-        run_context.output html
+        run_context.div html
         $el = context.render run_context
         expect($el.text()).to.be html
 
@@ -130,7 +130,7 @@ define (require) ->
         context_a = context.create_run_context [ctx]
         context.eval_in_context context_a,->
           text 'a'
-          @nested 'nest', ->
+          @div ->
             text 'b'
         $el = context.render context_a
         expect($el.text()).to.be 'ab'
