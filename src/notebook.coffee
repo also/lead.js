@@ -13,7 +13,7 @@ define (require) ->
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
-      @output save @input_cell
+      @div save @input_cell
 
     cmd 'load', 'Loads a script from a URL', (url, options={}) ->
       if arguments.length is 0

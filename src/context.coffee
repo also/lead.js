@@ -204,13 +204,7 @@ define (require) ->
         @add_rendered $div
         $div
 
-      output: (output) ->
-        $item = $ '<div class="item"/>'
-        if output?
-          $item.append output
-        @add_rendered $item
-        $item
-
+      # makes o renderable using the given function or renderable
       renderable: (o, fn) ->
         if fn._lead_render?
           o._lead_render = fn._lead_render
@@ -219,10 +213,6 @@ define (require) ->
             renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
           o._lead_render = -> nested_context.apply_to fn
         o
-
-      nested: (className, fn, args...) ->
-        $item = $ "<div class='#{className}'/>"
-        @nested_item $item, fn, args...
 
       create_nested_renderable_context: ($item) ->
         renderable = delayed_then_immediate_renderable_list_builder $item
@@ -238,6 +228,7 @@ define (require) ->
         nested_context.apply_to fn, args
         nested_context.renderable_list_builder
 
+      # creates a nested context, adds it to the renderable list, and applies the function to it
       nested_item: ($item, fn, args...) ->
         nested_context = @create_nested_renderable_context $item
         @add_renderable nested_context.renderable_list_builder

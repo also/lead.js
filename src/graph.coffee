@@ -9,16 +9,16 @@ define (require) ->
 
   graph = modules.create 'graph', ({fn, cmd, settings}) ->
     fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
-      @nested 'graph', ->
-        $result = @div()
-        data = Bacon.fromPromise data if Q.isPromise data
-        stream = Bacon.combineTemplate {data, params}
-        stream.onValue ({data, params}) =>
-          $result.empty()
-          graph.draw $result.get(0), data, params
-        # TODO seems like the combined stream doesn't error?
-        stream.onError (error) =>
-          @error error
+      $result = @div()
+      $result.addClass 'graph'
+      data = Bacon.fromPromise data if Q.isPromise data
+      stream = Bacon.combineTemplate {data, params}
+      stream.onValue ({data, params}) =>
+        $result.empty()
+        graph.draw $result.get(0), data, params
+      # TODO seems like the combined stream doesn't error?
+      stream.onError (error) =>
+        @error error
 
     draw: (container, data, params) ->
       width = params.width or 800
