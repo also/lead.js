@@ -94,7 +94,8 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
-  delayed_then_immediate_renderable_list_builder = ($item) ->
+  delayed_then_immediate_renderable_list_builder = ->
+    $item = $ '<div/>'
     renderables = []
     rendered = false
     add_renderable: (renderable) ->
@@ -127,7 +128,7 @@ define (require) ->
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      renderable_list_builder: delayed_then_immediate_renderable_list_builder $ '<div/>'
+      renderable_list_builder: delayed_then_immediate_renderable_list_builder()
       _lead_render: ->
         result = @renderable_list_builder._lead_render()
         @changes.push true
@@ -202,8 +203,7 @@ define (require) ->
         o
 
       create_nested_renderable_context: ($item) ->
-        $item = $ "<div/>"
-        renderable = delayed_then_immediate_renderable_list_builder $item
+        renderable = delayed_then_immediate_renderable_list_builder()
         @create_nested_context
           renderable_list_builder: renderable
 
@@ -220,12 +220,6 @@ define (require) ->
         nested_context = @create_nested_renderable_context()
         @add_renderable nested_context.renderable_list_builder
         nested_context.apply_to fn, args
-
-      handle_exception: (e, compiled) ->
-        console.error e.stack
-        @error printStackTrace({e}).join('\n')
-        @text 'Compiled JavaScript:'
-        @source 'javascript', compiled
 
       display_object: (object) ->
         for handler in result_handlers
@@ -293,7 +287,11 @@ define (require) ->
       if e instanceof SyntaxError
         run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
-        run_context.handle_exception e, compiled
+        console.error e.stack
+        run_context.error printStackTrace({e}).join('\n')
+        run_context.text 'Compiled JavaScript:'
+        run_context.source 'javascript', compiled
+
 
   eval_in_context = (run_context, string) ->
     if _.isFunction string
