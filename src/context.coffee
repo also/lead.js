@@ -209,7 +209,7 @@ define (require) ->
         $div = $('<div/>')
         if contents?
           if _.isFunction contents
-            return @nested_item $div, contents
+            return @nested_item contents
           else
             $div.append contents
         @add_rendered $div
@@ -226,6 +226,7 @@ define (require) ->
         o
 
       create_nested_renderable_context: ($item) ->
+        $item = $ "<div/>"
         renderable = delayed_then_immediate_renderable_list_builder $item
         @create_nested_context
           renderable_list_builder: renderable
@@ -234,14 +235,13 @@ define (require) ->
         nested_context = _.extend create_new_run_context(@), overrides
 
       detached:  (fn, args) ->
-        $item = $ "<div/>"
-        nested_context = @create_nested_renderable_context $item
+        nested_context = @create_nested_renderable_context()
         nested_context.apply_to fn, args
         nested_context.renderable_list_builder
 
       # creates a nested context, adds it to the renderable list, and applies the function to it
-      nested_item: ($item, fn, args...) ->
-        nested_context = @create_nested_renderable_context $item
+      nested_item: (fn, args...) ->
+        nested_context = @create_nested_renderable_context()
         @add_renderable nested_context.renderable_list_builder
         nested_context.apply_to fn, args
 
@@ -271,12 +271,8 @@ define (require) ->
           else
             "#{ms} ms"
 
-        renderable = immediate_renderable_list_builder $item
-        @add_renderable renderable
-        nested_context = @create_nested_context
-          renderable_list_builder: renderable
+        promise = @nested_item fn
 
-        promise = nested_context.apply_to fn
         asyncs.push 1
         promise.finally =>
           asyncs.push -1
