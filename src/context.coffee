@@ -4,6 +4,7 @@ define (require) ->
   CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
   Bacon = require 'baconjs'
+  React = require 'react'
   modules = require 'modules'
 
   ignore = new Object
@@ -94,6 +95,9 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
+  render = (o) ->
+    o._lead_render()
+
   delayed_then_immediate_renderable_list_builder = ->
     $item = $ '<div/>'
     renderables = []
@@ -109,7 +113,7 @@ define (require) ->
     _lead_render: ->
       unless rendered
         rendered = true
-        children = _.map renderables, (i) -> i._lead_render()
+        children = _.map renderables, render
         $item.append children
       $item
 
@@ -130,7 +134,7 @@ define (require) ->
       current_options: {}
       renderable_list_builder: delayed_then_immediate_renderable_list_builder()
       _lead_render: ->
-        result = @renderable_list_builder._lead_render()
+        result = render @renderable_list_builder
         @changes.push true
         result
 
@@ -172,13 +176,19 @@ define (require) ->
         @renderable_list_builder.add_renderable renderable
         ignore
 
+      add_component: (component) ->
+        @add_rendering ->
+          wrapper = document.createElement 'div'
+          React.renderComponent component, wrapper
+          wrapper
+
       add_rendered: (rendered) ->
         @add_rendering -> rendered
 
       # adds a function that can render
       add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
 
-      render: (o) -> o._lead_render()
+      render: render
 
       empty: -> @renderable_list_builder.empty()
 
@@ -311,9 +321,6 @@ define (require) ->
       run_context.display_object result
     finally
       running_context_binding = previous_running_context_binding
-
-  render = (o) ->
-    o._lead_render()
 
   {
     create_base_context,

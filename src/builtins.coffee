@@ -7,16 +7,18 @@ define (require) ->
   marked = require 'marked'
   modules = require 'modules'
   http = require 'http'
+  React = require 'react'
 
   format_code = (code, language, target) ->
+    target = target.get(0) if target.get?
     if CodeMirror.runMode?
       if language == 'json'
         opts = name: 'javascript', json: true
       else
         opts = name: language
-      CodeMirror.runMode code, opts, target.get(0)
+      CodeMirror.runMode code, opts, target
     else
-      target.text code
+      target.textContent = code
 
   help = (fns) ->
     documented_fns = (name for name, c of fns when c?.doc?)
@@ -77,62 +79,69 @@ define (require) ->
       @value @get_input_value n
 
     fn 'object', 'Prints an object as JSON', (o) ->
-      $pre = $ '<pre>'
       try
         s = JSON.stringify(o, null, '  ')
       catch
         s = null
       s ||= new String o
-      format_code s, 'json', $pre
-      @add_rendered $pre
+      @add_component source value: s, language: 'json'
 
     fn 'md', 'Renders Markdown', (string) ->
       $html = $ '<div class="user-html"/>'
       $html.html marked string
       @add_rendered $html
 
+    text = React.createClass
+      render: -> React.DOM.p {}, @props.value
+
+    pre = React.createClass
+      render: -> React.DOM.pre {}, @props.value
+
+    html = React.createClass
+      render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
+
     fn 'text', 'Prints text', (string) ->
-      $pre = $ '<p>'
-      $pre.text string
-      @add_rendered $pre
+      @add_component text value: string
 
     fn 'pre', 'Prints preformatted text', (string) ->
-      $pre = $ '<pre>'
-      $pre.text string
-      @add_rendered $pre
+      @add_component pre value: string
 
-    fn 'html', 'Adds some HTML', (html) ->
-      $html = $ '<div class="user-html"/>'
-      $html.html html
-      @add_rendered $html
+    fn 'html', 'Adds some HTML', (string) ->
+      @add_component html value: string
 
     fn 'error', 'Shows a preformatted error message', (message) ->
       $pre = $ '<pre class="error"/>'
       $pre.text message
       @add_rendered $pre
 
-    fn 'example', 'Makes a clickable code example', (string, opts) ->
-      @add_rendering ->
-        $pre = $ '<pre class="example">'
-        format_code string, 'coffeescript', $pre
-        $pre.on 'click', =>
-          if opts?.run ? true
-            @run string
-          else
-            @set_code string
-        $pre
+    example = React.createClass
+      render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo source()
+      on_click: ->
+        if @props.run
+          @props.ctx.run @props.value
+        else
+          @props.ctx.set_code @props.value
 
-    fn 'source', 'Shows source code with syntax highlighting', (language, string) ->
-      $pre = $ '<pre>'
-      format_code string, language, $pre
-      @add_rendered $pre
+    fn 'example', 'Makes a clickable code example', (value, opts) ->
+      @add_component example {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
+
+    source = React.createClass
+      render: -> React.DOM.pre()
+      componentDidMount: (node) -> format_code @props.value, @props.language, node
+
+    fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
+      @add_component source {language, value}
 
     cmd 'intro', 'Shows the intro message', ->
-      @text "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
-      @example "browser '*'"
-      @text 'Look at'
-      @example 'docs'
-      @text 'to see what you can do with Graphite.'
+      ctx = @
+      @add_component React.createClass(
+        render: -> React.DOM.div {}, [
+          text value: "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+          example value: "browser '*'", ctx: ctx, run: true
+          text value: 'Look at'
+          example value: 'docs', ctx: ctx, run: true
+          text value: 'to see what you can do with Graphite.'
+        ])()
 
     fn 'options', 'Gets or sets options', (options) ->
       if options?
