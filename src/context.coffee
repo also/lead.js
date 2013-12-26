@@ -25,7 +25,7 @@ define (require) ->
         true
 
   handle_renderable = (object) ->
-    if object?._lead_render
+    if is_renderable object
       @add_renderable object
       true
 
@@ -95,27 +95,43 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
-  render = (o) ->
-    o._lead_render()
+  render = (renderable) ->
+    wrapper = document.createElement 'div'
+    component = component_for_renderable renderable
+    React.renderComponent component, wrapper
+    $ wrapper
 
-  delayed_then_immediate_renderable_list_builder = ->
-    $item = $ '<div/>'
-    renderables = []
-    rendered = false
-    add_renderable: (renderable) ->
-      if rendered
-        $item.append render renderable
-      else
-        renderables.push renderable
+  is_component = (o) -> o?._lifeCycleState?
+
+  is_renderable = (o) ->
+    o? and (is_component(o) or o._lead_render?)
+
+  renderable_component = React.createClass
+    render: -> React.DOM.div()
+    componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
+
+  component_list = React.createClass
+    getInitialState: -> components: @components
+    add_component: (c) ->
+      @components ?= []
+      @components.push c
+      @setState components: @components if @state
     empty: ->
-      renderables.length = 0
-      $item.empty()
-    _lead_render: ->
-      unless rendered
-        rendered = true
-        children = _.map renderables, render
-        $item.append children
-      $item
+      @components = []
+      @setState components: @components if @state
+    render: ->
+      React.DOM.div {}, @state.components
+
+  component_for_renderable = (renderable) ->
+    if is_component renderable
+      renderable
+    else if is_component renderable._lead_render
+      renderable._lead_render
+    # TODO remove context special case
+    else if renderable.renderable_list_builder?
+      renderable.renderable_list_builder
+    else
+      renderable_component {renderable}
 
   create_run_context = (extra_contexts) ->
     result_handlers =[
@@ -132,12 +148,7 @@ define (require) ->
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      renderable_list_builder: delayed_then_immediate_renderable_list_builder()
-      _lead_render: ->
-        result = render @renderable_list_builder
-        @changes.push true
-        result
-
+      renderable_list_builder: component_list()
       running_context: -> running_context_binding
 
       options: -> @current_options
@@ -173,19 +184,17 @@ define (require) ->
           restoring_context fn, arguments
 
       add_renderable: (renderable) ->
-        @renderable_list_builder.add_renderable renderable
+        @add_component component_for_renderable renderable
         ignore
 
       add_component: (component) ->
-        @add_rendering ->
-          wrapper = document.createElement 'div'
-          React.renderComponent component, wrapper
-          wrapper
+        @renderable_list_builder.add_component component
 
       add_rendered: (rendered) ->
         @add_rendering -> rendered
 
-      # adds a function that can render
+      # adds a function that can render.
+      # the function will be called in the current context.
       add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
 
       render: render
@@ -204,18 +213,20 @@ define (require) ->
 
       # makes o renderable using the given function or renderable
       renderable: (o, fn) ->
-        if fn._lead_render?
+        if is_component fn
+          o._lead_render = fn
+        else if fn._lead_render?
           o._lead_render = fn._lead_render
         else
           nested_context = @create_nested_context
-            renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
+            renderable_list_builder: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
           o._lead_render = -> nested_context.apply_to fn
         o
 
-      create_nested_renderable_context: ($item) ->
-        renderable = delayed_then_immediate_renderable_list_builder()
+      create_nested_renderable_context: ->
+        component = component_list()
         @create_nested_context
-          renderable_list_builder: renderable
+          renderable_list_builder: component
 
       create_nested_context: (overrides) ->
         nested_context = _.extend create_new_run_context(@), overrides
@@ -228,7 +239,7 @@ define (require) ->
       # creates a nested context, adds it to the renderable list, and applies the function to it
       nested_item: (fn, args...) ->
         nested_context = @create_nested_renderable_context()
-        @add_renderable nested_context.renderable_list_builder
+        @add_component nested_context.renderable_list_builder
         nested_context.apply_to fn, args
 
       display_object: (object) ->
@@ -330,7 +341,10 @@ define (require) ->
     run_in_context,
     eval_coffeescript_in_context,
     eval_in_context,
-    render,
+    render: (ctx) ->
+      result = render ctx
+      ctx.changes.push true
+      result
     scope,
     collect_extension_points
   }
