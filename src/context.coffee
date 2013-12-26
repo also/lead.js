@@ -191,11 +191,7 @@ define (require) ->
         @renderable_list_builder.add_component component
 
       add_rendered: (rendered) ->
-        @add_rendering -> rendered
-
-      # adds a function that can render.
-      # the function will be called in the current context.
-      add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
+        @add_renderable _lead_render: -> rendered
 
       render: render
 
