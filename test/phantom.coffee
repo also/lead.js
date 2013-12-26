@@ -9,6 +9,10 @@ page.onInitialized = ->
     window.mocha_callback = (failed) ->
       window.callPhantom failed
 
+page.onResourceError = (error) ->
+    console.log "tests failed to load: #{error.errorString}"
+    phantom.exit 3
+
 page.onCallback = (failed) ->
   if failed > 0
     console.log "#{failed} test(s) failed"
