@@ -38,6 +38,19 @@ define (require) ->
     @object object
     true
 
+  # TODO make this configurable
+  result_handlers =[
+    ignored,
+    handle_cmd,
+    handle_renderable,
+    handle_using_extension
+    handle_any_object
+  ]
+
+  display_object = (ctx, object) ->
+    for handler in result_handlers
+      return if handler.call ctx, object
+
 
   collect_extension_points = (context, extension_point) ->
     modules.collect_extension_points context.modules, extension_point
@@ -133,15 +146,18 @@ define (require) ->
     else
       renderable_component {renderable}
 
-  create_run_context = (extra_contexts) ->
-    result_handlers =[
-      ignored,
-      handle_cmd,
-      handle_renderable,
-      handle_using_extension
-      handle_any_object
-    ]
+  create_nested_renderable_context = (ctx) ->
+    component = component_list()
+    ctx.create_nested_context
+      renderable_list_builder: component
 
+  # creates a nested context, adds it to the renderable list, and applies the function to it
+  nested_item = (ctx, fn, args...) ->
+    nested_context = create_nested_renderable_context ctx
+    ctx.add_component nested_context.renderable_list_builder
+    nested_context.apply_to fn, args
+
+  create_run_context = (extra_contexts) ->
     asyncs = new Bacon.Bus
 
     run_context_prototype = _.extend {}, extra_contexts...,
@@ -201,7 +217,7 @@ define (require) ->
         $div = $('<div/>')
         if contents?
           if _.isFunction contents
-            return @nested_item contents
+            return nested_item @, contents
           else
             $div.append contents
         @add_rendered $div
@@ -219,28 +235,13 @@ define (require) ->
           o._lead_render = -> nested_context.apply_to fn
         o
 
-      create_nested_renderable_context: ->
-        component = component_list()
-        @create_nested_context
-          renderable_list_builder: component
-
       create_nested_context: (overrides) ->
         nested_context = _.extend create_new_run_context(@), overrides
 
       detached:  (fn, args) ->
-        nested_context = @create_nested_renderable_context()
+        nested_context = create_nested_renderable_context @
         nested_context.apply_to fn, args
         nested_context.renderable_list_builder
-
-      # creates a nested context, adds it to the renderable list, and applies the function to it
-      nested_item: (fn, args...) ->
-        nested_context = @create_nested_renderable_context()
-        @add_component nested_context.renderable_list_builder
-        nested_context.apply_to fn, args
-
-      display_object: (object) ->
-        for handler in result_handlers
-          return if handler.call @, object
 
       value: (value) -> _lead_context_fn_value: value
 
@@ -258,7 +259,7 @@ define (require) ->
           else
             "#{ms} ms"
 
-        promise = @nested_item fn
+        promise = nested_item @, fn
 
         asyncs.push 1
         promise.finally =>
@@ -325,7 +326,7 @@ define (require) ->
       previous_running_context_binding = running_context_binding
       running_context_binding = run_context
       result = fn.apply run_context
-      run_context.display_object result
+      display_object run_context, result
     finally
       running_context_binding = previous_running_context_binding
 
