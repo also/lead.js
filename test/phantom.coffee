@@ -5,13 +5,14 @@ page.onConsoleMessage = (msg) ->
 url = "http://localhost:8000/test/runner.html"
 page.open url
 page.onInitialized = ->
+  page.injectJs 'lib/es5-shim-v2.2.0.js'
   page.evaluate ->
     window.mocha_callback = (failed) ->
       window.callPhantom failed
 
 page.onResourceError = (error) ->
-    console.log "tests failed to load: #{error.errorString}"
-    phantom.exit 3
+  console.log "tests failed to load: #{error.errorString}"
+  phantom.exit 3
 
 page.onCallback = (failed) ->
   if failed > 0
