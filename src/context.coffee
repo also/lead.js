@@ -170,12 +170,12 @@ define (require) ->
       options: -> @current_options
 
       apply_to: (fn, args) ->
-        previous_context = scope_context.current_context
-        scope_context.current_context = @
+        previous_context = @scope_context.current_context
+        @scope_context.current_context = @
         try
           fn.apply @, args
         finally
-          scope_context.current_context = previous_context
+          @scope_context.current_context = previous_context
 
       in_running_context: (fn, args) ->
         throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
@@ -236,7 +236,7 @@ define (require) ->
         o
 
       create_nested_context: (overrides) ->
-        nested_context = _.extend create_new_run_context(@), overrides
+        nested_context = _.extend create_new_run_context(run_context_prototype, @), overrides
 
       detached:  (fn, args) ->
         nested_context = create_nested_renderable_context @
@@ -273,21 +273,23 @@ define (require) ->
 
     scope_context = {}
     run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
+    run_context_prototype.scope_context = scope_context
 
-    create_new_run_context = (parent) ->
-      new_context = Object.create parent
+    run_context = scope_context.current_context = create_new_run_context run_context_prototype, run_context_prototype
 
-      fns_and_vars = bind_context_fns new_context, new_context.context_fns
-      _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
-      _.extend fns_and_vars, fns_and_vars.builtins
-      _.each fns_and_vars, (mod, name) ->
-        if run_context_prototype[name]?
-          console.warn mod._lead_context_name, 'would overwrite core'
-        else
-          new_context[name] = mod
-      new_context.current_context = new_context
-      new_context
-    run_context = scope_context.current_context = create_new_run_context run_context_prototype
+  create_new_run_context = (run_context_prototype, parent) ->
+    new_context = Object.create parent
+
+    fns_and_vars = bind_context_fns new_context, new_context.context_fns
+    _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+    _.extend fns_and_vars, fns_and_vars.builtins
+    _.each fns_and_vars, (mod, name) ->
+      if run_context_prototype[name]?
+        console.warn mod._lead_context_name, 'would overwrite core'
+      else
+        new_context[name] = mod
+    new_context.current_context = new_context
+    new_context
 
   scope = (run_context) ->
     _.extend {}, run_context.fns, run_context.imported_vars
