@@ -109,10 +109,10 @@ define (require) ->
       imported_vars: imported_vars
 
   render = (renderable) ->
-    wrapper = document.createElement 'div'
+    $wrapper = $ '<div/>'
     component = component_for_renderable renderable
-    React.renderComponent component, wrapper
-    $ wrapper
+    React.renderComponent component, $wrapper.get 0
+    $wrapper
 
   is_component = (o) -> o?._lifeCycleState?
 
@@ -238,7 +238,7 @@ define (require) ->
       create_nested_context: (overrides) ->
         nested_context = _.extend create_new_run_context(run_context_prototype, @), overrides
 
-      detached:  (fn, args) ->
+      detached: (fn, args) ->
         nested_context = create_nested_renderable_context @
         nested_context.apply_to fn, args
         nested_context.renderable_list_builder
