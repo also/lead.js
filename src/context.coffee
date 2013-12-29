@@ -119,11 +119,11 @@ define (require) ->
   is_renderable = (o) ->
     o? and (is_component(o) or o._lead_render?)
 
-  renderable_component = React.createClass
+  RenderableComponent = React.createClass
     render: -> React.DOM.div()
     componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
 
-  component_list = React.createClass
+  ComponentList = React.createClass
     getInitialState: -> components: @components
     add_component: (c) ->
       @components ?= []
@@ -141,20 +141,20 @@ define (require) ->
     else if is_component renderable._lead_render
       renderable._lead_render
     # TODO remove context special case
-    else if renderable.renderable_list_builder?
-      renderable.renderable_list_builder
+    else if renderable.component_list?
+      renderable.component_list
     else
-      renderable_component {renderable}
+      RenderableComponent {renderable}
 
   create_nested_renderable_context = (ctx) ->
-    component = component_list()
+    component = ComponentList()
     ctx.create_nested_context
-      renderable_list_builder: component
+      component_list: component
 
   # creates a nested context, adds it to the renderable list, and applies the function to it
   nested_item = (ctx, fn, args...) ->
     nested_context = create_nested_renderable_context ctx
-    ctx.add_component nested_context.renderable_list_builder
+    ctx.add_component nested_context.component_list
     nested_context.apply_to fn, args
 
   create_run_context = (extra_contexts) ->
@@ -164,7 +164,7 @@ define (require) ->
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      renderable_list_builder: component_list()
+      component_list: ComponentList()
       running_context: -> running_context_binding
 
       options: -> @current_options
@@ -204,14 +204,14 @@ define (require) ->
         ignore
 
       add_component: (component) ->
-        @renderable_list_builder.add_component component
+        @component_list.add_component component
 
       add_rendered: (rendered) ->
         @add_renderable _lead_render: -> rendered
 
       render: render
 
-      empty: -> @renderable_list_builder.empty()
+      empty: -> @component_list.empty()
 
       div: (contents) ->
         $div = $('<div/>')
@@ -231,7 +231,7 @@ define (require) ->
           o._lead_render = fn._lead_render
         else
           nested_context = @create_nested_context
-            renderable_list_builder: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
+            component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
           o._lead_render = -> nested_context.apply_to fn
         o
 
@@ -241,7 +241,7 @@ define (require) ->
       detached: (fn, args) ->
         nested_context = create_nested_renderable_context @
         nested_context.apply_to fn, args
-        nested_context.renderable_list_builder
+        nested_context.component_list
 
       value: (value) -> _lead_context_fn_value: value
 
