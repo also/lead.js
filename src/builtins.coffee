@@ -135,7 +135,7 @@ define (require) ->
           @props.ctx.set_code @props.value
 
     component_fn 'example', 'Makes a clickable code example', (value, opts) ->
-      ExampleComponent ctx: @, value, run: opts?.run ? true
+      ExampleComponent ctx: @, value: value, run: opts?.run ? true
 
     SourceComponent = React.createClass
       render: -> React.DOM.pre()
