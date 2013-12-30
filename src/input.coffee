@@ -33,11 +33,9 @@ define (require) ->
       @value $button.asEventStream('click')
 
     fn 'live', 'Updates when the property changes', (property, fn) ->
-      $output = $ "<div class='live'/>"
-      # FIXME needs to use immediately rendered list
-      @nested_item $output, ->
+      @div ->
         unless property.onValue?
           property = Bacon.combineTemplate property
         property.onValue @keeping_context (v) ->
-          $output.empty()
+          @empty()
           @apply_to fn, [v]

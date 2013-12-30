@@ -94,13 +94,8 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
-  immediate_renderable_list_builder = ($item) ->
-    add_renderable: (renderable) ->
-      $item.append render renderable
-
-    _lead_render: -> $item
-
-  delayed_then_immediate_renderable_list_builder = ($item) ->
+  delayed_then_immediate_renderable_list_builder = ->
+    $item = $ '<div/>'
     renderables = []
     rendered = false
     add_renderable: (renderable) ->
@@ -108,24 +103,14 @@ define (require) ->
         $item.append render renderable
       else
         renderables.push renderable
+    empty: ->
+      renderables.length = 0
+      $item.empty()
     _lead_render: ->
       unless rendered
         rendered = true
         children = _.map renderables, (i) -> i._lead_render()
         $item.append children
-      $item
-
-  delayed_renderable_list_builder = ($item) ->
-    renderables = []
-    rendered = false
-    add_renderable: (renderable) ->
-      if rendered
-        throw new Error 'already rendered'
-      renderables.push renderable
-    _lead_render: ->
-      rendered = true
-      children = _.map renderables, (i) -> i._lead_render()
-      $item.append children
       $item
 
   create_run_context = (extra_contexts) ->
@@ -143,7 +128,7 @@ define (require) ->
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      renderable_list_builder: delayed_then_immediate_renderable_list_builder $ '<div/>'
+      renderable_list_builder: delayed_then_immediate_renderable_list_builder()
       _lead_render: ->
         result = @renderable_list_builder._lead_render()
         @changes.push true
@@ -190,27 +175,24 @@ define (require) ->
       add_rendered: (rendered) ->
         @add_rendering -> rendered
 
+      # adds a function that can render
       add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
 
       render: (o) -> o._lead_render()
+
+      empty: -> @renderable_list_builder.empty()
 
       div: (contents) ->
         $div = $('<div/>')
         if contents?
           if _.isFunction contents
-            return @nested_item $div, contents
+            return @nested_item contents
           else
             $div.append contents
         @add_rendered $div
         $div
 
-      output: (output) ->
-        $item = $ '<div class="item"/>'
-        if output?
-          $item.append output
-        @add_rendered $item
-        $item
-
+      # makes o renderable using the given function or renderable
       renderable: (o, fn) ->
         if fn._lead_render?
           o._lead_render = fn._lead_render
@@ -220,12 +202,8 @@ define (require) ->
           o._lead_render = -> nested_context.apply_to fn
         o
 
-      nested: (className, fn, args...) ->
-        $item = $ "<div class='#{className}'/>"
-        @nested_item $item, fn, args...
-
       create_nested_renderable_context: ($item) ->
-        renderable = delayed_then_immediate_renderable_list_builder $item
+        renderable = delayed_then_immediate_renderable_list_builder()
         @create_nested_context
           renderable_list_builder: renderable
 
@@ -233,21 +211,15 @@ define (require) ->
         nested_context = _.extend create_new_run_context(@), overrides
 
       detached:  (fn, args) ->
-        $item = $ "<div/>"
-        nested_context = @create_nested_renderable_context $item
+        nested_context = @create_nested_renderable_context()
         nested_context.apply_to fn, args
         nested_context.renderable_list_builder
 
-      nested_item: ($item, fn, args...) ->
-        nested_context = @create_nested_renderable_context $item
+      # creates a nested context, adds it to the renderable list, and applies the function to it
+      nested_item: (fn, args...) ->
+        nested_context = @create_nested_renderable_context()
         @add_renderable nested_context.renderable_list_builder
         nested_context.apply_to fn, args
-
-      handle_exception: (e, compiled) ->
-        console.error e.stack
-        @error printStackTrace({e}).join('\n')
-        @text 'Compiled JavaScript:'
-        @source 'javascript', compiled
 
       display_object: (object) ->
         for handler in result_handlers
@@ -269,12 +241,8 @@ define (require) ->
           else
             "#{ms} ms"
 
-        renderable = immediate_renderable_list_builder $item
-        @add_renderable renderable
-        nested_context = @create_nested_context
-          renderable_list_builder: renderable
+        promise = @nested_item fn
 
-        promise = nested_context.apply_to fn
         asyncs.push 1
         promise.finally =>
           asyncs.push -1
@@ -319,7 +287,11 @@ define (require) ->
       if e instanceof SyntaxError
         run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
-        run_context.handle_exception e, compiled
+        console.error e.stack
+        run_context.error printStackTrace({e}).join('\n')
+        run_context.text 'Compiled JavaScript:'
+        run_context.source 'javascript', compiled
+
 
   eval_in_context = (run_context, string) ->
     if _.isFunction string

@@ -201,11 +201,11 @@ define (require) ->
       msg ? 'Unknown error'
 
     parse_find_response: (query, response) ->
-      parts = query.split('.')
-      pattern_parts = parts.map(graphite.is_pattern)
+      parts = query.split '.'
+      pattern_parts = parts.map graphite.is_pattern
       list = (node.path for node in response)
       patterned_list = for path in list
-        result = for matched, i in path.split('.')
+        result = for matched, i in path.split '.'
           if pattern_parts[i]
             parts[i]
           else
@@ -213,27 +213,45 @@ define (require) ->
         result.join '.'
       _.uniq patterned_list.concat(list)
 
+    transform_response: (response) ->
+      if settings.get('type') == 'lead'
+        _.map response, ({name, start, step, values}) ->
+          target: name
+          datapoints: _.map values, (v, i) ->
+            [v, start + step * i]
+      else
+        response
+
+
     # returns a promise
     get_data: (params) ->
       params.format = 'json'
       deferred = http.get graphite.render_url params
 
-      deferred.then null, (response) -> Q.reject graphite.parse_error_response response
+      deferred.then graphite.transform_response, (response) -> Q.reject graphite.parse_error_response response
 
     # returns a promise
     complete: (query) ->
-      graphite.find(query)
-      .then ({query, result}) ->
+      graphite.find(query + '*')
+      .then ({result}) ->
+        if settings.get('type') == 'lead'
+          for n in result
+            n.path += '.' unless n.is_leaf
         graphite.parse_find_response query, result
 
     find: (query) ->
-      params =
-        query: encodeURIComponent query
-        format: 'completer'
-      http.get(graphite.url 'metrics/find', params)
-      .then (response) ->
-        result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
-        {query, result}
+      if settings.get('type') == 'lead'
+        http.get(graphite.url 'find', query: encodeURIComponent query).then (response) ->
+          result = _.map response, (m) -> {path: m.name, name: m.name, is_leaf: m['is-leaf']}
+          {query, result}
+      else
+        params =
+          query: encodeURIComponent query
+          format: 'completer'
+        http.get(graphite.url 'metrics/find', params)
+        .then (response) ->
+          result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
+          {query, result}
 
     suggest_keys: (s) ->
       _.filter _.keys(docs.parameter_docs), (k) -> k.indexOf(s) is 0
