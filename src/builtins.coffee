@@ -126,6 +126,7 @@ define (require) ->
       ErrorComponent {message}
 
     ExampleComponent = React.createClass
+      getDefaultProps: -> language: 'coffeescript'
       render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo SourceComponent()
       on_click: ->
         if @props.run
@@ -134,7 +135,7 @@ define (require) ->
           @props.ctx.set_code @props.value
 
     component_fn 'example', 'Makes a clickable code example', (value, opts) ->
-      ExampleComponent {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
+      ExampleComponent ctx: @, value, run: opts?.run ? true
 
     SourceComponent = React.createClass
       render: -> React.DOM.pre()
