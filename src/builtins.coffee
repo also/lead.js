@@ -52,7 +52,7 @@ define (require) ->
           else
             fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
         unless fns?
-          return pre value: "#{cmd} is not a command."
+          return PreComponent value: "#{cmd} is not a command."
       else
         fns = @imported_context_fns
       help fns
@@ -90,7 +90,7 @@ define (require) ->
       catch
         s = null
       s ||= new String o
-      source value: s, language: 'json'
+      SourceComponent value: s, language: 'json'
 
     MarkdownComponent = React.createClass
       render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value
@@ -98,23 +98,23 @@ define (require) ->
     component_fn 'md', 'Renders Markdown', (string) ->
       MarkdownComponent value: string
 
-    text = React.createClass
+    TextComponent = React.createClass
       render: -> React.DOM.p {}, @props.value
 
-    pre = React.createClass
+    PreComponent = React.createClass
       render: -> React.DOM.pre {}, @props.value
 
-    html = React.createClass
+    HtmlComponent = React.createClass
       render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
     component_fn 'text', 'Prints text', (string) ->
-      text value: string
+      TextComponent value: string
 
     component_fn 'pre', 'Prints preformatted text', (string) ->
-      pre value: string
+      PreComponent value: string
 
     component_fn 'html', 'Adds some HTML', (string) ->
-      html value: string
+      HtmlComponent value: string
 
     ErrorComponent = React.createClass
       render: -> React.DOM.pre {className: 'error'}, @props.message
@@ -122,8 +122,8 @@ define (require) ->
     component_fn 'error', 'Shows a preformatted error message', (message) ->
       ErrorComponent {message}
 
-    example = React.createClass
-      render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo source()
+    ExampleComponent = React.createClass
+      render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo SourceComponent()
       on_click: ->
         if @props.run
           @props.ctx.run @props.value
@@ -131,25 +131,23 @@ define (require) ->
           @props.ctx.set_code @props.value
 
     component_fn 'example', 'Makes a clickable code example', (value, opts) ->
-      example {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
+      ExampleComponent {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
 
-    source = React.createClass
+    SourceComponent = React.createClass
       render: -> React.DOM.pre()
       componentDidMount: (node) -> format_code @props.value, @props.language, node
 
     component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
-      source {language, value}
+      SourceComponent {language, value}
 
     component_cmd 'intro', 'Shows the intro message', ->
-      ctx = @
-      React.createClass(
-        render: -> React.DOM.div {}, [
-          text value: "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
-          example value: "browser '*'", ctx: ctx, run: true
-          text value: 'Look at'
-          example value: 'docs', ctx: ctx, run: true
-          text value: 'to see what you can do with Graphite.'
-        ])()
+      React.DOM.div {}, [
+        TextComponent value: "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+        ExampleComponent value: "browser '*'", ctx: @, run: true
+        TextComponent value: 'Look at'
+        ExampleComponent value: 'docs', ctx: @, run: true
+        TextComponent value: 'to see what you can do with Graphite.'
+      ]
 
     fn 'options', 'Gets or sets options', (options) ->
       if options?
