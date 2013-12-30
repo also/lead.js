@@ -57,11 +57,14 @@ define (require) ->
         fns = @imported_context_fns
       help fns
 
+    KeySequenceComponent = React.createClass
+      render: -> React.DOM.span {}, _.map @props.keys, (k) -> React.DOM.kbd {}, k
+
     KeyBindingComponent = React.createClass
       render: ->
         React.DOM.table {}, _.map @props.keys, (command, key) =>
           React.DOM.tr {}, [
-            React.DOM.th {}, _.map key.split('-'), (k) -> React.DOM.kbd {}, k
+            React.DOM.th {}, KeySequenceComponent keys: key.split('-')
             React.DOM.td {}, React.DOM.strong {}, command.name
             React.DOM.td {}, command.doc
           ]
@@ -142,7 +145,12 @@ define (require) ->
 
     component_cmd 'intro', 'Shows the intro message', ->
       React.DOM.div {}, [
-        TextComponent value: "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
+        React.DOM.p {}, 'Welcome to lead.js!'
+        React.DOM.p {}, [
+          'Press '
+          KeySequenceComponent(keys: ['Shift', 'Enter'])
+          ' to execute the CoffeeScript in the console. Try running'
+        ]
         ExampleComponent value: "browser '*'", ctx: @, run: true
         TextComponent value: 'Look at'
         ExampleComponent value: 'docs', ctx: @, run: true
