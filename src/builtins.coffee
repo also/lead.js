@@ -33,7 +33,13 @@ define (require) ->
     FunctionDocumentationComponent fns: _.map documented_fns, (name) -> {name, doc: fns[name].doc}
 
   modules.create 'builtins', ({fn, cmd}) ->
-    cmd 'help', 'Shows this help', (cmd) ->
+    component_cmd= (name, doc, f) ->
+      cmd name, doc, -> @add_component f.apply @, arguments
+
+    component_fn = (name, doc, f) ->
+      fn name, doc, -> @add_component f.apply @, arguments
+
+    component_cmd 'help', 'Shows this help', (cmd) ->
       if arguments.length > 0
         if _.isString cmd
           op = @imported_context_fns[cmd]
@@ -46,11 +52,10 @@ define (require) ->
           else
             fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
         unless fns?
-          @pre "#{cmd} is not a command."
-          return
+          return pre value: "#{cmd} is not a command."
       else
         fns = @imported_context_fns
-      @add_component help(fns)
+      help fns
 
     KeyBindingComponent = React.createClass
       render: ->
@@ -61,7 +66,7 @@ define (require) ->
             React.DOM.td {}, command.doc
           ]
 
-    cmd 'keys', 'Shows the key bindings', ->
+    component_cmd 'keys', 'Shows the key bindings', ->
       all_keys = {}
       # TODO some commands are functions instead of names
       build_map = (map) ->
@@ -74,24 +79,24 @@ define (require) ->
           build_map CodeMirror.keyMap[name] for name in fallthroughs
       build_map CodeMirror.keyMap.lead
 
-      @add_component KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
+      KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
     fn 'In', 'Gets previous input', (n) ->
       @value @get_input_value n
 
-    fn 'object', 'Prints an object as JSON', (o) ->
+    component_fn 'object', 'Prints an object as JSON', (o) ->
       try
         s = JSON.stringify(o, null, '  ')
       catch
         s = null
       s ||= new String o
-      @add_component source value: s, language: 'json'
+      source value: s, language: 'json'
 
     MarkdownComponent = React.createClass
       render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value
 
-    fn 'md', 'Renders Markdown', (string) ->
-      @add_component MarkdownComponent value: string
+    component_fn 'md', 'Renders Markdown', (string) ->
+      MarkdownComponent value: string
 
     text = React.createClass
       render: -> React.DOM.p {}, @props.value
@@ -102,20 +107,20 @@ define (require) ->
     html = React.createClass
       render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
-    fn 'text', 'Prints text', (string) ->
-      @add_component text value: string
+    component_fn 'text', 'Prints text', (string) ->
+      text value: string
 
-    fn 'pre', 'Prints preformatted text', (string) ->
-      @add_component pre value: string
+    component_fn 'pre', 'Prints preformatted text', (string) ->
+      pre value: string
 
-    fn 'html', 'Adds some HTML', (string) ->
-      @add_component html value: string
+    component_fn 'html', 'Adds some HTML', (string) ->
+      html value: string
 
     ErrorComponent = React.createClass
       render: -> React.DOM.pre {className: 'error'}, @props.message
 
-    fn 'error', 'Shows a preformatted error message', (message) ->
-      @add_component ErrorComponent {message}
+    component_fn 'error', 'Shows a preformatted error message', (message) ->
+      ErrorComponent {message}
 
     example = React.createClass
       render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo source()
@@ -125,19 +130,19 @@ define (require) ->
         else
           @props.ctx.set_code @props.value
 
-    fn 'example', 'Makes a clickable code example', (value, opts) ->
-      @add_component example {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
+    component_fn 'example', 'Makes a clickable code example', (value, opts) ->
+      example {ctx: @, value, run: opts?.run ? true, language: 'coffeescript'}
 
     source = React.createClass
       render: -> React.DOM.pre()
       componentDidMount: (node) -> format_code @props.value, @props.language, node
 
-    fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
-      @add_component source {language, value}
+    component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
+      source {language, value}
 
-    cmd 'intro', 'Shows the intro message', ->
+    component_cmd 'intro', 'Shows the intro message', ->
       ctx = @
-      @add_component React.createClass(
+      React.createClass(
         render: -> React.DOM.div {}, [
           text value: "Welcome to lead.js!\n\nPress Shift+Enter to execute the CoffeeScript in the console. Try running"
           example value: "browser '*'", ctx: ctx, run: true
@@ -154,14 +159,14 @@ define (require) ->
     LinkComponent = React.createClass
       render: -> React.DOM.a {href: @props.href}, @props.value
 
-    cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
+    component_cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
       a = document.createElement 'a'
       # TODO app should generate links
       a.href = location.href
       a.hash = null
       code ?= @previously_run()
       a.search = '?' + encodeURIComponent btoa code
-      @add_component LinkComponent href: a.href, value: a.href
+      LinkComponent href: a.href, value: a.href
 
     fn 'websocket', 'Runs commands from a web socket', (url) ->
       ws = new WebSocket url
