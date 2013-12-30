@@ -2,7 +2,6 @@ define (require) ->
   CodeMirror = require 'cm/codemirror'
   require 'cm/runmode'
   URI = require 'URIjs'
-  $ = require 'jquery'
   _ = require 'underscore'
   marked = require 'marked'
   modules = require 'modules'
@@ -20,20 +19,18 @@ define (require) ->
     else
       target.textContent = code
 
+  FunctionDocumentationComponent = React.createClass
+    render: ->
+      React.DOM.dl {}, _.map @props.fns, (fn) ->
+        [
+          React.DOM.dt {}, fn.name
+          React.DOM.dd {}, fn.doc
+        ]
+
   help = (fns) ->
     documented_fns = (name for name, c of fns when c?.doc?)
     documented_fns.sort()
-    $dl = $ '<dl/>'
-    for cmd in documented_fns
-      $tt = $ '<tt/>'
-      $tt.text cmd
-      $dt = $ '<dt/>'
-      $dt.append $tt
-      $dl.append $dt
-      $dd = $ '<dd/>'
-      $dd.text fns[cmd].doc
-      $dl.append $dd
-    $dl
+    FunctionDocumentationComponent fns: _.map documented_fns, (name) -> {name, doc: fns[name].doc}
 
   modules.create 'builtins', ({fn, cmd}) ->
     cmd 'help', 'Shows this help', (cmd) ->
@@ -53,27 +50,31 @@ define (require) ->
           return
       else
         fns = @imported_context_fns
-      @add_rendered help(fns)
+      @add_component help(fns)
+
+    KeyBindingComponent = React.createClass
+      render: ->
+        React.DOM.table {}, _.map @props.keys, (command, key) =>
+          React.DOM.tr {}, [
+            React.DOM.th {}, _.map key.split('-'), (k) -> React.DOM.kbd {}, k
+            React.DOM.td {}, React.DOM.strong {}, command.name
+            React.DOM.td {}, command.doc
+          ]
 
     cmd 'keys', 'Shows the key bindings', ->
       all_keys = {}
+      # TODO some commands are functions instead of names
       build_map = (map) ->
         for key, command of map
-          unless key == 'fallthrough' or all_keys[key]?
-            all_keys[key] = command
+          fn = CodeMirror.commands[command]
+          unless key == 'fallthrough' or all_keys[key]? or not fn?
+            all_keys[key] = name: command, doc: fn.doc
         fallthroughs = map.fallthrough
         if fallthroughs?
           build_map CodeMirror.keyMap[name] for name in fallthroughs
       build_map CodeMirror.keyMap.lead
 
-      $table = $ '<table/>'
-      for key, command of all_keys
-        fn = CodeMirror.commands[command]
-        if fn
-          doc = fn.doc ? ''
-          kbd = key.split('-').map((k) -> "<kbd>#{k}</kbd>").join ' + '
-          $table.append "<tr><th>#{kbd}</th><td><strong>#{command}</strong></td><td>#{doc}</td></tr>"
-      @add_rendered $table
+      @add_component KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
     fn 'In', 'Gets previous input', (n) ->
       @value @get_input_value n
@@ -86,10 +87,11 @@ define (require) ->
       s ||= new String o
       @add_component source value: s, language: 'json'
 
+    MarkdownComponent = React.createClass
+      render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value
+
     fn 'md', 'Renders Markdown', (string) ->
-      $html = $ '<div class="user-html"/>'
-      $html.html marked string
-      @add_rendered $html
+      @add_component MarkdownComponent value: string
 
     text = React.createClass
       render: -> React.DOM.p {}, @props.value
@@ -109,10 +111,11 @@ define (require) ->
     fn 'html', 'Adds some HTML', (string) ->
       @add_component html value: string
 
+    ErrorComponent = React.createClass
+      render: -> React.DOM.pre {className: 'error'}, @props.message
+
     fn 'error', 'Shows a preformatted error message', (message) ->
-      $pre = $ '<pre class="error"/>'
-      $pre.text message
-      @add_rendered $pre
+      @add_component ErrorComponent {message}
 
     example = React.createClass
       render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo source()
@@ -148,14 +151,17 @@ define (require) ->
         _.extend @current_options, options
       @value @current_options
 
+    LinkComponent = React.createClass
+      render: -> React.DOM.a {href: @props.href}, @props.value
+
     cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
       a = document.createElement 'a'
+      # TODO app should generate links
       a.href = location.href
       a.hash = null
       code ?= @previously_run()
       a.search = '?' + encodeURIComponent btoa code
-      a.innerText = a.href
-      @add_rendered a
+      @add_component LinkComponent href: a.href, value: a.href
 
     fn 'websocket', 'Runs commands from a web socket', (url) ->
       ws = new WebSocket url
