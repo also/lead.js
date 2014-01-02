@@ -11,3 +11,7 @@ requirejs.define 'expect', -> expect
 
 tests = lead.require 'test/runner'
 tests.run()
+.then ->
+  process.exit 0
+.fail ->
+  process.exit 1
