@@ -3,13 +3,6 @@ define (require) ->
   Q = require 'q'
 
   m = mocha ? new Mocha
-  runner = null
-  if window?
-    m.reporter (r) ->
-      runner = r
-      new window.Mocha.reporters.HTML runner
-  else
-    runner = m.runner
   m.suite.emit 'pre-require', global, 'hack', m
   tests = [
     'dsl'
@@ -24,7 +17,7 @@ define (require) ->
 
   run_tests = ->
     result = Q.defer()
-    m.run (failed) ->
+    runner = m.run (failed) ->
       if failed > 0
         result.reject runner.stats
       else
