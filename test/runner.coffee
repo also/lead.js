@@ -1,5 +1,7 @@
 define (require) ->
   Mocha = require 'mocha'
+  Q = require 'q'
+
   m = mocha ? new Mocha
   runner = null
   if @mocha_callback?
@@ -21,10 +23,18 @@ define (require) ->
     tests.push 'notebook'
 
   run_tests = ->
+    result = Q.defer()
     m.run (failed) ->
+      if failed > 0
+        result.reject runner
+      else
+        result.resolve runner
       @mocha_callback? runner.failures
+    result.promise
 
   run: ->
+    result = Q.defer()
     require tests.map((t) -> "test/#{t}"), ->
-      run_tests()
+      result.resolve run_tests()
+    result.promise
 

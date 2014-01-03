@@ -2,8 +2,8 @@ before_script:
 - npm install
 script:
 - grunt
-- grunt connect:server tests
-- node build/test/run_node.js
+- grunt connect:server test-phantomjs
+- grunt test-node
 - grunt test-sauce
 rvm:
 - 1.9.3
