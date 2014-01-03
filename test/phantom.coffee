@@ -2,12 +2,11 @@ page = require("webpage").create()
 page.onConsoleMessage = (msg) ->
   console.log msg
 
-url = "http://localhost:8000/test/runner.html"
-page.open url
-page.onInitialized = ->
+url = "http://localhost:8000/test/runner.html?pause"
+page.open url, ->
   page.evaluate ->
-    window.mocha_callback = (failed) ->
-      window.callPhantom failed
+    run (stats) ->
+      window.callPhantom stats.failures
 
 page.onResourceError = (error) ->
     console.log "tests failed to load: #{error.errorString}"

@@ -4,7 +4,7 @@ define (require) ->
 
   m = mocha ? new Mocha
   runner = null
-  if @mocha_callback?
+  if window?
     m.reporter (r) ->
       runner = r
       new window.Mocha.reporters.HTML runner
@@ -26,10 +26,9 @@ define (require) ->
     result = Q.defer()
     m.run (failed) ->
       if failed > 0
-        result.reject runner
+        result.reject runner.stats
       else
-        result.resolve runner
-      @mocha_callback? runner.failures
+        result.resolve runner.stats
     result.promise
 
   run: ->
