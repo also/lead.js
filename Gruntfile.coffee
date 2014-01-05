@@ -112,37 +112,12 @@ module.exports = (grunt) ->
   grunt.loadTasks 'tasks'
 
   grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
-  grunt.registerTask 'test-sauce', ['connect', 'saucelabs-mocha']
 
   grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
     config_script = grunt.file.read('build/requirejs_config.js')
     config = {}
     new Function(config_script).call(config)
     grunt.file.write 'build/requirejs_optimize_config.js', "requirejs(\n#{JSON.stringify config.require, undefined, 2});"
-
-  grunt.registerTask 'test-phantomjs', 'Runs the Mocha tests using PhantomJS', ->
-    done = this.async()
-    grunt.util.spawn cmd: 'phantomjs', args: ['build/test/phantom.js'], (err, result, code) ->
-      if err?
-        grunt.log.error 'Tests failed'
-        grunt.log.error result.stdout
-        done false
-      else
-        grunt.log.ok 'Tests passed'
-        done()
-
-  grunt.registerTask 'test-node', 'Runs the Mocha tests using node.js', ->
-    done = @async()
-    grunt.util.spawn cmd: 'node', args: ['build/test/run_node.js'], (err, result, code) ->
-      if err?
-        grunt.log.error 'Tests failed'
-        grunt.log.error result.stdout
-        grunt.log.error result.stderr
-        done false
-      else
-        grunt.log.ok 'Tests passed'
-        done()
-
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'

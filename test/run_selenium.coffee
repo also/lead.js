@@ -29,7 +29,15 @@ run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
   browser = wd.promiseChainRemote driver_opts
   browser
     .init(_.extend {}, init_opts ? {}, browser_opts)
+    .then ->
+      browser.sessionCapabilities().then((c) ->browser.capabilities = c)
     .then(-> fn browser)
+    .then(
+      (result) ->
+        {browser, result}
+      (result) ->
+        Q.reject {browser, result}
+      )
     .finally ->
       browser.quit()
 
@@ -42,24 +50,53 @@ run_in_browsers = (driver, browsers, fn) ->
     else
       Q.reject promises
 
+run_remotely = (browsers, fn) ->
+  run_with_tunnel (driver) ->
+    run_in_browsers driver, browsers, fn
 
-run_tests = (browser) ->
+run_locally = (browsers, fn) ->
+  run_in_browsers {}, browsers, fn
+
+print_summary = (results) ->
+  _.map results, (r) ->
+    snapshot = r.inspect()
+    state = snapshot.state
+    if state == 'fulfilled'
+      value = snapshot.value
+    else
+      value = snapshot.reason
+    {browser: {capabilities}, result} = value
+    console.log "#{capabilities.browserName} #{capabilities.version} (#{capabilities.platform})"
+    if state == 'fulfilled'
+      console.log 'passed'
+    else
+      console.log 'failed'
+      jsonwire_error = result['jsonwire-error']
+      if jsonwire_error?
+        console.log "#{jsonwire_error.status} #{jsonwire_error.summary}: #{jsonwire_error.detail}"
+      else
+        console.log "unknown error:"
+        if result.stack
+          console.log result.stack
+        else
+          console.log result.toString()
+        console.log JSON.stringify result
+    console.log()
+
+unit_tests = (browser) ->
   browser
     .setAsyncScriptTimeout(10000)
     .get("http://localhost:8000/test/runner.html?pause")
     .title().then (title) ->
       expect(title).to.be('lead.js test runner')
       browser.executeAsync('run(arguments[0])')
-    .then (result) ->
-      console.log result
 
-run_remotely = ->
-  run_with_tunnel (driver) ->
-    run_in_browsers driver, [{browserName: 'chrome'}, {browserName: 'internet explorer'}], run_tests
-
-run_locally = ->
-  run_in_browser {}, {browserName: 'firefox'}, run_tests
-
-#
-#run_remotely().done()
-#run_locally().done()
+module.exports = {
+  start_tunnel
+  run_locally
+  run_remotely
+  run_with_tunnel
+  run_in_browsers
+  unit_tests
+  print_summary
+}
