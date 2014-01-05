@@ -33,7 +33,6 @@
     "mocha": "~1.13.0",
     "expect.js": "~0.2.0",
     "grunt-contrib-connect": "~0.5.0",
-    "grunt-saucelabs": "~4.1.2",
     "sauce-tunnel": "~1.1.2",
     "wd": "~0.2.8",
     "request": "~2.30.0"

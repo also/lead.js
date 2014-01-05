@@ -13,8 +13,6 @@ UNIT_INFO = {
   build: BUILD
 }
 module.exports = (grunt) ->
-  grunt.registerTask 'test-sauce', ['connect', 'saucelabs-mocha']
-
   grunt.registerTask 'test-phantomjs', 'Runs the Mocha tests using PhantomJS', ->
     done = this.async()
     grunt.util.spawn cmd: 'phantomjs', args: ['build/test/phantom.js'], (err, result, code) ->

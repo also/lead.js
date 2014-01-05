@@ -4,7 +4,6 @@ script:
 - grunt
 - grunt connect:server test-phantomjs test-selenium-all-remote
 - grunt test-node
-- grunt test-sauce
 rvm:
 - 1.9.3
 env:

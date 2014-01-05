@@ -86,21 +86,6 @@ module.exports = (grunt) ->
             IPv6: 'empty:'
             SecondLevelDomains: 'empty:'
           optimize: 'none'
-    'saucelabs-mocha':
-      all:
-        options:
-          urls: ["http://localhost:8000/test/runner.html"]
-          tunnelTimeout: 5
-          build: process.env.TRAVIS_JOB_ID
-          concurrency: 3
-          browsers: [
-            {browserName: "chrome", version: "28", platform: "OS X 10.6"}
-            {browserName: 'internet explorer', version: '11', platform: 'Windows 8.1'}
-            {browserName: 'chrome', version: '31', platform: 'Windows 8.1'}
-            {browserName: 'firefox', version: '25', platform: 'Linux'}
-          ]
-          testname: "mocha tests"
-          tags: ["master"]
 
   grunt.loadNpmTasks 'grunt-contrib-sass'
   grunt.loadNpmTasks 'grunt-contrib-concat'
@@ -108,7 +93,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadNpmTasks 'grunt-contrib-connect'
-  grunt.loadNpmTasks 'grunt-saucelabs'
   grunt.loadTasks 'tasks'
 
   grunt.registerTask "default", ['sass', 'concat:css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
