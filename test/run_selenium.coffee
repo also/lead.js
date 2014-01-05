@@ -1,11 +1,13 @@
 Q = require 'q'
 _ = require 'underscore'
+request = require 'request'
 SauceTunnel = require 'sauce-tunnel'
 wd = require 'wd'
 expect = require 'expect.js'
 
 username = process.env.SAUCE_USERNAME
 access_key = process.env.SAUCE_ACCESS_KEY
+base_url =  "https://#{username}:#{access_key}@saucelabs.com/rest/v1/#{username}"
 
 start_tunnel = ->
   tunnel = new SauceTunnel username, access_key, null, true
@@ -25,6 +27,15 @@ run_with_tunnel = (fn) ->
     # TODO the tunnel doesn't always stop
     Q(fn {driver_opts, init_opts}).finally -> tunnel.stop ->
 
+update_sauce_job = (job_id, details) ->
+  Q.nfcall(
+    request
+    url: "#{base_url}/jobs/#{job_id}"
+    method: 'put'
+    body: details
+    json: true
+  )
+
 run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
   browser = wd.promiseChainRemote driver_opts
   browser
@@ -34,9 +45,15 @@ run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
     .then(-> fn browser)
     .then(
       (result) ->
-        {browser, result}
+        if browser.configUrl.hostname == 'ondemand.saucelabs.com'
+          update_sauce_job(browser.sessionID, passed: true).thenResolve {browser, result}
+        else
+          {browser, result}
       (result) ->
-        Q.reject {browser, result}
+        if browser.configUrl.hostname == 'ondemand.saucelabs.com'
+          update_sauce_job(browser.sessionID, passed: false).thenReject {browser, result}
+        else
+          Q.reject {browser, result}
       )
     .finally ->
       browser.quit()
@@ -99,4 +116,5 @@ module.exports = {
   run_in_browsers
   unit_tests
   print_summary
+  update_sauce_job
 }
