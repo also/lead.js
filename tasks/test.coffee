@@ -90,8 +90,8 @@ module.exports = (grunt) ->
     done = @async()
     selenium
       .run_with_tunnel (driver) ->
-        app_results = selenium.run_in_browsers driver, APP_INFO, APP_TEST_BROWSERS, app_tests
-        unit_results = selenium.run_in_browsers driver, UNIT_INFO, REMOTE_UNIT_TEST_BROWSERS, selenium.unit_tests
+        app_results = selenium.run_in_sauce_browsers driver, APP_INFO, APP_TEST_BROWSERS, app_tests
+        unit_results = selenium.run_in_sauce_browsers driver, UNIT_INFO, REMOTE_UNIT_TEST_BROWSERS, selenium.unit_tests
         Q.allSettled([app_results, unit_results]).then -> [app_results, unit_results]
       .then(([app, unit]) ->
         Q.all([

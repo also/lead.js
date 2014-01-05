@@ -44,23 +44,21 @@ run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
       browser.sessionCapabilities().then((c) ->browser.capabilities = c)
     .then(-> fn browser)
     .then(
-      (result) ->
-        if browser.configUrl.hostname == 'ondemand.saucelabs.com'
-          update_sauce_job(browser.sessionID, passed: true).thenResolve {browser, result}
-        else
-          {browser, result}
-      (result) ->
-        if browser.configUrl.hostname == 'ondemand.saucelabs.com'
-          update_sauce_job(browser.sessionID, passed: false).thenReject {browser, result}
-        else
-          Q.reject {browser, result}
-      )
+      (result) -> {browser, result}
+      (result) -> Q.reject {browser, result}
+    )
     .finally ->
       browser.quit()
 
-run_in_browsers = (driver, sauce_opts, browsers, fn) ->
+run_in_sauce_browsers = (driver, sauce_opts, browsers, fn) ->
+  run_in_browsers driver, _.map(browsers, (b) ->_.extend({}, sauce_opts, b)), (browser) ->
+    result = fn(browser)
+    result.finally ->
+      update_sauce_job browser.sessionID, passed: result.isFulfilled()
+
+run_in_browsers = (driver, browsers, fn) ->
   promises = _.map browsers, (browser) ->
-    run_in_browser driver, _.extend({}, sauce_opts, browser), fn
+    run_in_browser driver, browser, fn
   Q.allSettled(promises).then ->
     if _.every(promises, (p) -> p.isFulfilled())
       Q. resolve promises
@@ -69,10 +67,10 @@ run_in_browsers = (driver, sauce_opts, browsers, fn) ->
 
 run_remotely = (sauce_opts, browsers, fn) ->
   run_with_tunnel (driver) ->
-    run_in_browsers driver, sauce_opts, browsers, fn
+    run_in_sauce_browsers driver, sauce_opts, browsers, fn
 
 run_locally = (browsers, fn) ->
-  run_in_browsers {}, {}, browsers, fn
+  run_in_browsers {}, browsers, fn
 
 print_summary = (results) ->
   _.map results, (r) ->
@@ -117,4 +115,5 @@ module.exports = {
   unit_tests
   print_summary
   update_sauce_job
+  run_in_sauce_browsers
 }
