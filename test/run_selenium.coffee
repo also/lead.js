@@ -41,21 +41,21 @@ run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
     .finally ->
       browser.quit()
 
-run_in_browsers = (driver, browsers, fn) ->
+run_in_browsers = (driver, sauce_opts, browsers, fn) ->
   promises = _.map browsers, (browser) ->
-    run_in_browser driver, browser, fn
+    run_in_browser driver, _.extend({}, sauce_opts, browser), fn
   Q.allSettled(promises).then ->
     if _.every(promises, (p) -> p.isFulfilled())
       Q. resolve promises
     else
       Q.reject promises
 
-run_remotely = (browsers, fn) ->
+run_remotely = (sauce_opts, browsers, fn) ->
   run_with_tunnel (driver) ->
-    run_in_browsers driver, browsers, fn
+    run_in_browsers driver, sauce_opts, browsers, fn
 
 run_locally = (browsers, fn) ->
-  run_in_browsers {}, browsers, fn
+  run_in_browsers {}, {}, browsers, fn
 
 print_summary = (results) ->
   _.map results, (r) ->
