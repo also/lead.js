@@ -2,6 +2,7 @@ Q = require 'q'
 _ = require 'underscore'
 selenium = require '../test/run_selenium'
 app_tests = require '../test/app_tests'
+
 BUILD = process.env.TRAVIS_JOB_ID
 APP_INFO = {
   name: 'app tests'
