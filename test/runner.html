@@ -14,6 +14,7 @@ requirejs.config({
   },
   shim: {expect: {exports: 'expect'}}
 });
+// automated tests will load the page with ?pause and call run
 function run(callback) {
   require(['test/runner'], function (runner) {
     runner.run().then(callback).fail(callback);
