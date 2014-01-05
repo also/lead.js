@@ -2,7 +2,7 @@ before_script:
 - npm install
 script:
 - grunt
-- grunt connect:server test-phantomjs
+- grunt connect:server test-phantomjs test-selenium-all-remote-
 - grunt test-node
 - grunt test-sauce
 rvm:
