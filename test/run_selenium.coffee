@@ -80,7 +80,11 @@ print_summary = (results) ->
       value = snapshot.value
     else
       value = snapshot.reason
-    {browser: {capabilities}, result} = value
+    {browser, result} = value
+    {capabilities, defaultCapabilities} = browser
+    unless capabilities?
+      console.log '(failed creating browser)'
+      capabilities = defaultCapabilities
     console.log "#{capabilities.browserName} #{capabilities.version} (#{capabilities.platform})"
     if state == 'fulfilled'
       console.log 'passed'
