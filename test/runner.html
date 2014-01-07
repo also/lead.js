@@ -14,7 +14,15 @@ requirejs.config({
   },
   shim: {expect: {exports: 'expect'}}
 });
-require(['test/runner'], function (runner) { runner.run(); });
+// automated tests will load the page with ?pause and call run
+function run(callback) {
+  require(['test/runner'], function (runner) {
+    runner.run().then(callback).fail(callback);
+  });
+}
+if (window.location.search !== '?pause') {
+  run();
+}
 </script>
 <link rel="stylesheet" href="/node_modules/mocha/mocha.css"/>
 </head>

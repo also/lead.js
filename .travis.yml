@@ -1,10 +1,12 @@
 before_script:
-  - npm install
-
+- npm install
 script:
-  - grunt
-  - grunt connect:server tests
-  - node build/test/run_node.js
-
+- grunt
+- grunt connect:server test-phantomjs test-selenium-all-remote
+- grunt test-node
 rvm:
-  - "1.9.3"
+- 1.9.3
+env:
+  global:
+  - secure: h5H8nroJfpEyNVVBka364QbNK4C97bgMvRoPaYosIW//vm15PvflwWD2xCQ1DckjpqLqEQkPxNShiQwB3Kpq90p1uljGIDPPiYwnFEnfwd/3ru3t4VVar8lFmZO3Wse83FQG/nLSofYNBwLjW+qee4BTqUct1fTA2nF1MtwPbPA=
+  - secure: Utyqx35fddclCfiBNqqbwOMD12/sxL7SBhcrNR82BtCfmwukWjgeRPP7H0nLF2weINGHl5B9sxMudFbUyZ6rqI+UFpBEoP+kn8yDxTXEGwQ4MgsYCjbcyqp6uAlXoJqX9wSLdLUIiOklx4PPexiStLbsRn3PKSEEvtLMjbPzTho=

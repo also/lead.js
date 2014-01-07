@@ -1,13 +1,9 @@
 define (require) ->
   Mocha = require 'mocha'
+  Q = require 'q'
+  _ = require 'underscore'
+
   m = mocha ? new Mocha
-  runner = null
-  if @mocha_callback?
-    m.reporter (r) ->
-      runner = r
-      new window.Mocha.reporters.HTML runner
-  else
-    runner = m.runner
   m.suite.emit 'pre-require', global, 'hack', m
   tests = [
     'dsl'
@@ -20,11 +16,29 @@ define (require) ->
   if window?
     tests.push 'notebook'
 
+  collect_suites = (suites) ->
+    _.map suites, (suite) ->
+      title: suite.title
+      tests: collect_tests suite.tests
+      suites: collect_suites suite.suites
+
+  collect_tests = (tests) ->
+    _.map tests, (test) ->
+      _.pick test, 'async', 'duration', 'pending', 'speed', 'state', 'sync', 'timedOut', 'title', 'type'
+
   run_tests = ->
-    m.run (failed) ->
-      @mocha_callback? runner.failures
+    deferred = Q.defer()
+    runner = m.run (failed) ->
+      result = _.extend {}, runner.stats, results: collect_suites runner.suite.suites
+      if failed > 0
+        deferred.reject result
+      else
+        deferred.resolve result
+    deferred.promise
 
   run: ->
+    result = Q.defer()
     require tests.map((t) -> "test/#{t}"), ->
-      run_tests()
+      result.resolve run_tests()
+    result.promise
 

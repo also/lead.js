@@ -103,17 +103,6 @@ module.exports = (grunt) ->
     new Function(config_script).call(config)
     grunt.file.write 'build/requirejs_optimize_config.js', "requirejs(\n#{JSON.stringify config.require, undefined, 2});"
 
-  grunt.registerTask 'tests', 'Runs the Mocha tests using PhantomJS', ->
-    done = this.async()
-    grunt.util.spawn cmd: 'phantomjs', args: ['build/test/phantom.js'], (err, result, code) ->
-      if err?
-        grunt.log.error 'Tests failed'
-        grunt.log.error result.stdout
-        done false
-      else
-        grunt.log.ok 'Tests passed'
-        done()
-
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
     grammar = grunt.file.read 'src/graphite_grammar.peg'
