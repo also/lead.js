@@ -236,7 +236,7 @@ define (require) ->
       async: (fn) ->
         promise = nested_item @, ->
           start_time = new Date
-          p = fn()
+          p = fn.call @
           @promise_status p, start_time
           p
 
