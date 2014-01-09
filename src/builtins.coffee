@@ -191,6 +191,9 @@ define (require) ->
           else
             text = "Failed after #{duration}"
         React.DOM.div {className: 'promise-status'}, text
+      getInitialState: ->
+        unless @props.promise.isPending()
+          return duration: 0
       finished: ->
         @setState duration: new Date - @props.start_time
       componentWillMount: ->
