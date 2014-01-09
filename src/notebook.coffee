@@ -10,7 +10,7 @@ define (require) ->
   graphite = require 'graphite'
   context = require 'context'
   modules = require 'modules'
-  React = require 'react'
+  React = require 'react_abuse'
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
@@ -58,10 +58,11 @@ define (require) ->
 
 
     DocumentComponent = React.createClass
-      getInitialState: -> cells: @cells or []
-      render: -> React.DOM.div {className: 'document'}, _.map @state.cells, (cell) -> cell.component
-      set_cells: (@cells) ->
-        @setState cells: @cells if @state
+      mixins: [React.ComponentListMixin]
+      render: ->
+        React.DOM.div {className: 'document'}, @state.components
+      set_cells: (cells) ->
+        @set_components _.pluck cells, 'component'
 
     create_notebook = (opts) ->
       $file_picker = $ '<input type="file" id="file" class="file_picker"/>'

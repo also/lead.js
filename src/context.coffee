@@ -4,7 +4,7 @@ define (require) ->
   CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
   Bacon = require 'baconjs'
-  React = require 'react'
+  React = require 'react_abuse'
   modules = require 'modules'
 
   ignore = new Object
@@ -123,18 +123,6 @@ define (require) ->
     render: -> React.DOM.div()
     componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
 
-  ComponentList = React.createClass
-    getInitialState: -> components: @components
-    add_component: (c) ->
-      @components ?= []
-      @components.push c
-      @setState components: @components if @state
-    empty: ->
-      @components = []
-      @setState components: @components if @state
-    render: ->
-      React.DOM.div {}, @state.components
-
   component_for_renderable = (renderable) ->
     if is_component renderable
       renderable
@@ -147,7 +135,7 @@ define (require) ->
       RenderableComponent {renderable}
 
   create_nested_renderable_context = (ctx) ->
-    component = ComponentList()
+    component = React.ComponentList()
     ctx.create_nested_context
       component_list: component
 
@@ -164,7 +152,7 @@ define (require) ->
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      component_list: ComponentList()
+      component_list: React.ComponentList()
       running_context: -> running_context_binding
 
       options: -> @current_options
