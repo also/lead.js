@@ -249,7 +249,7 @@ define (require) ->
     OutputCellComponent = React.createClass
       set_component: (@component) ->
         @setState component: @component if @state
-      getInitialState: -> component_list: @component_list
+      getInitialState: -> component: @component
       render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component
 
     create_output_cell = (notebook) ->
