@@ -175,6 +175,31 @@ define (require) ->
       a.search = '?' + encodeURIComponent btoa code
       LinkComponent href: a.href, value: a.href
 
+    PromiseStatusComponent = React.createClass
+      render: ->
+        if @props.promise.isPending()
+          text = "Loading"
+        else
+          ms = @state.duration
+          duration = if ms >= 1000
+            s = (ms / 1000).toFixed 1
+            "#{s} s"
+          else
+            "#{ms} ms"
+          if @props.promise.isFulfilled()
+            text = "Loaded in #{duration}"
+          else
+            text = "Failed after #{duration}"
+        React.DOM.div {className: 'promise-status'}, text
+      finished: ->
+        @setState duration: new Date - @props.start_time
+      componentWillMount: ->
+        # TODO this should probably happen earlier, in case the promise finishes before componentWillMount
+        @props.promise.finally @finished
+
+    component_fn 'promise_status', 'Displays the status of a promise', (promise, start_time=new Date) ->
+      PromiseStatusComponent {promise, start_time}
+
     fn 'websocket', 'Runs commands from a web socket', (url) ->
       ws = new WebSocket url
       @async ->

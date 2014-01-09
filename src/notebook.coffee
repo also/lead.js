@@ -247,10 +247,10 @@ define (require) ->
       cell.notebook.cell_focused.push cell
 
     OutputCellComponent = React.createClass
-      set_component_list: (@component_list) ->
-        @setState component_list: @component_list if @state
+      set_component: (@component) ->
+        @setState component: @component if @state
       getInitialState: -> component_list: @component_list
-      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component_list
+      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component
 
     create_output_cell = (notebook) ->
       number = notebook.output_number++
@@ -297,7 +297,7 @@ define (require) ->
       fn()
 
       # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
-      output_cell.component.set_component_list run_context.component_list
+      output_cell.component.set_component run_context.component_list
 
     create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook

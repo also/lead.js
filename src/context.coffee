@@ -234,29 +234,16 @@ define (require) ->
       value: (value) -> _lead_context_fn_value: value
 
       async: (fn) ->
-        $item = $ '<div class="async"/>'
-        $item.attr 'data-async-status', 'loading'
-
-        start_time = new Date
-
-        duration = ->
-          ms = new Date - start_time
-          if ms >= 1000
-            s = (ms / 1000).toFixed 1
-            "#{s} s"
-          else
-            "#{ms} ms"
-
-        promise = nested_item @, fn
+        promise = nested_item @, ->
+          start_time = new Date
+          p = fn()
+          @promise_status p, start_time
+          p
 
         asyncs.push 1
         promise.finally =>
           asyncs.push -1
           @changes.push true
-        promise.then ->
-          $item.attr 'data-async-status', "loaded in #{duration()}"
-        promise.fail ->
-          $item.attr 'data-async-status', "failed in #{duration()}"
         promise
 
     scope_context = {}

@@ -115,18 +115,15 @@ pre
     .user-html
       @include user-html
 
-    .async
-      &::after
-        content: attr(data-async-status)
-        display: block
-        padding: 2px 8px
-        margin: 3px 0 10px 0
-        -webkit-border-bottom-right-radius: 6px
-        -webkit-border-bottom-left-radius: 6px
-        background-color: #eee
-        border-bottom: 1px solid #ddd
-        font-size: 0.8em
-        color: #bbb
+    .promise-status
+      padding: 2px 8px
+      margin: 3px 0 10px 0
+      -webkit-border-bottom-right-radius: 6px
+      -webkit-border-bottom-left-radius: 6px
+      background-color: #eee
+      border-bottom: 1px solid #ddd
+      font-size: 0.8em
+      color: #bbb
 
     .cm-comment
       color: #aaa
