@@ -63,6 +63,7 @@ define (require) ->
         React.DOM.div {className: 'document'}, @state.components
       set_cells: (cells) ->
         @set_components _.pluck cells, 'component'
+      shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
 
     create_notebook = (opts) ->
       $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
