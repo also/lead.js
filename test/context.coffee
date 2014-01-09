@@ -27,7 +27,7 @@ define (require) ->
         $el = context.render run_context
         expect($el.text()).to.be html
 
-    describe 'full conexts', ->
+    describe 'full contexts', ->
       ctx = null
       complete_callback = null
       on_complete = (fn, done) ->
