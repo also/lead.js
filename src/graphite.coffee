@@ -135,9 +135,10 @@ define (require) ->
           text = node.path
           text += '*' unless node.is_leaf
           node_parts = text.split '.'
-          React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (part, i) ->
-            part = '.' + part unless i == 0
-            React.DOM.span {className: if part == query_parts[i] then 'light' else null}, part
+          React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (segment, i) ->
+            s = segment
+            s = '.' + s unless i == 0
+            React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
 
     fn 'find', 'Finds Graphite metrics', (query) ->
       promise = graphite.find query
