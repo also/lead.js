@@ -201,13 +201,13 @@ define (require) ->
     InputCellComponent = React.createClass
       render: ->
         # TODO handle hiding
-        React.DOM.div {className: 'cell input'}, [
+        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number}, [
           React.DOM.span {className: 'permalink', onClick: @permalink_link_clicked}, 'link'
-          React.DOM.div {className: 'code'}
+          React.DOM.div {className: 'code', ref: 'code'}
         ]
-      componentDidMount: (node) ->
+      componentDidMount: ->
         editor = @props.cell.editor
-        node.appendChild editor.display.wrapper
+        @refs.code.getDOMNode().appendChild editor.display.wrapper
         editor.refresh()
 
       permalink_link_clicked: -> generate_permalink @props.cell
@@ -250,19 +250,19 @@ define (require) ->
       set_component_list: (@component_list) ->
         @setState component_list: @component_list if @state
       getInitialState: -> component_list: @component_list
-      render: -> React.DOM.div {className: 'cell output clean'}, @state.component_list
+      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component_list
 
     create_output_cell = (notebook) ->
       number = notebook.output_number++
 
       cell =
         type: 'output'
-        component: OutputCellComponent()
         visible: true
         active: true
         notebook: notebook
         number: number
 
+      cell.component = OutputCellComponent {cell}
       cell
 
     run = (input_cell) ->
