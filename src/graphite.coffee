@@ -5,6 +5,7 @@ define (require) ->
   Q = require 'q'
   URI = require 'URIjs'
   moment = require 'moment'
+  React = require 'react_abuse'
   dsl = require 'dsl'
   modules = require 'modules'
   function_names = require 'functions'
@@ -88,21 +89,31 @@ define (require) ->
           @error 'Failed to load image'
         promise
 
+    TimeSeriesTable = React.createClass
+      render: ->
+        React.DOM.table {}, _.map @props.datapoints, ([value, timestamp]) ->
+          time = moment(timestamp * 1000)
+          React.DOM.tr {}, [
+            React.DOM.th {}, time.format 'MMMM Do YYYY, h:mm:ss a'
+            React.DOM.td {className: 'cm-number number'}, value?.toFixed(3) or '(none)'
+          ]
+
+    TimeSeriesTableList = React.createClass
+      render: ->
+        React.DOM.div {}, _.map @props.serieses, (series) ->
+          React.DOM.div {}, [
+            React.DOM.h3 {}, series.target
+            TimeSeriesTable datapoints: series.datapoints
+          ]
+
     fn 'table', 'Displays Graphite data in a table', (args...) ->
       params = args_to_params @, args
       @async ->
-        $result = @div()
+        result = React.PropsHolder constructor: TimeSeriesTableList, props: serieses: []
+        @add_component result
         promise = graphite.get_data params
         promise.then (response) =>
-          for series in response
-            $header = $ '<h3>'
-            $header.text series.target
-            $result.append $header
-            $table = $ '<table>'
-            for [value, timestamp] in series.datapoints
-              time = moment(timestamp * 1000)
-              $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-            $result.append $table
+          result.set_child_props serieses: response
         .fail (error) =>
           @error error
           Q.reject error

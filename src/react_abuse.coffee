@@ -26,5 +26,10 @@ define (require) ->
     render: ->
       React.DOM.div {}, @state.components
 
-  _.extend {ComponentListMixin, ComponentList}, React
+  PropsHolder = React.createClass
+    render: -> @props.constructor @state.props
+    getInitialState: -> props: @props.props
+    set_child_props: (props) -> @setState {props}
+
+  _.extend {ComponentListMixin, ComponentList, PropsHolder}, React
 
