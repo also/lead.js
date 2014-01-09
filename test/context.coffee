@@ -27,7 +27,7 @@ define (require) ->
         $el = context.render run_context
         expect($el.text()).to.be html
 
-    describe 'full conexts', ->
+    describe 'full contexts', ->
       ctx = null
       complete_callback = null
       on_complete = (fn, done) ->
@@ -174,14 +174,14 @@ define (require) ->
             @render @detached -> @async ->
               $result = @div()
               promise.then =>
-                $result.text 'b'
+                $result.html '<p>b</p>'
                 complete()
               promise
           text 'c'
         $el = context.render context_a
-        expect($el.text()).to.be 'ac'
+        expect($el.find('p').text()).to.be 'ac'
         on_complete done, ->
-          expect($el.text()).to.be 'abc'
+          expect($el.find('p').text()).to.be 'abc'
 
       # TODO reconsider this behavior
       ###
@@ -224,4 +224,4 @@ define (require) ->
           @text 'b'
         $el = context.render context_a
         on_complete done, ->
-          expect($el.text()).to.be 'ab'
+          expect($el.find('p').text()).to.be 'ab'
