@@ -109,6 +109,11 @@ unit_tests = (browser) ->
     .title().then (title) ->
       expect(title).to.be('lead.js test runner')
       browser.executeAsync('run(arguments[0])')
+        .then (results) ->
+          if results.failures > 0
+            Q.reject results
+          else
+            results
 
 module.exports = {
   start_tunnel
