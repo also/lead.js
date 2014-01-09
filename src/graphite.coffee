@@ -128,32 +128,26 @@ define (require) ->
           @run "browser #{JSON.stringify node.path + '*'}"
       @add_renderable finder
 
+    FindResultsComponent = React.createClass
+      render: ->
+        query_parts = @props.query.split '.'
+        React.DOM.ul {className: 'find-results'}, _.map @props.results, (node) =>
+          text = node.path
+          text += '*' unless node.is_leaf
+          node_parts = text.split '.'
+          React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (part, i) ->
+            part = '.' + part unless i == 0
+            React.DOM.span {className: if part == query_parts[i] then 'light' else null}, part
+
     fn 'find', 'Finds Graphite metrics', (query) ->
       promise = graphite.find query
       promise.clicks = new Bacon.Bus
 
       @value @renderable promise, @detached -> @async ->
-        $ul = $ '<ul class="find-results"/>'
-        @add_rendered $ul
-        promise.then ({query, result}) =>
-          query_parts = query.split '.'
-          for node in result
-            $li = $ '<li class="cm-string"/>'
-            $li.data 'node', node
-            text = node.path
-            text += '*' unless node.is_leaf
-            node_parts = text.split '.'
-            for part, i in node_parts
-              if i > 0
-                $li.append '.'
-              $span = $ '<span>'
-              $span.addClass 'light' if part == query_parts[i]
-              $span.text part
-              $li.append $span
-
-            promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
-
-            $ul.append $li
+        result = React.PropsHolder constructor: FindResultsComponent, props: {results: [], query, on_click: (node) -> promise.clicks.push node}
+        @add_component result
+        promise.then (r) =>
+          result.set_child_props results: r.result
         .fail (reason) =>
           @error 'Find request failed'
           Q.reject reason
