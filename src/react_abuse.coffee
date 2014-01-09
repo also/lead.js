@@ -29,7 +29,7 @@ define (require) ->
   PropsHolder = React.createClass
     render: -> @props.constructor @state.props
     getInitialState: -> props: @props.props
-    set_child_props: (props) -> @setState {props}
+    set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}
 
   _.extend {ComponentListMixin, ComponentList, PropsHolder}, React
 
