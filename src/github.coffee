@@ -145,6 +145,7 @@ define (require) ->
             @text "Loading gist #{gist}"
             promise = http.get url
             promise.done (response) =>
+              @add_component GistLinkComponent gist: response
               for name, file of response.files
                 notebook.handle_file @, file, options
             promise.fail (response) =>
@@ -152,11 +153,33 @@ define (require) ->
 
     GistLinkComponent = React.createClass
       render: ->
+        avatar = @props.gist.user?.avatar_url ? 'https://github.com/images/gravatars/gravatar-user-420.png'
+        username = @props.gist.user?.login ? 'anonymous'
+        filenames = _.keys @props.gist.files
+        filenames.sort()
+        if filenames[0] == 'gistfile1.txt'
+          title = "gist:#{@props.gist.id}"
+        else
+          title = filenames[0]
+        React.DOM.div {className: 'gist-link'}, [
+          React.DOM.img {src: avatar}
+          if @props.gist.user?
+            React.DOM.a {href: @props.gist.user.html_url, target: '_blank'}, username
+          else
+            username
+          ' / '
+          React.DOM.a {href: @props.gist.html_url, target: '_blank'}, title
+          React.DOM.span {className: 'datetime'}, "Saved #{moment(@props.gist.updated_at).fromNow()}"
+        ]
+
+    NotebookGistLinkComponent = React.createClass
+      render: ->
         lead_uri = URI window.location.href
         lead_uri.query null
         lead_uri.fragment "/#{@props.gist.html_url}"
         React.DOM.div {}, [
-          React.DOM.p {}, React.DOM.a {href: @props.gist.html_url}, @props.gist.html_url
+          GistLinkComponent gist: @props.gist
+          # TODO should this be target=_blank
           React.DOM.p {}, React.DOM.a {href: lead_uri}, lead_uri.toString()
         ]
 
@@ -175,7 +198,7 @@ define (require) ->
           else
             github.save_gist gist
           promise.done (result) =>
-            @add_component GistLinkComponent gist: result
+            @add_component NotebookGistLinkComponent gist: result
           promise.fail =>
             @error 'Save failed. Make sure your access token is configured correctly.'
 
