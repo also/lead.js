@@ -12,6 +12,7 @@
 define (require) ->
   URI = require 'URIjs'
   Q = require 'q'
+  React = require 'react'
   modules = require 'modules'
   http = require 'http'
   global_settings = require 'settings'
@@ -149,6 +150,16 @@ define (require) ->
             promise.fail (response) =>
               @error response.statusText
 
+    GistLinkComponent = React.createClass
+      render: ->
+        lead_uri = URI window.location.href
+        lead_uri.query null
+        lead_uri.fragment "/#{@props.gist.html_url}"
+        React.DOM.div {}, [
+          React.DOM.p {}, React.DOM.a {href: @props.gist.html_url}, @props.gist.html_url
+          React.DOM.p {}, React.DOM.a {href: lead_uri}, lead_uri.toString()
+        ]
+
     cmd 'save_gist', 'Saves a notebook as a gist', (id) ->
       notebook = @export_notebook()
       gist =
@@ -164,11 +175,7 @@ define (require) ->
           else
             github.save_gist gist
           promise.done (result) =>
-            @html "<a href='#{result.html_url}'>#{result.html_url}</a>"
-            lead_uri = URI window.location.href
-            lead_uri.query null
-            lead_uri.fragment "/#{result.html_url}"
-            @html "<a href='#{lead_uri}'>#{lead_uri}</a>"
+            @add_component GistLinkComponent gist: result
           promise.fail =>
             @error 'Save failed. Make sure your access token is configured correctly.'
 
