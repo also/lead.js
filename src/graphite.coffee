@@ -12,8 +12,9 @@ define (require) ->
   http = require 'http'
   docs = require 'graphite_docs'
   parser = require 'graphite_parser'
+  builtins = require 'builtins'
 
-  graphite = modules.create 'graphite', ({fn, cmd, settings}) ->
+  graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings}) ->
     args_to_params = (context, args) ->
       graphite.args_to_params {args, default_options: context.options()}
 
@@ -25,59 +26,74 @@ define (require) ->
           throw new TypeError "#{t} is not a string"
       @value new dsl.type.q targets.map(String)...
 
+    DocsIndex = React.createClass
+      render: ->
+        names = (name for name of @props.docs)
+        names.sort()
+        React.DOM.div {},
+          _.map names, (name) =>
+            signature = @props.docs[name].signature
+            name = JSON.stringify name if @props.quote
+            value = "docs #{name}"
+            value += " # #{signature}" if signature?
+            builtins.ExampleComponent ctx: @props.ctx, value: value, run: true
+
+    FunctionDocsComponent = React.createClass
+      render: ->
+        React.DOM.div {}, [
+          React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
+          _.map @props.docs.examples, (example) =>
+            builtins.ExampleComponent ctx: @props.ctx, value: "#{default_target_command} #{JSON.stringify example}", run: false
+        ]
+
+    ParameterDocsComponent = React.createClass
+      render: -> React.DOM.div()
+      componentDidMount: (node) ->
+        ctx = @props.ctx
+        # TODO
+        $docs = $(node).append @props.docs
+        $docs.find('a').on 'click', (e) ->
+          e.preventDefault()
+          href = $(this).attr 'href'
+          if href[0] is '#'
+            ctx.run "docs '#{decodeURI href[1..]}'"
+
     cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
       if name?
         name = name.to_js_string() if name.to_js_string?
         name = name._lead_context_fn?.name if name._lead_op?
         function_docs = docs.function_docs[name]
         if function_docs?
-          @div function_docs.docs
-          for example in function_docs.examples
-            @example "#{default_target_command} #{JSON.stringify example}", run: false
+          @add_component FunctionDocsComponent ctx: @, docs: function_docs
         name = docs.parameter_doc_ids[name] ? name
         parameter_docs = docs.parameter_docs[name]
         if parameter_docs?
-          $docs = $(parameter_docs)
-          context = @
-          $docs.find('a').on 'click', (e) ->
-            e.preventDefault()
-            href = $(this).attr 'href'
-            if href[0] is '#'
-              context.run "docs '#{decodeURI href[1..]}'"
-          @div $docs
+          @add_component ParameterDocsComponent ctx: @, docs: parameter_docs
         unless function_docs? or parameter_docs?
           @text 'Documentation not found'
       else
-        @html '<h3>Functions</h3>'
-        names = (name for name of docs.function_docs)
-        names.sort()
-        for name in names
-          item = docs.function_docs[name]
-          @example "docs #{name}  # #{item.signature}"
-
-        @html '<h3>Parameters</h3>'
-        names = (name for name of docs.parameter_docs)
-        names.sort()
-        for name in names
-          @example "docs '#{name}'"
+        @add_component React.DOM.div {}, [
+          React.DOM.h3 {}, 'Functions'
+          DocsIndex ctx: @, docs: docs.function_docs
+          React.DOM.h3 {}, 'Parameters'
+          DocsIndex ctx: @, docs: docs.parameter_docs, quote: true
+        ]
 
     fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
       result = args_to_params @, args
       @value result
 
-    fn 'url', 'Generates a URL for a Graphite image', (args...) ->
+    component_fn 'url', 'Generates a URL for a Graphite image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
-      $a = $ "<a href='#{url}' target='blank'/>"
-      $a.text url
-      $pre = $ '<pre>'
-      $pre.append $a
-      @add_rendered $pre
+      React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
     fn 'img', 'Renders a Graphite graph image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
       @async ->
+        # TODO move this to react once it supports onload and onerror
+        # https://github.com/facebook/react/pull/774
         $img = $ "<img src='#{url}'/>"
         @div $img
         deferred = Q.defer()
