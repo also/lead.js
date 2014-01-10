@@ -32,13 +32,7 @@ define (require) ->
     documented_fns.sort()
     FunctionDocumentationComponent fns: _.map documented_fns, (name) -> {name, doc: fns[name].doc}
 
-  modules.create 'builtins', ({fn, cmd}) ->
-    component_cmd= (name, doc, f) ->
-      cmd name, doc, -> @add_component f.apply @, arguments
-
-    component_fn = (name, doc, f) ->
-      fn name, doc, -> @add_component f.apply @, arguments
-
+  modules.create 'builtins', ({fn, cmd, component_fn, component_cmd}) ->
     component_cmd 'help', 'Shows this help', (cmd) ->
       if arguments.length > 0
         if _.isString cmd
@@ -212,3 +206,5 @@ define (require) ->
           @example "websocket #{JSON.stringify url}"
         ws.onmessage = (e) => @run e.data
         ws.onerror = => @error 'Error'
+
+    {ExampleComponent}
