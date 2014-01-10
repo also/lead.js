@@ -10,6 +10,7 @@ define (require) ->
   graphite = require 'graphite'
   context = require 'context'
   modules = require 'modules'
+  React = require 'react_abuse'
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
@@ -56,6 +57,14 @@ define (require) ->
       _.extend CodeMirror.commands, ed.commands
 
 
+    DocumentComponent = React.createClass
+      mixins: [React.ComponentListMixin]
+      render: ->
+        React.DOM.div {className: 'document'}, @state.components
+      set_cells: (cells) ->
+        @set_components _.pluck cells, 'component'
+      shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
+
     create_notebook = (opts) ->
       $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
       $file_picker.on 'change', (e) ->
@@ -66,13 +75,13 @@ define (require) ->
         # reset the file picker so change is triggered again
         $file_picker.val ''
 
-      $document = $ '<div class="document"/>'
-      $document.append $file_picker
+      document = DocumentComponent()
+      # FIXME add file picker
       notebook =
         cells: []
         input_number: 1
         output_number: 1
-        $document: $document
+        component: document
         $file_picker: $file_picker
         cell_run: new Bacon.Bus
         cell_focused: new Bacon.Bus
@@ -81,7 +90,8 @@ define (require) ->
         scrolls = $(window).asEventStream 'scroll'
         scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil scrolls
         scroll_to.onValue (output_cell) ->
-          $('html, body').scrollTop output_cell.$el.offset().top
+          # FIXME
+          $('html, body').scrollTop $(output_cell.component.getDOMNode()).offset().top
 
       context.create_base_context(opts).then (base_context) ->
         notebook.base_context = base_context
@@ -102,11 +112,14 @@ define (require) ->
             run cell
       notebook
 
+    update_view = (notebook) ->
+      notebook.component.set_cells notebook.cells
+
     clear_notebook = (notebook) ->
-      notebook.$document.empty()
       for cell in notebook.cells
         cell.active = false
       notebook.cells.length = 0
+      update_view notebook
 
 
     cell_index = (cell) ->
@@ -130,33 +143,29 @@ define (require) ->
 
     remove_cell = (cell) ->
       index = cell_index cell
-      cell.$el.remove()
       cell.notebook.cells.splice index, 1
       cell.active = false
+      update_view cell.notebook
 
     hide_cell = (cell) ->
       cell.visible = false
-      cell.$el.hide()
+      update_view cell.notebook
 
     insert_cell = (cell, position={}) ->
       if position.before?.active
         offset = 0
         current_cell = position.before
-        current_cell.$el.before cell.$el
       else if position.after?.active
         offset = 1
         current_cell = position.after
-        current_cell.$el.after cell.$el
       else
-        cell.notebook.$document.append cell.$el
         cell.notebook.cells.push cell
-        cell.rendered()
+        update_view cell.notebook
         return
 
       index = cell_index current_cell
       current_cell.notebook.cells.splice index + offset, 0, cell
-
-      cell.rendered()
+      update_view cell.notebook
 
     # TODO cell type
     add_input_cell = (notebook, opts={}) ->
@@ -190,31 +199,38 @@ define (require) ->
       catch e
         [ed.add_error_mark editor, e]
 
+    InputCellComponent = React.createClass
+      render: ->
+        # TODO handle hiding
+        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number}, [
+          React.DOM.span {className: 'permalink', onClick: @permalink_link_clicked}, 'link'
+          React.DOM.div {className: 'code', ref: 'code'}
+        ]
+      componentDidMount: ->
+        editor = @props.cell.editor
+        @refs.code.getDOMNode().appendChild editor.display.wrapper
+        editor.refresh()
+
+      permalink_link_clicked: -> generate_permalink @props.cell
+
+    generate_permalink = (cell) ->
+      eval_coffeescript_after cell.output_cell ? cell, 'permalink'
+
     create_input_cell = (notebook) ->
-      $el = $ '<div class="cell input"/>'
-      $link = $ '<span class="permalink">link</span>'
-      $code = $ '<div class="code"/>'
-      $el.append $link
-      $el.append $code
-      $link.on 'click', ->
-        eval_coffeescript_after cell.output_cell ? cell, 'permalink'
-
-      editor = ed.create_editor $code.get 0
-
+      editor = ed.create_editor ->
       cell =
         type: 'input'
-        $el: $el
         visible: true
         active: true
         notebook: notebook
         context: create_input_context notebook
         used: false
         editor: editor
-        rendered: -> editor.refresh()
-        hide: -> $el.hide()
         is_clean: -> editor.getValue() is '' and not @.used
 
       editor.lead_cell = cell
+      component = InputCellComponent {cell}
+      cell.component = component
 
       changes = ed.as_event_stream editor, 'change'
       # scan changes for the side effect in in recompile
@@ -231,19 +247,23 @@ define (require) ->
       cell.editor.focus()
       cell.notebook.cell_focused.push cell
 
+    OutputCellComponent = React.createClass
+      set_component: (@component) ->
+        @setState component: @component if @state
+      getInitialState: -> component: @component
+      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component
+
     create_output_cell = (notebook) ->
       number = notebook.output_number++
 
       cell =
         type: 'output'
-        $el: $ '<div class="cell output clean"/>'
         visible: true
         active: true
         notebook: notebook
-        rendered: ->
         number: number
 
-      cell.$el.attr 'data-cell-number', cell.number
+      cell.component = OutputCellComponent {cell}
       cell
 
     run = (input_cell) ->
@@ -253,7 +273,6 @@ define (require) ->
       remove_cell input_cell.output_cell if input_cell.output_cell?
       insert_cell output_cell, after: input_cell
       input_cell.number = input_cell.notebook.input_number++
-      input_cell.$el.attr 'data-cell-number', input_cell.number
       input_cell.output_cell = output_cell
 
       # TODO cell type
@@ -276,10 +295,10 @@ define (require) ->
       # or when the first async task completes
       no_longer_pending = run_context.changes.skipWhile(has_pending)
       output_cell.done = no_longer_pending.take(1).map -> output_cell
-
       fn()
 
-      output_cell.$el.append context.render run_context
+      # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
+      output_cell.component.set_component run_context.component_list
 
     create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook

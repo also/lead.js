@@ -14,6 +14,7 @@
     moment: '../lib/moment'
     marked: '../lib/marked'
     'coffee-script': '../lib/coffee-script'
+    react: '../lib/react-0.8.0'
     colorbrewer: '../lib/colorbrewer'
     'graphite_docs': '../lib/graphite_docs'
   shim:

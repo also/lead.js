@@ -2,6 +2,9 @@ page = require("webpage").create()
 page.onConsoleMessage = (msg) ->
   console.log msg
 
+page.onInitialized = ->
+  page.injectJs 'lib/es5-shim-v2.2.0.js'
+
 url = "http://localhost:8000/test/runner.html?pause"
 page.open url, ->
   page.evaluate ->
@@ -9,8 +12,8 @@ page.open url, ->
       window.callPhantom stats.failures
 
 page.onResourceError = (error) ->
-    console.log "tests failed to load: #{error.errorString}"
-    phantom.exit 3
+  console.log "tests failed to load: #{error.errorString}"
+  phantom.exit 3
 
 page.onCallback = (failed) ->
   if failed > 0

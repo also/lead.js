@@ -5,14 +5,16 @@ define (require) ->
   Q = require 'q'
   URI = require 'URIjs'
   moment = require 'moment'
+  React = require 'react_abuse'
   dsl = require 'dsl'
   modules = require 'modules'
   function_names = require 'functions'
   http = require 'http'
   docs = require 'graphite_docs'
   parser = require 'graphite_parser'
+  builtins = require 'builtins'
 
-  graphite = modules.create 'graphite', ({fn, cmd, settings}) ->
+  graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings}) ->
     args_to_params = (context, args) ->
       graphite.args_to_params {args, default_options: context.options()}
 
@@ -24,59 +26,74 @@ define (require) ->
           throw new TypeError "#{t} is not a string"
       @value new dsl.type.q targets.map(String)...
 
+    DocsIndex = React.createClass
+      render: ->
+        names = (name for name of @props.docs)
+        names.sort()
+        React.DOM.div {},
+          _.map names, (name) =>
+            signature = @props.docs[name].signature
+            name = JSON.stringify name if @props.quote
+            value = "docs #{name}"
+            value += " # #{signature}" if signature?
+            builtins.ExampleComponent ctx: @props.ctx, value: value, run: true
+
+    FunctionDocsComponent = React.createClass
+      render: ->
+        React.DOM.div {}, [
+          React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
+          _.map @props.docs.examples, (example) =>
+            builtins.ExampleComponent ctx: @props.ctx, value: "#{default_target_command} #{JSON.stringify example}", run: false
+        ]
+
+    ParameterDocsComponent = React.createClass
+      render: -> React.DOM.div()
+      componentDidMount: (node) ->
+        ctx = @props.ctx
+        # TODO
+        $docs = $(node).append @props.docs
+        $docs.find('a').on 'click', (e) ->
+          e.preventDefault()
+          href = $(this).attr 'href'
+          if href[0] is '#'
+            ctx.run "docs '#{decodeURI href[1..]}'"
+
     cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
       if name?
         name = name.to_js_string() if name.to_js_string?
         name = name._lead_context_fn?.name if name._lead_op?
         function_docs = docs.function_docs[name]
         if function_docs?
-          @div function_docs.docs
-          for example in function_docs.examples
-            @example "#{default_target_command} #{JSON.stringify example}", run: false
+          @add_component FunctionDocsComponent ctx: @, docs: function_docs
         name = docs.parameter_doc_ids[name] ? name
         parameter_docs = docs.parameter_docs[name]
         if parameter_docs?
-          $docs = $(parameter_docs)
-          context = @
-          $docs.find('a').on 'click', (e) ->
-            e.preventDefault()
-            href = $(this).attr 'href'
-            if href[0] is '#'
-              context.run "docs '#{decodeURI href[1..]}'"
-          @div $docs
+          @add_component ParameterDocsComponent ctx: @, docs: parameter_docs
         unless function_docs? or parameter_docs?
           @text 'Documentation not found'
       else
-        @html '<h3>Functions</h3>'
-        names = (name for name of docs.function_docs)
-        names.sort()
-        for name in names
-          item = docs.function_docs[name]
-          @example "docs #{name}  # #{item.signature}"
-
-        @html '<h3>Parameters</h3>'
-        names = (name for name of docs.parameter_docs)
-        names.sort()
-        for name in names
-          @example "docs '#{name}'"
+        @add_component React.DOM.div {}, [
+          React.DOM.h3 {}, 'Functions'
+          DocsIndex ctx: @, docs: docs.function_docs
+          React.DOM.h3 {}, 'Parameters'
+          DocsIndex ctx: @, docs: docs.parameter_docs, quote: true
+        ]
 
     fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
       result = args_to_params @, args
       @value result
 
-    fn 'url', 'Generates a URL for a Graphite image', (args...) ->
+    component_fn 'url', 'Generates a URL for a Graphite image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
-      $a = $ "<a href='#{url}' target='blank'/>"
-      $a.text url
-      $pre = $ '<pre>'
-      $pre.append $a
-      @add_rendered $pre
+      React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
     fn 'img', 'Renders a Graphite graph image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
       @async ->
+        # TODO move this to react once it supports onload and onerror
+        # https://github.com/facebook/react/pull/774
         $img = $ "<img src='#{url}'/>"
         @div $img
         deferred = Q.defer()
@@ -88,21 +105,31 @@ define (require) ->
           @error 'Failed to load image'
         promise
 
+    TimeSeriesTable = React.createClass
+      render: ->
+        React.DOM.table {}, _.map @props.datapoints, ([value, timestamp]) ->
+          time = moment(timestamp * 1000)
+          React.DOM.tr {}, [
+            React.DOM.th {}, time.format 'MMMM Do YYYY, h:mm:ss a'
+            React.DOM.td {className: 'cm-number number'}, value?.toFixed(3) or '(none)'
+          ]
+
+    TimeSeriesTableList = React.createClass
+      render: ->
+        React.DOM.div {}, _.map @props.serieses, (series) ->
+          React.DOM.div {}, [
+            React.DOM.h3 {}, series.target
+            TimeSeriesTable datapoints: series.datapoints
+          ]
+
     fn 'table', 'Displays Graphite data in a table', (args...) ->
       params = args_to_params @, args
       @async ->
-        $result = @div()
+        result = React.PropsHolder constructor: TimeSeriesTableList, props: serieses: []
+        @add_component result
         promise = graphite.get_data params
         promise.then (response) =>
-          for series in response
-            $header = $ '<h3>'
-            $header.text series.target
-            $result.append $header
-            $table = $ '<table>'
-            for [value, timestamp] in series.datapoints
-              time = moment(timestamp * 1000)
-              $table.append "<tr><th>#{time.format('MMMM Do YYYY, h:mm:ss a')}</th><td class='cm-number number'>#{value?.toFixed(3) or '(none)'}</td></tr>"
-            $result.append $table
+          result.set_child_props serieses: response
         .fail (error) =>
           @error error
           Q.reject error
@@ -117,32 +144,27 @@ define (require) ->
           @run "browser #{JSON.stringify node.path + '*'}"
       @add_renderable finder
 
+    FindResultsComponent = React.createClass
+      render: ->
+        query_parts = @props.query.split '.'
+        React.DOM.ul {className: 'find-results'}, _.map @props.results, (node) =>
+          text = node.path
+          text += '*' unless node.is_leaf
+          node_parts = text.split '.'
+          React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (segment, i) ->
+            s = segment
+            s = '.' + s unless i == 0
+            React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
+
     fn 'find', 'Finds Graphite metrics', (query) ->
       promise = graphite.find query
       promise.clicks = new Bacon.Bus
 
       @value @renderable promise, @detached -> @async ->
-        $ul = $ '<ul class="find-results"/>'
-        @add_rendered $ul
-        promise.then ({query, result}) =>
-          query_parts = query.split '.'
-          for node in result
-            $li = $ '<li class="cm-string"/>'
-            $li.data 'node', node
-            text = node.path
-            text += '*' unless node.is_leaf
-            node_parts = text.split '.'
-            for part, i in node_parts
-              if i > 0
-                $li.append '.'
-              $span = $ '<span>'
-              $span.addClass 'light' if part == query_parts[i]
-              $span.text part
-              $li.append $span
-
-            promise.clicks.plug $li.asEventStream('click').map (e) -> $(e.target).closest('li').data('node')
-
-            $ul.append $li
+        result = React.PropsHolder constructor: FindResultsComponent, props: {results: [], query, on_click: (node) -> promise.clicks.push node}
+        @add_component result
+        promise.then (r) =>
+          result.set_child_props results: r.result
         .fail (reason) =>
           @error 'Find request failed'
           Q.reject reason

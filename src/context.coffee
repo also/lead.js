@@ -4,6 +4,7 @@ define (require) ->
   CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
   Bacon = require 'baconjs'
+  React = require 'react_abuse'
   modules = require 'modules'
 
   ignore = new Object
@@ -24,7 +25,7 @@ define (require) ->
         true
 
   handle_renderable = (object) ->
-    if object?._lead_render
+    if is_renderable object
       @add_renderable object
       true
 
@@ -36,6 +37,19 @@ define (require) ->
   handle_any_object = (object) ->
     @object object
     true
+
+  # TODO make this configurable
+  result_handlers =[
+    ignored,
+    handle_cmd,
+    handle_renderable,
+    handle_using_extension
+    handle_any_object
+  ]
+
+  display_object = (ctx, object) ->
+    for handler in result_handlers
+      return if handler.call ctx, object
 
 
   collect_extension_points = (context, extension_point) ->
@@ -94,57 +108,62 @@ define (require) ->
       vars: vars
       imported_vars: imported_vars
 
-  delayed_then_immediate_renderable_list_builder = ->
-    $item = $ '<div/>'
-    renderables = []
-    rendered = false
-    add_renderable: (renderable) ->
-      if rendered
-        $item.append render renderable
-      else
-        renderables.push renderable
-    empty: ->
-      renderables.length = 0
-      $item.empty()
-    _lead_render: ->
-      unless rendered
-        rendered = true
-        children = _.map renderables, (i) -> i._lead_render()
-        $item.append children
-      $item
+  render = (renderable) ->
+    $wrapper = $ '<div/>'
+    component = component_for_renderable renderable
+    React.renderComponent component, $wrapper.get 0
+    $wrapper
+
+  is_component = (o) -> o?._lifeCycleState?
+
+  is_renderable = (o) ->
+    o? and (is_component(o) or o._lead_render?)
+
+  RenderableComponent = React.createClass
+    render: -> React.DOM.div()
+    componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
+
+  component_for_renderable = (renderable) ->
+    if is_component renderable
+      renderable
+    else if is_component renderable._lead_render
+      renderable._lead_render
+    # TODO remove context special case
+    else if renderable.component_list?
+      renderable.component_list
+    else
+      RenderableComponent {renderable}
+
+  create_nested_renderable_context = (ctx) ->
+    component = React.ComponentList()
+    ctx.create_nested_context
+      component_list: component
+
+  # creates a nested context, adds it to the renderable list, and applies the function to it
+  nested_item = (ctx, fn, args...) ->
+    nested_context = create_nested_renderable_context ctx
+    ctx.add_component nested_context.component_list
+    nested_context.apply_to fn, args
 
   create_run_context = (extra_contexts) ->
-    result_handlers =[
-      ignored,
-      handle_cmd,
-      handle_renderable,
-      handle_using_extension
-      handle_any_object
-    ]
-
     asyncs = new Bacon.Bus
 
     run_context_prototype = _.extend {}, extra_contexts...,
       changes: new Bacon.Bus
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
-      renderable_list_builder: delayed_then_immediate_renderable_list_builder()
-      _lead_render: ->
-        result = @renderable_list_builder._lead_render()
-        @changes.push true
-        result
-
+      component_list: React.ComponentList()
       running_context: -> running_context_binding
 
       options: -> @current_options
 
       apply_to: (fn, args) ->
-        previous_context = scope_context.current_context
-        scope_context.current_context = @
+        previous_context = @scope_context.current_context
+        @scope_context.current_context = @
         try
           fn.apply @, args
         finally
-          scope_context.current_context = previous_context
+          @scope_context.current_context = previous_context
 
       in_running_context: (fn, args) ->
         throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
@@ -169,24 +188,24 @@ define (require) ->
           restoring_context fn, arguments
 
       add_renderable: (renderable) ->
-        @renderable_list_builder.add_renderable renderable
+        @add_component component_for_renderable renderable
         ignore
 
+      add_component: (component) ->
+        @component_list.add_component component
+
       add_rendered: (rendered) ->
-        @add_rendering -> rendered
+        @add_renderable _lead_render: -> rendered
 
-      # adds a function that can render
-      add_rendering: (rendering) -> @add_renderable _lead_render: @keeping_context(rendering)
+      render: render
 
-      render: (o) -> o._lead_render()
-
-      empty: -> @renderable_list_builder.empty()
+      empty: -> @component_list.empty()
 
       div: (contents) ->
         $div = $('<div/>')
         if contents?
           if _.isFunction contents
-            return @nested_item contents
+            return nested_item @, contents
           else
             $div.append contents
         @add_rendered $div
@@ -194,82 +213,57 @@ define (require) ->
 
       # makes o renderable using the given function or renderable
       renderable: (o, fn) ->
-        if fn._lead_render?
+        if is_component fn
+          o._lead_render = fn
+        else if fn._lead_render?
           o._lead_render = fn._lead_render
         else
           nested_context = @create_nested_context
-            renderable_list_builder: add_renderable: -> throw new Error 'Output functions not allowed inside a renderable'
+            component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
           o._lead_render = -> nested_context.apply_to fn
         o
 
-      create_nested_renderable_context: ($item) ->
-        renderable = delayed_then_immediate_renderable_list_builder()
-        @create_nested_context
-          renderable_list_builder: renderable
-
       create_nested_context: (overrides) ->
-        nested_context = _.extend create_new_run_context(@), overrides
+        nested_context = _.extend create_new_run_context(run_context_prototype, @), overrides
 
-      detached:  (fn, args) ->
-        nested_context = @create_nested_renderable_context()
+      detached: (fn, args) ->
+        nested_context = create_nested_renderable_context @
         nested_context.apply_to fn, args
-        nested_context.renderable_list_builder
-
-      # creates a nested context, adds it to the renderable list, and applies the function to it
-      nested_item: (fn, args...) ->
-        nested_context = @create_nested_renderable_context()
-        @add_renderable nested_context.renderable_list_builder
-        nested_context.apply_to fn, args
-
-      display_object: (object) ->
-        for handler in result_handlers
-          return if handler.call @, object
+        nested_context.component_list
 
       value: (value) -> _lead_context_fn_value: value
 
       async: (fn) ->
-        $item = $ '<div class="async"/>'
-        $item.attr 'data-async-status', 'loading'
-
         start_time = new Date
+        promise = nested_item @, fn
 
-        duration = ->
-          ms = new Date - start_time
-          if ms >= 1000
-            s = (ms / 1000).toFixed 1
-            "#{s} s"
-          else
-            "#{ms} ms"
-
-        promise = @nested_item fn
+        @promise_status promise, start_time
 
         asyncs.push 1
         promise.finally =>
           asyncs.push -1
           @changes.push true
-        promise.then ->
-          $item.attr 'data-async-status', "loaded in #{duration()}"
-        promise.fail ->
-          $item.attr 'data-async-status', "failed in #{duration()}"
         promise
 
     scope_context = {}
     run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
+    run_context_prototype.scope_context = scope_context
 
-    create_new_run_context = (parent) ->
-      new_context = Object.create parent
+    run_context = scope_context.current_context = create_new_run_context run_context_prototype, run_context_prototype
 
-      fns_and_vars = bind_context_fns new_context, new_context.context_fns
-      _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
-      _.extend fns_and_vars, fns_and_vars.builtins
-      _.each fns_and_vars, (mod, name) ->
-        if run_context_prototype[name]?
-          console.warn mod._lead_context_name, 'would overwrite core'
-        else
-          new_context[name] = mod
-      new_context.current_context = new_context
-      new_context
-    run_context = scope_context.current_context = create_new_run_context run_context_prototype
+  create_new_run_context = (run_context_prototype, parent) ->
+    new_context = Object.create parent
+
+    fns_and_vars = bind_context_fns new_context, new_context.context_fns
+    _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+    _.extend fns_and_vars, fns_and_vars.builtins
+    _.each fns_and_vars, (mod, name) ->
+      if run_context_prototype[name]?
+        console.warn mod._lead_context_name, 'would overwrite core'
+      else
+        new_context[name] = mod
+    new_context.current_context = new_context
+    new_context
 
   scope = (run_context) ->
     _.extend {}, run_context.fns, run_context.imported_vars
@@ -308,12 +302,9 @@ define (require) ->
       previous_running_context_binding = running_context_binding
       running_context_binding = run_context
       result = fn.apply run_context
-      run_context.display_object result
+      display_object run_context, result
     finally
       running_context_binding = previous_running_context_binding
-
-  render = (o) ->
-    o._lead_render()
 
   {
     create_base_context,
@@ -323,7 +314,10 @@ define (require) ->
     run_in_context,
     eval_coffeescript_in_context,
     eval_in_context,
-    render,
+    render: (ctx) ->
+      result = render ctx
+      ctx.changes.push true
+      result
     scope,
     collect_extension_points
   }

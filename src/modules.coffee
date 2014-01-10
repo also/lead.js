@@ -23,7 +23,14 @@ define (require) ->
 
       context_fns[name] = result
 
-    mod = {cmd, fn, context_fns, settings: module_settings}
+    # TODO does this belong here?
+    component_fn = (name, doc, f) ->
+      fn name, doc, -> @add_component f.apply @, arguments
+
+    component_cmd= (name, doc, f) ->
+      cmd name, doc, -> @add_component f.apply @, arguments
+
+    mod = {cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?
       _.extend {context_fns, settings}, definition_fn mod
     else

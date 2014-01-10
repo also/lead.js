@@ -4,6 +4,7 @@ define (require) ->
   settings = require 'settings'
   config = require 'config'
   github = require 'github'
+  React = require 'react'
 
   module_names = ['http', 'dsl', 'graph', 'settings']
 
@@ -41,7 +42,7 @@ define (require) ->
     nb = notebook.create_notebook {imports, module_names}
 
     nb.done (nb) ->
-      $document.append nb.$document
+      React.renderComponent nb.component, $document.get 0
       rc = localStorage.lead_rc
       if rc?
         notebook.eval_coffeescript_without_input_cell nb, rc
