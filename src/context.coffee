@@ -234,11 +234,10 @@ define (require) ->
       value: (value) -> _lead_context_fn_value: value
 
       async: (fn) ->
-        promise = nested_item @, ->
-          start_time = new Date
-          p = fn.call @
-          @promise_status p, start_time
-          p
+        start_time = new Date
+        promise = nested_item @, fn
+
+        @promise_status promise, start_time
 
         asyncs.push 1
         promise.finally =>
