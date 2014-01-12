@@ -287,13 +287,13 @@ define (require) ->
 
     run_with_context = (run_context, fn) ->
       output_cell = run_context.output_cell
-      has_pending = run_context.pending.map (n) -> n > 0
-      # FIXME not sure why this is necessary; seems like a bug in Bacon
-      # without it, the skipWhile seems to be ignored
-      has_pending.subscribe ->
+      changes = run_context.changes
+      # pending is a property that has the initial value 0 and tracks the number of pending promises
+      pending = run_context.pending
+      has_pending = pending.map (n) -> n > 0
       # a cell is "done enough" if there were no async tasks,
       # or when the first async task completes
-      no_longer_pending = run_context.changes.skipWhile(has_pending)
+      no_longer_pending = run_context.changes.skipWhile has_pending
       output_cell.done = no_longer_pending.take(1).map -> output_cell
       fn()
 
