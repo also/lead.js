@@ -1,5 +1,8 @@
 @require =
   deps: ['bootstrap']
+  map:
+    '*':
+      'bacon': 'baconjs'
   paths:
     lib: '../lib'
     cm: '../lib/codemirror-3.12'
@@ -10,6 +13,7 @@
     'stacktrace-js': '../lib/stacktrace-min-0.4'
     domReady: '../lib/domReady'
     baconjs: '../lib/Bacon'
+    'bacon.model': '../lib/bacon.model'
     q: '../lib/q'
     moment: '../lib/moment'
     marked: '../lib/marked'

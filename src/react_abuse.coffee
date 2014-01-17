@@ -2,6 +2,23 @@ define (require) ->
   React = require 'react'
   _ = require 'underscore'
 
+  ComponentProxy = ->
+    component = null
+    state = null
+    bind_to_component: (c) ->
+      component = c
+      if state != null
+        component.setState state
+    setState: (s) ->
+      if component?
+        component.setState s
+      else
+        state = s
+
+  ComponentProxyMixin =
+    componentWillMount: ->
+      @props.component_proxy?.bind_to_component @
+
   ComponentListMixin =
     getInitialState: -> components: @_components or [], update_count: 0
     assign_key: (component) ->
@@ -34,5 +51,5 @@ define (require) ->
     getInitialState: -> props: @props.props
     set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}
 
-  _.extend {ComponentListMixin, ComponentList, PropsHolder}, React
+  _.extend {ComponentListMixin, ComponentList, PropsHolder, ComponentProxy, ComponentProxyMixin}, React
 
