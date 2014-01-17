@@ -46,6 +46,7 @@ define (require) ->
             content: atob response.content.replace /\n/g, ''
             filename: response.name
             type: 'application/octet-stream'
+            base_href: response.html_url.replace '/blob/', '/raw/'
 
       to_repo_url: (path) ->
         path = path.toString()

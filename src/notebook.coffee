@@ -354,7 +354,7 @@ define (require) ->
             run cell
         else if extension is 'md'
           run_without_input_cell run_context.notebook, ->
-            @md file.content
+            @md file.content, base_href: file.base_href
         else
           try
             imported = JSON.parse file.content

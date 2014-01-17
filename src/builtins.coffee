@@ -89,11 +89,23 @@ define (require) ->
       s ||= new String o
       SourceComponent value: s, language: 'json'
 
-    MarkdownComponent = React.createClass
-      render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value
+    fix_marked_renderer_href = (fn, base_href) ->
+      (href, args...) ->
+        fn URI(href).absoluteTo(base_href).toString(), args...
 
-    component_fn 'md', 'Renders Markdown', (string) ->
-      MarkdownComponent value: string
+    MarkdownComponent = React.createClass
+      render: ->
+        marked_opts = {}
+        base_href = @props.opts?.base_href
+        if base_href?
+          renderer = new marked.Renderer
+          renderer.link = fix_marked_renderer_href renderer.link, base_href
+          renderer.image = fix_marked_renderer_href renderer.image, base_href
+          marked_opts.renderer = renderer
+        React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value, marked_opts
+
+    component_fn 'md', 'Renders Markdown', (string, opts) ->
+      MarkdownComponent value: string, opts: opts
 
     TextComponent = React.createClass
       render: -> React.DOM.p {}, @props.value
