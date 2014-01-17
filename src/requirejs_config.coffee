@@ -1,8 +1,5 @@
 @require =
   deps: ['bootstrap']
-  map:
-    '*':
-      'bacon': 'baconjs'
   paths:
     lib: '../lib'
     cm: '../lib/codemirror-3.12'
