@@ -11,6 +11,8 @@ define (require) ->
   context = require 'context'
   modules = require 'modules'
   React = require 'react_abuse'
+  CoffeeScriptCell = null
+  require ['coffeescript_cell'], (r) -> CoffeeScriptCell = r
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
@@ -172,26 +174,6 @@ define (require) ->
         insert_cell cell, opts
       cell
 
-    # run an input cell above the current cell
-    eval_coffeescript_before = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, before: current_cell
-      set_cell_value cell, code
-      run cell
-
-    eval_coffeescript_after = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, after: current_cell
-      set_cell_value cell, code
-      run cell
-
-    recompile = (error_marks, editor) ->
-      m.clear() for m in error_marks
-      editor.clearGutter 'error'
-      try
-        CoffeeScript.compile editor.getValue()
-        []
-      catch e
-        [ed.add_error_mark editor, e]
-
     InputCellComponent = React.createClass
       render: ->
         # TODO handle hiding
@@ -219,15 +201,15 @@ define (require) ->
         context: create_input_context notebook
         used: false
         editor: editor
+        changes: ed.as_event_stream editor, 'change'
 
       editor.lead_cell = cell
       component = InputCellComponent {cell}
       cell.component = component
 
-      changes = ed.as_event_stream editor, 'change'
       # scan changes for the side effect in recompile
       # we have to subscribe so that the events are sent
-      changes.debounce(200).scan([], recompile).onValue ->
+      cell.changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue ->
 
       cell
 
@@ -259,7 +241,6 @@ define (require) ->
       cell
 
     run = (input_cell) ->
-      string = input_cell.editor.getValue()
       output_cell = create_output_cell input_cell.notebook
       input_cell.used = true
       remove_cell input_cell.output_cell if input_cell.output_cell?
@@ -269,13 +250,9 @@ define (require) ->
 
       # TODO cell type
       run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
-      eval_coffeescript_into_output_cell run_context, string
+      CoffeeScriptCell.run run_context
       input_cell.notebook.cell_run.push input_cell
       output_cell
-
-    eval_coffeescript_into_output_cell = (run_context, string) ->
-      run_with_context run_context, ->
-        context.eval_coffeescript_in_context run_context, string
 
     run_with_context = (run_context, fn) ->
       output_cell = run_context.output_cell
@@ -297,6 +274,21 @@ define (require) ->
       run_context = context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
       insert_cell output_cell
       run_context
+
+    eval_coffeescript_into_output_cell = (run_context, string) ->
+      run_with_context run_context, ->
+        CoffeeScriptCell.eval_coffeescript_in_context run_context, string
+
+    # run an input cell above the current cell
+    eval_coffeescript_before = (current_cell, code) ->
+      cell = add_input_cell current_cell.notebook, before: current_cell
+      set_cell_value cell, code
+      run cell
+
+    eval_coffeescript_after = (current_cell, code) ->
+      cell = add_input_cell current_cell.notebook, after: current_cell
+      set_cell_value cell, code
+      run cell
 
     eval_coffeescript_without_input_cell = (notebook, string) ->
       run_context = create_bare_output_cell_and_context notebook
@@ -388,6 +380,7 @@ define (require) ->
       remove_cell
       focus_cell
       eval_coffeescript_without_input_cell
+      eval_coffeescript_into_output_cell
       run_without_input_cell
       set_cell_value
 

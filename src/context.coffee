@@ -275,19 +275,6 @@ define (require) ->
     .then (base_context) ->
       create_run_context [create_context base_context]
 
-  eval_coffeescript_in_context = (run_context, string) ->
-    try
-      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      eval_in_context run_context, compiled
-    catch e
-      if e instanceof SyntaxError
-        run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
-      else
-        console.error e.stack
-        run_context.error printStackTrace({e}).join('\n')
-        run_context.text 'Compiled JavaScript:'
-        run_context.source 'javascript', compiled
-
 
   eval_in_context = (run_context, string) ->
     if _.isFunction string
@@ -314,7 +301,6 @@ define (require) ->
     create_run_context,
     create_standalone_context,
     run_in_context,
-    eval_coffeescript_in_context,
     eval_in_context,
     render: (ctx) ->
       result = render ctx
