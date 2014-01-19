@@ -37,7 +37,9 @@ define (require) ->
       if arguments.length > 0
         if _.isString cmd
           op = @imported_context_fns[cmd]
-          fns = cmd: op if op?
+          if op?
+            fns = {}
+            fns[cmd] = op
         else if cmd?._lead_context_name
           name = cmd._lead_context_name
           if cmd._lead_context_fn?
