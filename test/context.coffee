@@ -1,6 +1,10 @@
 define (require) ->
   expect = require 'expect'
   context = require 'context'
+  CoffeeScriptCell = require 'coffeescript_cell'
+
+  eval_coffeescript_in_context = (run_context, string) ->
+    context.run_in_context run_context, CoffeeScriptCell.create_fn string
 
   later = (done, fn) ->
     try
@@ -60,7 +64,7 @@ define (require) ->
 
       it 'can run coffeescript strings', ->
         run_context = context.create_run_context [ctx, {set_test_result}]
-        context.eval_coffeescript_in_context run_context, '@set_test_result 1 + 1'
+        eval_coffeescript_in_context run_context, '@set_test_result 1 + 1'
         expect(result).to.be 2
 
       it 'can eval functions', ->
@@ -80,7 +84,7 @@ define (require) ->
         context.run_in_context context_a, ->
           @function_in_context_a = =>
             @value_in_context_a = 'a'
-        context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+        eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
         expect(context_a.value_in_context_a).to.be 'a'
         expect(context_b.value_in_context_b).to.be 'a'
 
@@ -91,7 +95,7 @@ define (require) ->
           @function_in_context_a = =>
             @in_running_context ->
               @value_in_context_a = 'a'
-        context.eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+        eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
         expect(context_a.value_in_context_a).to.be(undefined)
         expect(context_b.value_in_context_a).to.be 'a'
         expect(context_b.value_in_context_b).to.be 'a'

@@ -62,7 +62,7 @@ define (require) ->
         else
           program = ->
             @github.gist path, run: true
-        notebook.run_without_input_cell nb, program
+        notebook.run_without_input_cell nb, null, program
 
         first_cell = notebook.add_input_cell nb
         notebook.focus_cell first_cell

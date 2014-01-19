@@ -1,7 +1,6 @@
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
-  CoffeeScript = require 'coffee-script'
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
   Bacon = require 'baconjs'
@@ -16,7 +15,7 @@ define (require) ->
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
-      @div save @input_cell
+      @div save @notebook, @input_cell
 
     cmd 'load', 'Loads a script from a URL', (url, options={}) ->
       if arguments.length is 0
@@ -49,7 +48,6 @@ define (require) ->
     is_clean = (cell) -> cell.editor.getValue() is '' and not cell.used
     visible = (cell) -> cell.visible
     identity = (cell) -> true
-
 
     init_codemirror = ->
       CodeMirror.keyMap.lead = ed.key_map
@@ -96,9 +94,9 @@ define (require) ->
         notebook.base_context = base_context
         notebook
 
-    export_notebook = (current_cell) ->
+    export_notebook = (notebook, current_cell) ->
       lead_js_version: 0
-      cells: current_cell.notebook.cells.filter((cell) -> cell != current_cell and is_input cell).map (cell) ->
+      cells: notebook.cells.filter((cell) -> cell != current_cell and is_input cell).map (cell) ->
         type: 'input'
         value: cell.editor.getValue()
 
@@ -146,11 +144,11 @@ define (require) ->
       cell.active = false
       update_view cell.notebook
 
-    insert_cell = (cell, position={}) ->
-      if position.before?.active
+    insert_cell = (cell, position) ->
+      if position?.before?.active
         offset = 0
         current_cell = position.before
-      else if position.after?.active
+      else if position?.after?.active
         offset = 1
         current_cell = position.after
       else
@@ -189,7 +187,8 @@ define (require) ->
       permalink_link_clicked: -> generate_permalink @props.cell
 
     generate_permalink = (cell) ->
-      eval_coffeescript_after cell.output_cell ? cell, 'permalink'
+      run_without_input_cell cell.notebook, after: cell.output_cell ? cell, ->
+        @permalink()
 
     create_input_cell = (notebook) ->
       editor = ed.create_editor ->
@@ -250,7 +249,8 @@ define (require) ->
 
       # TODO cell type
       run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
-      CoffeeScriptCell.run run_context
+      fn = CoffeeScriptCell.get_fn run_context
+      run_with_context run_context, fn
       input_cell.notebook.cell_run.push input_cell
       output_cell
 
@@ -264,7 +264,7 @@ define (require) ->
       # or when the first async task completes
       no_longer_pending = run_context.changes.skipWhile has_pending
       output_cell.done = no_longer_pending.take(1).map -> output_cell
-      fn()
+      context.run_in_context run_context, fn
 
       # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
       output_cell.component.set_component run_context.component_list
@@ -272,56 +272,38 @@ define (require) ->
     create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook
       run_context = context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
-      insert_cell output_cell
       run_context
 
-    eval_coffeescript_into_output_cell = (run_context, string) ->
-      run_with_context run_context, ->
-        CoffeeScriptCell.eval_coffeescript_in_context run_context, string
-
-    # run an input cell above the current cell
-    eval_coffeescript_before = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, before: current_cell
-      set_cell_value cell, code
-      run cell
-
-    eval_coffeescript_after = (current_cell, code) ->
-      cell = add_input_cell current_cell.notebook, after: current_cell
-      set_cell_value cell, code
-      run cell
-
     eval_coffeescript_without_input_cell = (notebook, string) ->
-      run_context = create_bare_output_cell_and_context notebook
-      eval_coffeescript_into_output_cell run_context, string
+      run_without_input_cell notebook, null, CoffeeScriptCell.create_fn string
 
-    run_without_input_cell = (notebook, fn) ->
+    run_without_input_cell = (notebook, position, fn) ->
       run_context = create_bare_output_cell_and_context notebook
-      run_with_context run_context, ->
-        context.run_in_context run_context, fn
+      insert_cell run_context.output_cell, position
+      run_with_context run_context, fn
 
     create_input_context = (notebook) ->
       context.create_context notebook.base_context
 
     create_notebook_run_context = (cell) ->
       notebook = cell.notebook
-      run_context =
-        notebook: notebook
-        # TODO rename
-        set_code: (code) ->
-          # TODO coffeescript
-          cell = add_input_cell notebook, after: run_context.output_cell
-          set_cell_value cell, code
-          focus_cell cell
-        run: (code) ->
-          # TODO coffeescript
-          cell = add_input_cell notebook, after: run_context.output_cell
-          set_cell_value cell, code
-          run cell
-        # TODO does it make sense to use output cells here?
-        previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
-        export_notebook: -> export_notebook cell
-        get_input_value: (number) ->
-          get_input_cell_by_number(notebook, number)?.editor.getValue()
+      notebook: notebook
+      # TODO rename
+      set_code: (code) ->
+        # TODO coffeescript
+        cell = add_input_cell notebook, after: run_context.output_cell
+        set_cell_value cell, code
+        focus_cell cell
+      run: (code) ->
+        # TODO coffeescript
+        cell = add_input_cell notebook, after: run_context.output_cell
+        set_cell_value cell, code
+        run cell
+      # TODO does it make sense to use output cells here?
+      previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
+      export_notebook: -> export_notebook cell
+      get_input_value: (number) ->
+        get_input_cell_by_number(notebook, number)?.editor.getValue()
 
     open_file_picker = (run_context) ->
       run_context.notebook.opening_run_context = run_context
@@ -337,7 +319,7 @@ define (require) ->
           if options.run
             run cell
         else if extension is 'md'
-          run_without_input_cell run_context.notebook, ->
+          run_without_input_cell run_context.notebook, after: run_context.output_cell, ->
             @md file.content, base_href: file.base_href
         else
           try
@@ -380,7 +362,6 @@ define (require) ->
       remove_cell
       focus_cell
       eval_coffeescript_without_input_cell
-      eval_coffeescript_into_output_cell
       run_without_input_cell
       set_cell_value
 
@@ -393,13 +374,14 @@ define (require) ->
       handle_file: handle_file
 
       save: (cell) ->
-        eval_coffeescript_before cell, 'save'
+        run_without_input_cell cell.notebook, before: cell, -> @fns.notebook.save()
 
       context_help: (cell, token) ->
-        if graphite.has_docs token
-          eval_coffeescript_before cell, "docs '#{token}'"
-        else if cell.context.imported_context_fns[token]?
-          eval_coffeescript_before cell, "help #{token}"
+        run_without_input_cell cell.notebook, before: cell, ->
+          if graphite.has_docs token
+            @docs token
+          else if cell.context.imported_context_fns[token]?
+            @help token
 
       move_focus: (cell, offset) ->
         new_cell = input_cell_at_offset cell, offset

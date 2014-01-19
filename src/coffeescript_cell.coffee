@@ -13,21 +13,25 @@ define (require) ->
     catch e
       [Editor.add_error_mark editor, e]
 
-  run = (run_context) ->
-    string = run_context.input_cell.editor.getValue()
-    Notebook.eval_coffeescript_into_output_cell run_context, string
+  # gets the function for a cell
+  # TODO rename
+  get_fn = (run_context) ->
+    create_fn run_context.input_cell.editor.getValue()
 
-  eval_coffeescript_in_context = (run_context, string) ->
-    try
-      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      Context.eval_in_context run_context, compiled
-    catch e
-      if e instanceof SyntaxError
-        run_context.error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
-      else
-        console.error e.stack
-        run_context.error printStackTrace({e}).join('\n')
-        run_context.text 'Compiled JavaScript:'
-        run_context.source 'javascript', compiled
+  # create the function for a string
+  # this is exposed for cases where there is no input cell
+  create_fn = (string) ->
+    ->
+      try
+        compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
+        @scoped_eval compiled
+      catch e
+        if e instanceof SyntaxError
+          @error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        else
+          console.error e.stack
+          @error printStackTrace({e}).join('\n')
+          @text 'Compiled JavaScript:'
+          @source 'javascript', compiled
 
-  {recompile, run, eval_coffeescript_in_context}
+  {recompile, get_fn, create_fn}

@@ -1,7 +1,12 @@
+###
+context_fns: context functions collected from all modules. unbound
+imported_context_fns: context_fns + the fns from all modules listed in imports
+fns: imported_context_fns, bound to the scope_context
+###
+
 define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
-  CoffeeScript = require 'coffee-script'
   printStackTrace = require 'stacktrace-js'
   Bacon = require 'baconjs'
   React = require 'react_abuse'
@@ -246,12 +251,13 @@ define (require) ->
           asyncs.push -1
           @changes.push true
         promise
+      scoped_eval: scoped_eval
 
     scope_context = {}
     run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
     run_context_prototype.scope_context = scope_context
 
-    run_context = scope_context.current_context = create_new_run_context run_context_prototype, run_context_prototype
+    scope_context.current_context = create_new_run_context run_context_prototype, run_context_prototype
 
   create_new_run_context = (run_context_prototype, parent) ->
     new_context = Object.create parent
@@ -275,16 +281,17 @@ define (require) ->
     .then (base_context) ->
       create_run_context [create_context base_context]
 
-
-  eval_in_context = (run_context, string) ->
+  scoped_eval = (string) ->
     if _.isFunction string
       string = "(#{string}).apply(this);"
-    run_in_context run_context, ->
-      context_scope = scope run_context
-      `with (context_scope) {`
-      result = (-> eval string).call run_context
-      `}`
-      result
+    context_scope = scope @
+    `with (context_scope) {`
+    result = (-> eval string).call @
+    `}`
+    result
+
+  eval_in_context = (run_context, string) ->
+    run_in_context run_context, -> @scoped_eval string
 
   run_in_context = (run_context, fn) ->
     try
