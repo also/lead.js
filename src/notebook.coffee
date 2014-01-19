@@ -10,8 +10,7 @@ define (require) ->
   context = require 'context'
   modules = require 'modules'
   React = require 'react_abuse'
-  CoffeeScriptCell = null
-  require ['coffeescript_cell'], (r) -> CoffeeScriptCell = r
+  CoffeeScriptCell = require 'coffeescript_cell'
 
   modules.create 'notebook', ({cmd}) ->
     cmd 'save', 'Saves the current notebook to a file', ->
@@ -145,6 +144,7 @@ define (require) ->
       update_view cell.notebook
 
     insert_cell = (cell, position) ->
+      # TODO is it still possible to end up with cells that aren't active?
       if position?.before?.active
         offset = 0
         current_cell = position.before

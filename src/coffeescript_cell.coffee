@@ -1,7 +1,6 @@
 define (require) ->
   CoffeeScript = require 'coffee-script'
   Editor = require 'editor'
-  Notebook = require 'notebook'
   Context = require 'context'
 
   recompile = (error_marks, editor) ->
