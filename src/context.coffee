@@ -90,10 +90,13 @@ define (require) ->
 
     bound_fns
 
+  # the base context contains the loaded modules, and the list of modules to import into every context
   create_base_context = ({module_names, imports}) ->
     modules.load_modules(_.union imports or [], module_names or []).then (modules) ->
       {modules, imports}
 
+  # the XXX context contains all the context functions and vars. basically, everything needed to support
+  # an editor
   create_context = (base) ->
     context_fns = collect_context_fns base
     imported_context_fns = _.clone context_fns
@@ -153,7 +156,6 @@ define (require) ->
       pending: asyncs.scan 0, (a, b) -> a + b
       current_options: {}
       component_list: React.ComponentList()
-      running_context: -> running_context_binding
 
       options: -> @current_options
 

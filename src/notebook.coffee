@@ -32,9 +32,6 @@ define (require) ->
             @error response.statusText
           promise
 
-    cmd 'quiet', 'Hides the input cell', ->
-      hide_cell @input_cell
-
     cmd 'clear', 'Clears the notebook', ->
       clear_notebook @notebook
 
@@ -147,10 +144,6 @@ define (require) ->
       cell.active = false
       update_view cell.notebook
 
-    hide_cell = (cell) ->
-      cell.visible = false
-      update_view cell.notebook
-
     insert_cell = (cell, position={}) ->
       if position.before?.active
         offset = 0
@@ -233,7 +226,7 @@ define (require) ->
       cell.component = component
 
       changes = ed.as_event_stream editor, 'change'
-      # scan changes for the side effect in in recompile
+      # scan changes for the side effect in recompile
       # we have to subscribe so that the events are sent
       changes.debounce(200).scan([], recompile).onValue ->
 
