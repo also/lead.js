@@ -44,7 +44,7 @@ define (require) ->
     # predicates for cells
     is_input = (cell) -> cell.type is 'input'
     is_output = (cell) -> cell.type is 'output'
-    is_clean = (cell) -> cell.is_clean()
+    is_clean = (cell) -> cell.editor.getValue() is '' and not cell.used
     visible = (cell) -> cell.visible
     identity = (cell) -> true
 
@@ -219,7 +219,6 @@ define (require) ->
         context: create_input_context notebook
         used: false
         editor: editor
-        is_clean: -> editor.getValue() is '' and not @.used
 
       editor.lead_cell = cell
       component = InputCellComponent {cell}
