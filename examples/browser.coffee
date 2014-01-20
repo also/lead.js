@@ -31,7 +31,7 @@ target_data = targets.flatMapLatest (t) -> bacon.fromPromise get_data t
 
 # create an input field. it will reflect the current search
 i = text_input()
-search.onValue (v) -> i.set_value v
+search.onValue (v) -> i.set v
 
 # the value of our form is the latest user input or clicked search
 input_search = search.merge(i.changes()).toProperty()
