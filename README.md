@@ -18,7 +18,9 @@ lead.js is a CoffeeScript console for exploring data, inspired by tools like [Ma
 
 ## Documentation
 
-[Quickstart](docs/quickstart.md)
+[Installation](docs/installation.md)
+
+[Quick Start](docs/quickstart.md)
 
 [Graphing](docs/graphing.md)
 
@@ -27,3 +29,7 @@ lead.js is a CoffeeScript console for exploring data, inspired by tools like [Ma
 [Graphite DSL function list](http://lead.github.io/?ZG9jcw%3D%3D)
 
 [lead.js built-in functions](http://lead.github.io/?aGVscA%3D%3D)
+
+## License
+
+lead.js is releaed under the [MIT License](http://opensource.org/licenses/MIT).
