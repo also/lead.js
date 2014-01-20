@@ -153,120 +153,123 @@ define (require) ->
     ctx.add_component nested_context.component_list
     nested_context.apply_to fn, args
 
-  create_run_context = (extra_contexts) ->
+  # TODO this is an awful name
+  create_context_run_context = ->
     asyncs = new Bacon.Bus
 
-    run_context_prototype = _.extend {}, extra_contexts...,
-      changes: new Bacon.Bus
-      pending: asyncs.scan 0, (a, b) -> a + b
-      current_options: {}
-      component_list: React.ComponentList()
+    changes: new Bacon.Bus
+    pending: asyncs.scan 0, (a, b) -> a + b
+    current_options: {}
+    component_list: React.ComponentList()
 
-      options: -> @current_options
+    options: -> @current_options
 
-      apply_to: (fn, args) ->
-        previous_context = @scope_context.current_context
-        @scope_context.current_context = @
+    apply_to: (fn, args) ->
+      previous_context = @scope_context.current_context
+      @scope_context.current_context = @
+      try
+        fn.apply @, args
+      finally
+        @scope_context.current_context = previous_context
+
+    in_running_context: (fn, args) ->
+      throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
+      running_context_binding.apply_to fn, args
+
+    # returns a function that calls its argument in the current context
+    capture_context: ->
+      context = @
+      running_context = running_context_binding
+      (fn, args) ->
+        previous_running_context_binding = running_context_binding
+        running_context_binding = running_context
         try
-          fn.apply @, args
+          context.apply_to fn, args
         finally
-          @scope_context.current_context = previous_context
+          running_context_binding = previous_running_context_binding
 
-      in_running_context: (fn, args) ->
-        throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-        running_context_binding.apply_to fn, args
+    # wraps a function so that it is called in the current context
+    keeping_context: (fn) ->
+      restoring_context = @capture_context()
+      ->
+        restoring_context fn, arguments
 
-      # returns a function that calls its argument in the current context
-      capture_context: ->
-        context = @
-        running_context = running_context_binding
-        (fn, args) ->
-          previous_running_context_binding = running_context_binding
-          running_context_binding = running_context
-          try
-            context.apply_to fn, args
-          finally
-            running_context_binding = previous_running_context_binding
+    add_renderable: (renderable) ->
+      @add_component component_for_renderable renderable
+      ignore
 
-      # wraps a function so that it is called in the current context
-      keeping_context: (fn) ->
-        restoring_context = @capture_context()
-        ->
-          restoring_context fn, arguments
+    add_component: (component) ->
+      @component_list.add_component component
 
-      add_renderable: (renderable) ->
-        @add_component component_for_renderable renderable
-        ignore
+    add_rendered: (rendered) ->
+      @add_renderable _lead_render: -> rendered
 
-      add_component: (component) ->
-        @component_list.add_component component
+    render: render
 
-      add_rendered: (rendered) ->
-        @add_renderable _lead_render: -> rendered
+    empty: -> @component_list.empty()
 
-      render: render
-
-      empty: -> @component_list.empty()
-
-      div: (contents) ->
-        $div = $('<div/>')
-        if contents?
-          if _.isFunction contents
-            return nested_item @, contents
-          else
-            $div.append contents
-        @add_rendered $div
-        $div
-
-      # makes o renderable using the given function or renderable
-      renderable: (o, fn) ->
-        if is_component fn
-          o._lead_render = fn
-        else if fn._lead_render?
-          o._lead_render = fn._lead_render
+    div: (contents) ->
+      $div = $('<div/>')
+      if contents?
+        if _.isFunction contents
+          return nested_item @, contents
         else
-          nested_context = @create_nested_context
-            component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
-          o._lead_render = -> nested_context.apply_to fn
-        o
+          $div.append contents
+      @add_rendered $div
+      $div
 
-      create_nested_context: (overrides) ->
-        nested_context = _.extend create_new_run_context(run_context_prototype, @), overrides
+    # makes o renderable using the given function or renderable
+    renderable: (o, fn) ->
+      if is_component fn
+        o._lead_render = fn
+      else if fn._lead_render?
+        o._lead_render = fn._lead_render
+      else
+        nested_context = @create_nested_context
+          component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
+        o._lead_render = -> nested_context.apply_to fn
+      o
 
-      detached: (fn, args) ->
-        nested_context = create_nested_renderable_context @
-        nested_context.apply_to fn, args
-        nested_context.component_list
+    create_nested_context: (overrides) ->
+      nested_context = _.extend create_new_run_context(@), overrides
 
-      value: (value) -> _lead_context_fn_value: value
+    detached: (fn, args) ->
+      nested_context = create_nested_renderable_context @
+      nested_context.apply_to fn, args
+      nested_context.component_list
 
-      async: (fn) ->
-        start_time = new Date
-        promise = nested_item @, fn
+    value: (value) -> _lead_context_fn_value: value
 
-        @promise_status promise, start_time
+    async: (fn) ->
+      start_time = new Date
+      promise = nested_item @, fn
 
-        asyncs.push 1
-        promise.finally =>
-          asyncs.push -1
-          @changes.push true
-        promise
-      scoped_eval: scoped_eval
+      @promise_status promise, start_time
 
+      asyncs.push 1
+      promise.finally =>
+        asyncs.push -1
+        @changes.push true
+      promise
+    scoped_eval: scoped_eval
+
+  create_run_context = (extra_contexts) ->
+    run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
+    run_context_prototype.run_context_prototype = run_context_prototype
     scope_context = {}
     run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
     run_context_prototype.scope_context = scope_context
 
-    scope_context.current_context = create_new_run_context run_context_prototype, run_context_prototype
+    scope_context.current_context = create_new_run_context run_context_prototype
 
-  create_new_run_context = (run_context_prototype, parent) ->
+  create_new_run_context = (parent) ->
     new_context = Object.create parent
 
     fns_and_vars = bind_context_fns new_context, new_context.context_fns
     _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
     _.extend fns_and_vars, fns_and_vars.builtins
     _.each fns_and_vars, (mod, name) ->
-      if run_context_prototype[name]?
+      if parent.run_context_prototype[name]?
         console.warn mod._lead_context_name, 'would overwrite core'
       else
         new_context[name] = mod
