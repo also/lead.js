@@ -43,6 +43,13 @@ define (require) ->
       expect(params.target[0]).to.be 'test'
       expect(params.yMax).to.be 9999
 
+    it 'accepts variadic string arguments as targets', ->
+      params = graphite.args_to_params args: ['a', 'b', 'c']
+      expect(params.target.length).to.be 3
+      expect(params.target[0]).to.be 'a'
+      expect(params.target[1]).to.be 'b'
+      expect(params.target[2]).to.be 'c'
+
     it "doesn't accept a single number", ->
       expect(-> graphite.args_to_params args: [1]).to.throwException()
 

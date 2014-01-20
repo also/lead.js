@@ -298,7 +298,7 @@ define (require) ->
       else
         last = args[args.length - 1]
 
-        if _.isString == 'string' or dsl.is_dsl_node(last) or _.isArray last
+        if _.isString(last) or dsl.is_dsl_node(last) or _.isArray last
           targets = args
           options = {}
         else
