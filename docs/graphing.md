@@ -53,6 +53,7 @@ The `graph` function supports several options. Most of the option names and valu
 `areaMode`: `'all'`, `'stacked'` or `'first'`. Defaul: unset.
 
 `areaOffset`: see https://github.com/mbostock/d3/wiki/Stack-Layout#wiki-offset. Default: `zero`.
+
 `drawNullAsZero`: `true` or `false`. Default: `false`.
 
 `width`, `height`
