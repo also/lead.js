@@ -72,7 +72,10 @@ define (require) ->
   collect_context_fns = (context) ->
     _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
 
-
+  # There are a few different reasons for binding function:
+  # * a simple api for eval
+  # * unimported functions: so that `this` points to the context when calling a function like
+  #   `@github.load()`
   bind_context_fns = (run_context, fns, name_prefix='') ->
     bind_fn = (name, op) ->
       bound = (args...) ->
