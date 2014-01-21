@@ -216,9 +216,10 @@ define (require) ->
         msg = pre.text()
       else
         for n in html
-          pre = n.querySelectorAll 'pre.exception_value'
-          if pre.length > 0
-            msg = pre[0].innerText
+          pre = n.querySelector 'pre.exception_value'
+          if pre?
+            h1 = n.querySelector 'h1'
+            msg = "#{h1.innerText}: #{pre.innerText}"
             break
       msg ? 'Unknown error'
 
