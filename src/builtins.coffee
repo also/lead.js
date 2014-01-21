@@ -185,9 +185,7 @@ define (require) ->
 
     PromiseStatusComponent = React.createClass
       render: ->
-        if @props.promise.isPending()
-          text = "Loading"
-        else
+        if @state?
           ms = @state.duration
           duration = if ms >= 1000
             s = (ms / 1000).toFixed 1
@@ -198,6 +196,8 @@ define (require) ->
             text = "Loaded in #{duration}"
           else
             text = "Failed after #{duration}"
+        else
+          text = "Loading"
         React.DOM.div {className: 'promise-status'}, text
       getInitialState: ->
         unless @props.promise.isPending()
