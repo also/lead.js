@@ -18,6 +18,7 @@ define (require) ->
         graph.draw $result.get(0), data, params
       # TODO seems like the combined stream doesn't error?
       stream.onError (error) =>
+        # TODO this should be in a nested context
         @error error
 
     draw: (container, data, params) ->
