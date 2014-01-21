@@ -32,4 +32,4 @@ lead.js is a CoffeeScript console for exploring data, inspired by tools like [Ma
 
 ## License
 
-lead.js is releaed under the [MIT License](http://opensource.org/licenses/MIT).
+lead.js is released under the [MIT License](http://opensource.org/licenses/MIT).
