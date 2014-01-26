@@ -95,7 +95,7 @@ define (require) ->
           else
             URI gist
 
-    cmd 'load', 'Loads a file from GitHub', (path, options={}) ->
+    fn 'load', 'Loads a file from GitHub', (path, options={}) ->
       url = github.to_repo_url path
       @async ->
         authorized = ensure_access @, url
