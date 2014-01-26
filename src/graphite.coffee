@@ -192,8 +192,10 @@ define (require) ->
       false
 
     url: (path, params) ->
-      query_string = $.param params, true
       base_url = settings.get 'base_url'
+      if not base_url?
+        throw new Error 'Graphite base_url not set'
+      query_string = $.param params, true
       "#{base_url}/#{path}?#{query_string}"
 
     render_url: (params) -> graphite.url 'render', params

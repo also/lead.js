@@ -40,6 +40,9 @@ define (require) ->
         datapoints: _.sortBy points, ([v, t]) -> t
 
     data_url: ({time_series, start, end, aggregation, group}) ->
+      base_url = settings.get 'base_url'
+      if not base_url?
+        throw new Error 'OpenTSDB base_url not set'
       start ?= '1d-ago'
       m = _.map time_series, opentsdb.to_metric_string
       params = {start, end, m, ascii: true}

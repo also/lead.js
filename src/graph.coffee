@@ -19,6 +19,7 @@ define (require) ->
       # TODO seems like the combined stream doesn't error?
       stream.onError (error) =>
         # TODO this should be in a nested context
+        # TODO error handling
         @error error
 
     draw: (container, data, params) ->
