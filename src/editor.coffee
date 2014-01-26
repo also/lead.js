@@ -51,10 +51,27 @@ define (require) ->
 
     mark
 
+  property_path = (cm, token, line) ->
+    t = token
+    path = []
+    loop
+      # TODO i don't understand why this isn't `t.start - 1`, but that doesn't work for the first character
+      previous_token = cm.getTokenAt CodeMirror.Pos line, t.start
+      if t.start == previous_token.start or previous_token.type != 'variable'
+        break
+      t = previous_token
+      if t.string[0] == '.'
+        s = t.string.slice 1
+      else
+        s = t.string
+      path.unshift s
+    path
+
   token_after = (cm, token, line) ->
     t = token
     last_interesting_token = null
     loop
+      # TODO isn't this returning the *last* token?
       next_token = cm.getTokenAt CodeMirror.Pos(line, t.end + 1)
       if t.start == next_token.start
         break
@@ -70,10 +87,18 @@ define (require) ->
   collect_key_suggestions = (ctx, string) ->
     _.flatten _.map context.collect_extension_points(ctx, 'suggest_keys'), (fn) -> fn string
 
+  follow_path = (o, path) ->
+    result = o
+    for s in path
+      return unless result?
+      result = result[s]
+    result
+
   suggest = (cm, showHints, options) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
     if token.type is null
+      # TODO why only vars here?
       list = (k for k of cm.lead_cell.context.imported_vars)
       showHints
         list: list
@@ -95,22 +120,38 @@ define (require) ->
           from: CodeMirror.Pos cur.line, token.start + 1
           to: CodeMirror.Pos cur.line, token.end - end_offset
     else
-      full_s = token.string
+      if (token.type == 'variable' and token.string[0] == '.') or (token.type == 'error' and token.string == '.')
+        path = property_path cm, token, cur.line
+        prefix = '.'
+        full_s = token.string[1...]
+      else
+        path = []
+        prefix = ''
+        full_s = token.string
+
       sub_s = full_s[...cur.ch-token.start]
       next_token = token_after cm, token, cur.line
+
+      imported_context_fns = follow_path cm.lead_cell.context.imported_context_fns, path
+      imported_vars = follow_path cm.lead_cell.context.imported_vars, path
+
       collect_suggestions = (s) ->
         list = []
-        for k of cm.lead_cell.context.imported_context_fns
+        for k, v of imported_context_fns
+          # don't suggest the attributes of the fn object
+          if k.indexOf(s) is 0 and not v.cmd_fn?
+            list.push prefix + k
+        for k of imported_vars
           if k.indexOf(s) is 0
-            list.push k
-        for k of cm.lead_cell.context.imported_vars
-          if k.indexOf(s) is 0
-            list.push k
-        key_suggestions = collect_key_suggestions cm.lead_cell.context, s
-        unless next_token?.string is ':'
-          key_suggestions = _.map key_suggestions, (k) -> k + ':'
+            list.push prefix + k
 
-        list.concat key_suggestions
+        if path.length == 0
+          key_suggestions = collect_key_suggestions cm.lead_cell.context, s
+          unless next_token?.string is ':'
+            key_suggestions = _.map key_suggestions, (k) -> k + ':'
+
+          list.concat key_suggestions
+        list
 
       list = collect_suggestions full_s
       if list.length > 0
