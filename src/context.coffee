@@ -29,6 +29,12 @@ define (require) ->
         @help object
         true
 
+  handle_module = (object) ->
+    if object?._lead_context_name
+      @text "#{object._lead_context_name} is a module."
+      @help object
+      true
+
   handle_renderable = (object) ->
     if is_renderable object
       @add_renderable object
@@ -45,9 +51,10 @@ define (require) ->
 
   # TODO make this configurable
   result_handlers =[
-    ignored,
-    handle_cmd,
-    handle_renderable,
+    ignored
+    handle_cmd
+    handle_module
+    handle_renderable
     handle_using_extension
     handle_any_object
   ]
