@@ -11,6 +11,7 @@ define (require) ->
     'context'
     'graphite'
     'github'
+    'html'
   ]
   # TODO
   if window?

@@ -4,9 +4,10 @@ requirejs.config
   nodeRequire: require
   baseUrl: __dirname
 
+jsdom = require("jsdom").jsdom
+
 enable_global_window = ->
   unless global.window
-    jsdom = require("jsdom").jsdom
     doc = jsdom("<html><body></body></html>")
 
     global.window = doc.parentWindow
@@ -30,6 +31,9 @@ requirejs.define 'cm/runmode', {}
 requirejs.define 'cm/javascript', {}
 requirejs.define 'cm/coffeescript', {}
 requirejs.define 'cm/show-hint', {}
+
+requirejs.define 'html',
+  parse_document: (html) -> jsdom html
 
 exports.require = (k) ->
   exports[k] = requirejs k

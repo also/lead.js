@@ -13,6 +13,7 @@ define (require) ->
   docs = require 'graphite_docs'
   parser = require 'graphite_parser'
   builtins = require 'builtins'
+  Html = require 'html'
 
   graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings}) ->
     args_to_params = (context, args) ->
@@ -209,18 +210,16 @@ define (require) ->
 
     parse_error_response: (response) ->
       return 'request failed' unless response.responseText?
-      html = $.parseHTML(response.responseText).filter (n) -> n.nodeType isnt 3
-      pre = $(html[0].getElementsByTagName 'pre')
-      if pre.length > 0
-        # graphite style error message in a pre
-        msg = pre.text()
+      html = Html.parse_document response.responseText
+      pre = html.querySelector 'pre.exception_value'
+      if pre?
+        # python debug error message
+        h1 = html.querySelector 'h1'
+        msg = "#{h1.innerText}: #{pre.innerText}"
       else
-        for n in html
-          pre = n.querySelector 'pre.exception_value'
-          if pre?
-            h1 = n.querySelector 'h1'
-            msg = "#{h1.innerText}: #{pre.innerText}"
-            break
+        # graphite style error message in a pre
+        pre = html.querySelector 'pre'
+        msg = pre.innerText.trim()
       msg ? 'Unknown error'
 
     parse_find_response: (query, response) ->
