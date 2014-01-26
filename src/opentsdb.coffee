@@ -1,6 +1,8 @@
 define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
+  Q = require 'q'
+  Html = require 'html'
   modules = require 'modules'
   http = require 'http'
 
@@ -39,6 +41,13 @@ define (require) ->
         target: name
         datapoints: _.sortBy points, ([v, t]) -> t
 
+    parse_error_response: (response) ->
+      doc = Html.parse_document response.responseText
+      blockquote = doc.querySelector 'blockquote'
+      title = blockquote.querySelector('h1').innerText
+      message = blockquote.querySelector('blockquote').innerText
+      "#{title}: #{message}"
+
     data_url: ({time_series, start, end, aggregation, group}) ->
       base_url = settings.get 'base_url'
       if not base_url?
@@ -46,9 +55,12 @@ define (require) ->
       start ?= '1d-ago'
       m = _.map time_series, opentsdb.to_metric_string
       params = {start, end, m, ascii: true}
-      base_url = settings.get 'base_url'
       "#{base_url}/q?#{$.param params, true}"
 
     tsd: (params) ->
       http.get(opentsdb.data_url(params), dataType: 'text')
-      .then (txt) -> opentsdb.parse_text_response txt, params.group
+      .then(
+        (txt) -> opentsdb.parse_text_response txt, params.group
+        # TODO error handling
+        (response) -> Q.reject opentsdb.parse_error_response response
+      )
