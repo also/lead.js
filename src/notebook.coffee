@@ -291,12 +291,12 @@ define (require) ->
       # TODO rename
       set_code: (code) ->
         # TODO coffeescript
-        cell = add_input_cell notebook, after: run_context.output_cell
+        cell = add_input_cell notebook, after: @output_cell
         set_cell_value cell, code
         focus_cell cell
       run: (code) ->
         # TODO coffeescript
-        cell = add_input_cell notebook, after: run_context.output_cell
+        cell = add_input_cell notebook, after: @output_cell
         set_cell_value cell, code
         run cell
       # TODO does it make sense to use output cells here?
