@@ -26,7 +26,7 @@ define (require) ->
         true
       else
         @text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
-        @run "help #{object._lead_context_name}"
+        @help object
         true
 
   handle_renderable = (object) ->
