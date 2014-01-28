@@ -4,7 +4,7 @@ define (require) ->
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
   Bacon = require 'baconjs'
-  ed = require 'editor'
+  Editor = require 'editor'
   http = require 'http'
   graphite = require 'graphite'
   context = require 'context'
@@ -48,9 +48,6 @@ define (require) ->
     visible = (cell) -> cell.visible
     identity = (cell) -> true
 
-    init_codemirror = ->
-      CodeMirror.keyMap.lead = ed.key_map
-      _.extend CodeMirror.commands, ed.commands
 
 
     DocumentComponent = React.createClass
@@ -191,7 +188,7 @@ define (require) ->
         @permalink()
 
     create_input_cell = (notebook) ->
-      editor = ed.create_editor ->
+      editor = Editor.create_editor ->
       cell =
         type: 'input'
         visible: true
@@ -200,7 +197,7 @@ define (require) ->
         context: create_input_context notebook
         used: false
         editor: editor
-        changes: ed.as_event_stream editor, 'change'
+        changes: Editor.as_event_stream editor, 'change'
 
       editor.lead_cell = cell
       component = InputCellComponent {cell}
@@ -357,7 +354,6 @@ define (require) ->
     exports = {
       create_notebook
       input_cell_at_offset
-      init_codemirror
       add_input_cell
       remove_cell
       focus_cell

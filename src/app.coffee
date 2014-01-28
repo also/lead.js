@@ -27,8 +27,6 @@ define (require) ->
     repo: 'also/lead.js'
 
   init_app: ->
-    notebook.init_codemirror()
-
     $document = $ '#document'
 
     # TODO warn
