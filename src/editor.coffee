@@ -236,7 +236,9 @@ define (require) ->
 
     fallthrough: ['default']
 
-  CodeMirror.keyMap.lead = key_map
-  _.extend CodeMirror.commands, commands
+  # we don't have a real codemirror in node
+  unless is_nodejs?
+    CodeMirror.keyMap.lead = key_map
+    _.extend CodeMirror.commands, commands
 
   {commands, key_map, as_event_stream, add_error_mark, create_editor}
