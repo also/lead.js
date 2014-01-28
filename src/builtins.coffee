@@ -6,6 +6,7 @@ define (require) ->
   marked = require 'marked'
   modules = require 'modules'
   http = require 'http'
+  Documentation = require 'documentation'
   React = require 'react'
 
   format_code = (code, language, target) ->
@@ -28,9 +29,14 @@ define (require) ->
         ]
 
   help = (fns) ->
-    documented_fns = (name for name, c of fns when c?.doc?)
-    documented_fns.sort()
-    FunctionDocumentationComponent fns: _.map documented_fns, (name) -> {name, doc: fns[name].doc}
+    docs = _.map fns, (fn, name) ->
+      doc = Documentation.get_documentation [fn.module_name, fn.name]
+      if doc?
+        {name, doc}
+      else
+        null
+    documented_fns = _.sortBy _.filter(docs, _.identity), 'name'
+    FunctionDocumentationComponent fns: documented_fns
 
   modules.create 'builtins', ({fn, cmd, component_fn, component_cmd}) ->
     component_cmd 'help', 'Shows this help', (cmd) ->

@@ -1,5 +1,6 @@
 define (require) ->
   Q = require 'q'
+  Documentation = require 'documentation'
   _ = require 'underscore'
   settings = require 'settings'
 
@@ -11,11 +12,11 @@ define (require) ->
       fn name, doc, wrapped, wrapped
 
     fn = (name, doc, fn, cmd_fn) ->
+      Documentation.register_documentation [module_name, name], doc
       result =
         module_name: module_name
         fn: fn
         cmd_fn: cmd_fn
-        doc: doc
         name: name
 
       context_fns[name] = result
