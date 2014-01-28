@@ -48,8 +48,6 @@ define (require) ->
     visible = (cell) -> cell.visible
     identity = (cell) -> true
 
-
-
     DocumentComponent = React.createClass
       mixins: [React.ComponentListMixin]
       render: ->
@@ -298,7 +296,7 @@ define (require) ->
         run cell
       # TODO does it make sense to use output cells here?
       previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
-      export_notebook: -> export_notebook cell
+      export_notebook: -> export_notebook notebook, cell
       get_input_value: (number) ->
         get_input_cell_by_number(notebook, number)?.editor.getValue()
 
