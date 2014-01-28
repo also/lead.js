@@ -232,6 +232,7 @@ define (require) ->
     'Ctrl-Enter': 'run_in_place'
     'F1': 'context_help'
     'Ctrl-Space': 'suggest'
+    'Shift-Tab': 'indentLess'
 
     fallthrough: ['default']
 
