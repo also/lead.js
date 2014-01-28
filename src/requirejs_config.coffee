@@ -2,7 +2,7 @@
   deps: ['bootstrap']
   paths:
     lib: '../lib'
-    cm: '../lib/codemirror-3.12'
+    cm: '../lib/codemirror-3.21'
     underscore: '../lib/underscore'
     jquery: '../lib/jquery'
     d3: '../lib/d3.v3'

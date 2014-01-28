@@ -28,7 +28,7 @@ module.exports = (grunt) ->
           'build/style.css': 'style.sass'
     concat:
       css:
-        src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.12/codemirror.css']
+        src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.21/codemirror.css', 'lib/codemirror-3.21/show-hint.css']
         dest: 'dist/style.css'
     copy:
       nodejs:
