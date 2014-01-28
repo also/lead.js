@@ -4,10 +4,7 @@ define (require) ->
   settings = require 'settings'
 
   create: (module_name, definition_fn) ->
-    if module_name?
-      module_settings = settings.with_prefix module_name
-    else
-      module_settings = settings
+    module_settings = settings.with_prefix module_name
     context_fns = {}
 
     cmd = (name, doc, wrapped) ->
