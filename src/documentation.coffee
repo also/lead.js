@@ -47,6 +47,7 @@ define (require) ->
     keys: (key) ->
       _.filter _.map(get_parent(normalize_key key), (v, k) -> if v._lead_doc? then k else null), _.identity
 
+    # TODO the ctx passed to summary, complete, etc should not be appendable
     summary: (ctx, doc) ->
       if _.isFunction doc.summary
         doc.summary ctx, doc

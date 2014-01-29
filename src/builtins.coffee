@@ -52,7 +52,7 @@ define (require) ->
           return Documentation.DocumentationItemComponent {ctx, name, doc}
         else
           fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
-          fn_help_index ctx fns
+          return fn_help_index ctx, fns
 
       # TODO shouldn't be pre
       return PreComponent value: "Documentation for #{cmd} not found."
