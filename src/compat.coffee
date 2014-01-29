@@ -5,8 +5,22 @@ define (require) ->
   modules = require 'modules'
   graphite = require 'graphite'
 
-  compat = modules.create 'compat', ({fn} ) ->
-    fn 'graph', 'Graphs something', (args...) ->
+  compat = modules.create 'compat', ({fn, doc} ) ->
+    doc 'graph',
+      'Loads and graphs time-series data'
+      """
+      `graph` accepts a [Graphite target](help:graphite_functions) or promise of graph data.
+
+      Graphite targets are converted to a promise using [`graphite.get_data`](help:graphite.get_data).
+
+      For example:
+
+      ```
+      graph randomWalkFunction 'hello, world'
+      ```
+      """
+
+    fn 'graph', (args...) ->
       if Q.isPromise args[0]
         data_promise = args[0]
         params = Bacon.combineTemplate args[1]
