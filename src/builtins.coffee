@@ -20,23 +20,34 @@ define (require) ->
     else
       target.textContent = code
 
-  FunctionDocumentationComponent = React.createClass
+  DocumentationIndexComponent = React.createClass
+    show_help: (name) ->
+      @props.ctx.run "help '#{name}'"
     render: ->
-      React.DOM.dl {}, _.map @props.fns, (fn) ->
-        [
-          React.DOM.dt {}, fn.name
-          React.DOM.dd {}, fn.doc
-        ]
+      React.DOM.table {}, _.map @props.entries, (e) =>
+        React.DOM.tr {},
+          React.DOM.td {}, React.DOM.code {className: 'run-link', onClick: => @show_help e.name}, e.name
+          React.DOM.td {}, e.doc.summary
 
-  help = (fns) ->
+  DocumentationItemComponent = React.createClass
+    render: ->
+      React.DOM.div {},
+        React.DOM.h2 {}, @props.name
+        React.DOM.p {}, @props.doc.summary
+
+  get_fn_documentation = (name, fn) ->
+    doc = Documentation.get_documentation [fn.module_name, fn.name]
+    if doc?
+      {name, doc}
+    else
+      null
+
+  help_index = (ctx, fns) ->
     docs = _.map fns, (fn, name) ->
-      doc = Documentation.get_documentation [fn.module_name, fn.name]
-      if doc?
-        {name, doc}
-      else
-        null
+      if fn?
+        get_fn_documentation name, fn
     documented_fns = _.sortBy _.filter(docs, _.identity), 'name'
-    FunctionDocumentationComponent fns: documented_fns
+    DocumentationIndexComponent entries: documented_fns, ctx: ctx
 
   modules.create 'builtins', ({fn, cmd, component_fn, component_cmd}) ->
     component_cmd 'help', 'Shows this help', (cmd) ->
@@ -44,20 +55,20 @@ define (require) ->
         if _.isString cmd
           op = @imported_context_fns[cmd]
           if op?
-            fns = {}
-            fns[cmd] = op
+            doc = get_fn_documentation cmd, op
+            return DocumentationItemComponent doc
         else if cmd?._lead_context_name
           name = cmd._lead_context_name
           if cmd._lead_context_fn?
-            fns = {}
-            fns[name] = cmd._lead_context_fn
+            doc = get_fn_documentation name, cmd._lead_context_fn
+            return DocumentationItemComponent doc
           else
             fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
         unless fns?
           return PreComponent value: "#{cmd} is not a command."
       else
         fns = @imported_context_fns
-      help fns
+      help_index @, fns
 
     KeySequenceComponent = React.createClass
       render: -> React.DOM.span {}, _.map @props.keys, (k) -> React.DOM.kbd {}, k

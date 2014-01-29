@@ -12,7 +12,7 @@ define (require) ->
       fn name, doc, wrapped, wrapped
 
     fn = (name, doc, fn, cmd_fn) ->
-      Documentation.register_documentation [module_name, name], doc
+      Documentation.register_documentation [module_name, name], summary: doc
       result =
         module_name: module_name
         fn: fn
