@@ -8,17 +8,9 @@ define (require) ->
   http = require 'http'
   Documentation = require 'documentation'
   React = require 'react'
+  Components = require 'components'
 
-  format_code = (code, language, target) ->
-    target = target.get(0) if target.get?
-    if CodeMirror.runMode?
-      if language == 'json'
-        opts = name: 'javascript', json: true
-      else
-        opts = name: language
-      CodeMirror.runMode code, opts, target
-    else
-      target.textContent = code
+  ExampleComponent = Components.ExampleComponent
 
   get_fn_documentation = (fn) ->
     Documentation.get_documentation [fn.module_name, fn.name]
@@ -34,7 +26,7 @@ define (require) ->
 
   Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
 
-  modules.create 'builtins', ({fn, cmd, component_fn, component_cmd}) ->
+  modules.create 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
     help_component = (ctx, cmd) ->
       if _.isString cmd
         doc = Documentation.get_documentation cmd
@@ -93,13 +85,26 @@ define (require) ->
     fn 'In', 'Gets previous input', (n) ->
       @value @get_input_value n
 
-    component_fn 'object', 'Prints an object as JSON', (o) ->
+    doc 'object',
+      'Prints an object as JSON'
+      """
+      `object` converts an object to a string using `JSON.stringify` if possible and `new String` otherwise.
+      The result is displayed using syntax highlighting.
+
+      For example:
+
+      ```
+      object a: 1, b: 2, c: 3
+      ```
+      """
+
+    component_fn 'object', (o) ->
       try
         s = JSON.stringify(o, null, '  ')
       catch
         s = null
       s ||= new String o
-      SourceComponent value: s, language: 'json'
+      Components.SourceComponent value: s, language: 'json'
 
     component_fn 'md', 'Renders Markdown', (string, opts) ->
       Markdown.MarkdownComponent value: string, opts: opts
@@ -134,21 +139,8 @@ define (require) ->
         # TODO handle exceptions better
       ErrorComponent {message}
 
-    ExampleComponent = React.createClass
-      getDefaultProps: -> language: 'coffeescript'
-      render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo SourceComponent()
-      on_click: ->
-        if @props.run
-          @props.ctx.run @props.value
-        else
-          @props.ctx.set_code @props.value
-
     component_fn 'example', 'Makes a clickable code example', (value, opts) ->
       ExampleComponent ctx: @, value: value, run: opts?.run ? true
-
-    SourceComponent = React.createClass
-      render: -> React.DOM.pre()
-      componentDidMount: (node) -> format_code @props.value, @props.language, node
 
     component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
       SourceComponent {language, value}

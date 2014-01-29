@@ -61,7 +61,7 @@ define (require) ->
       if _.isFunction doc.complete
         doc.complete ctx, doc
       else if _.isString doc.complete
-        Markdown.MarkdownComponent value: doc.complete
+        Markdown.LeadMarkdownComponent value: doc.complete, ctx: ctx
       else if doc.index
         Documentation.index ctx, doc.key
       else
