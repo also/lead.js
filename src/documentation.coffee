@@ -1,6 +1,7 @@
 define (require) ->
   React = require 'react_abuse'
   _ = require 'underscore'
+  Markdown = require 'markdown'
 
   docs = {}
 
@@ -59,6 +60,8 @@ define (require) ->
     complete: (ctx, doc) ->
       if _.isFunction doc.complete
         doc.complete ctx, doc
+      else if _.isString doc.complete
+        Markdown.MarkdownComponent value: doc.complete
       else if doc.index
         Documentation.index ctx, doc.key
       else
