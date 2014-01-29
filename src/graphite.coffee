@@ -29,8 +29,8 @@ define (require) ->
     _.each docs.parameter_docs, (d, n) ->
       Documentation.register_documentation ['graphite_parameters', n], parameter_name: n, summary: 'A Graphite parameter', complete: build_parameter_doc
 
-    Documentation.register_documentation 'graphite_functions', complete: (ctx, doc) -> DocsIndex {ctx, docs: docs.function_docs}
-    Documentation.register_documentation 'graphite_parameters', complete: (ctx, doc) -> DocsIndex {ctx, docs: docs.parameter_docs, quote: true}
+    Documentation.register_documentation 'graphite_functions', index: true
+    Documentation.register_documentation 'graphite_parameters', index: true
 
     args_to_params = (context, args) ->
       graphite.args_to_params {args, default_options: context.options()}
@@ -42,18 +42,6 @@ define (require) ->
         unless _.isString t
           throw new TypeError "#{t} is not a string"
       @value new dsl.type.q targets.map(String)...
-
-    DocsIndex = React.createClass
-      render: ->
-        names = (name for name of @props.docs)
-        names.sort()
-        React.DOM.div {},
-          _.map names, (name) =>
-            signature = @props.docs[name].signature
-            name = JSON.stringify name if @props.quote
-            value = "docs #{name}"
-            value += " # #{signature}" if signature?
-            builtins.ExampleComponent ctx: @props.ctx, value: value, run: true
 
     FunctionDocsComponent = React.createClass
       render: ->

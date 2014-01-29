@@ -20,21 +20,6 @@ define (require) ->
     else
       target.textContent = code
 
-  DocumentationIndexComponent = React.createClass
-    show_help: (name) ->
-      @props.ctx.run "help '#{name}'"
-    render: ->
-      React.DOM.table {}, _.map @props.entries, (e) =>
-        React.DOM.tr {},
-          React.DOM.td {}, React.DOM.code {className: 'run-link', onClick: => @show_help e.name}, e.name
-          React.DOM.td {}, Documentation.summary @props.ctx, e.doc
-
-  DocumentationItemComponent = React.createClass
-    render: ->
-      complete_docs = Documentation.complete(@props.ctx, @props.doc) or Documentation.summary(@props.ctx, @props.doc)
-      React.DOM.div {},
-        complete_docs
-
   get_fn_documentation = (fn) ->
     Documentation.get_documentation [fn.module_name, fn.name]
 
@@ -45,7 +30,7 @@ define (require) ->
         if doc?
           {name, doc}
     documented_fns = _.sortBy _.filter(docs, _.identity), 'name'
-    DocumentationIndexComponent entries: documented_fns, ctx: ctx
+    Documentation.DocumentationIndexComponent entries: documented_fns, ctx: ctx
 
   Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
 
@@ -54,17 +39,17 @@ define (require) ->
       if _.isString cmd
         doc = Documentation.get_documentation cmd
         if doc?
-          return DocumentationItemComponent {ctx, name: cmd, doc}
-        op = @imported_context_fns[cmd]
+          return Documentation.DocumentationItemComponent {ctx, name: cmd, doc}
+        op = ctx.imported_context_fns[cmd]
         if op?
           doc = get_fn_documentation op
           if doc?
-            return DocumentationItemComponent {ctx, name: cmd, doc}
+            return Documentation.DocumentationItemComponent {ctx, name: cmd, doc}
       else if cmd?._lead_context_name
         name = cmd._lead_context_name
         if cmd._lead_context_fn?
           doc = get_fn_documentation cmd._lead_context_fn
-          return DocumentationItemComponent {ctx, name, doc}
+          return Documentation.DocumentationItemComponent {ctx, name, doc}
         else
           fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
           fn_help_index ctx fns
