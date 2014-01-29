@@ -53,6 +53,9 @@ define (require) ->
     component_cmd 'help', 'Shows this help', (cmd) ->
       if arguments.length > 0
         if _.isString cmd
+          doc = Documentation.get_documentation cmd
+          if doc?
+            return DocumentationItemComponent name: cmd, doc: doc
           op = @imported_context_fns[cmd]
           if op?
             doc = get_fn_documentation cmd, op
