@@ -8,27 +8,37 @@ define (require) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
 
-    cmd = (name, doc, wrapped) ->
-      fn name, doc, wrapped, wrapped
+    doc = (name, summary, complete) ->
+      Documentation.register_documentation [module_name, name], {summary, complete}
 
-    fn = (name, doc, fn, cmd_fn) ->
-      Documentation.register_documentation [module_name, name], summary: doc
+    optional_doc_fn = (f) ->
+      (args...) ->
+        if _.isString args[1]
+          [name, summary] = args
+          doc name, summary
+          args.splice 1, 1
+        f args...
+
+    cmd = optional_doc_fn (name, wrapped) ->
+      fn name, wrapped, wrapped
+
+    fn = optional_doc_fn (name, f, cmd_f) ->
       result =
         module_name: module_name
-        fn: fn
-        cmd_fn: cmd_fn
+        fn: f
+        cmd_fn: cmd_f
         name: name
 
       context_fns[name] = result
 
     # TODO does this belong here?
-    component_fn = (name, doc, f) ->
-      fn name, doc, -> @add_component f.apply @, arguments
+    component_fn = optional_doc_fn (name, f) ->
+      fn name, -> @add_component f.apply @, arguments
 
-    component_cmd= (name, doc, f) ->
-      cmd name, doc, -> @add_component f.apply @, arguments
+    component_cmd = optional_doc_fn (name, f) ->
+      cmd name, -> @add_component f.apply @, arguments
 
-    mod = {cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
+    mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?
       _.extend {context_fns, settings}, definition_fn mod
     else
