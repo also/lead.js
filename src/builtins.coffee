@@ -38,7 +38,7 @@ define (require) ->
   get_fn_documentation = (fn) ->
     Documentation.get_documentation [fn.module_name, fn.name]
 
-  help_index = (ctx, fns) ->
+  fn_help_index = (ctx, fns) ->
     docs = _.map fns, (fn, name) ->
       if fn?
         doc = get_fn_documentation fn
@@ -47,32 +47,36 @@ define (require) ->
     documented_fns = _.sortBy _.filter(docs, _.identity), 'name'
     DocumentationIndexComponent entries: documented_fns, ctx: ctx
 
+  Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
+
   modules.create 'builtins', ({fn, cmd, component_fn, component_cmd}) ->
-    component_cmd 'help', 'Shows this help', (cmd) ->
-      ctx = @
-      if arguments.length > 0
-        if _.isString cmd
-          doc = Documentation.get_documentation cmd
+    help_component = (ctx, cmd) ->
+      if _.isString cmd
+        doc = Documentation.get_documentation cmd
+        if doc?
+          return DocumentationItemComponent {ctx, name: cmd, doc}
+        op = @imported_context_fns[cmd]
+        if op?
+          doc = get_fn_documentation op
           if doc?
             return DocumentationItemComponent {ctx, name: cmd, doc}
-          op = @imported_context_fns[cmd]
-          if op?
-            doc = get_fn_documentation op
-            if doc?
-              return DocumentationItemComponent {ctx, name: cmd, doc}
-        else if cmd?._lead_context_name
-          name = cmd._lead_context_name
-          if cmd._lead_context_fn?
-            doc = get_fn_documentation cmd._lead_context_fn
-            return DocumentationItemComponent {ctx, name, doc}
-          else
-            fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
-        unless fns?
-          # TODO shouldn't be pre
-          return PreComponent value: "Documentation for #{cmd} not found."
+      else if cmd?._lead_context_name
+        name = cmd._lead_context_name
+        if cmd._lead_context_fn?
+          doc = get_fn_documentation cmd._lead_context_fn
+          return DocumentationItemComponent {ctx, name, doc}
+        else
+          fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
+          fn_help_index ctx fns
+
+      # TODO shouldn't be pre
+      return PreComponent value: "Documentation for #{cmd} not found."
+
+    component_cmd 'help', 'Shows this help', (cmd) ->
+      if arguments.length > 0
+        help_component @, cmd
       else
-        fns = @imported_context_fns
-      help_index @, fns
+        help_component @, 'imported_context_fns'
 
     KeySequenceComponent = React.createClass
       render: -> React.DOM.span {}, _.map @props.keys, (k) -> React.DOM.kbd {}, k
