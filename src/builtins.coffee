@@ -27,11 +27,11 @@ define (require) ->
       React.DOM.table {}, _.map @props.entries, (e) =>
         React.DOM.tr {},
           React.DOM.td {}, React.DOM.code {className: 'run-link', onClick: => @show_help e.name}, e.name
-          React.DOM.td {}, e.doc.summary
+          React.DOM.td {}, Documentation.summary @props.ctx, e.doc
 
   DocumentationItemComponent = React.createClass
     render: ->
-      complete_docs = Documentation.complete(@props.ctx, @props.doc) or React.DOM.p {}, @props.doc.summary
+      complete_docs = Documentation.complete(@props.ctx, @props.doc) or Documentation.summary(@props.ctx, @props.doc)
       React.DOM.div {},
         complete_docs
 
