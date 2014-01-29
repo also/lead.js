@@ -3,7 +3,7 @@ define (require) ->
   require 'cm/runmode'
   URI = require 'URIjs'
   _ = require 'underscore'
-  marked = require 'marked'
+  Markdown = require 'markdown'
   modules = require 'modules'
   http = require 'http'
   Documentation = require 'documentation'
@@ -101,23 +101,8 @@ define (require) ->
       s ||= new String o
       SourceComponent value: s, language: 'json'
 
-    fix_marked_renderer_href = (fn, base_href) ->
-      (href, args...) ->
-        fn URI(href).absoluteTo(base_href).toString(), args...
-
-    MarkdownComponent = React.createClass
-      render: ->
-        marked_opts = {}
-        base_href = @props.opts?.base_href
-        if base_href?
-          renderer = new marked.Renderer
-          renderer.link = fix_marked_renderer_href renderer.link, base_href
-          renderer.image = fix_marked_renderer_href renderer.image, base_href
-          marked_opts.renderer = renderer
-        React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: marked @props.value, marked_opts
-
     component_fn 'md', 'Renders Markdown', (string, opts) ->
-      MarkdownComponent value: string, opts: opts
+      Markdown.MarkdownComponent value: string, opts: opts
 
     TextComponent = React.createClass
       render: -> React.DOM.p {}, @props.value
