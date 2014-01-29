@@ -14,8 +14,24 @@ define (require) ->
   parser = require 'graphite_parser'
   builtins = require 'builtins'
   Html = require 'html'
+  Documentation = require 'documentation'
 
   graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings}) ->
+    build_function_doc = (ctx, doc) ->
+      FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
+
+    build_parameter_doc = (ctx, doc) ->
+      ParameterDocsComponent {ctx, docs: docs.parameter_docs[doc.parameter_name]}
+
+    _.each docs.function_docs, (d, n) ->
+      Documentation.register_documentation ['graphite_functions', n], function_name: n, summary: d.signature, complete: build_function_doc
+
+    _.each docs.parameter_docs, (d, n) ->
+      Documentation.register_documentation ['graphite_parameters', n], parameter_name: n, summary: 'A Graphite parameter', complete: build_parameter_doc
+
+    Documentation.register_documentation 'graphite_functions', complete: (ctx, doc) -> DocsIndex {ctx, docs: docs.function_docs}
+    Documentation.register_documentation 'graphite_parameters', complete: (ctx, doc) -> DocsIndex {ctx, docs: docs.parameter_docs, quote: true}
+
     args_to_params = (context, args) ->
       graphite.args_to_params {args, default_options: context.options()}
 
@@ -59,26 +75,25 @@ define (require) ->
           if href[0] is '#'
             ctx.run "docs '#{decodeURI href[1..]}'"
 
-    cmd 'docs', 'Shows the documentation for a graphite function or parameter', (name) ->
+    cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (name) ->
       if name?
         name = name.to_js_string() if name.to_js_string?
         name = name._lead_context_fn?.name if name._lead_op?
         function_docs = docs.function_docs[name]
         if function_docs?
-          @add_component FunctionDocsComponent ctx: @, docs: function_docs
+          @help "graphite_functions.#{name}"
         name = docs.parameter_doc_ids[name] ? name
         parameter_docs = docs.parameter_docs[name]
         if parameter_docs?
-          @add_component ParameterDocsComponent ctx: @, docs: parameter_docs
+          @help "graphite_parameters.#{name}"
         unless function_docs? or parameter_docs?
           @text 'Documentation not found'
       else
-        @add_component React.DOM.div {}, [
-          React.DOM.h3 {}, 'Functions'
-          DocsIndex ctx: @, docs: docs.function_docs
-          React.DOM.h3 {}, 'Parameters'
-          DocsIndex ctx: @, docs: docs.parameter_docs, quote: true
-        ]
+        @add_component React.DOM.h3 {}, 'Functions'
+        @help 'graphite_functions'
+
+        @add_component React.DOM.h3 {}, 'Parameters'
+        @help 'graphite_parameters'
 
     fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
       result = args_to_params @, args
