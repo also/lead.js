@@ -143,7 +143,7 @@ define (require) ->
       ExampleComponent ctx: @, value: value, run: opts?.run ? true
 
     component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
-      SourceComponent {language, value}
+      Components.SourceComponent {language, value}
 
     component_cmd 'intro', 'Shows the intro message', ->
       React.DOM.div {}, [
