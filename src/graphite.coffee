@@ -16,7 +16,7 @@ define (require) ->
   Html = require 'html'
   Documentation = require 'documentation'
 
-  graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings}) ->
+  graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) ->
     build_function_doc = (ctx, doc) ->
       FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
 
@@ -37,7 +37,18 @@ define (require) ->
 
     default_target_command = 'img'
 
-    fn 'q', 'Escapes a Graphite metric query', (targets...) ->
+    doc 'q',
+      'Escapes a metric query'
+      """
+      Use `q` to reference a metric name in the DSL.
+
+      The Graphite API uses unquoted strings to specify metric names and patterns.
+      The string argument to `q` will be passed directly to the API.
+
+      For example, `sumSeries(q('twitter.*.tweetcount'))` will be sent as `sumSeries(twitter.*.tweetcount)`.
+      """
+
+    fn 'q', (targets...) ->
       for t in targets
         unless _.isString t
           throw new TypeError "#{t} is not a string"
@@ -83,16 +94,29 @@ define (require) ->
         @add_component React.DOM.h3 {}, 'Parameters'
         @help 'graphite_parameters'
 
-    fn 'params', 'Generates the parameters for a Graphite render call', (args...) ->
+    doc 'params',
+      'Generates the parameters for a render API call'
+      '''
+      `params` interprets its arguments in the same way as [`get_data`](help:graphite.get_data),
+      but simply returns the arguments that would be passed to the API.
+
+      For example:
+      ```
+      options areaMode: 'stacked'
+      object params sumSeries(q('twitter.*.tweetcount')), width: 1024, height: 768
+      ```
+      '''
+
+    fn 'params', (args...) ->
       result = args_to_params @, args
       @value result
 
-    component_fn 'url', 'Generates a URL for a Graphite image', (args...) ->
+    component_fn 'url', 'Generates a URL for a graph image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
       React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
-    fn 'img', 'Renders a Graphite graph image', (args...) ->
+    fn 'img', 'Renders a graph image', (args...) ->
       params = args_to_params @, args
       url = graphite.render_url params
       @async ->
