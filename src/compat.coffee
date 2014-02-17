@@ -1,6 +1,7 @@
 define (require) ->
   Bacon = require 'baconjs'
   Q = require 'q'
+  _ = require 'underscore'
 
   modules = require 'modules'
   graphite = require 'graphite'
@@ -56,10 +57,11 @@ define (require) ->
         {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
       ]
 
-      graph data, width: 400, height: 200, areaMode: 'none'
-      graph data, width: 400, height: 200, areaMode: 'first'
-      graph data, width: 400, height: 200, areaMode: 'all'
-      graph data, width: 400, height: 200, areaMode: 'stacked'
+      options width: 400, height: 200
+      graph data, areaMode: 'none'
+      graph data, areaMode: 'first'
+      graph data, areaMode: 'all'
+      graph data, areaMode: 'stacked'
       ```
 
       ## `width` and `height`
@@ -77,8 +79,9 @@ define (require) ->
         {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
       ]
 
-      graph data, width: 400, height: 200, type: 'line'
-      graph data, width: 400, height: 200, type: 'scatter'
+      options width: 400, height: 200
+      graph data, type: 'line'
+      graph data, type: 'scatter'
       ```
 
       ## `lineWidth`
@@ -91,9 +94,10 @@ define (require) ->
         {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
       ]
 
-      graph data, width: 400, height: 200, lineWidth: 0.3
-      graph data, width: 400, height: 200, lineWidth: 3
-      graph data, width: 400, height: 200, lineWidth: 30
+      options width: 400, height: 200
+      graph data, lineWidth: 0.3
+      graph data, lineWidth: 3
+      graph data, lineWidth: 30
       ```
 
       ## `areaOffset`
@@ -110,9 +114,10 @@ define (require) ->
         {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
       ]
 
-      graph data, width: 400, height: 200, areaMode: 'stacked', areaOffset: 'wiggle'
-      graph data, width: 400, height: 200, areaMode: 'stacked', areaOffset: 'silhouette'
-      graph data, width: 400, height: 200, areaMode: 'stacked', areaOffset: 'expand'
+      options width: 400, height: 200
+      graph data, areaMode: 'stacked', areaOffset: 'wiggle'
+      graph data, areaMode: 'stacked', areaOffset: 'silhouette'
+      graph data, areaMode: 'stacked', areaOffset: 'expand'
       ```
 
       ## `interpolate`
@@ -125,11 +130,12 @@ define (require) ->
         {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
       ]
 
-      graph data, width: 400, height: 200, interpolate: 'basis'
-      graph data, width: 400, height: 200, interpolate: 'cardinal'
-      graph data, width: 400, height: 200, interpolate: 'basis'
-      graph data, width: 400, height: 200, interpolate: 'step-before'
-      graph data, width: 400, height: 200, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
+      options width: 400, height: 200
+      graph data, interpolate: 'basis'
+      graph data, interpolate: 'cardinal'
+      graph data, interpolate: 'basis'
+      graph data, interpolate: 'step-before'
+      graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
       md 'see http://bl.ocks.org/mbostock/3310323'
       ```
       """
@@ -137,7 +143,7 @@ define (require) ->
     fn 'graph', (args...) ->
       if Q.isPromise args[0]
         data_promise = args[0]
-        params = Bacon.combineTemplate args[1]
+        params = Bacon.combineTemplate _.extend {}, @options(), args[1]
       else
         graphite_params = graphite.args_to_params {args, default_options: @options()}
         params = Bacon.constant graphite_params
