@@ -179,16 +179,6 @@ define (require) ->
 
     context_vars: -> dsl.define_functions {}, function_names
 
-    init: ->
-      # TODO there's no way for this to be set by the time we get here
-      if settings.get 'define_parameters'
-        _.map docs.parameter_docs, (v, k) ->
-          fn k, "Gets or sets Graphite parameter #{k}", (value) ->
-            if value?
-              @current_options[k] = value
-            else
-              @value @current_options[k] ? @default_options[k]
-
     is_pattern: (s) ->
       for c in '*?[{'
         return true if s.indexOf(c) >= 0
