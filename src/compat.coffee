@@ -156,6 +156,27 @@ define (require) ->
 
       ## `d3_colors`
 
+      An array of colors. The options from https://github.com/mbostock/d3/wiki/Ordinal-Scales#wiki-categorical-colors
+      and https://github.com/mbostock/d3/blob/master/lib/colorbrewer/colorbrewer.js
+      are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purples[9]`.
+
+      ```
+      Q = require 'q'
+      Colors = require 'colors'
+      now = moment().unix()
+
+      targets = (n) ->
+        Q(for i in [1..n]
+          target: "target \#{i}", datapoints: [i + j, now + j * 60] for j in [0...3]
+        )
+
+      options width: 400, height: 200, lineWidth: 2
+      graph targets(10)
+      graph targets(10), d3_colors: Colors.brewer.Spectral[10]
+      graph targets(3), d3_colors: Colors.brewer.Set1[3]
+      graph targets(9), d3_colors: Colors.brewer.Set1[3]
+      ```
+
       ## `yMin` and `yMax`
 
       ## `bgcolor`
