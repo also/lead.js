@@ -176,6 +176,7 @@ define (require) ->
           .data(targets)
         .enter().append("g")
           .attr('class', (d, i) -> "target target#{i}")
+          .call(observe_mouse)
 
       if type is 'line'
         target.append("path")
@@ -186,7 +187,6 @@ define (require) ->
             .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
             .style('fill-opacity', area_opacity)
             .attr('d', (d, i) -> line_fn(d, i)(d.values))
-            .call(observe_mouse)
       else if type is 'scatter'
         target.selectAll('circle')
             .data((d) -> d.values)
