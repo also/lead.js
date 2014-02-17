@@ -141,6 +141,19 @@ define (require) ->
 
       ## `drawNullAsZero`
 
+      ```
+      Q = require 'q'
+      now = moment().unix()
+      data = Q [
+        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [null, now + 120], [4, now + 180]]}
+        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120], [2, now + 180]]}
+      ]
+
+      options width: 400, height: 200
+      graph data, drawNullAsZero: true
+      graph data, drawNullAsZero: false
+      ```
+
       ## `d3_colors`
 
       ## `yMin` and `yMax`
