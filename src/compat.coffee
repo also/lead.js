@@ -138,6 +138,16 @@ define (require) ->
       graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
       md 'see http://bl.ocks.org/mbostock/3310323'
       ```
+
+      ## `drawNullAsZero`
+
+      ## `d3_colors`
+
+      ## `yMin` and `yMax`
+
+      ## `bgcolor`
+
+      ## `get_value` and `get_timestamp`
       """
 
     fn 'graph', (args...) ->
