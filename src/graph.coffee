@@ -127,9 +127,9 @@ define (require) ->
       value_min = null
       value_max = null
       targets = for s in data
-        values = for datapoint in s.datapoints
-          value = get_value datapoint
-          timestamp = get_timestamp datapoint
+        values = for datapoint, i in s.datapoints
+          value = get_value datapoint, i
+          timestamp = get_timestamp datapoint, i
           time_min = Math.min timestamp, time_min ? timestamp
           time_max = Math.max timestamp, time_max
           value = transform_value value
