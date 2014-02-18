@@ -160,6 +160,8 @@ define (require) ->
       and https://github.com/mbostock/d3/blob/master/lib/colorbrewer/colorbrewer.js
       are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purples[9]`.
 
+      The default is `d3.category10`.
+
       ```
       Q = require 'q'
       Colors = require 'colors'
@@ -173,6 +175,7 @@ define (require) ->
       options width: 400, height: 200, lineWidth: 2
       graph targets(10)
       graph targets(10), d3_colors: Colors.brewer.Spectral[10]
+      graph targets(3), d3_colors: ['#333', '#777', '#bbb']
       graph targets(3), d3_colors: Colors.brewer.Set1[3]
       graph targets(9), d3_colors: Colors.brewer.Set1[3]
       ```
