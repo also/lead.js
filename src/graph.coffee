@@ -92,6 +92,8 @@ define (require) ->
       mouse_position = mouse_moves.map (pos) ->
         time: x.invert pos[0]
         value: y.invert pos[1]
+        x: pos[0]
+        y: pos[1]
 
       if type is 'line'
         area_opacity = params.areaAlpha
@@ -191,6 +193,23 @@ define (require) ->
       g.append('g')
         .attr('class', 'y axis')
         .call(y_axis)
+
+      vertical_crosshair = g.append('line')
+          .attr('class', 'crosshair')
+          .attr('y1', 0)
+          .attr('y2', height)
+
+      crosshair_time = g.append('text')
+          .attr('class', 'crosshair-time')
+          .attr('y', -6)
+
+      mouse_position.onValue (p) ->
+        vertical_crosshair
+          .attr('x1', p.x)
+          .attr('x2', p.x)
+        crosshair_time
+          .text(moment(p.time).format('lll'))
+          .attr('x', p.x)
 
       g.append('rect')
         .attr('width', width)
