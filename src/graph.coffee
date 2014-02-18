@@ -22,11 +22,26 @@ define (require) ->
         # TODO error handling
         @error error
 
-    draw: (container, data, params) ->
-      width = params.width or 800
-      height = params.height or 400
+    default_params:
+      width: 800
+      height: 400
+      type: 'line'
+      get_value: ([value, timestamp]) -> value
+      get_timestamp: ([value, timestamp]) -> timestamp
+      d3_colors: colors.d3.category10
+      areaAlpha: 1.0
+      bgcolor: '#fff'
+      areaMode: 'none'
+      areaOffset: 'zero'
+      drawNullAsZero: false
+      #lineWidth: 1
 
-      type = params.type or 'line'
+    draw: (container, data, params) ->
+      params = _.extend {}, graph.default_params, params
+      width = params.width
+      height = params.height
+
+      type = params.type
 
       margin = top: 20, right: 80, bottom: 30, left: 80
 
@@ -36,13 +51,13 @@ define (require) ->
       x = d3.time.scale().range([0, width])
       y = d3.scale.linear().range([height, 0])
 
-      get_value = params.get_value or ([value, timestamp]) -> value
-      get_timestamp = params.get_timestamp or ([value, timestamp]) -> timestamp
+      get_value = params.get_value
+      get_timestamp = params.get_timestamp
 
       x_axis = d3.svg.axis().scale(x).orient('bottom')
       y_axis = d3.svg.axis().scale(y).orient('left')
 
-      color = d3.scale.ordinal().range params.d3_colors ? colors.d3.category10
+      color = d3.scale.ordinal().range params.d3_colors
 
       mouse_over = new Bacon.Bus
       mouse_out = new Bacon.Bus
@@ -74,7 +89,7 @@ define (require) ->
       unhovers.onValue '.classed', 'hovered', false
 
       if type is 'line'
-        area_opacity = params.areaAlpha ? 1.0
+        area_opacity = params.areaAlpha
         line_opacity = 1.0
 
         area = d3.svg.area()
@@ -101,7 +116,7 @@ define (require) ->
             'line'
 
         stack = d3.layout.stack()
-          .offset(params.areaOffset ? 'zero')
+          .offset(params.areaOffset)
           .values((d) -> d.values)
           .x((d) -> d.time)
           .y((d) -> d.value)
@@ -210,6 +225,5 @@ define (require) ->
       legend_target.append('span')
           .text((d) -> d.name)
 
-      if params.bgcolor?
-        svg.style 'background-color', params.bgcolor
+      svg.style 'background-color', params.bgcolor
 
