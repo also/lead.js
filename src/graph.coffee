@@ -62,6 +62,7 @@ define (require) ->
       mouse_over = new Bacon.Bus
       mouse_out = new Bacon.Bus
       clicks = new Bacon.Bus
+      mouse_moves = new Bacon.Bus
       observe_mouse = (s) ->
         s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
          .on('mouseout', (d, i) -> mouse_out.push {index: i, event: d3.event, data: d})
@@ -87,6 +88,10 @@ define (require) ->
         .withStateMachine([], (previous, event) -> [[event], previous])
         .filter (e) -> e.classed?
       unhovers.onValue '.classed', 'hovered', false
+
+      mouse_position = mouse_moves.map (pos) ->
+        time: x.invert pos[0]
+        value: y.invert pos[1]
 
       if type is 'line'
         area_opacity = params.areaAlpha
@@ -186,6 +191,13 @@ define (require) ->
       g.append('g')
         .attr('class', 'y axis')
         .call(y_axis)
+
+      g.append('rect')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('fill', 'none')
+        .attr('pointer-events', 'all')
+        .on('mousemove', (d, i) -> mouse_moves.push d3.mouse @)
 
       target = g.selectAll('.target')
           .data(targets)
