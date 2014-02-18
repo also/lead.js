@@ -158,7 +158,8 @@ define (require) ->
           value_min = Math.min value, value_min ? value if value?
           value_max = Math.max value, value_max
           {value, time: moment(timestamp * 1000), original: datapoint}
-        {values, name: s.target}
+        bisector = d3.bisector (d) -> d.time
+        {values, bisector, name: s.target}
 
       if params.areaMode is 'stacked'
         stack targets
@@ -207,9 +208,20 @@ define (require) ->
         vertical_crosshair
           .attr('x1', p.x)
           .attr('x2', p.x)
+
         crosshair_time
           .text(moment(p.time).format('lll'))
           .attr('x', p.x)
+
+        target_values = _.map targets, (t) ->
+          i = t.bisector.left t.values, p.time, 1
+          d0 = t.values[i - 1]
+          d1 = t.values[i]
+          if p.time - d0.time > d1.time - p.time then d1 else d0
+
+        legend.selectAll('.crosshair-value')
+          .data(target_values)
+          .text((d) -> d.value)
 
       g.append('rect')
         .attr('width', width)
@@ -255,6 +267,8 @@ define (require) ->
           .attr('class', 'color')
       legend_target.append('span')
           .text((d) -> d.name)
+      legend_target.append('span')
+          .attr('class', 'crosshair-value')
 
       svg.style 'background-color', params.bgcolor
 
