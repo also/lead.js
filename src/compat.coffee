@@ -182,6 +182,20 @@ define (require) ->
       ## `bgcolor`
 
       ## `get_value` and `get_timestamp`
+
+      ```
+      Q = require 'q'
+      now = moment().unix()
+      data = Q [
+        {target: 'target 1', datapoints: [1, 2, 3]}
+        {target: 'target 2', datapoints: [0, 3, 1]}
+      ]
+
+      options width: 400, height: 200
+      graph data,
+        get_value: (v, i) -> v
+        get_timestamp: (v, i) -> now + i * 60
+      ```
       """
 
     fn 'graph', (args...) ->
