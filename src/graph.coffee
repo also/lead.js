@@ -182,6 +182,8 @@ define (require) ->
       svg = d3.select(container).append('svg')
           .attr('width', width + margin.left + margin.right)
           .attr('height', height + margin.top + margin.bottom)
+          .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
+
       g = svg
         .append("g")
           .attr("transform", "translate(#{margin.left},#{margin.top})")
@@ -222,13 +224,6 @@ define (require) ->
         legend.selectAll('.crosshair-value')
           .data(target_values)
           .text((d) -> d.value)
-
-      g.append('rect')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('fill', 'none')
-        .attr('pointer-events', 'all')
-        .on('mousemove', (d, i) -> mouse_moves.push d3.mouse @)
 
       target = g.selectAll('.target')
           .data(targets)
