@@ -168,13 +168,12 @@ define (require) ->
       render: -> React.DOM.a {href: @props.href}, @props.value
 
     component_cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
-      a = document.createElement 'a'
-      # TODO app should generate links
-      a.href = location.href
-      a.hash = null
+      uri = URI location.href
+      uri.hash null
       code ?= @previously_run()
-      a.search = '?' + encodeURIComponent btoa code
-      LinkComponent href: a.href, value: a.href
+      uri.query '?' + encodeURIComponent btoa code
+      uri = uri.toString()
+      LinkComponent href: uri, value: uri
 
     PromiseStatusComponent = React.createClass
       render: ->
