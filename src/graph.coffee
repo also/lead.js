@@ -90,9 +90,10 @@ define (require) ->
       unhovers.onValue '.classed', 'hovered', false
 
       mouse_position = mouse_moves.map (pos) ->
-        time: x.invert pos[0]
+        x_constrained = Math.max 0, Math.min(pos[0], width)
+        time: x.invert x_constrained
         value: y.invert pos[1]
-        x: pos[0]
+        x: x_constrained
         y: pos[1]
 
       if type is 'line'
