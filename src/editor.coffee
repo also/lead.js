@@ -92,6 +92,8 @@ define (require) ->
     for s in path
       return unless result?
       result = result[s]
+    # TODO need a better way to identify context functions
+    return if result?.module_name?
     result
 
   suggest = (cm, showHints, options) ->
@@ -139,7 +141,7 @@ define (require) ->
         list = []
         for k, v of imported_context_fns
           # don't suggest the attributes of the fn object
-          if k.indexOf(s) is 0 and not v.cmd_fn?
+          if k.indexOf(s) is 0
             list.push prefix + k
         for k of imported_vars
           if k.indexOf(s) is 0
