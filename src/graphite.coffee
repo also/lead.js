@@ -282,12 +282,12 @@ define (require) ->
 
     find: (query) ->
       if settings.get('type') == 'lead'
-        http.get(graphite.url 'find', query: encodeURIComponent query).then (response) ->
+        http.get(graphite.url 'find', {query}.then (response) ->
           result = _.map response, (m) -> {path: m.name, name: m.name, is_leaf: m['is-leaf']}
           {query, result}
       else
         params =
-          query: encodeURIComponent query
+          query: query
           format: 'completer'
         http.get(graphite.url 'metrics/find', params)
         .then (response) ->
