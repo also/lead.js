@@ -33,6 +33,7 @@ define (require) ->
   ComponentListMixin.component_id = 0
 
   ComponentList = React.createClass
+    displayName: 'ComponentList'
     mixins: [ComponentListMixin]
     add_component: (c) ->
       @assign_key c
@@ -47,6 +48,7 @@ define (require) ->
     shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
 
   PropsHolder = React.createClass
+    displayName: 'PropsHolder'
     render: -> @props.constructor @state.props
     getInitialState: -> props: @props.props
     set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}

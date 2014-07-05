@@ -49,6 +49,7 @@ define (require) ->
     identity = (cell) -> true
 
     DocumentComponent = React.createClass
+      displayName: 'DocumentComponent'
       mixins: [React.ComponentListMixin]
       render: ->
         React.DOM.div {className: 'document'}, @state.components
@@ -168,6 +169,7 @@ define (require) ->
       cell
 
     InputCellComponent = React.createClass
+      displayName: 'InputCellComponent'
       render: ->
         # TODO handle hiding
         React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number}, [
@@ -216,6 +218,7 @@ define (require) ->
       cell.notebook.cell_focused.push cell
 
     OutputCellComponent = React.createClass
+      displayName: 'OutputCellComponent'
       set_component: (@component) ->
         @setState component: @component if @state
       getInitialState: -> component: @component
