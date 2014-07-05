@@ -24,7 +24,7 @@ define (require) ->
 
   SourceComponent = React.createClass
     render: -> React.DOM.pre()
-    componentDidMount: (node) -> format_code @props.value, @props.language, node
+    componentDidMount: -> format_code @props.value, @props.language, @getDOMNode()
 
   {ExampleComponent, SourceComponent}
 

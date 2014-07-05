@@ -64,10 +64,10 @@ define (require) ->
 
     ParameterDocsComponent = React.createClass
       render: -> React.DOM.div()
-      componentDidMount: (node) ->
+      componentDidMount: ->
         ctx = @props.ctx
         # TODO
-        $docs = $(node).append @props.docs
+        $docs = $(@getDOMNode()).append @props.docs
         $docs.find('a').on 'click', (e) ->
           e.preventDefault()
           href = $(this).attr 'href'

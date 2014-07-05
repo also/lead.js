@@ -139,7 +139,7 @@ define (require) ->
 
   RenderableComponent = React.createClass
     render: -> React.DOM.div()
-    componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
+    componentDidMount: -> $(@getDOMNode()).append @props.renderable._lead_render()
 
   component_for_renderable = (renderable) ->
     if is_component renderable
