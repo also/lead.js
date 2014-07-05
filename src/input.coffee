@@ -27,15 +27,12 @@ define (require) ->
       get: => value
     component = constructor props
     component.model = model
-    component
+    {component, model}
 
   _InputComponent = React.createClass
     mixins: [React.ComponentProxyMixin, InputMixin]
     render: ->
       React.DOM.input type: @props.type, value: @state.value, onChange: @handle_change
-
-  InputComponent = (props) ->
-    create_component _InputComponent, props
 
   _SelectComponent = React.createClass
     mixins: [React.ComponentProxyMixin, InputMixin]
@@ -65,14 +62,14 @@ define (require) ->
     # https://github.com/baconjs/bacon.model
 
     fn 'text_input', 'A text input field', (default_value='') ->
-      component = InputComponent {type: 'text', default_value}
+      {component, model} = create_component _InputComponent, {type: 'text', default_value}
       @add_component component
-      @value component.model
+      @value model
 
     fn 'select', 'A select field', (options, default_value) ->
-      component = SelectComponent {options, default_value}
+      {component, model} = SelectComponent {options, default_value}
       @add_component component
-      @value component.model
+      @value model
 
     fn 'button', 'A button', (value) ->
       bus = new Bacon.Bus()
