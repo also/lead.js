@@ -57,12 +57,13 @@ module.exports = (grunt) ->
 
   UNIT_TEST_BROWSERS = [{browserName: 'chrome'}, {browserName: 'firefox'}]
   REMOTE_UNIT_TEST_BROWSERS = [
-    {browserName: "chrome", version: "28", platform: "OS X 10.6"}
+    {browserName: "chrome", version: "31", platform: "OS X 10.9"}
     {browserName: 'internet explorer', version: '11', platform: 'Windows 8.1'}
-    {browserName: 'chrome', version: '31', platform: 'Windows 8.1'}
+    {browserName: 'chrome', version: '35', platform: 'Windows 8.1'}
     {browserName: 'firefox', version: '25', platform: 'Linux'}
   ]
   APP_TEST_BROWSERS = [{browserName: 'chrome'}]
+  REMOTE_APP_TEST_BROWSERS = [{browserName: "chrome", version: "31", platform: "OS X 10.9"}]
   grunt.registerTask 'test-selenium-unit-remote', 'Runs the Mocha tests remotely using Selenium and Sauce Labs', ->
     done = @async()
     selenium
@@ -84,14 +85,14 @@ module.exports = (grunt) ->
   grunt.registerTask 'test-selenium-app-remote', 'Runs the app tests remotely using Selenium and Sauce Labs', ->
     done = @async()
     selenium
-      .run_remotely(APP_INFO, APP_TEST_BROWSERS, app_tests)
+      .run_remotely(APP_INFO, REMOTE_APP_TEST_BROWSERS, app_tests)
       .then(tests_passed, tests_failed).then(done).done()
 
   grunt.registerTask 'test-selenium-all-remote', 'Runs the unit and app tests remotely using Selenium and Sauce Labs', ->
     done = @async()
     selenium
       .run_with_tunnel (driver) ->
-        app_results = selenium.run_in_sauce_browsers driver, APP_INFO, APP_TEST_BROWSERS, app_tests
+        app_results = selenium.run_in_sauce_browsers driver, APP_INFO, REMOTE_APP_TEST_BROWSERS, app_tests
         unit_results = selenium.run_in_sauce_browsers driver, UNIT_INFO, REMOTE_UNIT_TEST_BROWSERS, selenium.unit_tests
         Q.allSettled([app_results, unit_results]).then -> [app_results, unit_results]
       .then(([app, unit]) ->

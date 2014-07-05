@@ -169,7 +169,7 @@ define (require) ->
         if node.is_leaf
           @run "q(#{JSON.stringify node.path})"
         else
-          @run "browser #{JSON.stringify node.path + '*'}"
+          @run "browser #{JSON.stringify node.path + '.*'}"
       @add_renderable finder
 
     FindResultsComponent = React.createClass
@@ -177,7 +177,7 @@ define (require) ->
         query_parts = @props.query.split '.'
         React.DOM.ul {className: 'find-results'}, _.map @props.results, (node) =>
           text = node.path
-          text += '*' unless node.is_leaf
+          text += '.*' unless node.is_leaf
           node_parts = text.split '.'
           React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (segment, i) ->
             s = segment
@@ -244,7 +244,11 @@ define (require) ->
     parse_find_response: (query, response) ->
       parts = query.split '.'
       pattern_parts = parts.map graphite.is_pattern
-      list = (node.path for node in response)
+      list = for node in response
+        if node.is_leaf
+          node.path
+        else
+          node.path + '.*'
       patterned_list = for path in list
         result = for matched, i in path.split '.'
           if pattern_parts[i]
@@ -275,9 +279,6 @@ define (require) ->
     complete: (query) ->
       graphite.find(query + '*')
       .then ({result}) ->
-        if settings.get('type') == 'lead'
-          for n in result
-            n.path += '.' unless n.is_leaf
         graphite.parse_find_response query, result
 
     find: (query) ->
@@ -291,7 +292,7 @@ define (require) ->
           format: 'completer'
         http.get(graphite.url 'metrics/find', params)
         .then (response) ->
-          result = _.map response.metrics, ({path, name, is_leaf}) -> {path, name, is_leaf: is_leaf == '1'}
+          result = _.map response.metrics, ({path, name, is_leaf}) -> {path: path.replace(/\.$/, ''), name, is_leaf: is_leaf == '1'}
           {query, result}
 
     suggest_keys: (s) ->

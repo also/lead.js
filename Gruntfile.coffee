@@ -22,8 +22,6 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON("package.json")
     sass:
       dist:
-        options:
-          bundleExec: true
         files:
           'build/style.css': 'style.sass'
     concat:
@@ -87,7 +85,7 @@ module.exports = (grunt) ->
             SecondLevelDomains: 'empty:'
           optimize: 'none'
 
-  grunt.loadNpmTasks 'grunt-contrib-sass'
+  grunt.loadNpmTasks 'grunt-sass'
   grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'

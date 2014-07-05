@@ -13,12 +13,11 @@ Now, installing lead.js is just placing these files on a server somewhere. You'l
 
 ## Building from source
 
-Building lead.js requires **node.js**, **npm**, **Ruby** and **Bundler**.
+Building lead.js requires **node.js** and **npm**.
 With these installed,
 
 ```
 npm install
-bundle install --path vendor
 ```
 
 Build with

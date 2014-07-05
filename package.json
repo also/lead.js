@@ -26,7 +26,6 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt-cli": "~0.1.9",
-    "grunt-contrib-sass": "~0.4.1",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "~0.4.1",
     "jsdom": "~0.8.4",
@@ -36,6 +35,7 @@
     "grunt-contrib-connect": "~0.5.0",
     "sauce-tunnel": "~1.1.2",
     "wd": "~0.2.8",
-    "request": "~2.30.0"
+    "request": "~2.30.0",
+    "grunt-sass": "^0.14.0"
   }
 }
