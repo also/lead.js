@@ -14,4 +14,11 @@ graphite:
 
 opentsdb:
   base_url: 'http://opentsdb.example.com'
+
+app:
+  intro_command: 'intro'
+  paths:
+    also:
+      site: 'github.com'
+      repo: 'also/lead.js'
 ```
