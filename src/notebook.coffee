@@ -172,10 +172,10 @@ define (require) ->
       displayName: 'InputCellComponent'
       render: ->
         # TODO handle hiding
-        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number}, [
-          React.DOM.span {className: 'permalink', onClick: @permalink_link_clicked}, 'link'
-          React.DOM.div {className: 'code', ref: 'code'}
-        ]
+        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
+          React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, 'link'),
+          React.DOM.div({className: 'code', ref: 'code'})
+
       componentDidMount: ->
         editor = @props.cell.editor
         @refs.code.getDOMNode().appendChild editor.display.wrapper
