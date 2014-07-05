@@ -146,17 +146,6 @@ pre
       -webkit-border-radius: 4px
       margin-bottom: .5em
 
-    .legend
-      .color::before
-        content: '■ '
-      font: 12px $monospace
-      li
-        margin: 6px
-        &.hovered
-          background-color: #ddd
-        &.deselected
-          opacity: 0.5
-
     table
       border-collapse: collapse
       border-spacing: 0
@@ -308,3 +297,13 @@ kbd
   text-shadow: 0 1px 0 #fff
   line-height: 1.4
 
+.legend
+  .color::before
+    content: '■ '
+  font: 12px $monospace
+  li
+    margin: 6px
+    &.hovered
+      background-color: #ddd
+    &.deselected
+      opacity: 0.5
