@@ -7,7 +7,7 @@ do_then = (promise, thens...) ->
 
 SHIFT_ENTER = wd.SPECIAL_KEYS.Shift + wd.SPECIAL_KEYS.Return + wd.SPECIAL_KEYS.NULL
 command_key = (browser) ->
-  if browser.capabilities.platform == 'MAC'
+  if browser.capabilities.platform == 'MAC' or browser.capabilities.platform == 'Mac OS X'
     wd.SPECIAL_KEYS.Command
   else
     wd.SPECIAL_KEYS.Control
