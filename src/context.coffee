@@ -132,7 +132,8 @@ define (require) ->
     React.renderComponent component, $wrapper.get 0
     $wrapper
 
-  is_component = (o) -> o?._lifeCycleState?
+  # FIXME figure out a real check for a react component
+  is_component = (o) -> o?.__realComponentInstance?
 
   is_renderable = (o) ->
     o? and (is_component(o) or o._lead_render?)
