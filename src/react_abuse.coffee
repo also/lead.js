@@ -55,6 +55,8 @@ define (require) ->
   component_list = ->
     components = []
     model = new Bacon.Model []
+
+    model: model
     _lead_render: SimpleObservableComponent observable: model
     add_component: (c) ->
       assign_key c

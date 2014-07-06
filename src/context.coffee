@@ -8,7 +8,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   printStackTrace = require 'stacktrace-js'
-  Bacon = require 'baconjs'
+  Bacon = require 'bacon.model'
   React = require 'react_abuse'
   modules = require 'modules'
 
@@ -166,11 +166,14 @@ define (require) ->
   # TODO this is an awful name
   create_context_run_context = ->
     asyncs = new Bacon.Bus
+    changes = new Bacon.Bus
+    component_list = React.component_list()
+    changes.plug component_list.model
 
-    changes: new Bacon.Bus
+    changes: changes
     pending: asyncs.scan 0, (a, b) -> a + b
     current_options: {}
-    component_list: React.component_list()
+    component_list: component_list
 
     options: -> @current_options
 
