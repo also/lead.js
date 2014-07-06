@@ -153,11 +153,12 @@ define (require) ->
     fn 'table', 'Displays Graphite data in a table', (args...) ->
       params = args_to_params @, args
       @async ->
-        result = React.PropsHolder constructor: TimeSeriesTableList, props: serieses: []
+        props = new Bacon.Model serieses: []
+        result = React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
         @add_component result
         promise = graphite.get_data params
         promise.then (response) =>
-          result.set_child_props serieses: response
+          props.set serieses: response
         .fail (error) =>
           @error error
           Q.reject error
@@ -189,10 +190,12 @@ define (require) ->
       promise.clicks = new Bacon.Bus
 
       @value @renderable promise, @detached -> @async ->
-        result = React.PropsHolder constructor: FindResultsComponent, props: {results: [], query, on_click: (node) -> promise.clicks.push node}
+        results = new Bacon.Model []
+        props = Bacon.Model.combine {results, query, on_click: (node) -> promise.clicks.push node}
+        result = React.PropsModelComponent constructor: FindResultsComponent, child_props: props
         @add_component result
         promise.then (r) =>
-          result.set_child_props results: r.result
+          results.set r.result
         .fail (reason) =>
           @error 'Find request failed'
           Q.reject reason

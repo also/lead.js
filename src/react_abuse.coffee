@@ -64,11 +64,11 @@ define (require) ->
       components = []
       model.set []
 
-  PropsHolder = React.createClass
-    displayName: 'PropsHolder'
-    render: -> @props.constructor @state.props
-    getInitialState: -> props: @props.props
-    set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}
+  PropsModelComponent = createIdentityClass
+    displayName: 'PropsModelComponent'
+    mixins: [ObservableMixin]
+    get_observable: -> @props.child_props
+    render: -> @props.constructor @state.value
 
-  _.extend {PropsHolder, ComponentProxy, ComponentProxyMixin, ObservableMixin, component_list, createIdentityClass}, React
+  _.extend {PropsModelComponent, ComponentProxy, ComponentProxyMixin, ObservableMixin, component_list, createIdentityClass}, React
 
