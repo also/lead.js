@@ -3,7 +3,7 @@ define (require) ->
   _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
-  Bacon = require 'baconjs'
+  Bacon = require 'bacon.model'
   Editor = require 'editor'
   http = require 'http'
   graphite = require 'graphite'
@@ -51,6 +51,8 @@ define (require) ->
     DocumentComponent = React.createClass
       displayName: 'DocumentComponent'
       mixins: [React.ComponentListMixin]
+      getInitialState: ->
+        unsubscribe: @props.cells_model.onValue @set_cells
       render: ->
         React.DOM.div {className: 'document'}, @state.components
       # FIXME #163 can't call this
@@ -68,10 +70,12 @@ define (require) ->
         # reset the file picker so change is triggered again
         $file_picker.val ''
 
-      document = DocumentComponent()
+      cells_model = Bacon.Model([])
+      document = DocumentComponent {cells_model}
       # FIXME add file picker
       notebook =
         cells: []
+        cells_model: cells_model
         input_number: 1
         output_number: 1
         component: document
@@ -106,8 +110,7 @@ define (require) ->
       notebook
 
     update_view = (notebook) ->
-      # FIXME #163 can't call methods on component specs
-      notebook.component.set_cells notebook.cells
+      notebook.cells_model.set notebook.cells.slice()
 
     clear_notebook = (notebook) ->
       for cell in notebook.cells
