@@ -80,7 +80,11 @@ define (require) ->
 
       unless is_nodejs?
         scrolls = $(window).asEventStream 'scroll'
-        scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil scrolls
+        # FIXME if anything else subscribes to output_cell.done, scroll_to never gets any events
+        scroll_to = notebook.cell_run.flatMapLatest (input_cell) ->
+          # TODO without the delay, this can happen before there is a dom node.
+          # not sure if the ordering now is guaranteed
+          input_cell.output_cell.done.delay(0).takeUntil scrolls
         scroll_to.onValue (output_cell) ->
           # FIXME
           $('html, body').scrollTop $(output_cell.dom_node).offset().top
@@ -270,7 +274,6 @@ define (require) ->
       output_cell.done = no_longer_pending.take(1).map -> output_cell
       context.run_in_context run_context, fn
 
-      # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
       # TODO don't access _lead_render
       output_cell.component_model.set run_context.component_list._lead_render
 
