@@ -50,7 +50,7 @@ define (require) ->
 
     DocumentComponent = React.createClass
       displayName: 'DocumentComponent'
-      mixins: [React.ComponentListMixin, React.ObservableMixin]
+      mixins: [React.ObservableMixin]
       get_observable: -> @props.cells_model
       render: ->
         React.DOM.div {className: 'document'}, _.pluck @state.value, 'component'
