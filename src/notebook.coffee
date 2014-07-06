@@ -83,7 +83,7 @@ define (require) ->
         scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil scrolls
         scroll_to.onValue (output_cell) ->
           # FIXME
-          $('html, body').scrollTop $(output_cell.component.getDOMNode()).offset().top
+          $('html, body').scrollTop $(output_cell.dom_node).offset().top
 
       context.create_base_context(opts).then (base_context) ->
         notebook.base_context = base_context
@@ -222,16 +222,17 @@ define (require) ->
 
     OutputCellComponent = React.createIdentityClass
       displayName: 'OutputCellComponent'
-      # fixme #163 can't call this
-      set_component: (@component) ->
-        @setState component: @component if @state
-      getInitialState: -> component: @component
-      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component
+      mixins: [React.ObservableMixin]
+      get_observable: -> @props.cell.component_model
+      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.value
+      componentDidMount: ->
+        @props.cell.dom_node = @getDOMNode()
 
     create_output_cell = (notebook) ->
       number = notebook.output_number++
 
       cell =
+        component_model: new Bacon.Model null
         type: 'output'
         visible: true
         active: true
@@ -270,8 +271,8 @@ define (require) ->
       context.run_in_context run_context, fn
 
       # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
-      # FIXME #163 can't call methods on component specs
-      output_cell.component.set_component run_context.component_list
+      # TODO don't access _lead_render
+      output_cell.component_model.set run_context.component_list._lead_render
 
     create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook
