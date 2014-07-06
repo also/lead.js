@@ -50,15 +50,10 @@ define (require) ->
 
     DocumentComponent = React.createClass
       displayName: 'DocumentComponent'
-      mixins: [React.ComponentListMixin]
-      getInitialState: ->
-        unsubscribe: @props.cells_model.onValue @set_cells
+      mixins: [React.ComponentListMixin, React.ObservableMixin]
+      get_observable: -> @props.cells_model
       render: ->
-        React.DOM.div {className: 'document'}, @state.components
-      # FIXME #163 can't call this
-      set_cells: (cells) ->
-        @set_components _.pluck cells, 'component'
-      shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
+        React.DOM.div {className: 'document'}, _.pluck @state.value, 'component'
 
     create_notebook = (opts) ->
       $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -173,13 +168,10 @@ define (require) ->
         insert_cell cell, opts
       cell
 
-    InputCellComponent = React.createClass
+    InputCellComponent = React.createIdentityClass
       displayName: 'InputCellComponent'
-      getInitialState: ->
-        cell: @props.cell
-        unsubscribe: @props.cell.changes.onValue (cell) => @setState {cell}
-      componentWillUnmount: ->
-        @state.unsubscribe()
+      mixins: [React.ObservableMixin]
+      get_observable: -> @props.cell.changes
       render: ->
         # TODO handle hiding
         React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
@@ -228,7 +220,7 @@ define (require) ->
       cell.editor.focus()
       cell.notebook.cell_focused.push cell
 
-    OutputCellComponent = React.createClass
+    OutputCellComponent = React.createIdentityClass
       displayName: 'OutputCellComponent'
       # fixme #163 can't call this
       set_component: (@component) ->

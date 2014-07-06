@@ -32,6 +32,15 @@ define (require) ->
       return next_state.update_count != @state.update_count
   ComponentListMixin.component_id = 0
 
+  ObservableMixin =
+    #get_observable: -> @props.observable
+    getInitialState: ->
+      observable = @get_observable?() ? @props.observable
+      observable: observable
+      unsubscribe: observable.onValue (value) => @setState {value}
+    componentWillUnmount: ->
+      @state.unsubscribe()
+
   ComponentList = React.createClass
     displayName: 'ComponentList'
     mixins: [ComponentListMixin]
@@ -53,5 +62,14 @@ define (require) ->
     getInitialState: -> props: @props.props
     set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}
 
-  _.extend {ComponentListMixin, ComponentList, PropsHolder, ComponentProxy, ComponentProxyMixin}, React
+  createIdentityClass = (args...) ->
+    cls = React.createClass args...
+    prefix = cls.originalSpec.displayName ? 'identity'
+    (props, args...) ->
+      props ?= {}
+      props.key = "#{prefix}_#{ComponentListMixin.component_id++}"
+      cls props, args...
+
+
+  _.extend {ComponentListMixin, ComponentList, PropsHolder, ComponentProxy, ComponentProxyMixin, ObservableMixin, createIdentityClass}, React
 
