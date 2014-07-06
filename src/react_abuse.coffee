@@ -27,7 +27,7 @@ define (require) ->
       _.each @_components, @assign_key
       @_update_state()
     _update_state: ->
-      @setState components: @_components, update_count: @state.update_count++ if @state
+      @setState components: @_components, update_count: @state.update_count + 1 if @state
     did_state_change: (next_state) ->
       return next_state.update_count != @state.update_count
   ComponentListMixin.component_id = 0
