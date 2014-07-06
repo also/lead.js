@@ -149,19 +149,18 @@ define (require) ->
       renderable._lead_render
     # TODO remove context special case
     else if renderable.component_list?
-      renderable.component_list
+      renderable.component_list._lead_render
     else
       RenderableComponent {renderable}
 
   create_nested_renderable_context = (ctx) ->
-    component = React.ComponentList()
     ctx.create_nested_context
-      component_list: component
+      component_list: React.component_list()
 
   # creates a nested context, adds it to the renderable list, and applies the function to it
   nested_item = (ctx, fn, args...) ->
     nested_context = create_nested_renderable_context ctx
-    ctx.add_component nested_context.component_list
+    ctx.add_component nested_context.component_list._lead_render
     nested_context.apply_to fn, args
 
   # TODO this is an awful name
@@ -171,7 +170,7 @@ define (require) ->
     changes: new Bacon.Bus
     pending: asyncs.scan 0, (a, b) -> a + b
     current_options: {}
-    component_list: React.ComponentList()
+    component_list: React.component_list()
 
     options: -> @current_options
 

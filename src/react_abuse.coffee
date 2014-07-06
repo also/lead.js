@@ -1,6 +1,15 @@
 define (require) ->
   React = require 'react'
   _ = require 'underscore'
+  Bacon = require 'bacon.model'
+
+  createIdentityClass = (args...) ->
+    cls = React.createClass args...
+    prefix = cls.originalSpec.displayName ? 'identity'
+    (props, args...) ->
+      props ?= {}
+      props.key = "#{prefix}_#{ComponentListMixin.component_id++}"
+      cls props, args...
 
   ComponentProxy = ->
     component = null
@@ -35,9 +44,14 @@ define (require) ->
   ObservableMixin =
     #get_observable: -> @props.observable
     getInitialState: ->
+      value = null
       observable = @get_observable?() ? @props.observable
       observable: observable
-      unsubscribe: observable.onValue (value) => @setState {value}
+      # there might already be a value, so the onValue callback can be called inside getInitialState
+      unsubscribe: observable.onValue (v) =>
+        @setState value: v
+        value = v
+      value: value
     componentWillUnmount: ->
       @state.unsubscribe()
 
@@ -56,20 +70,29 @@ define (require) ->
       React.DOM.div {}, @state.components
     shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
 
+  SimpleObservableComponent = createIdentityClass
+    displayName: 'SimpleObservableComponent'
+    mixins: [ObservableMixin]
+    render: ->
+      React.DOM.div {}, @state.value
+
+  component_list = ->
+    components = []
+    model = new Bacon.Model []
+    _lead_render: SimpleObservableComponent observable: model
+    add_component: (c) ->
+      ComponentListMixin.assign_key c
+      components.push c
+      model.set components.slice()
+    empty: ->
+      components = []
+      model.set []
+
   PropsHolder = React.createClass
     displayName: 'PropsHolder'
     render: -> @props.constructor @state.props
     getInitialState: -> props: @props.props
     set_child_props: (props) -> @setState {props: _.extend({}, @state.props, props)}
 
-  createIdentityClass = (args...) ->
-    cls = React.createClass args...
-    prefix = cls.originalSpec.displayName ? 'identity'
-    (props, args...) ->
-      props ?= {}
-      props.key = "#{prefix}_#{ComponentListMixin.component_id++}"
-      cls props, args...
-
-
-  _.extend {ComponentListMixin, ComponentList, PropsHolder, ComponentProxy, ComponentProxyMixin, ObservableMixin, createIdentityClass}, React
+  _.extend {ComponentListMixin, ComponentList, PropsHolder, ComponentProxy, ComponentProxyMixin, ObservableMixin, component_list, createIdentityClass}, React
 
