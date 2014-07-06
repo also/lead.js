@@ -175,6 +175,11 @@ define (require) ->
 
     InputCellComponent = React.createClass
       displayName: 'InputCellComponent'
+      getInitialState: ->
+        cell: @props.cell
+        unsubscribe: @props.cell.changes.onValue (cell) => @setState {cell}
+      componentWillUnmount: ->
+        @state.unsubscribe()
       render: ->
         # TODO handle hiding
         React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
@@ -201,8 +206,9 @@ define (require) ->
         notebook: notebook
         context: create_input_context notebook
         used: false
+        changes: new Bacon.Bus()
         editor: editor
-        changes: Editor.as_event_stream editor, 'change'
+        editor_changes: Editor.as_event_stream editor, 'change'
 
       editor.lead_cell = cell
       component = InputCellComponent {cell}
@@ -210,7 +216,7 @@ define (require) ->
 
       # scan changes for the side effect in recompile
       # we have to subscribe so that the events are sent
-      cell.changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue ->
+      cell.editor_changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue ->
 
       cell
 
@@ -249,6 +255,7 @@ define (require) ->
       remove_cell input_cell.output_cell if input_cell.output_cell?
       insert_cell output_cell, after: input_cell
       input_cell.number = input_cell.notebook.input_number++
+      input_cell.changes.push input_cell
       input_cell.output_cell = output_cell
 
       # TODO cell type
