@@ -200,7 +200,9 @@ define (require) ->
           text = "Loading"
         React.DOM.div {className: 'promise-status'}, text
       getInitialState: ->
-        unless @props.promise.isPending()
+        if @props.promise.isPending()
+          null
+        else
           return duration: 0
       finished: ->
         @setState duration: new Date - @props.start_time
