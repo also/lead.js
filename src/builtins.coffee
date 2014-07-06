@@ -10,6 +10,24 @@ define (require) ->
   React = require 'react'
   Components = require 'components'
 
+  Documentation.register_documentation 'introduction', complete: """
+  # Welcome to lead.js
+
+  Press <kbd>Shift</kbd><kbd>Enter</kbd> to execute the CoffeeScript in the console. Try running
+
+  ```
+  browser '*'
+  ```
+
+  Look at
+
+  ```
+  docs
+  ```
+
+  to see what you can do with Graphite.
+  """
+
   ExampleComponent = Components.ExampleComponent
 
   get_fn_documentation = (fn) ->
@@ -144,20 +162,6 @@ define (require) ->
 
     component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
       Components.SourceComponent {language, value}
-
-    component_cmd 'intro', 'Shows the intro message', ->
-      React.DOM.div {}, [
-        React.DOM.p {}, 'Welcome to lead.js!'
-        React.DOM.p {}, [
-          'Press '
-          KeySequenceComponent(keys: ['Shift', 'Enter'])
-          ' to execute the CoffeeScript in the console. Try running'
-        ]
-        ExampleComponent value: "browser '*'", ctx: @, run: true
-        TextComponent value: 'Look at'
-        ExampleComponent value: 'docs', ctx: @, run: true
-        TextComponent value: 'to see what you can do with Graphite.'
-      ]
 
     fn 'options', 'Gets or sets options', (options) ->
       if options?
