@@ -53,6 +53,7 @@ define (require) ->
       mixins: [React.ComponentListMixin]
       render: ->
         React.DOM.div {className: 'document'}, @state.components
+      # FIXME #163 can't call this
       set_cells: (cells) ->
         @set_components _.pluck cells, 'component'
       shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
@@ -105,6 +106,7 @@ define (require) ->
       notebook
 
     update_view = (notebook) ->
+      # FIXME #163 can't call methods on component specs
       notebook.component.set_cells notebook.cells
 
     clear_notebook = (notebook) ->
@@ -219,6 +221,7 @@ define (require) ->
 
     OutputCellComponent = React.createClass
       displayName: 'OutputCellComponent'
+      # fixme #163 can't call this
       set_component: (@component) ->
         @setState component: @component if @state
       getInitialState: -> component: @component
@@ -265,6 +268,7 @@ define (require) ->
       context.run_in_context run_context, fn
 
       # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
+      # FIXME #163 can't call methods on component specs
       output_cell.component.set_component run_context.component_list
 
     create_bare_output_cell_and_context = (notebook) ->
