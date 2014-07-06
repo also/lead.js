@@ -56,9 +56,11 @@ define (require) ->
         help_component @, 'imported_context_fns'
 
     KeySequenceComponent = React.createClass
+      displayName: 'KeySequenceComponent'
       render: -> React.DOM.span {}, _.map @props.keys, (k) -> React.DOM.kbd {}, k
 
     KeyBindingComponent = React.createClass
+      displayName: 'KeyBindingComponent'
       render: ->
         React.DOM.table {}, _.map @props.keys, (command, key) =>
           React.DOM.tr {}, [
@@ -110,12 +112,15 @@ define (require) ->
       Markdown.MarkdownComponent value: string, opts: opts
 
     TextComponent = React.createClass
+      displayName: 'TextComponent'
       render: -> React.DOM.p {}, @props.value
 
     PreComponent = React.createClass
+      displayName: 'PreComponent'
       render: -> React.DOM.pre {}, @props.value
 
     HtmlComponent = React.createClass
+      displayName: 'HtmlComponent'
       render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
     component_fn 'text', 'Prints text', (string) ->
@@ -128,6 +133,7 @@ define (require) ->
       HtmlComponent value: string
 
     ErrorComponent = React.createClass
+      displayName: 'ErrorComponent'
       render: -> React.DOM.pre {className: 'error'}, @props.message
 
     component_fn 'error', 'Shows a preformatted error message', (message) ->
@@ -165,6 +171,7 @@ define (require) ->
       @value @current_options
 
     LinkComponent = React.createClass
+      displayName: 'LinkComponent'
       render: -> React.DOM.a {href: @props.href}, @props.value
 
     component_cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
@@ -176,6 +183,7 @@ define (require) ->
       LinkComponent href: uri, value: uri
 
     PromiseStatusComponent = React.createClass
+      displayName: 'PromiseStatusComponent'
       render: ->
         if @state?
           ms = @state.duration
