@@ -8,7 +8,7 @@ define (require) ->
   $ = require 'jquery'
   _ = require 'underscore'
   printStackTrace = require 'stacktrace-js'
-  Bacon = require 'baconjs'
+  Bacon = require 'bacon.model'
   React = require 'react_abuse'
   modules = require 'modules'
 
@@ -132,14 +132,15 @@ define (require) ->
     React.renderComponent component, $wrapper.get 0
     $wrapper
 
-  is_component = (o) -> o?._lifeCycleState?
+  # FIXME figure out a real check for a react component
+  is_component = (o) -> o?.__realComponentInstance?
 
   is_renderable = (o) ->
     o? and (is_component(o) or o._lead_render?)
 
   RenderableComponent = React.createClass
     render: -> React.DOM.div()
-    componentDidMount: (node) -> $(node).append @props.renderable._lead_render()
+    componentDidMount: -> $(@getDOMNode()).append @props.renderable._lead_render()
 
   component_for_renderable = (renderable) ->
     if is_component renderable
@@ -148,29 +149,31 @@ define (require) ->
       renderable._lead_render
     # TODO remove context special case
     else if renderable.component_list?
-      renderable.component_list
+      renderable.component_list._lead_render
     else
       RenderableComponent {renderable}
 
   create_nested_renderable_context = (ctx) ->
-    component = React.ComponentList()
     ctx.create_nested_context
-      component_list: component
+      component_list: React.component_list()
 
   # creates a nested context, adds it to the renderable list, and applies the function to it
   nested_item = (ctx, fn, args...) ->
     nested_context = create_nested_renderable_context ctx
-    ctx.add_component nested_context.component_list
+    ctx.add_component nested_context.component_list._lead_render
     nested_context.apply_to fn, args
 
   # TODO this is an awful name
   create_context_run_context = ->
     asyncs = new Bacon.Bus
+    changes = new Bacon.Bus
+    component_list = React.component_list()
+    changes.plug component_list.model
 
-    changes: new Bacon.Bus
+    changes: changes
     pending: asyncs.scan 0, (a, b) -> a + b
     current_options: {}
-    component_list: React.ComponentList()
+    component_list: component_list
 
     options: -> @current_options
 

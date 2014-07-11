@@ -14,6 +14,7 @@ define (require) ->
       target.textContent = code
 
   ExampleComponent = React.createClass
+    displayName: 'ExampleComponent'
     getDefaultProps: -> language: 'coffeescript'
     render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo SourceComponent()
     on_click: ->
@@ -23,8 +24,9 @@ define (require) ->
         @props.ctx.set_code @props.value
 
   SourceComponent = React.createClass
+    displayName: 'SourceComponent'
     render: -> React.DOM.pre()
-    componentDidMount: (node) -> format_code @props.value, @props.language, node
+    componentDidMount: -> format_code @props.value, @props.language, @getDOMNode()
 
   {ExampleComponent, SourceComponent}
 

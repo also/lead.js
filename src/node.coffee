@@ -12,7 +12,7 @@ enable_global_window = ->
 
     global.window = doc.parentWindow
     global.document = doc
-    global.navigator = 'navigator'
+    global.navigator = {userAgent: 'lol'}
 
 exports.enable_codemirror = ->
   enable_global_window()

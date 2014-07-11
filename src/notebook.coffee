@@ -3,7 +3,7 @@ define (require) ->
   _ = require 'underscore'
   CodeMirror = require 'cm/codemirror'
   URI = require 'URIjs'
-  Bacon = require 'baconjs'
+  Bacon = require 'bacon.model'
   Editor = require 'editor'
   http = require 'http'
   graphite = require 'graphite'
@@ -49,12 +49,11 @@ define (require) ->
     identity = (cell) -> true
 
     DocumentComponent = React.createClass
-      mixins: [React.ComponentListMixin]
+      displayName: 'DocumentComponent'
+      mixins: [React.ObservableMixin]
+      get_observable: -> @props.cells_model
       render: ->
-        React.DOM.div {className: 'document'}, @state.components
-      set_cells: (cells) ->
-        @set_components _.pluck cells, 'component'
-      shouldComponentUpdate: (next_props, next_state) -> @did_state_change next_state
+        React.DOM.div {className: 'document'}, _.pluck @state.value, 'component'
 
     create_notebook = (opts) ->
       $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -66,10 +65,12 @@ define (require) ->
         # reset the file picker so change is triggered again
         $file_picker.val ''
 
-      document = DocumentComponent()
+      cells_model = Bacon.Model([])
+      document = DocumentComponent {cells_model}
       # FIXME add file picker
       notebook =
         cells: []
+        cells_model: cells_model
         input_number: 1
         output_number: 1
         component: document
@@ -79,10 +80,14 @@ define (require) ->
 
       unless is_nodejs?
         scrolls = $(window).asEventStream 'scroll'
-        scroll_to = notebook.cell_run.flatMapLatest (input_cell) -> input_cell.output_cell.done.delay(0).takeUntil scrolls
+        # FIXME if anything else subscribes to output_cell.done, scroll_to never gets any events
+        scroll_to = notebook.cell_run.flatMapLatest (input_cell) ->
+          # TODO without the delay, this can happen before there is a dom node.
+          # not sure if the ordering now is guaranteed
+          input_cell.output_cell.done.delay(0).takeUntil scrolls
         scroll_to.onValue (output_cell) ->
           # FIXME
-          $('html, body').scrollTop $(output_cell.component.getDOMNode()).offset().top
+          $('html, body').scrollTop $(output_cell.dom_node).offset().top
 
       context.create_base_context(opts).then (base_context) ->
         notebook.base_context = base_context
@@ -104,7 +109,7 @@ define (require) ->
       notebook
 
     update_view = (notebook) ->
-      notebook.component.set_cells notebook.cells
+      notebook.cells_model.set notebook.cells.slice()
 
     clear_notebook = (notebook) ->
       for cell in notebook.cells
@@ -167,13 +172,16 @@ define (require) ->
         insert_cell cell, opts
       cell
 
-    InputCellComponent = React.createClass
+    InputCellComponent = React.createIdentityClass
+      displayName: 'InputCellComponent'
+      mixins: [React.ObservableMixin]
+      get_observable: -> @props.cell.changes
       render: ->
         # TODO handle hiding
-        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number}, [
-          React.DOM.span {className: 'permalink', onClick: @permalink_link_clicked}, 'link'
-          React.DOM.div {className: 'code', ref: 'code'}
-        ]
+        React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
+          React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, 'link'),
+          React.DOM.div({className: 'code', ref: 'code'})
+
       componentDidMount: ->
         editor = @props.cell.editor
         @refs.code.getDOMNode().appendChild editor.display.wrapper
@@ -194,8 +202,9 @@ define (require) ->
         notebook: notebook
         context: create_input_context notebook
         used: false
+        changes: new Bacon.Bus()
         editor: editor
-        changes: Editor.as_event_stream editor, 'change'
+        editor_changes: Editor.as_event_stream editor, 'change'
 
       editor.lead_cell = cell
       component = InputCellComponent {cell}
@@ -203,7 +212,7 @@ define (require) ->
 
       # scan changes for the side effect in recompile
       # we have to subscribe so that the events are sent
-      cell.changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue ->
+      cell.editor_changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue ->
 
       cell
 
@@ -215,16 +224,19 @@ define (require) ->
       cell.editor.focus()
       cell.notebook.cell_focused.push cell
 
-    OutputCellComponent = React.createClass
-      set_component: (@component) ->
-        @setState component: @component if @state
-      getInitialState: -> component: @component
-      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.component
+    OutputCellComponent = React.createIdentityClass
+      displayName: 'OutputCellComponent'
+      mixins: [React.ObservableMixin]
+      get_observable: -> @props.cell.component_model
+      render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.value
+      componentDidMount: ->
+        @props.cell.dom_node = @getDOMNode()
 
     create_output_cell = (notebook) ->
       number = notebook.output_number++
 
       cell =
+        component_model: new Bacon.Model null
         type: 'output'
         visible: true
         active: true
@@ -240,6 +252,7 @@ define (require) ->
       remove_cell input_cell.output_cell if input_cell.output_cell?
       insert_cell output_cell, after: input_cell
       input_cell.number = input_cell.notebook.input_number++
+      input_cell.changes.push input_cell
       input_cell.output_cell = output_cell
 
       # TODO cell type
@@ -261,8 +274,8 @@ define (require) ->
       output_cell.done = no_longer_pending.take(1).map -> output_cell
       context.run_in_context run_context, fn
 
-      # FIXME since render isn't called, there's never a "changes" event, so scrolling never happens
-      output_cell.component.set_component run_context.component_list
+      # TODO don't access _lead_render
+      output_cell.component_model.set run_context.component_list._lead_render
 
     create_bare_output_cell_and_context = (notebook) ->
       output_cell = create_output_cell notebook
