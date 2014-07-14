@@ -9,9 +9,7 @@ define (require) ->
   require 'cm/show-hint'
 
   context = require 'context'
-  notebook = null
-  require ['notebook'], (nb) ->
-    notebook = nb
+  notebook = require 'notebook'
 
   create_editor = (target) ->
     cm = CodeMirror target,

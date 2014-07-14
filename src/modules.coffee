@@ -3,7 +3,9 @@ Documentation = require 'documentation'
 _ = require 'underscore'
 settings = require 'settings'
 
-module.exports =
+_.extend exports,
+  export: (exports, module_name, definition_fn) ->
+    _.extend exports, module.exports.create module_name, definition_fn
   create: (module_name, definition_fn) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
