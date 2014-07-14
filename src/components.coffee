@@ -1,5 +1,5 @@
 define (require) ->
-  CodeMirror = require 'cm/codemirror'
+  CodeMirror = require 'codemirror'
   React = require 'react_abuse'
 
   format_code = (code, language, target) ->

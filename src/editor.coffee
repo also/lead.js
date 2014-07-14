@@ -3,10 +3,10 @@ define (require) ->
   Bacon = require 'baconjs'
 
   _ = require 'underscore'
-  CodeMirror = require 'cm/codemirror'
-  require 'cm/javascript'
-  require 'cm/coffeescript'
-  require 'cm/show-hint'
+  CodeMirror = require 'codemirror'
+  require 'codemirror/mode/javascript/javascript'
+  require 'codemirror/mode/coffeescript/coffeescript'
+  require 'codemirror/addon/hint/show-hint'
 
   context = require 'context'
   notebook = require 'notebook'

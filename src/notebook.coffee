@@ -1,6 +1,5 @@
 $ = require 'jquery'
 _ = require 'underscore'
-CodeMirror = require 'cm/codemirror'
 URI = require 'URIjs'
 Bacon = require 'bacon.model'
 Editor = require 'editor'

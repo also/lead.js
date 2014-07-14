@@ -1,6 +1,6 @@
 define (require) ->
-  CodeMirror = require 'cm/codemirror'
-  require 'cm/runmode'
+  CodeMirror = require 'codemirror'
+  require 'codemirror/addon/runmode/runmode'
   URI = require 'URIjs'
   _ = require 'underscore'
   Markdown = require 'markdown'
