@@ -49,6 +49,8 @@ module.exports =
 
   load_module: (module_name) ->
     mod = require './' + module_name
+    mod.init?()
+    mod
 
   load_modules: (module_names) ->
     Q.resolve _.object module_names, _.map module_names, module.exports.load_module
