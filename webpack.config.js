@@ -26,7 +26,8 @@ module.exports = {
               { test: /\.(coffee\.md|litcoffee)$/, loader: "coffee-loader?literate" },
               // TODO :( codemirror is going to modify window. add
               // 'imports?window=>{}' 
-              {test: /runmode/, loader: 'imports?CodeMirror=codemirror'}
+              {test: /runmode/, loader: 'imports?CodeMirror=codemirror'},
+              {test: /colorbrewer/, loader: 'exports?colorbrewer'}
               ],
               // TODO coffeescript has a weird require browser
               noParse: /coffee-script.js/
