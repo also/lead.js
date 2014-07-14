@@ -32,8 +32,7 @@ module.exports = {
               // TODO :( codemirror is going to modify window. add
               // 'imports?window=>{}' 
               { test: /codemirror.js$/, loaders: ['exports?window.CodeMirror']},
-              {test: /codemirror-3.21/, exclude: /codemirror.js/, loader: 'imports?CodeMirror=cm/codemirror'},
-              {test: /stacktrace/, loader: 'exports?printStackTrace'}
+              {test: /codemirror-3.21/, exclude: /codemirror.js/, loader: 'imports?CodeMirror=cm/codemirror'}
               ],
               // TODO coffeescript has a weird require browser
               noParse: /coffee-script.js/
