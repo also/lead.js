@@ -1,7 +1,7 @@
 _ = require 'underscore'
 $ = require 'jquery'
 Bacon = require 'baconjs'
-modules = require 'modules'
+modules = require './modules'
 
 init = ->
   modules.export exports, 'settings', ({fn}) ->

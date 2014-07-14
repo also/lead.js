@@ -1,7 +1,7 @@
 Q = require 'q'
-Documentation = require 'documentation'
+Documentation = require './documentation'
 _ = require 'underscore'
-settings = require 'settings'
+settings = require './settings'
 
 _.extend exports,
   export: (exports, module_name, definition_fn) ->
