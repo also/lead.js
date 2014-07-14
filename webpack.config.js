@@ -23,7 +23,6 @@ module.exports = {
                  'cm/coffeescript': 'codemirror-3.21/coffeescript',
                  'cm/javascript': 'codemirror-3.21/javascript',
                  'cm/show-hint': 'codemirror-3.21/coffeescript',
-                 'stacktrace-js': 'stacktrace-min-0.4',
                }
              },
     module: {
