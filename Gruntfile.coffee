@@ -70,38 +70,17 @@ module.exports = (grunt) ->
         ]
     connect:
       server: {}
-    requirejs:
-      app:
-        options:
-          name: 'app'
-          include: ['builtins', 'graphite', 'graph', 'opentsdb', 'github', 'input', 'compat']
-          excludeShallow: ['config']
-          out: 'dist/lead-app.js'
-          mainConfigFile: 'build/requirejs_optimize_config.js'
-          baseUrl: 'build'
-          paths:
-            punycode: 'empty:'
-            IPv6: 'empty:'
-            SecondLevelDomains: 'empty:'
-          optimize: 'none'
 
   grunt.loadNpmTasks 'grunt-sass'
   grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
-  grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadTasks 'tasks'
 
   grunt.registerTask 'css', ['sass', 'concat:css']
 
-  grunt.registerTask "default", ['css', 'coffee', 'peg-grammars', 'copy:parser', 'requirejs-optimize-config', 'requirejs', 'copy:dist']
-
-  grunt.registerTask 'requirejs-optimize-config', 'Builds the mainConfigFile for r.js', ->
-    config_script = grunt.file.read('build/requirejs_config.js')
-    config = {}
-    new Function(config_script).call(config)
-    grunt.file.write 'build/requirejs_optimize_config.js', "requirejs(\n#{JSON.stringify config.require, undefined, 2});"
+  grunt.registerTask "default", ['css', 'coffee', 'peg-grammars', 'copy:parser', 'copy:dist']
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
