@@ -3,6 +3,7 @@ define (require) ->
   React = require 'react_abuse'
   Components = require 'components'
   URI = require 'URIjs'
+  _ = require 'underscore'
 
   fix_marked_renderer_href = (fn, base_href) ->
     (href, args...) ->

@@ -2,8 +2,9 @@ define (require) ->
   _ = require 'underscore'
   $ = require 'jquery'
   Bacon = require 'baconjs'
+  modules = require 'modules'
 
-  require ['modules'], (modules) ->
+  init = ->
     {context_fns} = modules.create 'settings', ({fn}) ->
       fn 'set', 'Sets a user setting', (keys..., value) ->
         user_settings.set keys..., value
@@ -61,5 +62,7 @@ define (require) ->
   global_settings = create(user_settings)
   global_settings.create = create
   global_settings.user_settings = user_settings
+
+  global_settings.init = init
 
   global_settings

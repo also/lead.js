@@ -1,7 +1,8 @@
 define (require) ->
-  CoffeeScript = require 'coffee-script'
+  {CoffeeScript} = require 'coffee-script'
   Editor = require 'editor'
   Context = require 'context'
+  printStackTrace = require 'stacktrace-js'
 
   recompile = (error_marks, editor) ->
     m.clear() for m in error_marks

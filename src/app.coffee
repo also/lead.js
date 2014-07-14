@@ -5,6 +5,8 @@ define (require) ->
   config = require 'config'
   github = require 'github'
   React = require 'react'
+  _ = require 'underscore'
+  $ = require 'jquery'
 
   module_names = ['http', 'dsl', 'graph', 'settings']
 

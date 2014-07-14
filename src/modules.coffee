@@ -1,9 +1,9 @@
-define (require) ->
-  Q = require 'q'
-  Documentation = require 'documentation'
-  _ = require 'underscore'
-  settings = require 'settings'
+Q = require 'q'
+Documentation = require 'documentation'
+_ = require 'underscore'
+settings = require 'settings'
 
+module.exports =
   create: (module_name, definition_fn) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
@@ -47,15 +47,8 @@ define (require) ->
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
 
+  load_module: (module_name) ->
+    mod = require './' + module_name
+
   load_modules: (module_names) ->
-    if module_names.length > 0
-      loaded = Q.defer()
-      require module_names, (imported_modules...) ->
-        loaded.resolve _.object module_names, imported_modules
-      , (err) ->
-        loaded.reject err
-      loaded.promise.then (imported_modules) ->
-        inits = Q.all _.compact _.map imported_modules, (module) ->  module.init?()
-        inits.then -> imported_modules
-    else
-      Q {}
+    Q.resolve _.object module_names, _.map module_names, module.exports.load_module

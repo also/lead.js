@@ -1,30 +1,44 @@
+webpack = require('webpack');
+
 module.exports = {
   debug: true,
     context: __dirname + "/src",
-    entry: "./app",
+    entry: "app_main",
     output: {
         path: __dirname + "/dist",
-        filename: "bundle.js"
+        filename: "lead-app.js"
     },
+    externals: {
+                 'jsdom': true
+               },
     resolve: {
                root: [__dirname + '/src', __dirname + '/lib'],
                //modulesDirectories: [],
-               extensions: ['.webpack.js', '.web.js', '.js', '.coffee'],
-               alias: {d3: 'd3.v3',
-                 baconjs: 'Bacon',
-                 URIjs: 'URI',
-                 react: 'react-0.10.0',
+               extensions: ['', '.webpack.js', '.web.js', '.js', '.coffee'],
+               alias: {
+                 // i think this is necessary becase bacon.model references 'baconjs' in commonjs and 'bacon' in amd
+                 'bacon': 'baconjs',
                  'cm/codemirror': 'codemirror-3.21/codemirror',
                  'cm/runmode': 'codemirror-3.21/runmode',
                  'cm/coffeescript': 'codemirror-3.21/coffeescript',
+                 'cm/javascript': 'codemirror-3.21/javascript',
                  'cm/show-hint': 'codemirror-3.21/coffeescript',
-                 'stacktrace-js': 'stacktrace-min-0.4'
+                 'stacktrace-js': 'stacktrace-min-0.4',
                }
              },
     module: {
               loaders: [
               { test: /\.coffee$/, loader: "coffee-loader" },
-              { test: /\.(coffee\.md|litcoffee)$/, loader: "coffee-loader?literate" }
-              ]
-            }
+              { test: /\.(coffee\.md|litcoffee)$/, loader: "coffee-loader?literate" },
+              // TODO :( codemirror is going to modify window. add
+              // 'imports?window=>{}' 
+              { test: /codemirror.js$/, loaders: ['exports?window.CodeMirror']},
+              {test: /codemirror-3.21/, exclude: /codemirror.js/, loader: 'imports?CodeMirror=cm/codemirror'},
+              {test: /stacktrace/, loader: 'exports?printStackTrace'}
+              ],
+              // TODO coffeescript has a weird require browser
+              noParse: /coffee-script.js/
+            },
+    // only include the moment english language
+    plugins: [new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/)]
 }

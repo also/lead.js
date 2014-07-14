@@ -78,13 +78,16 @@ define (require) ->
         cell_run: new Bacon.Bus
         cell_focused: new Bacon.Bus
 
-      unless is_nodejs?
+      # FIXME
+      unless true #is_nodejs?
         scrolls = $(window).asEventStream 'scroll'
         # FIXME if anything else subscribes to output_cell.done, scroll_to never gets any events
         scroll_to = notebook.cell_run.flatMapLatest (input_cell) ->
           # TODO without the delay, this can happen before there is a dom node.
           # not sure if the ordering now is guaranteed
-          input_cell.output_cell.done.delay(0).takeUntil scrolls
+          #
+          # FIXME busted with webpack/possible Bacon update
+          #input_cell.output_cell.done.delay(0).takeUntil scrolls
         scroll_to.onValue (output_cell) ->
           # FIXME
           $('html, body').scrollTop $(output_cell.dom_node).offset().top
