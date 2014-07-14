@@ -280,6 +280,8 @@ define (require) ->
 
     fns_and_vars = bind_context_fns new_context, new_context.context_fns
     _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+
+    # TODO isn't this just importing builtins?
     _.extend fns_and_vars, fns_and_vars.builtins
     _.each fns_and_vars, (mod, name) ->
       if parent.run_context_prototype[name]?

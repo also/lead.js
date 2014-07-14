@@ -5,6 +5,9 @@ define (require) ->
 
   modules = require 'modules'
   graphite = require 'graphite'
+  moment = require 'moment'
+
+  requireables = q: Q, _: _, moment: require('moment')
 
   compat = modules.create 'compat', ({fn, doc} ) ->
     doc 'graph',
@@ -211,3 +214,8 @@ define (require) ->
         data_promise = graphite.get_data graphite_params
       @graph.graph Bacon.fromPromise(data_promise), params
       @promise_status data_promise
+
+    context_vars:
+      moment: moment
+      require: (module_name) ->
+        requireables[module_name] ? module.exports.load_module module_name
