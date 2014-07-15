@@ -37,7 +37,7 @@ module.exports = (grunt) ->
             src: NODE_MODULES.map (m) -> "#{m}.*"
             dest: 'dist/nodejs/'
           },
-          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'dist/nodejs/'}
+          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'build'}
         ]
       parser:
         files: [src: 'src/graphite_parser.js', dest: 'build/graphite_parser.js']
@@ -86,4 +86,4 @@ module.exports = (grunt) ->
     PEG = require 'pegjs'
     grammar = grunt.file.read 'src/graphite_grammar.peg'
     parser = PEG.buildParser grammar
-    grunt.file.write 'src/graphite_parser.js', "define(function() {return #{parser.toSource()};});"
+    grunt.file.write 'src/graphite_parser.js', "module.exports = #{parser.toSource()};"
