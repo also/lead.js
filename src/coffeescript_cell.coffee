@@ -1,4 +1,7 @@
-{CoffeeScript} = require 'coffee-script'
+CoffeeScript = require 'coffee-script'
+# TODO is coffeescript different between node and webpack?
+if CoffeeScript.CoffeeScript
+  CoffeeScript = CoffeeScript.CoffeeScript
 Editor = require './editor'
 Context = require './context'
 printStackTrace = require 'stacktrace-js'
