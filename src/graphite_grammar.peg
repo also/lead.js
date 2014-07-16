@@ -1,5 +1,5 @@
 {
-  var types = require('dsl').type;
+  var types = require('./dsl').type;
 }
 
 start = expression

@@ -1,3 +1,3 @@
-app = require 'app'
 $ = require 'jquery'
+app = require './app'
 $ app.init_app

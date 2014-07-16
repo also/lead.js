@@ -1,15 +1,14 @@
-define (require) ->
   Bacon = require 'baconjs'
   Q = require 'q'
   _ = require 'underscore'
-
-  modules = require 'modules'
-  graphite = require 'graphite'
   moment = require 'moment'
+
+  modules = require './modules'
+  graphite = require './graphite'
 
   requireables = q: Q, _: _, moment: require('moment')
 
-  compat = modules.create 'compat', ({fn, doc} ) ->
+  compat = modules.export exports, 'compat', ({fn, doc} ) ->
     doc 'graph',
       'Loads and graphs time-series data'
       """
