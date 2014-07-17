@@ -32,4 +32,4 @@ module.exports = (grunt) ->
       function_docs[tag.id[prefix_length..]] = {signature, examples, docs: dl.outerHTML}
 
     result = {parameter_docs, parameter_doc_ids, function_docs}
-    grunt.file.write 'lib/graphite_docs.js', "module.exports = #{JSON.stringify result};"
+    grunt.file.write 'app/graphite_docs.js', "module.exports = #{JSON.stringify result};"

@@ -2,4 +2,3 @@ build
 node_modules
 .sass-cache
 dist
-app/graphite_parser.js

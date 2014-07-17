@@ -1,5 +1,6 @@
 d3 = require 'd3'
-colorbrewer = require 'lib/colorbrewer'
+# FIXME won't work in node
+colorbrewer = require '../lib/colorbrewer'
 colors =
   d3: {}
   brewer: colorbrewer

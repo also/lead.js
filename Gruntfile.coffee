@@ -1,22 +1,3 @@
-NODE_MODULES = [
-  'node'
-  'modules'
-  'dsl'
-  'settings'
-  'opentsdb'
-  'graphite'
-  'functions'
-  'context'
-  'http'
-  'graphite_parser'
-  'builtins'
-  'notebook'
-  'editor'
-  'compat'
-  'graph'
-  'colors'
-]
-
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
@@ -29,25 +10,12 @@ module.exports = (grunt) ->
     concat:
       css:
         src: ['lib/reset.css', 'build/style.css', 'node_modules/codemirror/lib/codemirror.css', 'node_modules/codemirror/addon/hint/show-hint.css']
-        dest: 'dist/style.css'
+        dest: 'build/web/style.css'
     copy:
-      nodejs:
-        files: [
-          {
-            expand: true
-            cwd: 'build'
-            src: NODE_MODULES.map (m) -> "#{m}.*"
-            dest: 'dist/nodejs/'
-          },
-          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'build/app'}
-        ]
-      parser:
-        files: [src: 'app/graphite_parser.js', dest: 'build/graphite_parser.js']
-      dist:
-        files: [
-          {src: 'build/lead-app.js', dest: 'dist/lead-app.js'}
-          {src: 'index-build.html', dest: 'dist/index.html'}
-        ]
+      javascript:
+        files: [expand: true, cwd: 'app', src: 'graphite_*.js', dest: 'build/app']
+      html:
+        files: [{src: 'index-build.html', dest: 'build/web/index.html'}]
     coffee:
       source:
         files: [
@@ -84,8 +52,8 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'css', ['sass', 'concat:css']
 
-  grunt.registerTask "default", ['css', 'coffee', 'peg-grammars', 'copy:parser', 'copy:dist']
-  grunt.registerTask 'web', ['css', 'webpack:web']
+  grunt.registerTask 'node', ['coffee', 'copy:javascript']
+  grunt.registerTask 'web', ['css', 'webpack:web', 'copy:html']
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'

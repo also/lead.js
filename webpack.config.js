@@ -3,24 +3,25 @@ webpack = require('webpack');
 module.exports = {
   debug: true,
     context: __dirname,
-    entry: {app: 'app/app_main',
-     test: 'test/run_mocha_browser'
+    entry: {
+      app: './app/app_main',
+      'app-complete': './app/app_main_complete',
+      test: './test/run_mocha_browser'
      },
     output: {
-        path: __dirname + "/build",
+        path: __dirname + "/build/web",
         filename: "lead-[name].js"
     },
     externals: {
                  'jsdom': true
                },
     resolve: {
-               root: [__dirname + '/app', __dirname],
                //modulesDirectories: [],
                extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee'],
                alias: {
                  // i think this is necessary becase bacon.model references 'baconjs' in commonjs and 'bacon' in amd
                  'bacon': 'baconjs',
-                 'coffee-script': 'lib/coffee-script'
+                 'coffee-script': __dirname + '/lib/coffee-script',
                }
              },
     module: {
