@@ -54,6 +54,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'node', ['coffee', 'copy:javascript']
   grunt.registerTask 'web', ['css', 'webpack:web', 'copy:html']
+  grunt.registerTask 'default', ['web', 'node']
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
