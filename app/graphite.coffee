@@ -172,6 +172,94 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         @run "browser #{JSON.stringify node.path + '.*'}"
     @add_renderable finder
 
+  TreeNodeComponent = React.createClass
+    render: ->
+      path = @props.node.path
+      state = @props.tree_state[path]
+
+      if state == 'open'
+        child = React.DOM.ul null, _.map @props.cache[path], (child) =>
+          parts = child.path.split '.'
+          name = parts[parts.length - 1]
+          TreeNodeComponent {cache: @props.cache, tree_state: @props.tree_state, node: child, open: @props.open, close: @props.close, load: @props.load, name: name}
+      else if state == 'opening'
+        child = React.DOM.span null, 'loading...'
+      else
+        child = null
+      if @props.node.is_leaf
+        toggle = ''
+      else if state == 'open'
+        toggle = '- '
+      else
+        toggle = '+ '
+      React.DOM.li null, React.DOM.span({onClick: @handle_click}, "#{toggle}#{@props.name}"), child
+    handle_click: ->
+      path = @props.node.path
+      state = @props.tree_state[path]
+      if @props.node.is_leaf
+        @props.load path
+      else if state == 'closed' or !state?
+        @props.open path
+      else
+        @props.close path
+
+  TreeComponent = React.createClass
+    statics:
+      subpath: (path) ->
+        if path == ''
+          '*'
+        else
+          "#{path}.*"
+
+    getDefaultProps: ->
+      root: ''
+
+    getInitialState: ->
+      cache: {}
+      tree_state: {}
+
+    open: (path) ->
+      tree_state = _.clone @state.tree_state
+      if @state.cache[path]
+        tree_state[path] = 'open'
+      else
+        tree_state[path] = 'opening'
+
+        graphite.find(TreeComponent.subpath(path)).then (result) =>
+          tree_state = _.clone @state.tree_state
+          tree_state[path] = 'open'
+          cache = _.clone @state.cache
+          cache[path] = result.result
+          @setState {tree_state, cache}
+
+      @setState {tree_state}
+
+    close: (path) ->
+      tree_state = _.clone @state.tree_state
+      tree_state[path] = 'closed'
+      @setState {tree_state}
+
+    componentWillMount: ->
+      @open @props.root
+    render: ->
+      if @props.root == ''
+        name = 'All Metrics'
+      else
+        name = @props.root
+      React.DOM.ul {className: 'simple-tree'}, TreeNodeComponent
+        cache: @state.cache
+        tree_state: @state.tree_state
+        node: {path: @props.root}
+        name: name
+        open: @open
+        close: @close
+        load: @props.load
+
+  fn 'tree', 'Generates a browsable tree of metrics', (query) ->
+    @add_component TreeComponent root: query ? '', load: (path) =>
+      @run "q(#{JSON.stringify path})"
+
+
   FindResultsComponent = React.createClass
     render: ->
       query_parts = @props.query.split '.'
