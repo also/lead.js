@@ -44,6 +44,7 @@
     "style-loader": "^0.6.4",
     "webpack-dev-server": "^1.4.7",
     "grunt-webpack": "^1.0.7",
+    "css-loader": "^0.7.0",
     "raw-loader": "^0.5.1"
   }
 }
