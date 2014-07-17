@@ -16,7 +16,7 @@ module.exports = {
     resolve: {
                root: [__dirname + '/app', __dirname],
                //modulesDirectories: [],
-               extensions: ['', '.webpack.js', '.web.js', '.js', '.coffee'],
+               extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee'],
                alias: {
                  // i think this is necessary becase bacon.model references 'baconjs' in commonjs and 'bacon' in amd
                  'bacon': 'baconjs',

@@ -53,9 +53,10 @@ module.exports = (grunt) ->
           expand: true
           flatten: true
           cwd: 'app'
-          src: ['*.coffee']
-          dest: 'build/app'
+          src: ['**/*.coffee']
+          dest: 'build/app/'
           ext: '.js'
+          extDot: 'last'
         ]
       tests:
         options:

@@ -1,4 +1,4 @@
-lead = require '../../node'
+lead = require '../app/node'
 
 tests = require './runner'
 tests.run()
