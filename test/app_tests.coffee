@@ -22,7 +22,7 @@ module.exports = (browser) ->
   # in different browsers
   do_then(
     browser
-      .get('http://localhost:8000/dist/index.html')
+      .get('http://localhost:8000/build/web/index.html')
       .setImplicitWaitTimeout(10000)
     -> browser.title()
     (title) -> expect(title).to.be 'lead.js'
