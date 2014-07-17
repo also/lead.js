@@ -28,7 +28,7 @@ module.exports = (browser) ->
     (title) -> expect(title).to.be 'lead.js'
 
     -> browser.elementByCss('.input[data-cell-number="1"] .code').text()
-    (code) -> expect(code).to.be('intro')
+    (code) -> expect(code).to.be("help 'introduction'")
 
     -> browser.elementByCss('.input:not([data-cell-number]) .code').text()
     (code) -> expect(code.trim()).to.be ''
