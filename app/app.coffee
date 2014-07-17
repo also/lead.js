@@ -4,7 +4,6 @@ $ = require 'jquery'
 React = require 'react'
 notebook = require './notebook'
 settings = require './settings'
-config = require './config'
 github = require './github'
 
 module_names = ['http', 'dsl', 'graph', 'settings']
@@ -18,6 +17,8 @@ imports = [
   'notebook'
   'compat'
 ]
+
+window.lead = {settings}
 
 imports.push.apply imports, settings.get('app', 'imports') or []
 module_names.push.apply imports, settings.get('app', 'module_names') or []
