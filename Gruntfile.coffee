@@ -20,13 +20,15 @@ NODE_MODULES = [
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
+    webpack:
+      web: require './webpack.config'
     sass:
       dist:
         files:
           'build/style.css': 'style.sass'
     concat:
       css:
-        src: ['lib/reset.css', 'build/style.css', 'lib/codemirror-3.21/codemirror.css', 'lib/codemirror-3.21/show-hint.css']
+        src: ['lib/reset.css', 'build/style.css', 'node_modules/codemirror/lib/codemirror.css', 'node_modules/codemirror/addon/hint/show-hint.css']
         dest: 'dist/style.css'
     copy:
       nodejs:
@@ -43,7 +45,6 @@ module.exports = (grunt) ->
         files: [src: 'app/graphite_parser.js', dest: 'build/graphite_parser.js']
       dist:
         files: [
-          {src: 'build/config.js', dest: 'dist/config.js'}
           {src: 'build/lead-app.js', dest: 'dist/lead-app.js'}
           {src: 'index-build.html', dest: 'dist/index.html'}
         ]
@@ -78,11 +79,13 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-connect'
+  grunt.loadNpmTasks 'grunt-webpack'
   grunt.loadTasks 'tasks'
 
   grunt.registerTask 'css', ['sass', 'concat:css']
 
   grunt.registerTask "default", ['css', 'coffee', 'peg-grammars', 'copy:parser', 'copy:dist']
+  grunt.registerTask 'web', ['css', 'webpack:web']
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
