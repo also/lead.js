@@ -3,30 +3,8 @@
 <head>
 <title>lead.js test runner</title>
 <meta charset="UTF-8">
-<script src="/lib/require.js"></script>
-<script src="/dist/lead-app.js"></script>
-<script>
-requirejs.config({
-  baseUrl: '/build',
-  paths: {
-    mocha: '../node_modules/mocha/mocha',
-    'expect': '../node_modules/expect.js/expect'
-  },
-  shim: {expect: {exports: 'expect'}}
-});
-// automated tests will load the page with ?pause and call run
-function run(callback) {
-  require(['test/runner'], function (runner) {
-    runner.run().then(callback).fail(callback);
-  });
-}
-if (window.location.search !== '?pause') {
-  run();
-}
-</script>
-<link rel="stylesheet" href="/node_modules/mocha/mocha.css"/>
 </head>
 <body>
-<div id="mocha"></div>
+<script src="/build/lead-test.js"></script>
 </body>
 </html>

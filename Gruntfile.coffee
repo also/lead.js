@@ -37,14 +37,14 @@ module.exports = (grunt) ->
             src: NODE_MODULES.map (m) -> "#{m}.*"
             dest: 'dist/nodejs/'
           },
-          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'build'}
+          {expand: true, cwd: 'lib', src: ['graphite_docs.js', 'colorbrewer.js'], dest: 'build/app'}
         ]
       parser:
-        files: [src: 'src/graphite_parser.js', dest: 'build/graphite_parser.js']
+        files: [src: 'app/graphite_parser.js', dest: 'build/graphite_parser.js']
       dist:
         files: [
           {src: 'build/config.js', dest: 'dist/config.js'}
-          {src: 'lib/require.js', dest: 'dist/require.js'},
+          {src: 'build/lead-app.js', dest: 'dist/lead-app.js'}
           {src: 'index-build.html', dest: 'dist/index.html'}
         ]
     coffee:
@@ -52,9 +52,9 @@ module.exports = (grunt) ->
         files: [
           expand: true
           flatten: true
-          cwd: 'src'
+          cwd: 'app'
           src: ['*.coffee']
-          dest: 'build/'
+          dest: 'build/app'
           ext: '.js'
         ]
       tests:
@@ -67,6 +67,7 @@ module.exports = (grunt) ->
           src: ['*.coffee']
           dest: 'build/test'
           ext: '.js'
+          extDot: 'last' # FFS grunt, why would you rename foo.test.coffee to foo.js :(
         ]
     connect:
       server: {}
@@ -84,6 +85,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
-    grammar = grunt.file.read 'src/graphite_grammar.peg'
+    grammar = grunt.file.read 'app/graphite_grammar.peg'
     parser = PEG.buildParser grammar
-    grunt.file.write 'src/graphite_parser.js', "module.exports = #{parser.toSource()};"
+    grunt.file.write 'app/graphite_parser.js', "module.exports = #{parser.toSource()};"

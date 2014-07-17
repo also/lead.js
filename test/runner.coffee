@@ -3,6 +3,7 @@ Q = require 'q'
 _ = require 'underscore'
 
 m = mocha ? new Mocha
+m.setup? 'bdd'
 m.suite.emit 'pre-require', global, 'hack', m
 tests = [
   'dsl'
@@ -38,5 +39,5 @@ run_tests = ->
 
 exports.run = ->
   _.each tests, (t) ->
-    require './' + t
+    require './' + t + '.test'
   run_tests()

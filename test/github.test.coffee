@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-github = require '../github'
+github = require '../app/github'
 
 describe 'github', ->
   it 'converts numbers to gist api urls', ->

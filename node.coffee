@@ -17,6 +17,6 @@ exports.enable_codemirror = ->
 enable_global_window()
 
 # FIXME
-require('html').parse_document = (html) -> jsdom html
+#require('app/html').parse_document = (html) -> jsdom html
 
 global.is_nodejs = true

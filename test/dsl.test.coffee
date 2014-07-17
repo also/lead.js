@@ -1,5 +1,6 @@
 expect = require 'expect.js'
-dsl = require '../dsl'
+dsl = require '../app/dsl'
+
 describe 'dsl', ->
   describe 'functions', ->
     fake_function = null

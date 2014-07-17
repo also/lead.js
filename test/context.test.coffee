@@ -1,6 +1,6 @@
 expect = require 'expect.js'
-context = require '../context'
-CoffeeScriptCell = require '../coffeescript_cell'
+context = require '../app/context'
+CoffeeScriptCell = require '../app/coffeescript_cell'
 
 eval_coffeescript_in_context = (run_context, string) ->
   context.run_in_context run_context, CoffeeScriptCell.create_fn string

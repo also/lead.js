@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-Html = require '../html'
+Html = require '../app/html'
 
 it 'parses html', ->
   doc = Html.parse_document '<html><body><div id="test">test</div></body></html>'

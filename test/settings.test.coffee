@@ -1,5 +1,5 @@
 expect = require 'expect.js'
-settings = require '../settings'
+settings = require '../app/settings'
 
 describe 'settings', ->
   s = null

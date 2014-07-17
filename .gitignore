@@ -1,7 +1,5 @@
 build
 node_modules
 .sass-cache
-vendor
 dist
-.bundle
-src/graphite_parser.js
+app/graphite_parser.js

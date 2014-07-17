@@ -1,5 +1,5 @@
-  expect = require 'expect.js'
-graphite = require '../graphite'
+ expect = require 'expect.js'
+graphite = require '../app/graphite'
 
 describe 'graphite', ->
   it 'converts a single string to a single raw string target', ->
