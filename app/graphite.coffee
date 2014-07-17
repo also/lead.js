@@ -1,6 +1,6 @@
 _ = require 'underscore'
 $ = require 'jquery'
-bacon = require 'baconjs'
+Bacon = require 'bacon.model'
 Q = require 'q'
 URI = require 'URIjs'
 moment = require 'moment'
