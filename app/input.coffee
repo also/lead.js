@@ -56,7 +56,7 @@ SelectComponent = (props) ->
   # so the more natural _.extend {default_value}, props doesn't work
   create_component _SelectComponent, _.extend {}, props, {default_value}
 
-input = modules.create 'input', ({fn}) ->
+input = modules.export exports, 'input', ({fn}) ->
   # inputs and selects return a Bacon.Model, which is a property with get and set methods
   # https://github.com/baconjs/bacon.model
 
