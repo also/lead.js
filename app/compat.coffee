@@ -2,6 +2,7 @@
   Q = require 'q'
   _ = require 'underscore'
   moment = require 'moment'
+  CodeMirror = require 'codemirror'
 
   modules = require './modules'
   graphite = require './graphite'
@@ -216,5 +217,6 @@
 
     context_vars:
       moment: moment
+      CodeMirror: CodeMirror
       require: (module_name) ->
         requireables[module_name] ? module.exports.load_module module_name
