@@ -10,8 +10,11 @@
 #   git.example.com/api/v3/gists/1051?access_token=...
 
 URI = require 'URIjs'
+_ = require 'underscore'
 Q = require 'q'
+moment = require 'moment'
 React = require 'react'
+Bacon = require 'bacon.model'
 modules = require './modules'
 http = require './http'
 global_settings = require './settings'
