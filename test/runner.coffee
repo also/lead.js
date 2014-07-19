@@ -13,9 +13,9 @@ tests = [
   'github'
   'html'
 ]
-# TODO
-#if window?
-#  tests.push 'notebook'
+
+if window?
+  tests.push 'notebook'
 
 collect_suites = (suites) ->
   _.map suites, (suite) ->
