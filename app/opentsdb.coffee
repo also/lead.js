@@ -36,7 +36,7 @@ opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings}) ->
           all_series[name] = points
         points.push [parseInt(value, 10), parseInt(time, 10)]
 
-    result = for name, points of all_series
+    for name, points of all_series
       target: name
       datapoints: _.sortBy points, ([v, t]) -> t
 
