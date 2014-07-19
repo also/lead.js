@@ -1,4 +1,4 @@
-# an stream of things to search for
+# a stream of things to search for
 search = new Bacon.Bus
 
 # a stream of clicks on leaves. our finder is created asynchronously, so we need a bus for clicks
@@ -29,19 +29,15 @@ target_data = targets.flatMapLatest (t) -> Bacon.fromPromise get_data t
 
 # create an input field. it will reflect the current search
 i = text_input()
-search.onValue (v) -> i.set v
-
-# the value of our form is the latest user input or clicked search
-input_search = search.merge(i.changes()).toProperty()
+i.addSource search
 
 submit = button 'find'
 
 # send the value of the form when the submit button is clicked
-triggered_search = input_search.sampledBy(submit)
-search.plug triggered_search
+triggered_search = submit.map i
 
 # when searches happen, kick off a finder
-live search, (n) ->
+live search.merge(triggered_search), (n) ->
   finder = find n
   # send leaf clicks on to our bus
   leaf_clicks.plug finder.clicks.filter('.is_leaf').map('.path')
