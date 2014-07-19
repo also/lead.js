@@ -13,9 +13,17 @@ module.exports = (grunt) ->
         dest: 'build/web/style.css'
     copy:
       javascript:
-        files: [expand: true, cwd: 'app', src: 'graphite_*.js', dest: 'build/app']
+        files: [
+          {expand: true, cwd: 'app', src: 'graphite_*.js', dest: 'build/node/app'},
+          {expand: true, cwd: 'lib', src: 'colorbrewer.js', dest: 'build/node/app/lib'}
+        ]
       html:
         files: [{src: 'index-build.html', dest: 'build/web/index.html'}]
+      'dist-node':
+        files: [
+          {expand: true, cwd: 'build/node/app/', src: '**', dest: 'dist/node'},
+          {expand: true, src: ['package.json', 'README.md', 'LICENSE.txt', 'docs/**', 'examples/**'], dest:'dist/node'}
+        ]
     coffee:
       source:
         files: [
@@ -23,7 +31,7 @@ module.exports = (grunt) ->
           flatten: true
           cwd: 'app'
           src: ['**/*.coffee']
-          dest: 'build/app/'
+          dest: 'build/node/app'
           ext: '.js'
           extDot: 'last'
         ]
@@ -35,7 +43,7 @@ module.exports = (grunt) ->
           flatten: true
           cwd: 'test'
           src: ['*.coffee']
-          dest: 'build/test'
+          dest: 'build/node/test'
           ext: '.js'
           extDot: 'last' # FFS grunt, why would you rename foo.test.coffee to foo.js :(
         ]

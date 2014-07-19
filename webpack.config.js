@@ -36,5 +36,8 @@ module.exports = {
     noParse: /coffee-script.js/
   },
   // only include the moment english language
-  plugins: [new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/)]
+  plugins: [
+    new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
+    new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/(.+)$/, '../lib/colorbrewer')
+  ]
 }

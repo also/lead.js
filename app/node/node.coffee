@@ -13,10 +13,10 @@ exports.enable_codemirror = ->
   require 'codemirror'
   CodeMirror = global.window.CodeMirror
 
+exports.require = (m) ->
+  require "./#{m}"
+
 # TODO this is necessary to render react components into dom containers :(
 enable_global_window()
-
-# FIXME
-#require('app/html').parse_document = (html) -> jsdom html
 
 global.is_nodejs = true

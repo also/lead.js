@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/also/lead.js"
   },
-  "main": "dist/nodejs/node.js",
+  "main": "node.js",
   "dependencies": {
     "underscore": "~1.5.1",
     "stacktrace-js": "~0.5.0",
