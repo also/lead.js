@@ -1,222 +1,223 @@
-  Bacon = require 'baconjs'
-  Q = require 'q'
-  _ = require 'underscore'
-  moment = require 'moment'
-  CodeMirror = require 'codemirror'
+Bacon = require 'baconjs'
+Q = require 'q'
+_ = require 'underscore'
+moment = require 'moment'
+CodeMirror = require 'codemirror'
 
-  modules = require './modules'
-  graphite = require './graphite'
+colors = require './colors'
+modules = require './modules'
+graphite = require './graphite'
 
-  requireables = q: Q, _: _, moment: require('moment')
+requireables = q: Q, _: _, moment: moment, colors: colors
 
-  compat = modules.export exports, 'compat', ({fn, doc} ) ->
-    doc 'graph',
-      'Loads and graphs time-series data'
-      """
-      `graph` accepts a [Graphite target](help:graphite_functions) or promise of graph data.
+compat = modules.export exports, 'compat', ({fn, doc} ) ->
+  doc 'graph',
+    'Loads and graphs time-series data'
+    """
+    `graph` accepts a [Graphite target](help:graphite_functions) or promise of graph data.
 
-      Graphite targets are converted to a promise using [`graphite.get_data`](help:graphite.get_data).
+    Graphite targets are converted to a promise using [`graphite.get_data`](help:graphite.get_data).
 
-      For example:
+    For example:
 
-      ```
-      graph randomWalkFunction 'hello, world'
-      ```
+    ```
+    graph randomWalkFunction 'hello, world'
+    ```
 
-      # Data format
-      The format for graph data is an array of time series:
+    # Data format
+    The format for graph data is an array of time series:
 
-      ```
-      [
-        {
-          "target": "target name",
-          "datapoints": [[value, timestamp], [value, timestamp], ...]
-        }, ...
-      ]
-      ```
+    ```
+    [
+      {
+        "target": "target name",
+        "datapoints": [[value, timestamp], [value, timestamp], ...]
+      }, ...
+    ]
+    ```
 
-      For example:
+    For example:
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      graph data
-      ```
+    graph data
+    ```
 
-      # Options
+    # Options
 
-      ## [`areaMode`](help:graphite_parameters.areaMode)
+    ## [`areaMode`](help:graphite_parameters.areaMode)
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, areaMode: 'none'
-      graph data, areaMode: 'first'
-      graph data, areaMode: 'all'
-      graph data, areaMode: 'stacked'
-      ```
+    options width: 400, height: 200
+    graph data, areaMode: 'none'
+    graph data, areaMode: 'first'
+    graph data, areaMode: 'all'
+    graph data, areaMode: 'stacked'
+    ```
 
-      ## `width` and `height`
-      Set the width and height of the plot area. The legend is outside this area.
+    ## `width` and `height`
+    Set the width and height of the plot area. The legend is outside this area.
 
-      ## `type`
+    ## `type`
 
-      The type of graph to generate. `"line"` (the default) and `"scatter"` are supported.
+    The type of graph to generate. `"line"` (the default) and `"scatter"` are supported.
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, type: 'line'
-      graph data, type: 'scatter'
-      ```
+    options width: 400, height: 200
+    graph data, type: 'line'
+    graph data, type: 'scatter'
+    ```
 
-      ## `lineWidth`
+    ## `lineWidth`
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, lineWidth: 0.3
-      graph data, lineWidth: 3
-      graph data, lineWidth: 30
-      ```
+    options width: 400, height: 200
+    graph data, lineWidth: 0.3
+    graph data, lineWidth: 3
+    graph data, lineWidth: 30
+    ```
 
-      ## `areaOffset`
+    ## `areaOffset`
 
-      Used in conjuction with `areaMode`, `areaOffset` controls the baseline of the plot.
-      This is used as the argument to the d3 [`offset` function](https://github.com/mbostock/d3/wiki/Stack-Layout#wiki-offset)
-      and can be used to create "streamgraphs" or graphs that are normalized to fill the plot area.
+    Used in conjuction with `areaMode`, `areaOffset` controls the baseline of the plot.
+    This is used as the argument to the d3 [`offset` function](https://github.com/mbostock/d3/wiki/Stack-Layout#wiki-offset)
+    and can be used to create "streamgraphs" or graphs that are normalized to fill the plot area.
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, areaMode: 'stacked', areaOffset: 'wiggle'
-      graph data, areaMode: 'stacked', areaOffset: 'silhouette'
-      graph data, areaMode: 'stacked', areaOffset: 'expand'
-      ```
+    options width: 400, height: 200
+    graph data, areaMode: 'stacked', areaOffset: 'wiggle'
+    graph data, areaMode: 'stacked', areaOffset: 'silhouette'
+    graph data, areaMode: 'stacked', areaOffset: 'expand'
+    ```
 
-      ## `interpolate`
+    ## `interpolate`
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, interpolate: 'basis'
-      graph data, interpolate: 'cardinal'
-      graph data, interpolate: 'basis'
-      graph data, interpolate: 'step-before'
-      graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
-      md 'see http://bl.ocks.org/mbostock/3310323'
-      ```
+    options width: 400, height: 200
+    graph data, interpolate: 'basis'
+    graph data, interpolate: 'cardinal'
+    graph data, interpolate: 'basis'
+    graph data, interpolate: 'step-before'
+    graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
+    md 'see http://bl.ocks.org/mbostock/3310323'
+    ```
 
-      ## `drawNullAsZero`
+    ## `drawNullAsZero`
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [[1, now], [2, now + 60], [null, now + 120], [4, now + 180]]}
-        {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120], [2, now + 180]]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [[1, now], [2, now + 60], [null, now + 120], [4, now + 180]]}
+      {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120], [2, now + 180]]}
+    ]
 
-      options width: 400, height: 200
-      graph data, drawNullAsZero: true
-      graph data, drawNullAsZero: false
-      ```
+    options width: 400, height: 200
+    graph data, drawNullAsZero: true
+    graph data, drawNullAsZero: false
+    ```
 
-      ## `d3_colors`
+    ## `d3_colors`
 
-      An array of colors. The options from https://github.com/mbostock/d3/wiki/Ordinal-Scales#wiki-categorical-colors
-      and https://github.com/mbostock/d3/blob/master/lib/colorbrewer/colorbrewer.js
-      are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purples[9]`.
+    An array of colors. The options from https://github.com/mbostock/d3/wiki/Ordinal-Scales#wiki-categorical-colors
+    and https://github.com/mbostock/d3/blob/master/lib/colorbrewer/colorbrewer.js
+    are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purples[9]`.
 
-      The default is `d3.category10`.
+    The default is `d3.category10`.
 
-      ```
-      Q = require 'q'
-      Colors = require 'colors'
-      now = moment().unix()
+    ```
+    Q = require 'q'
+    Colors = require 'colors'
+    now = moment().unix()
 
-      targets = (n) ->
-        Q(for i in [1..n]
-          target: "target \#{i}", datapoints: [i + j, now + j * 60] for j in [0...3]
-        )
+    targets = (n) ->
+      Q(for i in [1..n]
+        target: "target \#{i}", datapoints: [i + j, now + j * 60] for j in [0...3]
+      )
 
-      options width: 400, height: 200, lineWidth: 2
-      graph targets(10)
-      graph targets(10), d3_colors: Colors.brewer.Spectral[10]
-      graph targets(3), d3_colors: ['#333', '#777', '#bbb']
-      graph targets(3), d3_colors: Colors.brewer.Set1[3]
-      graph targets(9), d3_colors: Colors.brewer.Set1[3]
-      ```
+    options width: 400, height: 200, lineWidth: 2
+    graph targets(10)
+    graph targets(10), d3_colors: Colors.brewer.Spectral[10]
+    graph targets(3), d3_colors: ['#333', '#777', '#bbb']
+    graph targets(3), d3_colors: Colors.brewer.Set1[3]
+    graph targets(9), d3_colors: Colors.brewer.Set1[3]
+    ```
 
-      ## `yMin` and `yMax`
+    ## `yMin` and `yMax`
 
-      ## `bgcolor`
+    ## `bgcolor`
 
-      ## `get_value` and `get_timestamp`
+    ## `get_value` and `get_timestamp`
 
-      ```
-      Q = require 'q'
-      now = moment().unix()
-      data = Q [
-        {target: 'target 1', datapoints: [1, 2, 3]}
-        {target: 'target 2', datapoints: [0, 3, 1]}
-      ]
+    ```
+    Q = require 'q'
+    now = moment().unix()
+    data = Q [
+      {target: 'target 1', datapoints: [1, 2, 3]}
+      {target: 'target 2', datapoints: [0, 3, 1]}
+    ]
 
-      options width: 400, height: 200
-      graph data,
-        get_value: (v, i) -> v
-        get_timestamp: (v, i) -> now + i * 60
-      ```
-      """
+    options width: 400, height: 200
+    graph data,
+      get_value: (v, i) -> v
+      get_timestamp: (v, i) -> now + i * 60
+    ```
+    """
 
-    fn 'graph', (args...) ->
-      if Q.isPromise args[0]
-        data_promise = args[0]
-        params = Bacon.combineTemplate _.extend {}, @options(), args[1]
-      else
-        graphite_params = graphite.args_to_params {args, default_options: @options()}
-        params = Bacon.constant graphite_params
-        data_promise = graphite.get_data graphite_params
-      @graph.graph Bacon.fromPromise(data_promise), params
-      @promise_status data_promise
+  fn 'graph', (args...) ->
+    if Q.isPromise args[0]
+      data_promise = args[0]
+      params = Bacon.combineTemplate _.extend {}, @options(), args[1]
+    else
+      graphite_params = graphite.args_to_params {args, default_options: @options()}
+      params = Bacon.constant graphite_params
+      data_promise = graphite.get_data graphite_params
+    @graph.graph Bacon.fromPromise(data_promise), params
+    @promise_status data_promise
 
-    context_vars:
-      moment: moment
-      CodeMirror: CodeMirror
-      require: (module_name) ->
-        requireables[module_name] ? module.exports.load_module module_name
+  context_vars:
+    moment: moment
+    CodeMirror: CodeMirror
+    require: (module_name) ->
+      requireables[module_name] ? module.exports.load_module module_name
