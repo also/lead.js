@@ -47,7 +47,7 @@ live search, (n) ->
   leaf_clicks.plug finder.clicks.filter('.is_leaf').map('.path')
 
   # branch clicks are searches
-  search.plug finder.clicks.filter((n) -> not n.is_leaf).map((n) -> n.path + '*')
+  search.plug finder.clicks.filter((n) -> not n.is_leaf).map((n) -> n.path + '.*')
 
   @add_renderable finder
 
