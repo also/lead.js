@@ -1,10 +1,8 @@
-bacon = require 'baconjs'
-
 # an stream of things to search for
-search = new bacon.Bus
+search = new Bacon.Bus
 
 # a stream of clicks on leaves. our finder is created asynchronously, so we need a bus for clicks
-leaf_clicks = new bacon.Bus
+leaf_clicks = new Bacon.Bus
 
 # toggle leaf selection
 selected_leaves = leaf_clicks.scan {}, (s, name) ->
@@ -24,7 +22,7 @@ targets = metric_names.map (names) -> _.map names, (name) -> q name
 targets = targets.map (targets) -> _.map targets, (target) -> keepLastValue target
 
 # fetch the data. this takes some time, so only keep the result from the most recent request.
-target_data = targets.flatMapLatest (t) -> bacon.fromPromise get_data t
+target_data = targets.flatMapLatest (t) -> Bacon.fromPromise get_data t
 
 # graph the data
 @graph.graph target_data
