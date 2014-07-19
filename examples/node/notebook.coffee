@@ -2,7 +2,6 @@ fs = require 'fs'
 lead = require 'lead.js'
 lead.enable_codemirror()
 notebook = lead.require 'notebook'
-notebook.init_codemirror()
 
 script = fs.readFileSync './examples/random_walks.coffee', encoding: 'utf-8'
 
