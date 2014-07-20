@@ -8,11 +8,6 @@ enable_global_window = ->
     global.document = doc
     global.navigator = {userAgent: 'lol'}
 
-exports.enable_codemirror = ->
-  enable_global_window()
-  require 'codemirror'
-  CodeMirror = global.window.CodeMirror
-
 exports.require = (m) ->
   require "./#{m}"
 
