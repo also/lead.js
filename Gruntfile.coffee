@@ -20,7 +20,10 @@ module.exports = (grunt) ->
           {expand: true, cwd: 'lib', src: 'colorbrewer.js', dest: 'build/node/app/lib'}
         ]
       html:
-        files: [{src: 'index-build.html', dest: 'build/web/index.html'}]
+        files: [
+          {src: 'index.html', dest: 'build/web/index.html'},
+          {src: 'config.js', dest: 'build/web/config.js'}
+        ]
       'dist-node':
         files: [
           {expand: true, cwd: 'build/node/app/', src: '**', dest: 'dist/node'},
