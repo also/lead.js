@@ -13,7 +13,7 @@ Now, installing lead.js is just placing these files on a server somewhere. You'l
 
 ## Building from source
 
-Building lead.js requires **node.js** and **npm**.
+Building lead.js requires **node.js**, **npm**, and **grunt**.
 With these installed,
 
 ```
@@ -24,6 +24,7 @@ Build with
 
 ```
 grunt
+grunt dist
 ```
 
 This will produce a `dist` directory containing all the files necessary to run lead.js:
@@ -32,6 +33,5 @@ This will produce a `dist` directory containing all the files necessary to run l
 config.js
 index.html
 lead-app.js
-require.js
 style.css
 ```
