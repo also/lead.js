@@ -4,8 +4,8 @@ module.exports = {
   debug: true,
   context: __dirname,
   entry: {
-    app: './app/app_main',
-    'app-complete': './app/app_main_complete',
+    app: './app/app_main.entry',
+    'app-complete': './app/app_main_complete.entry',
     test: './test/run_mocha_browser'
   },
   output: {
@@ -26,19 +26,17 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
-      {test: /\.(coffee\.md|litcoffee)$/, loader: "coffee-loader?literate"},
-      // TODO :( codemirror is going to modify window. add
-      // 'imports?window=>{}' 
-      {test: /runmode/, loader: 'imports?CodeMirror=codemirror'},
       {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
       {test: /colorbrewer/, loader: 'exports?colorbrewer'}
     ],
     // TODO coffeescript has a weird require browser
     noParse: /coffee-script.js/
   },
-  // only include the moment english language
   plugins: [
+    // only include the moment english language
     new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
+    // only js and coffe files allowed in the ./app context
+    new webpack.ContextReplacementPlugin(/\/app$/, /^\.\/[^.]*$/),
     new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
   ]
 }
