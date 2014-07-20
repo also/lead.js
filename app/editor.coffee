@@ -11,6 +11,8 @@ context = require './context'
 notebook = require './notebook'
 
 create_editor = (target) ->
+  if is_nodejs?
+    return CodeMirror target
   cm = CodeMirror target,
     value: ''
     mode: 'coffeescript'
