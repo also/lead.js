@@ -19,7 +19,8 @@
     "marked": "~0.3.0",
     "react": "~0.10.0",
     "bacon.model": "0.1.10",
-    "codemirror": "^4.3.0"
+    "codemirror": "^4.3.0",
+    "jsdom": "~0.8.4"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -28,7 +29,6 @@
     "grunt-cli": "~0.1.9",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "~0.4.1",
-    "jsdom": "~0.8.4",
     "pegjs": "~0.7.0",
     "mocha": "~1.20.1",
     "expect.js": "~0.2.0",
