@@ -35,7 +35,7 @@ module.exports = {
     // only include the moment english language
     new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
 
-    // no "." in ./app context. this excludes .entry.coffee files, and files that don't match extensions
+    // no "." and no subdirectories in ./app context. this excludes .entry.coffee files, and files that don't match extensions
     new webpack.ContextReplacementPlugin(/\/app$/, false, /^\.\/[^.]*$/),
     new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
   ]

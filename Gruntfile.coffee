@@ -34,6 +34,13 @@ module.exports = (grunt) ->
           {expand: true, cwd: 'build/web', src: ['config.js', 'lead-app.js', 'style.css', 'index.html'], dest: 'dist/web'},
           {expand: true, src: ['README.md', 'LICENSE.txt', 'docs/**', 'examples/*'], dest: 'dist/web'}
         ]
+    compress:
+      web:
+        options:
+          archive: 'dist/lead.js.zip'
+        files: [
+          {expand: true, cwd: 'dist/web', src: ['**'], dest: 'lead.js/'}
+        ]
     coffee:
       source:
         files: [
@@ -66,6 +73,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-webpack'
+  grunt.loadNpmTasks 'grunt-contrib-compress'
   grunt.loadTasks 'tasks'
 
   grunt.registerTask 'css', ['sass', 'concat:css']
