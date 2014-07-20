@@ -19,7 +19,7 @@ module.exports = (grunt) ->
           {expand: true, cwd: 'app', src: 'graphite_*.js', dest: 'build/node/app'},
           {expand: true, cwd: 'lib', src: 'colorbrewer.js', dest: 'build/node/app/lib'}
         ]
-      html:
+      static:
         files: [
           {src: 'index.html', dest: 'build/web/index.html'},
           {src: 'config.js', dest: 'build/web/config.js'}
@@ -28,6 +28,11 @@ module.exports = (grunt) ->
         files: [
           {expand: true, cwd: 'build/node/app/', src: '**', dest: 'dist/node'},
           {expand: true, src: ['package.json', 'README.md', 'LICENSE.txt', 'docs/**', 'examples/**'], dest:'dist/node'}
+        ]
+      'dist-web':
+        files: [
+          {expand: true, cwd: 'build/web', src: ['config.js', 'lead-app.js', 'style.css', 'index.html'], dest: 'dist/web'},
+          {expand: true, src: ['README.md', 'LICENSE.txt', 'docs/**', 'examples/*'], dest: 'dist/web'}
         ]
     coffee:
       source:
@@ -66,8 +71,9 @@ module.exports = (grunt) ->
   grunt.registerTask 'css', ['sass', 'concat:css']
 
   grunt.registerTask 'node', ['coffee', 'copy:javascript']
-  grunt.registerTask 'web', ['css', 'webpack:web', 'copy:html']
+  grunt.registerTask 'web', ['css', 'webpack:web', 'copy:static']
   grunt.registerTask 'default', ['web', 'node']
+  grunt.registerTask 'dist', ['copy:dist-node', 'copy:dist-web']
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'
