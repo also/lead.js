@@ -38,6 +38,6 @@ module.exports = {
   // only include the moment english language
   plugins: [
     new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
-    new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/(.+)$/, '../lib/colorbrewer')
+    new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
   ]
 }
