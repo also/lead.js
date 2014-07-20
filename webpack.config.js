@@ -25,6 +25,7 @@ module.exports = {
       {test: /\.coffee$/, loader: "coffee-loader"},
 
       // shims
+      {test: /baconjs/, loader: 'imports?jQuery=jquery'},
       {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
       {test: /colorbrewer/, loader: 'exports?colorbrewer'}
     ],
