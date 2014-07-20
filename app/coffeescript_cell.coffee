@@ -18,7 +18,7 @@ recompile = (error_marks, editor) ->
 # gets the function for a cell
 # TODO rename
 get_fn = (run_context) ->
-  create_fn run_context.input_cell.editor.getValue()
+  create_fn Editor.get_value run_context.input_cell.editor
 
 # create the function for a string
 # this is exposed for cases where there is no input cell

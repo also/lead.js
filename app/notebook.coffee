@@ -42,7 +42,7 @@ modules.export exports, 'notebook', ({cmd}) ->
   # predicates for cells
   is_input = (cell) -> cell.type is 'input'
   is_output = (cell) -> cell.type is 'output'
-  is_clean = (cell) -> cell.editor.getValue() is '' and not cell.used
+  is_clean = (cell) -> Editor.get_value cell.editor is '' and not cell.used
   visible = (cell) -> cell.visible
   identity = (cell) -> true
 
@@ -98,7 +98,7 @@ modules.export exports, 'notebook', ({cmd}) ->
     lead_js_version: 0
     cells: notebook.cells.filter((cell) -> cell != current_cell and is_input cell).map (cell) ->
       type: 'input'
-      value: cell.editor.getValue()
+      value: Editor.get_value cell.editor
 
   import_notebook = (notebook, cell, imported, options) ->
     for imported_cell in imported.cells
@@ -218,8 +218,7 @@ modules.export exports, 'notebook', ({cmd}) ->
     cell
 
   set_cell_value = (cell, value) ->
-    cell.editor.setValue value
-    cell.editor.setCursor(line: cell.editor.lineCount() - 1)
+    Editor.set_value cell.editor, value
 
   focus_cell = (cell) ->
     cell.editor.focus()
@@ -309,10 +308,10 @@ modules.export exports, 'notebook', ({cmd}) ->
       set_cell_value cell, code
       run cell
     # TODO does it make sense to use output cells here?
-    previously_run: -> input_cell_at_offset(cell, -1).editor.getValue()
+    previously_run: -> Editor.get_value input_cell_at_offset(cell, -1).editor
     export_notebook: -> export_notebook notebook, cell
     get_input_value: (number) ->
-      get_input_cell_by_number(notebook, number)?.editor.getValue()
+      Editor.get_value get_input_cell_by_number(notebook, number)?.editor
 
   open_file_picker = (run_context) ->
     run_context.notebook.opening_run_context = run_context

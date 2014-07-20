@@ -24,6 +24,13 @@ create_editor = (target) ->
   cm.setCursor(line: cm.lineCount() - 1)
   cm
 
+set_value = (cm, value) ->
+  cm.setValue value
+  cm.setCursor(line: cm.lineCount() - 1)
+
+get_value = (cm) ->
+  cm.getValue()
+
 as_event_stream = (cm, event_name, event_transformer) ->
   Bacon.fromBinder (handler) ->
     cm.on event_name, handler
@@ -189,8 +196,7 @@ commands =
   fill_with_last_value: cmd 'Replaces the cell with the contents of the previous cell', (cm) ->
     cell = notebook.input_cell_at_offset cm.lead_cell, -1
     if cell?
-      cm.setValue notebook.cell_value cell
-      cm.setCursor(line: cm.lineCount() - 1)
+      set_value cm, notebook.cell_value cell
     else
       CodeMirror.Pass
 
@@ -242,4 +248,4 @@ unless is_nodejs?
   CodeMirror.keyMap.lead = key_map
   _.extend CodeMirror.commands, commands
 
-module.exports = {commands, key_map, as_event_stream, add_error_mark, create_editor}
+module.exports = {commands, key_map, as_event_stream, add_error_mark, create_editor, set_value, get_value}
