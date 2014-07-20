@@ -30,6 +30,7 @@ module.exports = {
       // TODO :( codemirror is going to modify window. add
       // 'imports?window=>{}' 
       {test: /runmode/, loader: 'imports?CodeMirror=codemirror'},
+      {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
       {test: /colorbrewer/, loader: 'exports?colorbrewer'}
     ],
     // TODO coffeescript has a weird require browser

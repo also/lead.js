@@ -1,7 +1,4 @@
 CoffeeScript = require 'coffee-script'
-# TODO is coffeescript different between node and webpack?
-if CoffeeScript.CoffeeScript
-  CoffeeScript = CoffeeScript.CoffeeScript
 Editor = require './editor'
 Context = require './context'
 printStackTrace = require 'stacktrace-js'
@@ -10,7 +7,7 @@ recompile = (error_marks, editor) ->
   m.clear() for m in error_marks
   editor.clearGutter 'error'
   try
-    CoffeeScript.compile editor.getValue()
+    CoffeeScript.compile Editor.get_value editor
     []
   catch e
     [Editor.add_error_mark editor, e]
