@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
@@ -69,3 +71,33 @@ module.exports = (grunt) ->
     grammar = grunt.file.read 'app/graphite_grammar.peg'
     parser = PEG.buildParser grammar
     grunt.file.write 'app/graphite_parser.js', "module.exports = #{parser.toSource()};"
+
+  grunt.registerTask 'npm-link', ->
+    done = @async()
+    spawned = grunt.util.spawn cmd: "npm", args: ['link'], opts: {cwd: "#{__dirname}/dist/node", env: _.extend({npm_config_prefix: "#{__dirname}/build/node/npm"}, process.env)}, (err, result, code) ->
+      if err?
+        grunt.log.error 'npm link failed'
+        done false
+      else
+        done()
+    spawned.stdout.pipe(process.stdout)
+    spawned.stderr.pipe(process.stderr)
+
+  grunt.registerTask 'run-node', ->
+    script = grunt.option 'script'
+    unless script?
+      grunt.fail.warn 'script option is required.'
+
+    if /\.coffee$/.test script
+      cmd = 'node_modules/coffee-script/bin/coffee'
+    else
+      cmd = 'node'
+    done = @async()
+    spawned = grunt.util.spawn cmd: cmd, args: [script], opts: {env: _.extend({NODE_PATH: "#{__dirname}/build/node/npm/lib/node_modules"}, process.env)}, (err, result, code) ->
+      if err?
+        grunt.log.error 'script failed'
+        done false
+      else
+        done()
+    spawned.stdout.pipe(process.stdout)
+    spawned.stderr.pipe(process.stderr)
