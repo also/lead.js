@@ -12,13 +12,10 @@ module.exports = {
     path: __dirname + "/build/web",
     filename: "lead-[name].js"
   },
-  externals: {
-    'jsdom': true
-  },
   resolve: {
     extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee'],
     alias: {
-      // i think this is necessary becase bacon.model references 'baconjs' in commonjs and 'bacon' in amd
+      // bacon.model references 'baconjs' in commonjs and 'bacon' in amd
       'bacon': 'baconjs',
       'coffee-script': __dirname + '/lib/coffee-script',
     }
@@ -26,17 +23,20 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
+
+      // shims
       {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
       {test: /colorbrewer/, loader: 'exports?colorbrewer'}
     ],
     // TODO coffeescript has a weird require browser
-    noParse: /coffee-script.js/
+    noParse: /coffee-script.js$/
   },
   plugins: [
     // only include the moment english language
     new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
-    // only js and coffe files allowed in the ./app context
-    new webpack.ContextReplacementPlugin(/\/app$/, /^\.\/[^.]*$/),
+
+    // no "." in ./app context. this excludes .entry.coffee files, and files that don't match extensions
+    new webpack.ContextReplacementPlugin(/\/app$/, false, /^\.\/[^.]*$/),
     new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
   ]
 }
