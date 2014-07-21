@@ -19,6 +19,7 @@ create_component = (constructor, props) ->
   {component, model}
 
 SelectComponent = React.createClass
+  displayName: 'SelectComponent'
   mixins: [InputMixin]
   render: ->
     React.DOM.select {value: @state.value, onChange: @handle_change}, _.map @props.options, (o) ->
@@ -29,6 +30,7 @@ SelectComponent = React.createClass
       React.DOM.option {value: k}, v
 
 InputComponent = React.createClass
+  displayName: 'InputComponent'
   mixins: [InputMixin]
   render: ->
     React.DOM.input type: @props.type, value: @state.value, onChange: @handle_change
