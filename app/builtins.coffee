@@ -6,7 +6,7 @@ Markdown = require './markdown'
 modules = require './modules'
 http = require './http'
 Documentation = require './documentation'
-React = require 'react'
+React = require './react_abuse'
 Components = require './components'
 
 Documentation.register_documentation 'introduction', complete: """
@@ -215,6 +215,28 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   component_fn 'promise_status', 'Displays the status of a promise', (promise, start_time=new Date) ->
     PromiseStatusComponent {promise, start_time}
+
+  GridComponent = React.createClass
+    displayName: 'GridComponent'
+    mixins: [React.ObservableMixin]
+    propTypes:
+      cols: React.PropTypes.number.isRequired
+    render: ->
+      rows = []
+      row = null
+      cols = @props.cols
+      _.each @state.value, (component, i) ->
+        if i % cols == 0
+          row = []
+          rows.push row
+        row.push React.DOM.div {style: {flex: 1}}, component
+      React.DOM.div null, _.map rows, (row) -> React.DOM.div {style: {display: 'flex'}}, row
+
+  fn 'grid', 'Generates a grid with a number of columns', (cols, fn) ->
+    component_list = React.component_list()
+    nested_context = @create_nested_context {component_list}
+    @add_component GridComponent observable: component_list.model, cols: cols
+    nested_context.apply_to fn
 
   fn 'websocket', 'Runs commands from a web socket', (url) ->
     ws = new WebSocket url

@@ -247,8 +247,9 @@ create_context_run_context = ->
     o
 
   create_nested_context: (overrides) ->
-    nested_context = _.extend create_new_run_context(@), overrides
+    _.extend create_new_run_context(@), overrides
 
+  # DEPRECATED
   detached: (fn, args) ->
     nested_context = create_nested_renderable_context @
     nested_context.apply_to fn, args
