@@ -241,10 +241,13 @@ create_context_run_context = ->
   detached: (fn, args) ->
     nested_context = create_nested_component_list_context @
     nested_context.apply_to fn, args
-    nested_context.component_list
+    nested_context.component_list._lead_render
 
   value: (value) -> _lead_context_fn_value: value
 
+  # TODO
+  # async and renderable don't make much sense together. a context is only async if it is the target of something async.
+  # if you start something async in a context but it will have no effect on the context, this shouldn't trigger a promise_status.
   async: (fn) ->
     start_time = new Date
     promise = nested_item @, fn
