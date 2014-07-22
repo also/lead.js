@@ -14,23 +14,6 @@ createIdentityClass = (args...) ->
     props.key = "#{prefix}_#{component_id++}"
     cls props, args...
 
-ComponentProxy = ->
-  component = null
-  state = null
-  bind_to_component: (c) ->
-    component = c
-    if state != null
-      component.setState state
-  setState: (s) ->
-    if component?
-      component.setState s
-    else
-      state = s
-
-ComponentProxyMixin =
-  componentWillMount: ->
-    @props.component_proxy?.bind_to_component @
-
 ObservableMixin =
   #get_observable: -> @props.observable
   getInitialState: ->
@@ -71,5 +54,5 @@ PropsModelComponent = createIdentityClass
   get_observable: -> @props.child_props
   render: -> @props.constructor @state.value
 
-_.extend exports, {PropsModelComponent, ComponentProxy, ComponentProxyMixin, ObservableMixin, component_list, createIdentityClass}, React
+_.extend exports, {PropsModelComponent, ObservableMixin, component_list, createIdentityClass}, React
 
