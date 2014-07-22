@@ -137,10 +137,6 @@ is_component = (o) -> o?.__realComponentInstance?
 is_renderable = (o) ->
   o? and (is_component(o) or o._lead_render?)
 
-RenderableComponent = React.createClass
-  render: -> React.DOM.div()
-  componentDidMount: -> $(@getDOMNode()).append @props.renderable._lead_render()
-
 component_for_renderable = (renderable) ->
   if is_component renderable
     renderable
@@ -149,8 +145,6 @@ component_for_renderable = (renderable) ->
   # TODO remove context special case
   else if renderable.component_list?
     renderable.component_list._lead_render
-  else
-    RenderableComponent {renderable}
 
 create_nested_component_list_context = (ctx) ->
   ctx.create_nested_context
