@@ -152,13 +152,13 @@ component_for_renderable = (renderable) ->
   else
     RenderableComponent {renderable}
 
-create_nested_renderable_context = (ctx) ->
+create_nested_component_list_context = (ctx) ->
   ctx.create_nested_context
     component_list: React.component_list()
 
 # creates a nested context, adds it to the renderable list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
-  nested_context = create_nested_renderable_context ctx
+  nested_context = create_nested_component_list_context ctx
   ctx.add_component nested_context.component_list._lead_render
   nested_context.apply_to fn, args
 
@@ -233,6 +233,9 @@ create_context_run_context = ->
     @add_rendered $div
     $div
 
+  # TODO should this really be exposed? what should it be called?
+  nested_item: (args...) -> nested_item @, args...
+
   # DEPRECATED
   # makes o renderable using the given function or renderable
   renderable: (o, fn) ->
@@ -251,7 +254,7 @@ create_context_run_context = ->
 
   # DEPRECATED
   detached: (fn, args) ->
-    nested_context = create_nested_renderable_context @
+    nested_context = create_nested_component_list_context @
     nested_context.apply_to fn, args
     nested_context.component_list
 
