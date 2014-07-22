@@ -2,9 +2,17 @@ expect = require 'expect.js'
 context = require '../app/context'
 CoffeeScriptCell = require '../app/coffeescript_cell'
 React = require 'react'
+$ = require 'jquery'
 
 eval_coffeescript_in_context = (run_context, string) ->
   context.run_in_context run_context, CoffeeScriptCell.create_fn string
+
+render = (context) ->
+  $result = $ '<div/>'
+  # FIXME renderComponentToString doesn't work here?
+  React.renderComponent context.component_list.component, $result.get(0)
+  $result
+  
 
 later = (done, fn) ->
   try
@@ -28,7 +36,7 @@ describe 'contexts', ->
       run_context = context.create_run_context []
       text = 'hello, world'
       run_context.add_component React.DOM.span null, text
-      $el = context.render run_context
+      $el = render run_context
       expect($el.text()).to.be text
 
   describe 'full contexts', ->
@@ -136,7 +144,7 @@ describe 'contexts', ->
         text 'a'
         @nested_item ->
           text 'b'
-      $el = context.render context_a
+      $el = render context_a
       expect($el.text()).to.be 'ab'
 
     # TODO reconsider this behavior
@@ -150,7 +158,7 @@ describe 'contexts', ->
           .toThrow new Error 'already rendered'
           @set_test_result true
         , 0
-      $el = context.render context_a
+      $el = render context_a
       waitsFor (-> result), 1000
     ###
 
@@ -163,7 +171,7 @@ describe 'contexts', ->
           complete()
         , 0
         text 'b'
-      $el = context.render context_a
+      $el = render context_a
       on_complete done, ->
         expect($el.text()).to.be 'abc'
 
@@ -178,6 +186,6 @@ describe 'contexts', ->
           , 0
           Q true
         @text 'b'
-      $el = context.render context_a
+      $el = render context_a
       on_complete done, ->
         expect($el.find('p').text()).to.be 'ab'

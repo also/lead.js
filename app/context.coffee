@@ -4,7 +4,6 @@ imported_context_fns: context_fns + the fns from all modules listed in imports
 fns: imported_context_fns, bound to the scope_context
 ###
 
-$ = require 'jquery'
 _ = require 'underscore'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
@@ -125,12 +124,6 @@ create_context = (base) ->
     vars: vars
     imported_vars: imported_vars
 
-render = (renderable) ->
-  $wrapper = $ '<div/>'
-  component = component_for_renderable renderable
-  React.renderComponent component, $wrapper.get 0
-  $wrapper
-
 # FIXME figure out a real check for a react component
 is_component = (o) -> o?.__realComponentInstance?
 
@@ -200,8 +193,6 @@ create_context_run_context = ->
 
   add_component: (component) ->
     @component_list.add_component component
-
-  render: render
 
   empty: -> @component_list.empty()
 
@@ -296,10 +287,6 @@ module.exports = {
   create_standalone_context,
   run_in_context,
   eval_in_context,
-  render: (ctx) ->
-    result = render ctx
-    ctx.changes.push true
-    result
   scope,
   collect_extension_points
 }
