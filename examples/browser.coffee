@@ -45,7 +45,7 @@ live search.merge(triggered_search), (n) ->
   # branch clicks are searches
   search.plug finder.clicks.filter((n) -> not n.is_leaf).map((n) -> n.path + '.*')
 
-  @add_renderable finder
+  @add_component finder.component
 
 # kick off a search for the root
 search.push '*'

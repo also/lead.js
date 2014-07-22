@@ -139,53 +139,6 @@ describe 'contexts', ->
       $el = context.render context_a
       expect($el.text()).to.be 'ab'
 
-    it 'can render renderables', ->
-      context_a = context.create_run_context [ctx]
-      context.eval_in_context context_a,->
-        text 'a'
-        @add_renderable @renderable {}, ->
-          $ '<p>b</p>'
-      $el = context.render context_a
-      expect($el.text()).to.be 'ab'
-
-    it "doesn't allow output functions directly in renderables", ->
-      context_a = context.create_run_context [ctx]
-      context.eval_in_context context_a,->
-        @add_renderable @renderable {}, ->
-          text 'b'
-      expect ->
-        $el = context.render context_a
-      .to.throwException (e) ->
-        expect(e.message).to.be 'Output functions not allowed inside a renderable'
-
-    it 'allows detached output functions in renderables', ->
-      context_a = context.create_run_context [ctx]
-      context.eval_in_context context_a,->
-        text 'a'
-        @add_renderable @renderable {}, ->
-          @render @detached ->
-            text 'b'
-      $el = context.render context_a
-      expect($el.text()).to.be 'ab'
-
-    it 'supports renderable async', (done) ->
-      context_a = context.create_run_context [ctx, {set_test_result}]
-      context.eval_in_context context_a,->
-        Q = require 'q'
-        promise = Q true
-        text 'a'
-        @add_renderable @renderable promise, ->
-          @render @detached -> @async ->
-            promise.then =>
-              @text 'b'
-              complete()
-            promise
-        text 'c'
-      $el = context.render context_a
-      expect($el.find('p').text()).to.be 'ac'
-      on_complete done, ->
-        expect($el.find('p').text()).to.be 'abc'
-
     # TODO reconsider this behavior
     ###
     it "doesn't allow output after render", ->

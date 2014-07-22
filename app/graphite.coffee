@@ -165,7 +165,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         @run "q(#{JSON.stringify node.path})"
       else
         @run "browser #{JSON.stringify node.path + '.*'}"
-    @add_renderable finder
+    @add_component finder.component
 
   FindResultsComponent = React.createClass
     render: ->
@@ -181,19 +181,18 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
 
   fn 'find', 'Finds Graphite metrics', (query) ->
     promise = graphite.find query
-    promise.clicks = new Bacon.Bus
+    clicks = new Bacon.Bus
 
-    @value @renderable promise, @detached -> @async ->
+    component = @detached -> @async ->
       results = new Bacon.Model []
-      props = Bacon.Model.combine {results, query, on_click: (node) -> promise.clicks.push node}
-      result = React.PropsModelComponent constructor: FindResultsComponent, child_props: props
-      @add_component result
+      props = Bacon.Model.combine {results, query, on_click: (node) -> clicks.push node}
+      @add_component React.PropsModelComponent constructor: FindResultsComponent, child_props: props
       promise.then (r) =>
         results.set r.result
       .fail (reason) =>
         @error 'Find request failed'
         Q.reject reason
-      promise
+     @value {promise, clicks, component}
 
   fn 'get_data', 'Fetches Graphite metric data', (args...) ->
     @value graphite.get_data graphite.args_to_params {args, default_options: @options()}

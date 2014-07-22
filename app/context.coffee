@@ -156,7 +156,7 @@ create_nested_component_list_context = (ctx) ->
   ctx.create_nested_context
     component_list: React.component_list()
 
-# creates a nested context, adds it to the renderable list, and applies the function to it
+# creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_component_list_context ctx
   ctx.add_component nested_context.component_list._lead_render
@@ -206,11 +206,6 @@ create_context_run_context = ->
     ->
       restoring_context fn, arguments
 
-  # DEPRECATED
-  add_renderable: (renderable) ->
-    @add_component component_for_renderable renderable
-    ignore
-
   add_component: (component) ->
     @component_list.add_component component
 
@@ -220,19 +215,6 @@ create_context_run_context = ->
 
   # TODO should this really be exposed? what should it be called?
   nested_item: (args...) -> nested_item @, args...
-
-  # DEPRECATED
-  # makes o renderable using the given function or renderable
-  renderable: (o, fn) ->
-    if is_component fn
-      o._lead_render = fn
-    else if fn._lead_render?
-      o._lead_render = fn._lead_render
-    else
-      nested_context = @create_nested_context
-        component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
-      o._lead_render = -> nested_context.apply_to fn
-    o
 
   create_nested_context: (overrides) ->
     _.extend create_new_run_context(@), overrides
