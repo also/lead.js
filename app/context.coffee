@@ -206,6 +206,7 @@ create_context_run_context = ->
     ->
       restoring_context fn, arguments
 
+  # DEPRECATED
   add_renderable: (renderable) ->
     @add_component component_for_renderable renderable
     ignore
@@ -213,6 +214,7 @@ create_context_run_context = ->
   add_component: (component) ->
     @component_list.add_component component
 
+  # DEPRECATED. only used by div
   add_rendered: (rendered) ->
     @add_renderable _lead_render: -> rendered
 
@@ -220,6 +222,7 @@ create_context_run_context = ->
 
   empty: -> @component_list.empty()
 
+  # DEPRECATED
   div: (contents) ->
     $div = $('<div/>')
     if contents?
@@ -230,6 +233,7 @@ create_context_run_context = ->
     @add_rendered $div
     $div
 
+  # DEPRECATED
   # makes o renderable using the given function or renderable
   renderable: (o, fn) ->
     if is_component fn
