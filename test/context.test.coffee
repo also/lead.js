@@ -1,6 +1,7 @@
 expect = require 'expect.js'
 context = require '../app/context'
 CoffeeScriptCell = require '../app/coffeescript_cell'
+React = require 'react'
 
 eval_coffeescript_in_context = (run_context, string) ->
   context.run_in_context run_context, CoffeeScriptCell.create_fn string
@@ -25,10 +26,10 @@ describe 'contexts', ->
 
     it 'can output', ->
       run_context = context.create_run_context []
-      html = 'hello, world'
-      run_context.div html
+      text = 'hello, world'
+      run_context.add_component React.DOM.span null, text
       $el = context.render run_context
-      expect($el.text()).to.be html
+      expect($el.text()).to.be text
 
   describe 'full contexts', ->
     ctx = null
@@ -133,7 +134,7 @@ describe 'contexts', ->
       context_a = context.create_run_context [ctx]
       context.eval_in_context context_a,->
         text 'a'
-        @div ->
+        @nested_item ->
           text 'b'
       $el = context.render context_a
       expect($el.text()).to.be 'ab'
@@ -175,9 +176,8 @@ describe 'contexts', ->
         text 'a'
         @add_renderable @renderable promise, ->
           @render @detached -> @async ->
-            $result = @div()
             promise.then =>
-              $result.html '<p>b</p>'
+              @text 'b'
               complete()
             promise
         text 'c'

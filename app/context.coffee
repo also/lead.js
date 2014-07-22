@@ -214,24 +214,9 @@ create_context_run_context = ->
   add_component: (component) ->
     @component_list.add_component component
 
-  # DEPRECATED. only used by div
-  add_rendered: (rendered) ->
-    @add_renderable _lead_render: -> rendered
-
   render: render
 
   empty: -> @component_list.empty()
-
-  # DEPRECATED
-  div: (contents) ->
-    $div = $('<div/>')
-    if contents?
-      if _.isFunction contents
-        return nested_item @, contents
-      else
-        $div.append contents
-    @add_rendered $div
-    $div
 
   # TODO should this really be exposed? what should it be called?
   nested_item: (args...) -> nested_item @, args...
