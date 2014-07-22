@@ -119,13 +119,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     params = args_to_params @, args
     url = graphite.render_url params
     @async ->
-      # TODO move this to react once it supports onload and onerror
-      # https://github.com/facebook/react/pull/774
-      $img = $ "<img src='#{url}'/>"
-      @div $img
       deferred = Q.defer()
-      $img.on 'load', deferred.resolve
-      $img.on 'error', deferred.reject
+      @add_component React.DOM.img onLoad: deferred.resolve, onError: deferred.reject, src: url
 
       promise = deferred.promise
       promise.fail (args...) =>
