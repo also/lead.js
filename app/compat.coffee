@@ -226,4 +226,4 @@ compat = modules.export exports, 'compat', ({fn, doc} ) ->
     moment: moment
     CodeMirror: CodeMirror
     require: (module_name) ->
-      requireables[module_name] ? module.exports.load_module module_name
+      requireables[module_name] ? modules.load_module module_name
