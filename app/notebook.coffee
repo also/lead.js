@@ -12,7 +12,8 @@ CoffeeScriptCell = require './coffeescript_cell'
 
 modules.export exports, 'notebook', ({cmd}) ->
   cmd 'save', 'Saves the current notebook to a file', ->
-    @div save @notebook, @input_cell
+    link = save @notebook, @input_cell
+    @add_component React.DOM.a {href: link.href}, 'Download Notebook'
 
   cmd 'load', 'Loads a script from a URL', (url, options={}) ->
     if arguments.length is 0
@@ -355,7 +356,6 @@ modules.export exports, 'notebook', ({cmd}) ->
     text = JSON.stringify export_notebook input_cell
     blob = new Blob [text], type: notebook_content_type
     link = document.createElement 'a'
-    link.innerHTML = 'Download Notebook'
     link.href = window.webkitURL.createObjectURL blob
     link.download = 'notebook.lnb'
     link.click()
