@@ -39,7 +39,7 @@ component_list = ->
   model = new Bacon.Model []
 
   model: model
-  _lead_render: SimpleObservableComponent observable: model
+  component: SimpleObservableComponent observable: model
   add_component: (c) ->
     assign_key c
     components.push c

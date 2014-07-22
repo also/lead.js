@@ -135,16 +135,14 @@ render = (renderable) ->
 is_component = (o) -> o?.__realComponentInstance?
 
 is_renderable = (o) ->
-  o? and (is_component(o) or o._lead_render?)
+  o? and is_component(o)
 
 component_for_renderable = (renderable) ->
   if is_component renderable
     renderable
-  else if is_component renderable._lead_render
-    renderable._lead_render
   # TODO remove context special case
   else if renderable.component_list?
-    renderable.component_list._lead_render
+    renderable.component_list.component
 
 create_nested_component_list_context = (ctx) ->
   ctx.create_nested_context
@@ -153,7 +151,7 @@ create_nested_component_list_context = (ctx) ->
 # creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_component_list_context ctx
-  ctx.add_component nested_context.component_list._lead_render
+  ctx.add_component nested_context.component_list.component
   nested_context.apply_to fn, args
 
 # TODO this is an awful name
@@ -217,7 +215,7 @@ create_context_run_context = ->
   detached: (fn, args) ->
     nested_context = create_nested_component_list_context @
     nested_context.apply_to fn, args
-    nested_context.component_list._lead_render
+    nested_context.component_list.component
 
   value: (value) -> _lead_context_fn_value: value
 
