@@ -230,7 +230,7 @@ create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
   run_context_prototype.run_context_prototype = run_context_prototype
   scope_context = {}
-  run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
+  run_context_prototype.bound_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
 
   scope_context.current_context = create_new_run_context run_context_prototype
@@ -252,7 +252,7 @@ create_new_run_context = (parent) ->
   new_context
 
 scope = (run_context) ->
-  _.extend {}, run_context.fns, run_context.imported_vars
+  _.extend {}, run_context.bound_fns, run_context.imported_vars
 
 create_standalone_context = ({imports, module_names}={}) ->
   create_base_context({imports: ['builtins'].concat(imports or []), module_names})
