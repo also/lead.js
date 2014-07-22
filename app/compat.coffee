@@ -4,9 +4,12 @@ _ = require 'underscore'
 moment = require 'moment'
 CodeMirror = require 'codemirror'
 
+React = require './react_abuse'
 colors = require './colors'
 modules = require './modules'
 graphite = require './graphite'
+graph = require './graph'
+builtins = require './builtins'
 
 requireables = q: Q, _: _, moment: moment, colors: colors
 
@@ -213,8 +216,11 @@ compat = modules.export exports, 'compat', ({fn, doc} ) ->
       graphite_params = graphite.args_to_params {args, default_options: @options()}
       params = Bacon.constant graphite_params
       data_promise = graphite.get_data graphite_params
-    @graph.graph Bacon.fromPromise(data_promise), params
-    @promise_status data_promise
+
+    data = Bacon.fromPromise(data_promise)
+    @add_component React.DOM.div null,
+      graph.create_component(data, params),
+      builtins.PromiseStatusComponent {promise: data_promise, start_time: new Date}
 
   context_vars:
     moment: moment

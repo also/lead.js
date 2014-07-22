@@ -226,4 +226,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       ws.onmessage = (e) => @run e.data
       ws.onerror = => @error 'Error'
 
-  {ExampleComponent}
+  {ExampleComponent, PromiseStatusComponent}

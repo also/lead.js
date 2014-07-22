@@ -7,18 +7,11 @@ Bacon = require 'bacon.model'
 React = require './react_abuse'
 modules = require './modules'
 
-GraphComponent = React.createClass
-  displayName: 'GraphComponent'
-  render: ->
-    React.DOM.div {className: 'graph'}
-  componentDidMount: ->
-    node = @getDOMNode()
-    @props.model.onValue ({data, params}) ->
-      node.removeChild(node.lastChild) while node.hasChildNodes()
-      graph.draw node, data, params
-
-graph = modules.export exports, 'graph', ({fn, cmd, settings}) ->
+graph = modules.export exports, 'graph', ({fn, cmd}) ->
   fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
+    @add_component graph.create_component data, params
+
+  create_component: (data, params) ->
     data = Bacon.fromPromise data if Q.isPromise data
     stream = Bacon.combineTemplate {data, params}
     model = Bacon.Model()
@@ -28,7 +21,17 @@ graph = modules.export exports, 'graph', ({fn, cmd, settings}) ->
       # TODO this should be in a nested context
       # TODO error handling
       @error error
-    @add_component GraphComponent {model}
+    graph.GraphComponent {model}
+
+  GraphComponent: React.createClass
+    displayName: 'GraphComponent'
+    render: ->
+      React.DOM.div {className: 'graph'}
+    componentDidMount: ->
+      node = @getDOMNode()
+      @props.model.onValue ({data, params}) ->
+        node.removeChild(node.lastChild) while node.hasChildNodes()
+        graph.draw node, data, params
 
   default_params:
     width: 800
