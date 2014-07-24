@@ -2,6 +2,7 @@ Q = require 'q'
 Documentation = require './documentation'
 _ = require 'underscore'
 settings = require './settings'
+Context = require './context'
 
 _.extend exports,
   export: (exports, module_name, definition_fn) ->

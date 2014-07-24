@@ -77,31 +77,47 @@ collect_context_vars = (context) ->
 collect_context_fns = (context) ->
   _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
 
+is_run_context = (o) ->
+  o?.imported_context_fns?
+
 # There are a few different reasons for binding function:
 # * a simple api for eval
 # * unimported functions: so that `this` points to the context when calling a function like
 #   `@github.load()`
-bind_context_fns = (run_context, fns, name_prefix='') ->
-  bind_fn = (name, op) ->
-    bound = (args...) ->
-      if @imported_context_fns? and @ != run_context.current_context
-        # it looks like this is a context, but not the current one
-        console.warn 'mismatched run context'
-        console.trace()
-      # if the function returned a value, unwrap it. otherwise, ignore it
-      op.fn.apply(run_context.current_context, args)?._lead_context_fn_value ? ignore
-    bound._lead_context_fn = op
-    bound._lead_context_name = name
-    bound
+bind_fn_to_current_context = (run_context, fn) ->
+  (args...) ->
+    #args.unshift run_context.current_context
+    fn.apply run_context.current_context, args
 
-  bound_fns = {}
-  for k, o of fns
-    if _.isFunction o.fn
-      bound_fns[k] = bind_fn "#{name_prefix}#{k}", o
+bind_fn = (run_context, fn) ->
+  (args...) ->
+    unless is_run_context args[0]
+      if is_run_context @
+        console.warn 'called without ctx as first parameter'
+        ctx = @
+      else
+        ctx = run_context.current_context
+      #args.unshift ctx
     else
-      bound_fns[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, o, k + '.'
+      ctx = args.shift()
+    fn.apply ctx, args
 
-  bound_fns
+bind_context_fns = (run_context, binder, fns, name_prefix='') ->
+  result = {}
+  for k, o of fns
+    do (k, o) ->
+      if _.isFunction o.fn
+        name = "#{name_prefix}#{k}"
+        fn = ->
+          o.fn.apply(@, arguments)?._lead_context_fn_value ? ignore
+        bound = binder run_context, fn
+        bound._lead_context_fn = o
+        bound._lead_context_name = name
+        result[k] = bound
+      else
+        result[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, binder, o, k + '.'
+
+  result
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
@@ -230,7 +246,8 @@ create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
   run_context_prototype.run_context_prototype = run_context_prototype
   scope_context = {}
-  run_context_prototype.bound_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
+  run_context_prototype.scoped_fns = bind_context_fns scope_context, bind_fn_to_current_context, run_context_prototype.imported_context_fns
+  run_context_prototype.bound_fns = bind_context_fns scope_context, bind_fn, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
 
   scope_context.current_context = create_new_run_context run_context_prototype
@@ -238,7 +255,7 @@ create_run_context = (extra_contexts) ->
 create_new_run_context = (parent) ->
   new_context = Object.create parent
 
-  fns_and_vars = bind_context_fns new_context, new_context.context_fns
+  fns_and_vars = _.clone new_context.bound_fns
   _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
 
   # TODO isn't this just importing builtins?
@@ -252,7 +269,7 @@ create_new_run_context = (parent) ->
   new_context
 
 scope = (run_context) ->
-  _.extend {}, run_context.bound_fns, run_context.imported_vars
+  _.extend {}, run_context.scoped_fns, run_context.imported_vars
 
 create_standalone_context = ({imports, module_names}={}) ->
   create_base_context({imports: ['builtins'].concat(imports or []), module_names})
@@ -288,5 +305,6 @@ module.exports = {
   run_in_context,
   eval_in_context,
   scope,
-  collect_extension_points
+  collect_extension_points,
+  is_run_context
 }
