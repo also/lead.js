@@ -1,10 +1,8 @@
-React = require 'react'
+React = require 'react/lib/ReactWithAddons'
 _ = require 'underscore'
 Bacon = require 'bacon.model'
 
 component_id = 1
-assign_key = (component) ->
-  component.props.key ?= "component_#{component_id++}"
 
 createIdentityClass = (args...) ->
   cls = React.createClass args...
@@ -41,7 +39,8 @@ component_list = ->
   model: model
   component: SimpleObservableComponent observable: model
   add_component: (c) ->
-    assign_key c
+    unless c.props.key?
+      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{component_id++}"
     components.push c
     model.set components.slice()
   empty: ->
