@@ -86,7 +86,7 @@ is_run_context = (o) ->
 #   `@github.load()`
 bind_fn_to_current_context = (run_context, fn) ->
   (args...) ->
-    #args.unshift run_context.current_context
+    args.unshift run_context.current_context
     fn.apply run_context.current_context, args
 
 bind_fn = (run_context, fn) ->
@@ -97,20 +97,23 @@ bind_fn = (run_context, fn) ->
         ctx = @
       else
         ctx = run_context.current_context
-      #args.unshift ctx
-    else
-      ctx = args.shift()
-    fn.apply ctx, args
+      args.unshift ctx
+    fn.apply null, args
 
 bind_context_fns = (run_context, binder, fns, name_prefix='') ->
   result = {}
   for k, o of fns
     do (k, o) ->
       if _.isFunction o.fn
+        if o.fn.toString().indexOf('function (ctx') == 0
+          fn = o.fn
+        else
+          fn = (ctx, args...) -> o.fn.apply ctx, args
+
         name = "#{name_prefix}#{k}"
-        fn = ->
-          o.fn.apply(@, arguments)?._lead_context_fn_value ? ignore
-        bound = binder run_context, fn
+        wrapped_fn = ->
+          fn.apply(@, arguments)?._lead_context_fn_value ? ignore
+        bound = binder run_context, wrapped_fn
         bound._lead_context_fn = o
         bound._lead_context_name = name
         result[k] = bound

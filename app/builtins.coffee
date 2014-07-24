@@ -66,11 +66,11 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     # TODO shouldn't be pre
     return PreComponent value: "Documentation for #{cmd} not found."
 
-  component_cmd 'help', 'Shows this help', (cmd) ->
+  component_cmd 'help', 'Shows this help', (ctx, cmd) ->
     if arguments.length > 0
-      help_component @, cmd
+      help_component ctx, cmd
     else
-      help_component @, 'imported_context_fns'
+      help_component ctx 'imported_context_fns'
 
   KeySequenceComponent = React.createClass
     displayName: 'KeySequenceComponent'
@@ -117,7 +117,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ```
     """
 
-  component_fn 'object', (o) ->
+  component_fn 'object', (ctx, o) ->
     try
       s = JSON.stringify(o, null, '  ')
     catch
@@ -125,7 +125,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     s ||= new String o
     Components.SourceComponent value: s, language: 'json'
 
-  component_fn 'md', 'Renders Markdown', (string, opts) ->
+  component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
 
   TextComponent = React.createClass
@@ -140,20 +140,20 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     displayName: 'HtmlComponent'
     render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
-  component_fn 'text', 'Prints text', (string) ->
+  component_fn 'text', 'Prints text', (ctx, string) ->
     TextComponent value: string
 
-  component_fn 'pre', 'Prints preformatted text', (string) ->
+  component_fn 'pre', 'Prints preformatted text', (ctx, string) ->
     PreComponent value: string
 
-  component_fn 'html', 'Adds some HTML', (string) ->
+  component_fn 'html', 'Adds some HTML', (ctx, string) ->
     HtmlComponent value: string
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
     render: -> React.DOM.pre {className: 'error'}, @props.message
 
-  component_fn 'error', 'Shows a preformatted error message', (message) ->
+  component_fn 'error', 'Shows a preformatted error message', (ctx, message) ->
     if not message?
       message = 'Unknown error'
       # TODO include stack trace?
@@ -162,10 +162,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       # TODO handle exceptions better
     ErrorComponent {message}
 
-  component_fn 'example', 'Makes a clickable code example', (value, opts) ->
-    ExampleComponent ctx: @, value: value, run: opts?.run ? true
+  component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
+    ExampleComponent ctx: ctx, value: value, run: opts?.run ? true
 
-  component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
+  component_fn 'source', 'Shows source code with syntax highlighting', (ctx, language, value) ->
     Components.SourceComponent {language, value}
 
   fn 'options', 'Gets or sets options', (options) ->
@@ -177,10 +177,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     displayName: 'LinkComponent'
     render: -> React.DOM.a {href: @props.href}, @props.value
 
-  component_cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
+  component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
     uri = URI location.href
     uri.hash null
-    code ?= @previously_run()
+    code ?= ctx.previously_run()
     uri.query '?' + encodeURIComponent btoa code
     uri = uri.toString()
     LinkComponent href: uri, value: uri
@@ -213,7 +213,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       # TODO this should probably happen earlier, in case the promise finishes before componentWillMount
       @props.promise.finally @finished
 
-  component_fn 'promise_status', 'Displays the status of a promise', (promise, start_time=new Date) ->
+  component_fn 'promise_status', 'Displays the status of a promise', (ctx, promise, start_time=new Date) ->
     PromiseStatusComponent {promise, start_time}
 
   GridComponent = React.createClass

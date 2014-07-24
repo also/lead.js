@@ -110,8 +110,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     result = args_to_params @, args
     @value result
 
-  component_fn 'url', 'Generates a URL for a graph image', (args...) ->
-    params = args_to_params @, args
+  component_fn 'url', 'Generates a URL for a graph image', (ctx, args...) ->
+    params = args_to_params ctx, args
     url = graphite.render_url params
     React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
