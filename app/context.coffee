@@ -33,11 +33,6 @@ handle_module = (object) ->
     @help object
     true
 
-handle_renderable = (object) ->
-  if is_renderable object
-    @add_renderable object
-    true
-
 handle_using_extension = (object) ->
   handlers = collect_extension_points @, 'context_result_handler'
   context = @
@@ -52,7 +47,6 @@ result_handlers =[
   ignored
   handle_cmd
   handle_module
-  handle_renderable
   handle_using_extension
   handle_any_object
 ]
@@ -60,7 +54,6 @@ result_handlers =[
 display_object = (ctx, object) ->
   for handler in result_handlers
     return if handler.call ctx, object
-
 
 collect_extension_points = (context, extension_point) ->
   modules.collect_extension_points context.modules, extension_point
@@ -145,9 +138,6 @@ create_context = (base) ->
 
 # FIXME figure out a real check for a react component
 is_component = (o) -> o?.__realComponentInstance?
-
-is_renderable = (o) ->
-  o? and is_component(o)
 
 component_for_renderable = (renderable) ->
   if is_component renderable
