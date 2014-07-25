@@ -60,7 +60,7 @@ Documentation =
     if _.isFunction doc.complete
       doc.complete ctx, doc
     else if _.isString doc.complete
-      Markdown.LeadMarkdownComponent value: doc.complete, ctx: ctx
+      Markdown.LeadMarkdownComponent value: doc.complete
     else if doc.index
       Documentation.index ctx, doc.key
     else

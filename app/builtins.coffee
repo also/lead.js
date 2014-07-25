@@ -8,6 +8,7 @@ http = require './http'
 Documentation = require './documentation'
 React = require './react_abuse'
 Components = require './components'
+Context = require './context'
 
 Documentation.register_documentation 'introduction', complete: """
 # Welcome to lead.js
@@ -101,8 +102,8 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
-  fn 'In', 'Gets previous input', (n) ->
-    @value @get_input_value n
+  fn 'In', 'Gets previous input', (ctx, n) ->
+    ctx.value ctx.get_input_value n
 
   doc 'object',
     'Prints an object as JSON'
@@ -163,15 +164,15 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ErrorComponent {message}
 
   component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
-    ExampleComponent ctx: ctx, value: value, run: opts?.run ? true
+    ExampleComponent value: value, run: opts?.run ? true
 
   component_fn 'source', 'Shows source code with syntax highlighting', (ctx, language, value) ->
     Components.SourceComponent {language, value}
 
-  fn 'options', 'Gets or sets options', (options) ->
+  fn 'options', 'Gets or sets options', (ctx, options) ->
     if options?
-      _.extend @current_options, options
-    @value @current_options
+      _.extend ctx.current_options, options
+    ctx.value ctx.current_options
 
   LinkComponent = React.createClass
     displayName: 'LinkComponent'
@@ -187,6 +188,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'
+    mixins: [Context.ContextAwareMixin]
     render: ->
       if @state?
         ms = @state.duration
@@ -218,34 +220,32 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   GridComponent = React.createClass
     displayName: 'GridComponent'
-    mixins: [React.ObservableMixin]
     propTypes:
       cols: React.PropTypes.number.isRequired
     render: ->
       rows = []
       row = null
       cols = @props.cols
-      _.each @state.value, (component, i) ->
+      _.each @props.components, (component, i) ->
         if i % cols == 0
           row = []
           rows.push row
         row.push React.DOM.div {style: {flex: 1}}, component
       React.DOM.div null, _.map rows, (row) -> React.DOM.div {style: {display: 'flex'}}, row
 
-  fn 'grid', 'Generates a grid with a number of columns', (cols, fn) ->
-    component_list = React.component_list()
-    nested_context = @create_nested_context {component_list}
-    @add_component GridComponent observable: component_list.model, cols: cols
+  fn 'grid', 'Generates a grid with a number of columns', (ctx, cols, fn) ->
+    nested_context = ctx.create_nested_context layout: GridComponent, layout_props: {cols}
+    ctx.add_component nested_context.component
     nested_context.apply_to fn
 
-  fn 'websocket', 'Runs commands from a web socket', (url) ->
+  fn 'websocket', 'Runs commands from a web socket', (ctx, url) ->
     ws = new WebSocket url
-    @async ->
-      ws.onopen = => @text 'Connected'
+    ctx.async ->
+      ws.onopen = => ctx.text 'Connected'
       ws.onclose = =>
-        @text 'Closed. Reconnect:'
-        @example "websocket #{JSON.stringify url}"
-      ws.onmessage = (e) => @run e.data
-      ws.onerror = => @error 'Error'
+        ctx.text 'Closed. Reconnect:'
+        ctx.example "websocket #{JSON.stringify url}"
+      ws.onmessage = (e) => ctx.run e.data
+      ws.onerror = => ctx.error 'Error'
 
   {ExampleComponent, PromiseStatusComponent}

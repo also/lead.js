@@ -12,6 +12,8 @@ createIdentityClass = (args...) ->
     props.key = "#{prefix}_#{component_id++}"
     cls props, args...
 
+generate_component_id = -> component_id++
+
 ObservableMixin =
   #get_observable: -> @props.observable
   getInitialState: ->
@@ -32,20 +34,10 @@ SimpleObservableComponent = createIdentityClass
   render: ->
     React.DOM.div {}, @state.value
 
-component_list = ->
-  components = []
-  model = new Bacon.Model []
-
-  model: model
-  component: SimpleObservableComponent observable: model
-  add_component: (c) ->
-    unless c.props.key?
-      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{component_id++}"
-    components.push c
-    model.set components.slice()
-  empty: ->
-    components = []
-    model.set []
+SimpleLayoutComponent = createIdentityClass
+  displayName: 'SimpleLayoutComponent'
+  render: ->
+    React.DOM.div {}, @props.components
 
 PropsModelComponent = createIdentityClass
   displayName: 'PropsModelComponent'
@@ -53,5 +45,5 @@ PropsModelComponent = createIdentityClass
   get_observable: -> @props.child_props
   render: -> @props.constructor @state.value
 
-_.extend exports, {PropsModelComponent, ObservableMixin, component_list, createIdentityClass}, React
+_.extend exports, {PropsModelComponent, ObservableMixin, SimpleLayoutComponent, createIdentityClass, generate_component_id}, React
 

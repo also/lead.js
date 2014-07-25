@@ -8,6 +8,38 @@ _ = require 'underscore'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require './react_abuse'
+
+contexts_by_root_node_id = {}
+
+find_ancestor_contexts = (component_instance) ->
+  result = []
+  _.each React.__internals.InstanceHandles.traverseAncestors component_instance._rootNodeID, (id) ->
+    context = contexts_by_root_node_id[id]
+    if context
+      result.unshift context
+  result
+
+ContextRegisteringMixin =
+  componentWillMount: ->
+    contexts_by_root_node_id[@_rootNodeID] = @props.ctx
+  componentWillUnmount: ->
+    delete contexts_by_root_node_id[@_rootNodeID]
+
+ContextAwareMixin =
+  contextTypes: ctx: React.PropTypes.object
+  getInitialState: ->
+    ctx: find_ancestor_contexts(@)[0]
+
+ComponentContextComponent = React.createIdentityClass
+  displayName: 'ComponentContextComponent'
+  mixins: [ContextRegisteringMixin]
+  render: -> React.DOM.div null, @props.children
+
+_.extend exports, {
+  ComponentContextComponent,
+  ContextAwareMixin
+}
+
 modules = require './modules'
 
 ignore = new Object
@@ -71,7 +103,7 @@ collect_context_fns = (context) ->
   _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
 
 is_run_context = (o) ->
-  o?.imported_context_fns?
+  o?.component_list?
 
 # There are a few different reasons for binding function:
 # * a simple api for eval
@@ -115,6 +147,19 @@ bind_context_fns = (run_context, binder, fns, name_prefix='') ->
 
   result
 
+ContextComponent = React.createIdentityClass
+  displayName: 'ContextComponent'
+  mixins: [ContextRegisteringMixin, React.ObservableMixin]
+  get_observable: -> @props.model
+  propTypes:
+    ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
+    # TODO type
+    model: React.PropTypes.object.isRequired
+    layout: React.PropTypes.func.isRequired
+    layout_props: React.PropTypes.object
+  render: ->
+    @props.layout _.extend {components: @state.value}, @props.layout_props
+
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
   modules.load_modules(_.union imports or [], module_names or []).then (modules) ->
@@ -143,30 +188,35 @@ component_for_renderable = (renderable) ->
   if is_component renderable
     renderable
   # TODO remove context special case
-  else if renderable.component_list?
-    renderable.component_list.component
+  else if is_run_context renderable
+    renderable.component
 
-create_nested_component_list_context = (ctx) ->
-  ctx.create_nested_context
-    component_list: React.component_list()
+component_list = ->
+  components = []
+  model = new Bacon.Model []
+
+  model: model
+  add_component: (c) ->
+    unless c.props.key?
+      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{React.generate_component_id()}"
+    components.push c
+    model.set components.slice()
+  empty: ->
+    components = []
+    model.set []
+
+create_nested_component_list_context = (ctx, overrides) ->
+  ctx.create_nested_context overrides
 
 # creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_component_list_context ctx
-  ctx.add_component nested_context.component_list.component
+  ctx.add_component nested_context.component
   nested_context.apply_to fn, args
 
 # TODO this is an awful name
 create_context_run_context = ->
-  asyncs = new Bacon.Bus
-  changes = new Bacon.Bus
-  component_list = React.component_list()
-  changes.plug component_list.model
-
-  changes: changes
-  pending: asyncs.scan 0, (a, b) -> a + b
   current_options: {}
-  component_list: component_list
 
   options: -> @current_options
 
@@ -209,13 +259,13 @@ create_context_run_context = ->
   nested_item: (args...) -> nested_item @, args...
 
   create_nested_context: (overrides) ->
-    _.extend create_new_run_context(@), overrides
+    create_new_run_context @, overrides
 
   # DEPRECATED
   detached: (fn, args) ->
     nested_context = create_nested_component_list_context @
     nested_context.apply_to fn, args
-    nested_context.component_list.component
+    nested_context.component
 
   value: (value) -> _lead_context_fn_value: value
 
@@ -228,9 +278,9 @@ create_context_run_context = ->
 
     @promise_status promise, start_time
 
-    asyncs.push 1
+    @asyncs.push 1
     promise.finally =>
-      asyncs.push -1
+      @asyncs.push -1
       @changes.push true
     promise
   scoped_eval: scoped_eval
@@ -243,10 +293,24 @@ create_run_context = (extra_contexts) ->
   run_context_prototype.bound_fns = bind_context_fns scope_context, bind_fn, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
 
-  scope_context.current_context = create_new_run_context run_context_prototype
+  result = create_new_run_context run_context_prototype
 
-create_new_run_context = (parent) ->
-  new_context = Object.create parent
+  asyncs = new Bacon.Bus
+  changes = new Bacon.Bus
+  changes.plug result.component_list.model
+
+  _.extend result,
+    changes: changes
+    asyncs: asyncs
+    pending: asyncs.scan 0, (a, b) -> a + b
+
+
+  scope_context.current_context = result
+
+create_new_run_context = (parent, overrides) ->
+  new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
+  new_context.component_list = component_list()
+  new_context.component = ContextComponent ctx: new_context, model: new_context.component_list.model, layout: new_context.layout, layout_props: new_context.layout_props
 
   fns_and_vars = _.clone new_context.bound_fns
   _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
@@ -290,7 +354,7 @@ run_in_context = (run_context, fn) ->
   finally
     running_context_binding = previous_running_context_binding
 
-module.exports = {
+_.extend exports, {
   create_base_context,
   create_context,
   create_run_context,
@@ -299,5 +363,5 @@ module.exports = {
   eval_in_context,
   scope,
   collect_extension_points,
-  is_run_context
+  is_run_context,
 }

@@ -58,7 +58,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
       React.DOM.div {}, [
         React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
         _.map @props.docs.examples, (example) =>
-          builtins.ExampleComponent ctx: @props.ctx, value: "#{default_target_command} #{JSON.stringify example}", run: false
+          builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: false
       ]
 
   ParameterDocsComponent = React.createClass

@@ -274,8 +274,7 @@ modules.export exports, 'notebook', ({cmd}) ->
     output_cell.done = no_longer_pending.take(1).map -> output_cell
     context.run_in_context run_context, fn
 
-    # TODO don't use component_list
-    output_cell.component_model.set run_context.component_list.component
+    output_cell.component_model.set run_context.component
 
   create_bare_output_cell_and_context = (notebook) ->
     output_cell = create_output_cell notebook

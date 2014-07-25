@@ -1,6 +1,7 @@
 Marked = require 'marked'
 React = require './react_abuse'
 Components = require './components'
+Context = require './context'
 URI = require 'URIjs'
 _ = require 'underscore'
 
@@ -20,6 +21,7 @@ MarkdownComponent = React.createClass
     React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: Marked @props.value, marked_opts
 
 LeadMarkdownComponent = React.createClass
+  mixins: [Context.ContextAwareMixin]
   componentWillMount: ->
     codes = []
     renderer = new Marked.Renderer
@@ -32,9 +34,10 @@ LeadMarkdownComponent = React.createClass
     React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @state.html
   componentDidMount: ->
     _.each @state.codes, (code, i) =>
-      example_component = Components.ExampleComponent ctx: @props.ctx, value: code.code.trim(), run: true
+      example_component = Components.ExampleComponent value: code.code.trim(), run: true
       code_node = @getDOMNode().querySelector "div[data-lead-code-index='#{i}']"
-      React.renderComponent example_component, code_node
+      wrapper = Context.ComponentContextComponent {ctx: @state.ctx}, example_component
+      React.renderComponent wrapper, code_node
     _.each @getDOMNode().querySelectorAll('a'), (a) =>
       a.addEventListener 'click', (e) =>
         uri = URI a.href
