@@ -34,7 +34,6 @@ modules.export exports, 'notebook', ({cmd}) ->
   cmd 'clear', 'Clears the notebook', ->
     clear_notebook @notebook
 
-
   notebook_content_type = 'application/x-lead-notebook'
 
   forwards = +1
@@ -116,9 +115,7 @@ modules.export exports, 'notebook', ({cmd}) ->
     for cell in notebook.cells
       cell.active = false
     notebook.cells.length = 0
-    update_view notebook
-
-
+    focus_cell add_input_cell notebook
   cell_index = (cell) ->
     cell.notebook.cells.indexOf cell
 
