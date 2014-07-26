@@ -146,15 +146,17 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
-    render: -> React.DOM.pre {className: 'error'}, @props.message
+    render: ->
+      message = @props.message
+      if not message?
+        message = 'Unknown error'
+        # TODO include stack trace?
+      else if not _.isString message
+        message = message.toString()
+        # TODO handle exceptions better
+      React.DOM.pre {className: 'error'}, message
 
   component_fn 'error', 'Shows a preformatted error message', (ctx, message) ->
-    if not message?
-      message = 'Unknown error'
-      # TODO include stack trace?
-    else if not _.isString message
-      message = message.toString()
-      # TODO handle exceptions better
     ErrorComponent {message}
 
   component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
