@@ -65,7 +65,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         return fn_help_index ctx, fns
 
     # TODO shouldn't be pre
-    return PreComponent value: "Documentation for #{cmd} not found."
+    return React.DOM.pre null, "Documentation for #{cmd} not found."
 
   component_cmd 'help', 'Shows this help', (ctx, cmd) ->
     if arguments.length > 0
@@ -129,23 +129,15 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
 
-  TextComponent = React.createClass
-    displayName: 'TextComponent'
-    render: -> React.DOM.p {}, @props.value
-
-  PreComponent = React.createClass
-    displayName: 'PreComponent'
-    render: -> React.DOM.pre {}, @props.value
-
   HtmlComponent = React.createClass
     displayName: 'HtmlComponent'
     render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
   component_fn 'text', 'Prints text', (ctx, string) ->
-    TextComponent value: string
+    React.DOM.p {}, string
 
   component_fn 'pre', 'Prints preformatted text', (ctx, string) ->
-    PreComponent value: string
+    React.DOM.pre null, string
 
   component_fn 'html', 'Adds some HTML', (ctx, string) ->
     HtmlComponent value: string
@@ -174,17 +166,13 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       _.extend ctx.current_options, options
     ctx.value ctx.current_options
 
-  LinkComponent = React.createClass
-    displayName: 'LinkComponent'
-    render: -> React.DOM.a {href: @props.href}, @props.value
-
   component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
     uri = URI location.href
     uri.hash null
     code ?= ctx.previously_run()
     uri.query '?' + encodeURIComponent btoa code
     uri = uri.toString()
-    LinkComponent href: uri, value: uri
+    React.DOM.a {href: uri}, uri
 
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'
