@@ -180,7 +180,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'
-    mixins: [Context.ContextAwareMixin]
     render: ->
       if @state?.duration?
         ms = @state.duration
