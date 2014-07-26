@@ -212,7 +212,15 @@ create_nested_component_list_context = (ctx, overrides) ->
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_component_list_context ctx
   ctx.add_component nested_context.component
-  nested_context.apply_to fn, args
+  apply_to nested_context, fn, args
+
+apply_to = (ctx, fn, args) ->
+  previous_context = ctx.scope_context.current_context
+  ctx.scope_context.current_context = ctx
+  try
+    fn.apply ctx, args
+  finally
+    ctx.scope_context.current_context = previous_context
 
 # TODO this is an awful name
 create_context_run_context = ->
@@ -220,17 +228,9 @@ create_context_run_context = ->
 
   options: -> @current_options
 
-  apply_to: (fn, args) ->
-    previous_context = @scope_context.current_context
-    @scope_context.current_context = @
-    try
-      fn.apply @, args
-    finally
-      @scope_context.current_context = previous_context
-
   in_running_context: (fn, args) ->
     throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-    running_context_binding.apply_to fn, args
+    apply_to running_context_binding, fn, args
 
   # returns a function that calls its argument in the current context
   capture_context: ->
@@ -240,7 +240,7 @@ create_context_run_context = ->
       previous_running_context_binding = running_context_binding
       running_context_binding = running_context
       try
-        context.apply_to fn, args
+        apply_to context, fn, args
       finally
         running_context_binding = previous_running_context_binding
 
@@ -264,7 +264,7 @@ create_context_run_context = ->
   # DEPRECATED
   detached: (fn, args) ->
     nested_context = create_nested_component_list_context @
-    nested_context.apply_to fn, args
+    apply_to nested_context, fn, args
     nested_context.component
 
   value: (value) -> _lead_context_fn_value: value
@@ -367,5 +367,6 @@ _.extend exports, {
   scope,
   collect_extension_points,
   is_run_context,
-  register_promise
+  register_promise,
+  apply_to
 }
