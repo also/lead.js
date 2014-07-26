@@ -1,6 +1,5 @@
 URI = require 'URIjs'
 _ = require 'underscore'
-$ = require 'jquery'
 React = require 'react'
 notebook = require './notebook'
 settings = require './settings'
@@ -29,7 +28,7 @@ settings.set 'app', 'paths', 'also',
   repo: 'also/lead.js'
 
 exports.init_app = ->
-  $document = $ '#document'
+  document_elt = document.getElementById 'document'
 
   # TODO warn
   try
@@ -42,7 +41,7 @@ exports.init_app = ->
   nb = notebook.create_notebook {imports, module_names}
 
   nb.done (nb) ->
-    React.renderComponent nb.component, $document.get 0
+    React.renderComponent nb.component, document_elt
     rc = localStorage.lead_rc
     if rc?
       notebook.eval_coffeescript_without_input_cell nb, rc
