@@ -10,26 +10,26 @@ modules = require './modules'
 React = require './react_abuse'
 CoffeeScriptCell = require './coffeescript_cell'
 
-modules.export exports, 'notebook', ({cmd}) ->
+modules.export exports, 'notebook', ({fn, cmd}) ->
   cmd 'save', 'Saves the current notebook to a file', ->
     link = save @notebook, @input_cell
     @add_component React.DOM.a {href: link.href}, 'Download Notebook'
 
-  cmd 'load', 'Loads a script from a URL', (url, options={}) ->
-    if arguments.length is 0
-      open_file_picker @
-    else
-      @async ->
-        promise = http.execute_xhr url, dataType: 'text', type: 'get'
-        promise.then (xhr) =>
-          handle_file @,
-            filename: URI(url).filename()
-            type: xhr.getResponseHeader 'content-type'
-            content: xhr.responseText
-          , options
-        promise.fail (response) =>
-          @error response.statusText
-        promise
+  cmd 'load_file', 'Loads a notebook from a file', ->
+    open_file_picker @
+
+  fn 'load', 'Loads a script from a URL', (url, options={}) ->
+    @async ->
+      promise = http.execute_xhr url, dataType: 'text', type: 'get'
+      promise.then (xhr) =>
+        handle_file @,
+          filename: URI(url).filename()
+          type: xhr.getResponseHeader 'content-type'
+          content: xhr.responseText
+        , options
+      promise.fail (response) =>
+        @error response.statusText
+      promise
 
   cmd 'clear', 'Clears the notebook', ->
     clear_notebook @notebook
