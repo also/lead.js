@@ -8,7 +8,7 @@ CoffeeScript = require 'coffee-script'
 
 fix_marked_renderer_href = (fn, base_href) ->
   (href, args...) ->
-    fn URI(href).absoluteTo(base_href).toString(), args...
+    fn.call this, URI(href).absoluteTo(base_href).toString(), args...
 
 UserHtmlComponent = React.createClass
   displayName: 'UserHtmlComponent'
