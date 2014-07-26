@@ -18,10 +18,12 @@ Bacon = require 'bacon.model'
 modules = require './modules'
 http = require './http'
 global_settings = require './settings'
+Context = require './context'
+Builtins = require './builtins'
 
-notebook = require './notebook'
+Notebook = require './notebook'
 
-modules.export exports, 'github', ({fn, cmd, settings}) ->
+modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settings}) ->
   settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
   settings.default 'default', 'github.com'
 
@@ -37,7 +39,10 @@ modules.export exports, 'github', ({fn, cmd, settings}) ->
       github.get_site host
 
     default: -> settings.get 'default'
-    get_site: (name) -> settings.get 'githubs', name ? settings.get 'default'
+    get_site: (name) ->
+      site = settings.get 'githubs', name ? settings.get 'default'
+      if site?
+        _.extend {domain: name}, site
 
     get_repo_contents: (url) ->
       http.get(url)
@@ -95,18 +100,92 @@ modules.export exports, 'github', ({fn, cmd, settings}) ->
         else
           URI gist
 
-  fn 'load', 'Loads a file from GitHub', (path, options={}) ->
+  component_fn 'load', 'Loads a file from GitHub', (ctx, path, options={}) ->
     url = github.to_repo_url path
-    @async ->
-      authorized = ensure_access @, url
-      authorized.then (url) =>
-        @text "Loading file #{path}"
-        promise = github.get_repo_contents(url)
-        .then (file) =>
-          notebook.handle_file @, file, options
-        promise.fail (response) =>
-          @error response.statusText
-        promise
+    deferred = Q.defer()
+    promise = deferred.promise.then ->
+      github.get_repo_contents url
+    .fail (response) ->
+      Q.reject response.statusText
+    .then (file) ->
+      Notebook.handle_file ctx, file, options
+
+    EnsureAccessComponent {url, on_access: deferred.resolve},
+      Context.AsyncComponent {promise},
+        Builtins.ComponentAndError {promise},
+          "Loading file #{path}"
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
+
+  AccessTokenForm = React.createClass
+    displayName: 'AccessTokenForm'
+    handle_set: -> @props.handle_token @refs.input.getDOMNode().value
+    render: ->
+      React.DOM.div null,
+        React.DOM.p null,
+          # TODO use a friendlier url the the api base url
+          "Please set a GitHub access token for #{@props.site.api_base_url}: "
+          React.DOM.input ref: 'input'
+          React.DOM.button {onClick: @handle_set}, 'Set'
+        React.DOM.p null,
+          'lead.js requires an access token to use the GitHub API. You can create a '
+          React.DOM.a {href: 'https://github.com/blog/1509-personal-api-tokens', target: '_blank'}, 'personal access token'
+          # TODO just link to the settings
+          ' in the "Personal access tokens" section of your GitHub account "Applications" settings.'
+
+  EnsureAccessComponent = React.createClass
+    displayName: 'EnsureAccessComponent'
+    mixins: [Context.ContextAwareMixin]
+    getDefaultProps: ->
+      on_access: ->
+    getInitialState: ->
+      if @props.url?
+        site = github.get_site_from_url @props.url
+      else if @props.site?
+        site = @props.site
+      else
+        site = github.get_site github.default()
+
+      if (site.requires_access_token or @props.require_access_token) and not site.access_token?
+        tokens = new Bacon.Bus
+        user_details = tokens.flatMapLatest (access_token) =>
+          @setState token_status: 'validating'
+          Bacon.combineTemplate
+            user: Bacon.fromPromise http.get github.to_api_url(site, '/user').setQuery {access_token}
+            access_token: access_token
+          .changes()
+        user_details.onValue ({user, access_token}) =>
+          global_settings.user_settings.set 'github', 'githubs', site.domain, 'access_token', access_token
+          @props.on_access()
+          @setState user: user, token_status: 'valid'
+        user_details.onError =>
+          @setState token_status: 'invalid'
+
+        token_status: 'needed'
+        user: null
+        tokens: tokens
+        site: site
+      else
+        @props.on_access()
+
+        token_status: 'skip'
+    render: ->
+      if @state.token_status == 'skip'
+        React.DOM.div null, @props.children
+      else
+        message = switch @state.token_status
+          when 'needed' then React.DOM.strong null, 'You need to set a GitHub access token'
+          when 'validating' then React.DOM.strong null, 'Validating your token'
+          when 'valid' then React.DOM.strong null, 'Logged in as ', @state.user.name
+          when 'invalid' then React.DOM.strong null, "That access token didn't work. Try again?"
+        React.DOM.div null,
+          React.DOM.p null, message
+          if @state.token_status == 'valid'
+            @props.children
+          else
+            AccessTokenForm
+              site: @state.site,
+              require_access_token: @props.require_access_token
+              handle_token: (t) => @state.tokens.push t
 
   ensure_access = (ctx, url) ->
     unless url?
@@ -135,22 +214,30 @@ modules.export exports, 'github', ({fn, cmd, settings}) ->
     else
       Q url
 
-  cmd 'gist', 'Loads a script from a gist', (gist, options={}) ->
+  component_cmd 'gist', 'Loads a script from a gist', (ctx, gist, options={}) ->
     if arguments.length is 0
       @github.save_gist()
     else
       url = github.to_gist_url gist
-      @async ->
-        authorized = ensure_access @, url
-        authorized.then (url) =>
-          @text "Loading gist #{gist}"
-          promise = http.get url
-          promise.done (response) =>
-            @add_component GistLinkComponent gist: response
-            for name, file of response.files
-              notebook.handle_file @, file, options
-          promise.fail (response) =>
-            @error response.statusText
+
+      deferred = Q.defer()
+      gist_promise = deferred.promise.then ->
+        http.get url
+      .fail (response) ->
+        Q.reject response.statusText
+      promise = gist_promise
+      .then (response) ->
+        for name, file of response.files
+          Notebook.handle_file ctx, file, options
+
+      EnsureAccessComponent {url, on_access: deferred.resolve},
+        Context.AsyncComponent {promise},
+          Builtins.ComponentAndError {promise},
+            "Loading gist #{gist}"
+            Builtins.PromiseResolvedComponent
+              constructor: GistLinkComponent
+              promise: gist_promise.then (r) -> gist: r
+        Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   GistLinkComponent = React.createClass
     render: ->
@@ -184,23 +271,32 @@ modules.export exports, 'github', ({fn, cmd, settings}) ->
         React.DOM.p {}, React.DOM.a {href: lead_uri}, lead_uri.toString()
       ]
 
-  cmd 'save_gist', 'Saves a notebook as a gist', (id) ->
-    notebook = @export_notebook()
+  component_cmd 'save_gist', 'Saves a notebook as a gist', (ctx, id) ->
+    notebook = ctx.export_notebook()
     gist =
       public: true
       files:
         'notebook.lnb':
           content: JSON.stringify notebook, undefined, 2
-    @async ->
-      authorized = ensure_access @
-      authorized.then (url) =>
-        promise = if id?
-          github.update_gist id, gist
-        else
-          github.save_gist gist
-        promise.done (result) =>
-          @add_component NotebookGistLinkComponent gist: result
-        promise.fail =>
-          @error 'Save failed. Make sure your access token is configured correctly.'
+
+    deferred = Q.defer()
+    promise = deferred.promise.then ->
+      if id?
+        github.update_gist id, gist
+      else
+        github.save_gist gist
+    .fail (response) ->
+      Q.reject 'Save failed. Make sure your access token is configured correctly.'
+    .then (response) ->
+      gist: response
+
+    EnsureAccessComponent {on_access: deferred.resolve},
+      Context.AsyncComponent {promise},
+        Builtins.ComponentAndError {promise},
+          "Saving gist"
+          Builtins.PromiseResolvedComponent
+            constructor: NotebookGistLinkComponent
+            promise: promise
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   github

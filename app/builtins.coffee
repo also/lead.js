@@ -178,6 +178,20 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     uri = uri.toString()
     React.DOM.a {href: uri}, uri
 
+  PromiseResolvedComponent = React.createClass
+    displayName: 'PromiseResolvedComponent'
+    getInitialState: ->
+      @props.promise.then (v) =>
+        @setState value: v, resolved: true
+
+      value: null
+      resolved: false
+    render: ->
+      if @state.resolved
+        React.DOM.div null, @props.constructor @state.value
+      else
+        React.DOM.noscript null
+
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'
     render: ->
@@ -208,6 +222,17 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   component_fn 'promise_status', 'Displays the status of a promise', (ctx, promise, start_time=new Date) ->
     PromiseStatusComponent {promise, start_time}
+
+  ComponentAndError = React.createClass
+    displayName: 'ComponentAndError'
+    componentWillMount: ->
+      @props.promise.fail (e) =>
+        @setState error: e
+    getInitialState: -> error: null
+    render: ->
+      if @state.error?
+        error = ErrorComponent {message: @state.error}
+      React.DOM.div null, @props.children, error
 
   GridComponent = React.createClass
     displayName: 'GridComponent'
@@ -249,4 +274,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       ws.onmessage = (e) => ctx.run e.data
       ws.onerror = => ctx.error 'Error'
 
-  {ExampleComponent, PromiseStatusComponent}
+  {ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent}

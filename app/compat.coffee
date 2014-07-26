@@ -9,7 +9,8 @@ colors = require './colors'
 modules = require './modules'
 graphite = require './graphite'
 graph = require './graph'
-builtins = require './builtins'
+Builtins = require './builtins'
+Context = require './context'
 
 requireables = q: Q, _: _, moment: moment, colors: colors
 
@@ -212,17 +213,19 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
 
   component_fn 'graph', (ctx, args...) ->
     if Q.isPromise args[0]
-      data_promise = args[0]
+      promise = args[0]
       params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
     else
       graphite_params = graphite.args_to_params {args, default_options: ctx.options()}
       params = Bacon.constant graphite_params
-      data_promise = graphite.get_data graphite_params
+      promise = graphite.get_data graphite_params
 
-    data = Bacon.fromPromise(data_promise)
-    React.DOM.div {style: {width: '-webkit-min-content'}},
-      graph.create_component(data, params),
-      builtins.PromiseStatusComponent {promise: data_promise, start_time: new Date}
+    data = Bacon.fromPromise(promise)
+    Context.AsyncComponent {promise},
+      React.DOM.div {style: {width: '-webkit-min-content'}},
+        Builtins.ComponentAndError {promise},
+          graph.create_component(data, params),
+        Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   context_vars:
     moment: moment

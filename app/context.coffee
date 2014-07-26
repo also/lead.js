@@ -147,6 +147,16 @@ bind_context_fns = (run_context, binder, fns, name_prefix='') ->
 
   result
 
+AsyncComponent = React.createIdentityClass
+  displayName: 'AsyncComponent'
+  mixins: [ContextAwareMixin]
+  componentWillMount: ->
+    register_promise @state.ctx, @props.promise
+  componentWillUnmount: ->
+    # FIXME should unregister
+  render: ->
+    React.DOM.div null, @props.children
+
 ContextComponent = React.createIdentityClass
   displayName: 'ContextComponent'
   mixins: [ContextRegisteringMixin, React.ObservableMixin]
@@ -370,5 +380,6 @@ _.extend exports, {
   is_run_context,
   register_promise,
   apply_to,
-  value
+  value,
+  AsyncComponent
 }
