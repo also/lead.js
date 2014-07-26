@@ -13,7 +13,7 @@ builtins = require './builtins'
 
 requireables = q: Q, _: _, moment: moment, colors: colors
 
-compat = modules.export exports, 'compat', ({fn, doc} ) ->
+compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
   doc 'graph',
     'Loads and graphs time-series data'
     """
@@ -210,17 +210,17 @@ compat = modules.export exports, 'compat', ({fn, doc} ) ->
     ```
     """
 
-  fn 'graph', (args...) ->
+  component_fn 'graph', (ctx, args...) ->
     if Q.isPromise args[0]
       data_promise = args[0]
-      params = Bacon.combineTemplate _.extend {}, @options(), args[1]
+      params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
     else
-      graphite_params = graphite.args_to_params {args, default_options: @options()}
+      graphite_params = graphite.args_to_params {args, default_options: ctx.options()}
       params = Bacon.constant graphite_params
       data_promise = graphite.get_data graphite_params
 
     data = Bacon.fromPromise(data_promise)
-    @add_component React.DOM.div null,
+    React.DOM.div {style: {width: '-webkit-min-content'}},
       graph.create_component(data, params),
       builtins.PromiseStatusComponent {promise: data_promise, start_time: new Date}
 
