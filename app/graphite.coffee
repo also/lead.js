@@ -14,6 +14,7 @@ parser = require './graphite_parser'
 builtins = require './builtins'
 Html = require './html'
 Documentation = require './documentation'
+Context = require './context'
 
 graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) ->
   build_function_doc = (ctx, doc) ->
@@ -47,11 +48,11 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     For example, `sumSeries(q('twitter.*.tweetcount'))` will be sent as `sumSeries(twitter.*.tweetcount)`.
     """
 
-  fn 'q', (targets...) ->
+  fn 'q', (ctx, targets...) ->
     for t in targets
       unless _.isString t
         throw new TypeError "#{t} is not a string"
-    @value new dsl.type.q targets.map(String)...
+    Context.value new dsl.type.q targets.map(String)...
 
   FunctionDocsComponent = React.createClass
     render: ->
@@ -106,9 +107,9 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     ```
     '''
 
-  fn 'params', (args...) ->
-    result = args_to_params @, args
-    @value result
+  fn 'params', (ctx, args...) ->
+    result = args_to_params ctx, args
+    Context.value result
 
   component_fn 'url', 'Generates a URL for a graph image', (ctx, args...) ->
     params = args_to_params ctx, args
@@ -192,10 +193,10 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
       .fail (reason) =>
         @error 'Find request failed'
         Q.reject reason
-     @value {promise, clicks, component}
+     Context.value {promise, clicks, component}
 
-  fn 'get_data', 'Fetches Graphite metric data', (args...) ->
-    @value graphite.get_data graphite.args_to_params {args, default_options: @options()}
+  fn 'get_data', 'Fetches Graphite metric data', (ctx, args...) ->
+    Context.value graphite.get_data graphite.args_to_params {args, default_options: ctx.options()}
 
   context_vars: -> dsl.define_functions {}, function_names
 

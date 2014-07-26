@@ -222,6 +222,8 @@ apply_to = (ctx, fn, args) ->
   finally
     ctx.scope_context.current_context = previous_context
 
+value = (value) -> _lead_context_fn_value: value
+
 # TODO this is an awful name
 create_context_run_context = ->
   current_options: {}
@@ -267,7 +269,6 @@ create_context_run_context = ->
     apply_to nested_context, fn, args
     nested_context.component
 
-  value: (value) -> _lead_context_fn_value: value
 
   # TODO
   # async and renderable don't make much sense together. a context is only async if it is the target of something async.
@@ -368,5 +369,6 @@ _.extend exports, {
   collect_extension_points,
   is_run_context,
   register_promise,
-  apply_to
+  apply_to,
+  value
 }

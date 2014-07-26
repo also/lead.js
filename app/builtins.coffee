@@ -105,7 +105,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
   fn 'In', 'Gets previous input', (ctx, n) ->
-    ctx.value ctx.get_input_value n
+    Context.value ctx.get_input_value n
 
   doc 'object',
     'Prints an object as JSON'
@@ -166,7 +166,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   fn 'options', 'Gets or sets options', (ctx, options) ->
     if options?
       _.extend ctx.current_options, options
-    ctx.value ctx.current_options
+    Context.value ctx.current_options
 
   component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
     uri = URI location.href

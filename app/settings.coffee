@@ -2,13 +2,14 @@ _ = require 'underscore'
 $ = require 'jquery'
 Bacon = require 'baconjs'
 modules = require './modules'
+Context = require './context'
 
 init = ->
   modules.export exports, 'settings', ({fn}) ->
-    fn 'set', 'Sets a user setting', (keys..., value) ->
+    fn 'set', 'Sets a user setting', (ctx, keys..., value) ->
       user_settings.set keys..., value
-    fn 'get', 'Gets a setting', (keys...) ->
-      @value global_settings.get keys...
+    fn 'get', 'Gets a setting', (ctx, keys...) ->
+      Context.value global_settings.get keys...
 
 create = (overrides=get:->) ->
   data = {}

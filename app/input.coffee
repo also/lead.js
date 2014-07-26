@@ -2,6 +2,7 @@ _ = require 'underscore'
 Bacon = require 'bacon.model'
 modules = require './modules'
 React = require './react_abuse'
+Context = require './context'
 
 InputMixin = _.extend {}, React.ObservableMixin,
   get_observable: -> @props.model
@@ -39,12 +40,12 @@ input = modules.export exports, 'input', ({fn}) ->
   # inputs and selects return a Bacon.Model, which is a property with get and set methods
   # https://github.com/baconjs/bacon.model
 
-  fn 'text_input', 'A text input field', (default_value='') ->
+  fn 'text_input', 'A text input field', (ctx, default_value='') ->
     {component, model} = create_component InputComponent, {type: 'text', default_value}
-    @add_component component
-    @value model
+    ctx.add_component component
+    Context.value model
 
-  fn 'select', 'A select field', (options, default_value) ->
+  fn 'select', 'A select field', (ctx, options, default_value) ->
     unless default_value
       v = options[0]
       default_value = if _.isArray v
@@ -52,13 +53,13 @@ input = modules.export exports, 'input', ({fn}) ->
       else
         v
     {component, model} = create_component SelectComponent, {options, default_value}
-    @add_component component
-    @value model
+    ctx.add_component component
+    Context.value model
 
-  fn 'button', 'A button', (value) ->
+  fn 'button', 'A button', (ctx, value) ->
     bus = new Bacon.Bus()
-    @add_component React.DOM.button {onClick: (e) -> bus.push e}, value
-    @value bus
+    ctx.add_component React.DOM.button {onClick: (e) -> bus.push e}, value
+    Context.value bus
 
   fn 'live', 'Updates when the property changes', (property, fn) ->
     @nested_item ->
