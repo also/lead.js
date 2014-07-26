@@ -190,7 +190,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     displayName: 'PromiseStatusComponent'
     mixins: [Context.ContextAwareMixin]
     render: ->
-      if @state?
+      if @state?.duration?
         ms = @state.duration
         duration = if ms >= 1000
           s = (ms / 1000).toFixed 1
