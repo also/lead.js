@@ -47,8 +47,13 @@ LeadMarkdownComponent = React.createClass
     components = []
     _.each tokens, (t, i) ->
       if t.type != 'code'
-        if t.type == 'paragraph' and t.text == '<!-- norun -->'
-          tokens[i + 1]?.norun = true
+        if t.type == 'paragraph'
+          if t.text == '<!-- norun -->'
+            tokens[i + 1]?.norun = true
+          else if t.text == '<!-- noinline -->'
+            tokens[i + 1]?.noinline = true
+          else
+            current_tokens.push t
         else
           current_tokens.push t
       else
@@ -57,8 +62,8 @@ LeadMarkdownComponent = React.createClass
           components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, Marked.defaults
           current_tokens = []
         value = t.text.trim()
-        if t.norun
-          components.push Components.ExampleComponent {value}
+        if t.norun or t.noinline
+          components.push Components.ExampleComponent {value, run: t.noinline}
         else
           components.push InlineExampleComponent {value}
     if current_tokens.length > 0
