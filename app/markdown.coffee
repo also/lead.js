@@ -35,7 +35,7 @@ InlineExampleComponent = React.createClass
 
     nested_context = @state.ctx.create_nested_context()
     value = @props.value
-    Context.apply_to capture_context, -> Context.run_in_context @, -> @scoped_eval CoffeeScript.compile value, {bare: true}
+    Context.apply_to nested_context, -> Context.run_in_context @, -> @scoped_eval CoffeeScript.compile value, {bare: true}
     React.DOM.div {className: 'inline-example'}, example_component, nested_context.component
 
 LeadMarkdownComponent = React.createClass
