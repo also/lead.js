@@ -329,11 +329,11 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
         try
           imported = JSON.parse file.content
         catch e
-          run_context.fns.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+          run_context.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
           return
         version = imported.lead_js_version
         unless version?
-          run_context.fns.error "File #{file.filename} isn't a lead.js notebook"
+          run_context.error "File #{file.filename} isn't a lead.js notebook"
           return
         import_notebook run_context.notebook, run_context.output_cell, imported, options
 
