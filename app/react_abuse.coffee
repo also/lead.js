@@ -37,7 +37,7 @@ SimpleObservableComponent = createIdentityClass
 SimpleLayoutComponent = createIdentityClass
   displayName: 'SimpleLayoutComponent'
   render: ->
-    React.DOM.div {}, @props.components
+    React.DOM.div {}, @props.children
 
 PropsModelComponent = createIdentityClass
   displayName: 'PropsModelComponent'

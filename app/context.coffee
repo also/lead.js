@@ -158,7 +158,7 @@ ContextComponent = React.createIdentityClass
     layout: React.PropTypes.func.isRequired
     layout_props: React.PropTypes.object
   render: ->
-    @props.layout _.extend {components: @state.value}, @props.layout_props
+    @props.layout _.extend {children: @state.value}, @props.layout_props
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
@@ -278,12 +278,15 @@ create_context_run_context = ->
 
     @promise_status promise, start_time
 
-    @asyncs.push 1
-    promise.finally =>
-      @asyncs.push -1
-      @changes.push true
+    register_promise @, promise
     promise
   scoped_eval: scoped_eval
+
+register_promise = (ctx, promise) ->
+  ctx.asyncs.push 1
+  promise.finally =>
+    ctx.asyncs.push -1
+    ctx.changes.push true
 
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
@@ -364,4 +367,5 @@ _.extend exports, {
   scope,
   collect_extension_points,
   is_run_context,
+  register_promise
 }

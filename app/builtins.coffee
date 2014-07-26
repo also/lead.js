@@ -214,15 +214,25 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       rows = []
       row = null
       cols = @props.cols
-      _.each @props.components, (component, i) ->
+      _.each @props.children, (component, i) ->
         if i % cols == 0
           row = []
           rows.push row
         row.push React.DOM.div {style: {flex: 1}}, component
       React.DOM.div null, _.map rows, (row) -> React.DOM.div {style: {display: 'flex'}}, row
 
+  FlowComponent = React.createClass
+    displayName: 'FlowComponent'
+    render: ->
+      React.DOM.div {style: {display: 'flex', flexWrap: 'wrap'}}, @props.children
+
   fn 'grid', 'Generates a grid with a number of columns', (ctx, cols, fn) ->
     nested_context = ctx.create_nested_context layout: GridComponent, layout_props: {cols}
+    ctx.add_component nested_context.component
+    nested_context.apply_to fn
+
+  fn 'flow', 'Flows components next to each other', (ctx, fn) ->
+    nested_context = ctx.create_nested_context layout: FlowComponent
     ctx.add_component nested_context.component
     nested_context.apply_to fn
 
