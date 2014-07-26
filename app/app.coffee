@@ -27,9 +27,7 @@ settings.set 'app', 'paths', 'also',
   site: 'github.com'
   repo: 'also/lead.js'
 
-exports.init_app = ->
-  document_elt = document.getElementById 'document'
-
+exports.init_app = (target) ->
   # TODO warn
   try
     _.each JSON.parse(localStorage.getItem 'lead_user_settings'), (v, k) -> settings.user_settings.set k, v
@@ -41,7 +39,10 @@ exports.init_app = ->
   nb = notebook.create_notebook {imports, module_names}
 
   nb.done (nb) ->
-    React.renderComponent nb.component, document_elt
+    app_component = React.DOM.div {className: 'lead'},
+      React.DOM.div {className: 'nav-bar'}, 'lead'
+      React.DOM.div {className: 'document cm-s-idle'}, nb.component
+    React.renderComponent app_component, target
     rc = localStorage.lead_rc
     if rc?
       notebook.eval_coffeescript_without_input_cell nb, rc
