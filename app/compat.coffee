@@ -23,6 +23,7 @@ compat = modules.export exports, 'compat', ({fn, doc} ) ->
 
     For example:
 
+    <!-- norun -->
     ```
     graph randomWalkFunction 'hello, world'
     ```
@@ -30,6 +31,7 @@ compat = modules.export exports, 'compat', ({fn, doc} ) ->
     # Data format
     The format for graph data is an array of time series:
 
+    <!-- norun -->
     ```
     [
       {

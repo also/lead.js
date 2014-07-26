@@ -4,12 +4,19 @@ Components = require './components'
 Context = require './context'
 URI = require 'URIjs'
 _ = require 'underscore'
+CoffeeScript = require 'coffee-script'
 
 fix_marked_renderer_href = (fn, base_href) ->
   (href, args...) ->
     fn URI(href).absoluteTo(base_href).toString(), args...
 
+UserHtmlComponent = React.createClass
+  displayName: 'UserHtmlComponent'
+  render: ->
+    React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.html
+
 MarkdownComponent = React.createClass
+  displayName: 'MarkdownComponent'
   render: ->
     marked_opts = {}
     base_href = @props.opts?.base_href
@@ -18,32 +25,55 @@ MarkdownComponent = React.createClass
       renderer.link = fix_marked_renderer_href renderer.link, base_href
       renderer.image = fix_marked_renderer_href renderer.image, base_href
       marked_opts.renderer = renderer
-    React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: Marked @props.value, marked_opts
+    UserHtmlComponent html: Marked @props.value, marked_opts
+
+InlineExampleComponent = React.createClass
+  displayName: 'InlineExampleComponent'
+  mixins: [Context.ContextAwareMixin]
+  render: ->
+    example_component = Components.ExampleComponent value: @props.value, run: true
+
+    nested_context = @state.ctx.create_nested_context()
+    value = @props.value
+    nested_context.apply_to -> @scoped_eval CoffeeScript.compile value
+    React.DOM.div {className: 'inline-example'}, example_component, nested_context.component
 
 LeadMarkdownComponent = React.createClass
+  displayName: 'LeadMarkdownComponent'
   mixins: [Context.ContextAwareMixin]
-  componentWillMount: ->
-    codes = []
-    renderer = new Marked.Renderer
-    renderer.code = (code, language) ->
-      result = "<div data-lead-code-index='#{codes.length}'></div>"
-      codes.push {code, language}
-      result
-    @setState html: Marked(@props.value, {renderer}), codes: codes
+  getInitialState: ->
+    tokens = Marked.Lexer.lex @props.value, Marked.defaults
+    current_tokens = []
+    components = []
+    _.each tokens, (t, i) ->
+      if t.type != 'code'
+        if t.type == 'paragraph' and t.text == '<!-- norun -->'
+          tokens[i + 1]?.norun = true
+        else
+          current_tokens.push t
+      else
+        if current_tokens.length > 0
+          current_tokens.links = tokens.links
+          components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, Marked.defaults
+          current_tokens = []
+        value = t.text.trim()
+        if t.norun
+          components.push Components.ExampleComponent {value}
+        else
+          components.push InlineExampleComponent {value}
+    if current_tokens.length > 0
+      current_tokens.links = tokens.links
+      components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, Marked.defaults
+    {components}
   render: ->
-    React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @state.html
+    React.DOM.div className: 'lead-markdown', @state.components
   componentDidMount: ->
-    _.each @state.codes, (code, i) =>
-      example_component = Components.ExampleComponent value: code.code.trim(), run: true
-      code_node = @getDOMNode().querySelector "div[data-lead-code-index='#{i}']"
-      wrapper = Context.ComponentContextComponent {ctx: @state.ctx}, example_component
-      React.renderComponent wrapper, code_node
     _.each @getDOMNode().querySelectorAll('a'), (a) =>
       a.addEventListener 'click', (e) =>
         uri = URI a.href
         if uri.protocol() == 'help'
           e.preventDefault()
-          @props.ctx.run "help #{JSON.stringify uri.path()}"
+          @state.ctx.run "help #{JSON.stringify uri.path()}"
 
 module.exports = {MarkdownComponent, LeadMarkdownComponent}
 
