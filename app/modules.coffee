@@ -36,10 +36,10 @@ _.extend exports,
 
     # TODO does this belong here?
     component_fn = optional_doc_fn (name, f) ->
-      fn name, (ctx) -> ctx.add_component f.apply null, arguments
+      fn name, (ctx) -> Context.add_component ctx, f.apply null, arguments
 
     component_cmd = optional_doc_fn (name, f) ->
-      cmd name, (ctx) -> ctx.add_component f.apply null, arguments
+      cmd name, (ctx) -> Context.add_component ctx, f.apply null, arguments
 
     mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?

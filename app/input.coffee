@@ -42,7 +42,7 @@ input = modules.export exports, 'input', ({fn}) ->
 
   fn 'text_input', 'A text input field', (ctx, default_value='') ->
     {component, model} = create_component InputComponent, {type: 'text', default_value}
-    ctx.add_component component
+    Context.add_component ctx, component
     Context.value model
 
   fn 'select', 'A select field', (ctx, options, default_value) ->
@@ -53,12 +53,12 @@ input = modules.export exports, 'input', ({fn}) ->
       else
         v
     {component, model} = create_component SelectComponent, {options, default_value}
-    ctx.add_component component
+    Context.add_component ctx, component
     Context.value model
 
   fn 'button', 'A button', (ctx, value) ->
     bus = new Bacon.Bus()
-    ctx.add_component React.DOM.button {onClick: (e) -> bus.push e}, value
+    Context.add_component ctx, React.DOM.button {onClick: (e) -> bus.push e}, value
     Context.value bus
 
   fn 'live', 'Updates when the property changes', (property, fn) ->

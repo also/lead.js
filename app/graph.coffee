@@ -7,9 +7,9 @@ Bacon = require 'bacon.model'
 React = require './react_abuse'
 modules = require './modules'
 
-graph = modules.export exports, 'graph', ({fn, cmd}) ->
-  fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
-    @add_component graph.create_component data, params
+graph = modules.export exports, 'graph', ({component_fn}) ->
+  component_fn 'graph', 'Graphs time series data using d3', (ctx, data, params={}) ->
+    graph.create_component data, params
 
   create_component: (data, params) ->
     data = Bacon.fromPromise data if Q.isPromise data

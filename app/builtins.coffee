@@ -256,12 +256,12 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   fn 'grid', 'Generates a grid with a number of columns', (ctx, cols, fn) ->
     nested_context = ctx.create_nested_context layout: GridComponent, layout_props: {cols}
-    ctx.add_component nested_context.component
+    Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
   fn 'flow', 'Flows components next to each other', (ctx, fn) ->
     nested_context = ctx.create_nested_context layout: FlowComponent
-    ctx.add_component nested_context.component
+    Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
   fn 'websocket', 'Runs commands from a web socket', (ctx, url) ->
@@ -274,4 +274,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       ws.onmessage = (e) => ctx.run e.data
       ws.onerror = => ctx.error 'Error'
 
-  {ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent}

@@ -35,7 +35,7 @@ describe 'contexts', ->
     it 'can output', ->
       run_context = Context.create_run_context []
       text = 'hello, world'
-      run_context.add_component React.DOM.span null, text
+      Context.add_component run_context, React.DOM.span null, text
       $el = render run_context
       expect($el.text()).to.be text
 

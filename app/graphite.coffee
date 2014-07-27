@@ -16,7 +16,7 @@ Html = require './html'
 Documentation = require './documentation'
 Context = require './context'
 
-graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) ->
+graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   build_function_doc = (ctx, doc) ->
     FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
 
@@ -74,25 +74,28 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         if href[0] is '#'
           ctx.run "docs '#{decodeURI href[1..]}'"
 
-  cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (ctx, name) ->
+  component_cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (ctx, name) ->
     if name?
       name = name.to_js_string() if name.to_js_string?
       name = name._lead_context_fn?.name if name._lead_op?
       function_docs = docs.function_docs[name]
+      help_components = []
       if function_docs?
-        ctx.help "graphite_functions.#{name}"
+        help_components.push Builtins.help_component ctx, "graphite_functions.#{name}"
       name = docs.parameter_doc_ids[name] ? name
       parameter_docs = docs.parameter_docs[name]
       if parameter_docs?
-        ctx.help "graphite_parameters.#{name}"
-      unless function_docs? or parameter_docs?
-        ctx.text 'Documentation not found'
-    else
-      ctx.add_component React.DOM.h3 {}, 'Functions'
-      ctx.help 'graphite_functions'
+        help_components.push Builtins.help_component ctx, "graphite_parameters.#{name}"
 
-      ctx.add_component React.DOM.h3 {}, 'Parameters'
-      ctx.help 'graphite_parameters'
+      if help_components.length == 0
+        help_components.push 'Documentation not found'
+      React.DOM.div null, help_components
+    else
+      React.DOM.div null,
+        React.DOM.h3 {}, 'Functions'
+        Builtins.help_component ctx, 'graphite_functions'
+        React.DOM.h3 {}, 'Parameters'
+        Builtins.help_component ctx, 'graphite_parameters'
 
   doc 'params',
     'Generates the parameters for a render API call'
@@ -158,14 +161,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
-  fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
-    finder = @graphite.find query
+  component_fn 'browser', 'Browse Graphite metrics using a wildcard query', (ctx, query) ->
+    finder = ctx.graphite.find query
     finder.clicks.onValue (node) =>
       if node.is_leaf
-        @run "q(#{JSON.stringify node.path})"
+        ctx.run "q(#{JSON.stringify node.path})"
       else
-        @run "browser #{JSON.stringify node.path + '.*'}"
-    @add_component finder.component
+        ctx.run "browser #{JSON.stringify node.path + '.*'}"
+    finder.component
 
   FindResultsComponent = React.createClass
     render: ->

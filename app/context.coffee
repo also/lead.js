@@ -215,13 +215,16 @@ component_list = ->
     components = []
     model.set []
 
+add_component = (ctx, component) ->
+  ctx.component_list.add_component component
+
 create_nested_component_list_context = (ctx, overrides) ->
   ctx.create_nested_context overrides
 
 # creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_component_list_context ctx
-  ctx.add_component nested_context.component
+  add_component ctx, nested_context.component
   apply_to nested_context, fn, args
 
 apply_to = (ctx, fn, args) ->
@@ -261,9 +264,6 @@ create_context_run_context = ->
     restoring_context = @capture_context()
     ->
       restoring_context fn, arguments
-
-  add_component: (component) ->
-    @component_list.add_component component
 
   empty: -> @component_list.empty()
 
@@ -367,5 +367,6 @@ _.extend exports, {
   apply_to,
   value,
   scoped_eval,
+  add_component,
   AsyncComponent
 }
