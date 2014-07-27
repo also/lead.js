@@ -114,36 +114,20 @@ bind_fn_to_current_context = (run_context, fn) ->
     args.unshift run_context.current_context
     fn.apply run_context.current_context, args
 
-bind_fn = (run_context, fn) ->
-  (args...) ->
-    unless is_run_context args[0]
-      if is_run_context @
-        console.warn 'called without ctx as first parameter'
-        ctx = @
-      else
-        ctx = run_context.current_context
-      args.unshift ctx
-    fn.apply null, args
-
-bind_context_fns = (run_context, binder, fns, name_prefix='') ->
+bind_context_fns = (run_context, fns, name_prefix='') ->
   result = {}
   for k, o of fns
     do (k, o) ->
       if _.isFunction o.fn
-        if o.fn.toString().indexOf('function (ctx') == 0
-          fn = o.fn
-        else
-          fn = (ctx, args...) -> o.fn.apply ctx, args
-
         name = "#{name_prefix}#{k}"
         wrapped_fn = ->
-          fn.apply(@, arguments)?._lead_context_fn_value ? ignore
-        bound = binder run_context, wrapped_fn
+          o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
+        bound = bind_fn_to_current_context run_context, wrapped_fn
         bound._lead_context_fn = o
         bound._lead_context_name = name
         result[k] = bound
       else
-        result[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, binder, o, k + '.'
+        result[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, o, k + '.'
 
   result
 
@@ -281,8 +265,7 @@ create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
   run_context_prototype.run_context_prototype = run_context_prototype
   scope_context = {}
-  run_context_prototype.scoped_fns = bind_context_fns scope_context, bind_fn_to_current_context, run_context_prototype.imported_context_fns
-  run_context_prototype.bound_fns = bind_context_fns scope_context, bind_fn, run_context_prototype.imported_context_fns
+  run_context_prototype.scoped_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
 
   result = create_new_run_context run_context_prototype
@@ -303,16 +286,6 @@ create_new_run_context = (parent, overrides) ->
   new_context.component_list = component_list()
   new_context.component = ContextComponent ctx: new_context, model: new_context.component_list.model, layout: new_context.layout, layout_props: new_context.layout_props
 
-  fns_and_vars = _.clone new_context.bound_fns
-  _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
-
-  # TODO isn't this just importing builtins?
-  _.extend fns_and_vars, fns_and_vars.builtins
-  _.each fns_and_vars, (mod, name) ->
-    if parent.run_context_prototype[name]?
-      console.warn mod._lead_context_name, 'would overwrite core'
-    else
-      new_context[name] = mod
   new_context.current_context = new_context
   new_context
 

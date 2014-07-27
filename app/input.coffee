@@ -61,7 +61,7 @@ input = modules.export exports, 'input', ({fn}) ->
     Context.add_component ctx, React.DOM.button {onClick: (e) -> bus.push e}, value
     Context.value bus
 
-  fn 'live', 'Updates when the property changes', (property, fn) ->
+  fn 'live', 'Updates when the property changes', (ctx, property, fn) ->
     Context.nested_item @, ->
       unless property.onValue?
         property = Bacon.combineTemplate property
