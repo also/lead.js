@@ -109,12 +109,12 @@ collect_context_fns = (context) ->
 is_run_context = (o) ->
   o?.component_list?
 
-bind_fn_to_current_context = (run_context, fn) ->
+bind_fn_to_current_context = (scope_context, fn) ->
   (args...) ->
-    args.unshift run_context.current_context
-    fn.apply run_context.current_context, args
+    args.unshift scope_context.current_context
+    fn.apply scope_context.current_context, args
 
-bind_context_fns = (run_context, fns, name_prefix='') ->
+bind_context_fns = (scope_context, fns, name_prefix='') ->
   result = {}
   for k, o of fns
     do (k, o) ->
@@ -122,12 +122,12 @@ bind_context_fns = (run_context, fns, name_prefix='') ->
         name = "#{name_prefix}#{k}"
         wrapped_fn = ->
           o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
-        bound = bind_fn_to_current_context run_context, wrapped_fn
+        bound = bind_fn_to_current_context scope_context, wrapped_fn
         bound._lead_context_fn = o
         bound._lead_context_name = name
         result[k] = bound
       else
-        result[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, o, k + '.'
+        result[k] = _.extend {_lead_context_name: k}, bind_context_fns scope_context, o, k + '.'
 
   result
 
