@@ -139,9 +139,10 @@ describe 'contexts', ->
 
     it 'can output in nested items', ->
       context_a = Context.create_run_context [ctx]
-      Context.eval_in_context context_a,->
+      context_a.imported_vars.Context = Context
+      Context.eval_in_context context_a, ->
         text 'a'
-        @nested_item ->
+        Context.nested_item @, ->
           text 'b'
       $el = render context_a
       expect($el.text()).to.be 'ab'
@@ -176,8 +177,9 @@ describe 'contexts', ->
 
     it 'allows output in an async block after render', (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
+      context_a.imported_vars.Context = Context
       Context.eval_in_context context_a, ->
-        @nested_item ->
+        Context.nested_item @, ->
           setTimeout @keeping_context ->
             @text 'a'
             complete()
