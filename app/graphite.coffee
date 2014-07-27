@@ -129,9 +129,6 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         React.DOM.img onLoad: deferred.resolve, onError: deferred.reject, src: url
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
-    #promise.fail (args...) =>
-    #  @error 'Failed to load image'
-
   TimeSeriesTable = React.createClass
     render: ->
       React.DOM.table {}, _.map @props.datapoints, ([value, timestamp]) ->
@@ -162,7 +159,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   component_fn 'browser', 'Browse Graphite metrics using a wildcard query', (ctx, query) ->
-    finder = ctx.graphite.find query
+    finder = graphite.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
     finder.clicks.onValue (node) =>
       if node.is_leaf
         ctx.run "q(#{JSON.stringify node.path})"
@@ -182,7 +179,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
           s = '.' + s unless i == 0
           React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
 
-  fn 'find', 'Finds Graphite metrics', (query) ->
+  fn 'find', 'Finds Graphite metrics', (ctx, query) ->
     promise = graphite.find(query)
     .then (r) =>
       results.set r.result

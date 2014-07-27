@@ -17,10 +17,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     model = Bacon.Model()
     model.addSource stream
     # TODO seems like the combined stream doesn't error?
-    stream.onError (error) =>
-      # TODO this should be in a nested context
-      # TODO error handling
-      @error error
+    # TODO error handling
     graph.GraphComponent {model}
 
   GraphComponent: React.createClass
