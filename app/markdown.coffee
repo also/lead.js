@@ -33,7 +33,7 @@ InlineExampleComponent = React.createClass
   render: ->
     example_component = Components.ExampleComponent value: @props.value, run: true
 
-    nested_context = @state.ctx.create_nested_context()
+    nested_context = Context.create_nested_context @state.ctx
     value = @props.value
     Context.apply_to nested_context, ->
       Context.run_in_context @, (ctx) ->

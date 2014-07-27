@@ -255,12 +255,12 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       React.DOM.div {style: {display: 'flex', flexWrap: 'wrap'}}, @props.children
 
   fn 'grid', 'Generates a grid with a number of columns', (ctx, cols, fn) ->
-    nested_context = ctx.create_nested_context layout: GridComponent, layout_props: {cols}
+    nested_context = Context.create_nested_context ctx, layout: GridComponent, layout_props: {cols}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
   fn 'flow', 'Flows components next to each other', (ctx, fn) ->
-    nested_context = ctx.create_nested_context layout: FlowComponent
+    nested_context = Context.create_nested_context ctx, layout: FlowComponent
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 

@@ -205,12 +205,9 @@ add_component = (ctx, component) ->
 remove_all_components = (ctx) ->
   ctx.component_list.empty()
 
-create_nested_component_list_context = (ctx, overrides) ->
-  ctx.create_nested_context overrides
-
 # creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
-  nested_context = create_nested_component_list_context ctx
+  nested_context = create_nested_context ctx
   add_component ctx, nested_context.component
   apply_to nested_context, fn, args
 
@@ -225,9 +222,7 @@ apply_to = (ctx, fn, args) ->
 value = (value) -> _lead_context_fn_value: value
 
 # TODO this is an awful name
-create_context_run_context = ->
-  current_options: {}
-
+context_run_context_prototype =
   options: -> @current_options
 
   in_running_context: (fn, args) ->
@@ -252,9 +247,6 @@ create_context_run_context = ->
     ->
       restoring_context fn, arguments
 
-  create_nested_context: (overrides) ->
-    create_new_run_context @, overrides
-
 register_promise = (ctx, promise) ->
   ctx.asyncs.push 1
   promise.finally =>
@@ -262,29 +254,34 @@ register_promise = (ctx, promise) ->
     ctx.changes.push true
 
 create_run_context = (extra_contexts) ->
-  run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
+  run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
   run_context_prototype.run_context_prototype = run_context_prototype
   scope_context = {}
   run_context_prototype.scoped_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
 
-  result = create_new_run_context run_context_prototype
+  result = create_nested_context run_context_prototype
 
   asyncs = new Bacon.Bus
   changes = new Bacon.Bus
   changes.plug result.component_list.model
 
   _.extend result,
+    current_options: {}
     changes: changes
     asyncs: asyncs
     pending: asyncs.scan 0, (a, b) -> a + b
 
   scope_context.current_context = result
 
-create_new_run_context = (parent, overrides) ->
+create_nested_context = (parent, overrides) ->
   new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
   new_context.component_list = component_list()
-  new_context.component = ContextComponent ctx: new_context, model: new_context.component_list.model, layout: new_context.layout, layout_props: new_context.layout_props
+  new_context.component = ContextComponent
+    ctx: new_context
+    model: new_context.component_list.model
+    layout: new_context.layout
+    layout_props: new_context.layout_props
 
   new_context.current_context = new_context
   new_context
@@ -323,6 +320,7 @@ _.extend exports, {
   create_context,
   create_run_context,
   create_standalone_context,
+  create_nested_context,
   run_in_context,
   eval_in_context,
   scope,
