@@ -347,15 +347,16 @@ handle_file = (ctx, file, options={}) ->
     else if extension is 'md'
       run_without_input_cell ctx.notebook, after: ctx.output_cell, (ctx) ->
         Context.add_component ctx, Markdown.MarkdownComponent value: file.content, opts: {base_href: file.base_href}
+        Context.IGNORE
     else
       try
         imported = JSON.parse file.content
       catch e
-        ctx.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+        Builtins.context_fns.error.fn ctx, "File #{file.filename} isn't a lead.js notebook:\n#{e}"
         return
       version = imported.lead_js_version
       unless version?
-        ctx.error "File #{file.filename} isn't a lead.js notebook"
+        Builtins.context_fns.error.fn ctx "File #{file.filename} isn't a lead.js notebook"
         return
       import_notebook ctx.notebook, ctx.output_cell, imported, options
 
