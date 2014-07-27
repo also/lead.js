@@ -1,6 +1,9 @@
 CoffeeScript = require 'coffee-script'
 Editor = require './editor'
 Context = require './context'
+Builtins = require './builtins'
+React = require 'react'
+Components = require './components'
 printStackTrace = require 'stacktrace-js'
 
 recompile = (error_marks, editor) ->
@@ -23,14 +26,17 @@ create_fn = (string) ->
   ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      Context.scoped_eval @, compiled
+      return Context.scoped_eval @, compiled
     catch e
       if e instanceof SyntaxError
-        @error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        Context.add_component @, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         console.error e.stack
-        @error printStackTrace({e}).join('\n')
-        @text 'Compiled JavaScript:'
-        @source 'javascript', compiled
+        Context.add_component @, React.DOM.div null,
+          Builtins.ErrorComponent message: printStackTrace({e}).join('\n')
+          'Compiled JavaScript:'
+          Components.SourceComponent language: 'javascript', value: compiled
+     # this isn't a context fn, so it's value will be displayed
+     Context.IGNORE
 
 module.exports = {recompile, get_fn, create_fn}

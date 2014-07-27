@@ -274,4 +274,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       ws.onmessage = (e) => ctx.run e.data
       ws.onerror = => ctx.error 'Error'
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent}

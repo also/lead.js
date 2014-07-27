@@ -368,5 +368,6 @@ _.extend exports, {
   add_component,
   remove_all_components,
   nested_item,
-  AsyncComponent
+  AsyncComponent,
+  IGNORE: ignore
 }
