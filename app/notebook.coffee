@@ -229,7 +229,7 @@ focus_cell = (cell) ->
 
 OutputCellComponent = React.createIdentityClass
   displayName: 'OutputCellComponent'
-  mixins: [React.ObservableMixin]
+  mixins: [React.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: -> @props.cell.component_model
   render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value
   componentDidMount: ->
