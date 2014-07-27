@@ -271,12 +271,6 @@ create_context_run_context = ->
   create_nested_context: (overrides) ->
     create_new_run_context @, overrides
 
-  # DEPRECATED
-  detached: (fn, args) ->
-    nested_context = create_nested_component_list_context @
-    apply_to nested_context, fn, args
-    nested_context.component
-
 register_promise = (ctx, promise) ->
   ctx.asyncs.push 1
   promise.finally =>
