@@ -268,9 +268,6 @@ create_context_run_context = ->
     ->
       restoring_context fn, arguments
 
-  # TODO should this really be exposed? what should it be called?
-  nested_item: (args...) -> nested_item @, args...
-
   create_nested_context: (overrides) ->
     create_new_run_context @, overrides
 
@@ -370,5 +367,6 @@ _.extend exports, {
   scoped_eval,
   add_component,
   remove_all_components,
+  nested_item,
   AsyncComponent
 }
