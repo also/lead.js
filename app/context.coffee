@@ -255,7 +255,6 @@ register_promise = (ctx, promise) ->
 
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
-  run_context_prototype.run_context_prototype = run_context_prototype
   scope_context = {}
   run_context_prototype.scoped_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
   run_context_prototype.scope_context = scope_context
@@ -283,7 +282,6 @@ create_nested_context = (parent, overrides) ->
     layout: new_context.layout
     layout_props: new_context.layout_props
 
-  new_context.current_context = new_context
   new_context
 
 scope = (run_context) ->
