@@ -8,6 +8,7 @@ _ = require 'underscore'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require './react_abuse'
+Builtins = require './builtins'
 
 contexts_by_root_node_id = {}
 
@@ -55,14 +56,16 @@ handle_cmd = (ctx, object) ->
       op.cmd_fn.call null, ctx
       true
     else
-      ctx.text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
-      ctx.help object
+      add_component ctx, React.DOM.div null,
+        "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
+        Builtins.help_component object
       true
 
 handle_module = (ctx, object) ->
   if object?._lead_context_name
-    ctx.text "#{object._lead_context_name} is a module."
-    ctx.help object
+    add_component ctx, React.DOM.div null,
+      "#{object._lead_context_name} is a module."
+      Builtins.help_component object
     true
 
 handle_using_extension = (ctx, object) ->
@@ -70,7 +73,7 @@ handle_using_extension = (ctx, object) ->
   _.find handlers, (handler) -> handler ctx, object
 
 handle_any_object = (ctx, object) ->
-  ctx.object object
+  add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
   true
 
 # TODO make this configurable
