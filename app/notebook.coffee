@@ -265,19 +265,19 @@ run = (input_cell) ->
   input_cell.notebook.cell_run.push input_cell
   output_cell
 
-run_with_context = (run_context, fn) ->
-  output_cell = run_context.output_cell
-  changes = run_context.changes
+run_with_context = (ctx, fn) ->
+  output_cell = ctx.output_cell
+  changes = ctx.changes
   # pending is a property that has the initial value 0 and tracks the number of pending promises
-  pending = run_context.pending
+  pending = ctx.pending
   has_pending = pending.map (n) -> n > 0
   # a cell is "done enough" if there were no async tasks,
   # or when the first async task completes
-  no_longer_pending = run_context.changes.skipWhile has_pending
+  no_longer_pending = ctx.changes.skipWhile has_pending
   output_cell.done = no_longer_pending.take(1).map -> output_cell
-  Context.run_in_context run_context, fn
+  Context.run_in_context ctx, fn
 
-  output_cell.component_model.set run_context.component
+  output_cell.component_model.set ctx.component
 
 create_bare_output_cell_and_context = (notebook) ->
   output_cell = create_output_cell notebook
@@ -319,35 +319,35 @@ open_file_picker = (run_context) ->
   run_context.notebook.opening_run_context = run_context
   run_context.notebook.$file_picker.trigger 'click'
 
-handle_file = (run_context, file, options={}) ->
+handle_file = (ctx, file, options={}) ->
   if file.type.indexOf('image') < 0
     [prefix..., extension] = file.filename.split '.'
     if extension is 'coffee'
-      cell = add_input_cell run_context.notebook, after: run_context.output_cell
+      cell = add_input_cell ctx.notebook, after: ctx.output_cell
       # TODO cell type
       set_cell_value cell, file.content
       if options.run
         run cell
     else if extension is 'md'
-      run_without_input_cell run_context.notebook, after: run_context.output_cell, (ctx) ->
+      run_without_input_cell ctx.notebook, after: ctx.output_cell, (ctx) ->
         Context.add_component ctx, Markdown.MarkdownComponent value: file.content, opts: {base_href: file.base_href}
     else
       try
         imported = JSON.parse file.content
       catch e
-        run_context.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+        ctx.error "File #{file.filename} isn't a lead.js notebook:\n#{e}"
         return
       version = imported.lead_js_version
       unless version?
-        run_context.error "File #{file.filename} isn't a lead.js notebook"
+        ctx.error "File #{file.filename} isn't a lead.js notebook"
         return
-      import_notebook run_context.notebook, run_context.output_cell, imported, options
+      import_notebook ctx.notebook, ctx.output_cell, imported, options
 
-load_file = (run_context, file) ->
+load_file = (ctx, file) ->
   if file.type.indexOf('image') < 0
     reader = new FileReader
     reader.onload = (e) ->
-      handle_file run_context,
+      handle_file ctx,
         filename: file.name
         content: e.target.result
         type: file.type
