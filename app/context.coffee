@@ -8,7 +8,8 @@ _ = require 'underscore'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require './react_abuse'
-Builtins = require './builtins'
+
+# CAREFUL ABOUT PUTTING MORE IMPORTS HERE! OTHER MODULES DEPEND ON THE COMPONENTS BELOW
 
 contexts_by_root_node_id = {}
 
@@ -41,6 +42,7 @@ _.extend exports, {
   ContextAwareMixin
 }
 
+Builtins = require './builtins'
 modules = require './modules'
 
 ignore = new Object
