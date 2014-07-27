@@ -1,7 +1,7 @@
 ###
 context_fns: context functions collected from all modules. unbound
 imported_context_fns: context_fns + the fns from all modules listed in imports
-fns: imported_context_fns, bound to the scope_context
+fns: imported_context_fns, bound to the scope.ctx
 ###
 
 _ = require 'underscore'
@@ -109,12 +109,12 @@ collect_context_fns = (context) ->
 is_run_context = (o) ->
   o?.component_list?
 
-bind_fn_to_current_context = (scope_context, fn) ->
+bind_fn_to_current_context = (scope, fn) ->
   (args...) ->
-    args.unshift scope_context.current_context
-    fn.apply scope_context.current_context, args
+    args.unshift scope.ctx
+    fn.apply scope.ctx, args
 
-bind_context_fns = (scope_context, fns, name_prefix='') ->
+bind_context_fns = (scope, fns, name_prefix='') ->
   result = {}
   for k, o of fns
     do (k, o) ->
@@ -122,12 +122,12 @@ bind_context_fns = (scope_context, fns, name_prefix='') ->
         name = "#{name_prefix}#{k}"
         wrapped_fn = ->
           o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
-        bound = bind_fn_to_current_context scope_context, wrapped_fn
+        bound = bind_fn_to_current_context scope, wrapped_fn
         bound._lead_context_fn = o
         bound._lead_context_name = name
         result[k] = bound
       else
-        result[k] = _.extend {_lead_context_name: k}, bind_context_fns scope_context, o, k + '.'
+        result[k] = _.extend {_lead_context_name: k}, bind_context_fns scope, o, k + '.'
 
   result
 
@@ -212,12 +212,12 @@ nested_item = (ctx, fn, args...) ->
   apply_to nested_context, fn, args
 
 apply_to = (ctx, fn, args) ->
-  previous_context = ctx.scope_context.current_context
-  ctx.scope_context.current_context = ctx
+  previous_context = ctx.scope.ctx
+  ctx.scope.ctx = ctx
   try
     fn.apply ctx, args
   finally
-    ctx.scope_context.current_context = previous_context
+    ctx.scope.ctx = previous_context
 
 value = (value) -> _lead_context_fn_value: value
 
@@ -255,9 +255,10 @@ register_promise = (ctx, promise) ->
 
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
-  scope_context = {}
-  run_context_prototype.scoped_fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
-  run_context_prototype.scope_context = scope_context
+  scope = {}
+  run_context_prototype.scoped_fns = bind_context_fns scope, run_context_prototype.imported_context_fns
+  _.extend scope, run_context_prototype.scoped_fns, run_context_prototype.imported_vars
+  run_context_prototype.scope = scope
 
   result = create_nested_context run_context_prototype
 
@@ -271,7 +272,7 @@ create_run_context = (extra_contexts) ->
     asyncs: asyncs
     pending: asyncs.scan 0, (a, b) -> a + b
 
-  scope_context.current_context = result
+  scope.ctx = result
 
 create_nested_context = (parent, overrides) ->
   new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
@@ -284,9 +285,6 @@ create_nested_context = (parent, overrides) ->
 
   new_context
 
-scope = (run_context) ->
-  _.extend {}, run_context.scoped_fns, run_context.imported_vars
-
 create_standalone_context = ({imports, module_names}={}) ->
   base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
   create_run_context [create_context base_context]
@@ -294,7 +292,7 @@ create_standalone_context = ({imports, module_names}={}) ->
 scoped_eval = (ctx, string) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
-  context_scope = scope ctx
+  context_scope = ctx.scope
   `with (context_scope) {`
   result = (-> eval string).call ctx
   `}`
@@ -320,7 +318,6 @@ _.extend exports, {
   create_nested_context,
   run_in_context,
   eval_in_context,
-  scope,
   collect_extension_points,
   is_run_context,
   register_promise,
