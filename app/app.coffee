@@ -39,46 +39,45 @@ exports.init_app = (target) ->
 
   nb = notebook.create_notebook {imports, module_names}
 
-  nb.done (nb) ->
-    app_component = React.DOM.div {className: 'lead'},
-      React.DOM.div {className: 'nav-bar'}, 'lead'
-      React.DOM.div {className: 'document cm-s-idle'}, nb.component
-    React.renderComponent app_component, target
-    rc = localStorage.lead_rc
-    if rc?
-      notebook.eval_coffeescript_without_input_cell nb, rc
+  app_component = React.DOM.div {className: 'lead'},
+    React.DOM.div {className: 'nav-bar'}, 'lead'
+    React.DOM.div {className: 'document cm-s-idle'}, nb.component
+  React.renderComponent app_component, target
+  rc = localStorage.lead_rc
+  if rc?
+    notebook.eval_coffeescript_without_input_cell nb, rc
 
-    window.onhashchange = -> window.location.reload()
+  window.onhashchange = -> window.location.reload()
 
-    uri = URI location.href
-    fragment = uri.fragment()
-    if fragment.length > 0 and fragment[0] == '/'
-      path = fragment[1..]
-      [repo_name, blob...] = path.split('/')
-      repo = settings.get 'app', 'paths', repo_name
-      if repo?
-        url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
-        program = (ctx) ->
-          GitHub.context_fns.load.fn ctx, url, run: true
-          Context.IGNORE
-      else
-        program = (ctx) ->
-          GitHub.context_fns.gist.fn ctx, path, run: true
-          Context.IGNORE
-      notebook.run_without_input_cell nb, null, program
-
-      first_cell = notebook.add_input_cell nb
-      notebook.focus_cell first_cell
-
+  uri = URI location.href
+  fragment = uri.fragment()
+  if fragment.length > 0 and fragment[0] == '/'
+    path = fragment[1..]
+    [repo_name, blob...] = path.split('/')
+    repo = settings.get 'app', 'paths', repo_name
+    if repo?
+      url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
+      program = (ctx) ->
+        GitHub.context_fns.load.fn ctx, url, run: true
+        Context.IGNORE
     else
-      program = if location.search isnt ''
-        atob decodeURIComponent location.search[1..]
-      else
-        intro_command = settings.get 'app', 'intro_command'
+      program = (ctx) ->
+        GitHub.context_fns.gist.fn ctx, path, run: true
+        Context.IGNORE
+    notebook.run_without_input_cell nb, null, program
 
-      first_cell = notebook.add_input_cell nb
-      if program? and program != ''
-        notebook.set_cell_value first_cell, program
-        notebook.run first_cell
-      else
-        notebook.focus_cell first_cell
+    first_cell = notebook.add_input_cell nb
+    notebook.focus_cell first_cell
+
+  else
+    program = if location.search isnt ''
+      atob decodeURIComponent location.search[1..]
+    else
+      intro_command = settings.get 'app', 'intro_command'
+
+    first_cell = notebook.add_input_cell nb
+    if program? and program != ''
+      notebook.set_cell_value first_cell, program
+      notebook.run first_cell
+    else
+      notebook.focus_cell first_cell

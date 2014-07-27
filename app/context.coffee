@@ -43,7 +43,7 @@ _.extend exports, {
 }
 
 Builtins = require './builtins'
-modules = require './modules'
+Modules = require './modules'
 
 ignore = new Object
 
@@ -92,7 +92,7 @@ display_object = (ctx, object) ->
     return if handler ctx, object
 
 collect_extension_points = (context, extension_point) ->
-  modules.collect_extension_points context.modules, extension_point
+  Modules.collect_extension_points context.modules, extension_point
 
 collect_context_vars = (context) ->
   module_vars = (module, name) ->
@@ -156,8 +156,8 @@ ContextComponent = React.createIdentityClass
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
-  modules.load_modules(_.union imports or [], module_names or []).then (modules) ->
-    {modules, imports}
+  modules = Modules.get_modules(_.union imports or [], module_names or [])
+  {modules, imports}
 
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
@@ -290,9 +290,8 @@ scope = (run_context) ->
   _.extend {}, run_context.scoped_fns, run_context.imported_vars
 
 create_standalone_context = ({imports, module_names}={}) ->
-  create_base_context({imports: ['builtins'].concat(imports or []), module_names})
-  .then (base_context) ->
-    create_run_context [create_context base_context]
+  base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
+  create_run_context [create_context base_context]
 
 scoped_eval = (ctx, string) ->
   if _.isFunction string

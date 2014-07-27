@@ -23,10 +23,8 @@ later = (done, fn) ->
 
 describe 'contexts', ->
   describe 'base contexts', ->
-    it 'can be created', (done) ->
+    it 'can be created', ->
       Context.create_base_context(imports: ['builtins'])
-      .then(-> done())
-      .fail done
 
   describe 'run contexts', ->
     it 'can be created', ->
@@ -53,17 +51,14 @@ describe 'contexts', ->
     set_test_result = (r) ->
       result = r
 
-    beforeEach (done) ->
+    beforeEach ->
       complete_callback = ->
       ctx = null
       result = null
-      Context.create_base_context(imports: ['builtins'])
-      .then (base_context) ->
-        base_context.modules.test_module = test_module
-        ctx = Context.create_context base_context
-        ctx.imported_context_fns.complete = test_module.context_fns.complete
-        done()
-      .fail done # this won't actually get called: https://github.com/jrburke/requirejs/issues/911
+      base_context = Context.create_base_context(imports: ['builtins'])
+      base_context.modules.test_module = test_module
+      ctx = Context.create_context base_context
+      ctx.imported_context_fns.complete = test_module.context_fns.complete
 
     it 'can run javascript strings', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]

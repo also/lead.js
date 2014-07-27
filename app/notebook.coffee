@@ -94,9 +94,9 @@ create_notebook = (opts) ->
       # FIXME
       $('html, body').scrollTop $(output_cell.dom_node).offset().top
 
-  Context.create_base_context(opts).then (base_context) ->
-    notebook.base_context = base_context
-    notebook
+  base_context = Context.create_base_context(opts)
+  notebook.base_context = base_context
+  notebook
 
 export_notebook = (notebook, current_cell) ->
   lead_js_version: 0

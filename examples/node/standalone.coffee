@@ -1,13 +1,12 @@
 fs = require 'fs'
+React = require 'react'
 lead = require 'lead.js'
-context = lead.require 'context'
+Context = lead.require 'context'
 CoffeeScriptCell = lead.require 'coffeescript_cell'
 
 script = fs.readFileSync __dirname + '/../random_walks.coffee', encoding: 'utf-8'
 
-context.create_standalone_context(imports: ['compat', 'graph'])
-.done (ctx) ->
-  context.run_in_context ctx, CoffeeScriptCell.create_fn script
-  setTimeout ->
-    console.log context.render(ctx).html()
-  , 100
+context = Context.create_standalone_context(imports: ['compat'])
+Context.run_in_context context, CoffeeScriptCell.create_fn script
+# FIXME doesn't render graph, Q logs error
+console.log React.renderComponentToString context.component

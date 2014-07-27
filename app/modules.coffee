@@ -54,10 +54,10 @@ _.extend exports,
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
 
-  load_module: (module_name) ->
+  get_module: (module_name) ->
     mod = require './' + module_name
     mod.init?()
     mod
 
-  load_modules: (module_names) ->
-    Q.resolve _.object module_names, _.map module_names, module.exports.load_module
+  get_modules: (module_names) ->
+    _.object module_names, _.map module_names, module.exports.get_module
