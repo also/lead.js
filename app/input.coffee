@@ -66,5 +66,5 @@ input = modules.export exports, 'input', ({fn}) ->
       unless property.onValue?
         property = Bacon.combineTemplate property
       property.onValue @keeping_context (v) ->
-        @empty()
-        @apply_to fn, [v]
+        Context.remove_all_components @
+        Context.apply_to @, fn, [v]
