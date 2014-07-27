@@ -3,7 +3,8 @@ _ = require 'underscore'
 React = require 'react'
 notebook = require './notebook'
 settings = require './settings'
-github = require './github'
+GitHub = require './github'
+Context = require './context'
 
 module_names = ['http', 'dsl', 'graph', 'settings']
 
@@ -58,10 +59,12 @@ exports.init_app = (target) ->
       if repo?
         url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
         program = ->
-          @github.load url, run: true
+          GitHub.context_fns.load.fn @, url, run: true
+          Context.IGNORE
       else
         program = ->
-          @github.gist path, run: true
+          GitHub.context_fns.gist.fn @, path, run: true
+          Context.IGNORE
       notebook.run_without_input_cell nb, null, program
 
       first_cell = notebook.add_input_cell nb

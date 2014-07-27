@@ -109,10 +109,6 @@ collect_context_fns = (context) ->
 is_run_context = (o) ->
   o?.component_list?
 
-# There are a few different reasons for binding function:
-# * a simple api for eval
-# * unimported functions: so that `this` points to the context when calling a function like
-#   `@github.load()`
 bind_fn_to_current_context = (run_context, fn) ->
   (args...) ->
     args.unshift run_context.current_context
