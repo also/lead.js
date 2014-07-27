@@ -187,33 +187,6 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
               require_access_token: @props.require_access_token
               handle_token: (t) => @state.tokens.push t
 
-  ensure_access = (ctx, url) ->
-    unless url?
-      domain = github.default()
-      site = github.get_site domain
-    else
-      site = github.get_site_from_url url
-      domain = url.hostname()
-    if site? and site.requires_access_token and not site.access_token?
-      result = Q.defer()
-      ctx.text 'Please set a GitHub access token:'
-      input = ctx.input.text_input()
-      button = ctx.input.button('Save')
-      user_details = button.map(input).flatMapLatest (access_token) ->
-        Bacon.combineTemplate
-          user: Bacon.fromPromise http.get github.to_api_url(site, '/user').setQuery {access_token}
-          access_token: access_token
-        .changes()
-      user_details.onValue ({user, access_token}) =>
-        global_settings.user_settings.set 'github', 'githubs', domain, 'access_token', access_token
-        ctx.text "Logged in as #{user.name}"
-        result.resolve url?.setQuery {access_token}
-      user_details.onError =>
-        ctx.text "That access token didn't work. Try again?"
-      result.promise
-    else
-      Q url
-
   component_cmd 'gist', 'Loads a script from a gist', (ctx, gist, options={}) ->
     if arguments.length is 0
       @github.save_gist()
