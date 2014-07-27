@@ -23,7 +23,7 @@ create_fn = (string) ->
   ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      @scoped_eval compiled
+      Context.scoped_eval @, compiled
     catch e
       if e instanceof SyntaxError
         @error "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"

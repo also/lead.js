@@ -279,8 +279,6 @@ create_context_run_context = ->
     apply_to nested_context, fn, args
     nested_context.component
 
-  scoped_eval: scoped_eval
-
 register_promise = (ctx, promise) ->
   ctx.asyncs.push 1
   promise.finally =>
@@ -334,17 +332,17 @@ create_standalone_context = ({imports, module_names}={}) ->
   .then (base_context) ->
     create_run_context [create_context base_context]
 
-scoped_eval = (string) ->
+scoped_eval = (ctx, string) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
-  context_scope = scope @
+  context_scope = scope ctx
   `with (context_scope) {`
-  result = (-> eval string).call @
+  result = (-> eval string).call ctx
   `}`
   result
 
 eval_in_context = (run_context, string) ->
-  run_in_context run_context, -> @scoped_eval string
+  run_in_context run_context, -> scoped_eval @, string
 
 run_in_context = (run_context, fn) ->
   try
@@ -368,5 +366,6 @@ _.extend exports, {
   register_promise,
   apply_to,
   value,
+  scoped_eval,
   AsyncComponent
 }
