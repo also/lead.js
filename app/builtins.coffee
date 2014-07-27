@@ -190,7 +190,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       if @state.resolved
         React.DOM.div null, @props.constructor @state.value
       else
-        React.DOM.noscript null
+        null
 
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'

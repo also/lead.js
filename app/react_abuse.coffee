@@ -6,7 +6,7 @@ component_id = 1
 
 createIdentityClass = (args...) ->
   cls = React.createClass args...
-  prefix = cls.originalSpec.displayName ? 'identity'
+  prefix = cls.displayName ? 'identity'
   (props, args...) ->
     props ?= {}
     props.key = "#{prefix}_#{component_id++}"
