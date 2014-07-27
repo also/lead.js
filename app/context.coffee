@@ -47,31 +47,30 @@ ignore = new Object
 running_context_binding = null
 
 # statement result handlers. return truthy if handled.
-ignored = (object) -> object == ignore
+ignored = (ctx, object) -> object == ignore
 
-handle_cmd = (object) ->
+handle_cmd = (ctx, object) ->
   if (op = object?._lead_context_fn)?
     if op.cmd_fn?
-      op.cmd_fn.call null, @
+      op.cmd_fn.call null, ctx
       true
     else
-      @text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
-      @help object
+      ctx.text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
+      ctx.help object
       true
 
-handle_module = (object) ->
+handle_module = (ctx, object) ->
   if object?._lead_context_name
-    @text "#{object._lead_context_name} is a module."
-    @help object
+    ctx.text "#{object._lead_context_name} is a module."
+    ctx.help object
     true
 
-handle_using_extension = (object) ->
-  handlers = collect_extension_points @, 'context_result_handler'
-  context = @
-  _.find handlers, (handler) -> handler.call context, object
+handle_using_extension = (ctx, object) ->
+  handlers = collect_extension_points ctx, 'context_result_handler'
+  _.find handlers, (handler) -> handler ctx, object
 
-handle_any_object = (object) ->
-  @object object
+handle_any_object = (ctx, object) ->
+  ctx.object object
   true
 
 # TODO make this configurable
@@ -85,7 +84,7 @@ result_handlers =[
 
 display_object = (ctx, object) ->
   for handler in result_handlers
-    return if handler.call ctx, object
+    return if handler ctx, object
 
 collect_extension_points = (context, extension_point) ->
   modules.collect_extension_points context.modules, extension_point

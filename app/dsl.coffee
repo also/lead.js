@@ -96,16 +96,16 @@ dsl.is_dsl_node = (x) ->
   x instanceof dsl.type
 
 # TODO rename
-dsl.context_result_handler = (object) ->
+dsl.context_result_handler = (ctx, object) ->
   if dsl.is_dsl_node object
     lead_string = dsl.to_string object
     if _.isFunction object
-      @text "#{lead_string} is a Graphite function"
-      @example "docs #{object.values[0]}"
+      ctx.text "#{lead_string} is a Graphite function"
+      ctx.example "docs #{object.values[0]}"
     else
-      @text "What do you want to do with #{lead_string}?"
+      ctx.text "What do you want to do with #{lead_string}?"
       for f in ['data', 'graph', 'img', 'url']
-        @example "#{f} #{object.to_js_string()}"
+        ctx.example "#{f} #{object.to_js_string()}"
     true
 
 module.exports = dsl
