@@ -231,7 +231,7 @@ OutputCellComponent = React.createIdentityClass
   displayName: 'OutputCellComponent'
   mixins: [React.ObservableMixin]
   get_observable: -> @props.cell.component_model
-  render: -> React.DOM.div {className: 'cell output clean', 'data-cell-number': @props.cell.number}, @state.value
+  render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value
   componentDidMount: ->
     @props.cell.dom_node = @getDOMNode()
 
