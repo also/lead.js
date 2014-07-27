@@ -193,8 +193,8 @@ InputCellComponent = React.createIdentityClass
   permalink_link_clicked: -> generate_permalink @props.cell
 
 generate_permalink = (cell) ->
-  run_without_input_cell cell.notebook, after: cell.output_cell ? cell, ->
-    Builtins.context_fns.permalink.fn @
+  run_without_input_cell cell.notebook, after: cell.output_cell ? cell, (ctx) ->
+    Builtins.context_fns.permalink.fn ctx
     Context.IGNORE
 
 create_input_cell = (notebook) ->
@@ -329,8 +329,8 @@ handle_file = (run_context, file, options={}) ->
       if options.run
         run cell
     else if extension is 'md'
-      run_without_input_cell run_context.notebook, after: run_context.output_cell, ->
-        Context.add_component @, Markdown.MarkdownComponent value: file.content, opts: {base_href: file.base_href}
+      run_without_input_cell run_context.notebook, after: run_context.output_cell, (ctx) ->
+        Context.add_component ctx, Markdown.MarkdownComponent value: file.content, opts: {base_href: file.base_href}
     else
       try
         imported = JSON.parse file.content
@@ -382,16 +382,16 @@ _.extend exports, {
   handle_file: handle_file
 
   save: (cell) ->
-    run_without_input_cell cell.notebook, before: cell, ->
-      exports.context_fns.save.fn @
+    run_without_input_cell cell.notebook, before: cell, (ctx) ->
+      exports.context_fns.save.fn ctx
       Context.IGNORE
 
   context_help: (cell, token) ->
-    run_without_input_cell cell.notebook, before: cell, ->
+    run_without_input_cell cell.notebook, before: cell, (ctx) ->
       if Graphite.has_docs token
-        Graphite.context_fns.docs.fn @, token
+        Graphite.context_fns.docs.fn ctx, token
       else if cell.context.imported_context_fns[token]?
-        Context.add_component @, Builtins.help_component @, token
+        Context.add_component ctx, Builtins.help_component ctx, token
       Context.IGNORE
 
   move_focus: (cell, offset) ->

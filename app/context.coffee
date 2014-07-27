@@ -307,13 +307,13 @@ scoped_eval = (ctx, string) ->
   result
 
 eval_in_context = (run_context, string) ->
-  run_in_context run_context, -> scoped_eval @, string
+  run_in_context run_context, (ctx) -> scoped_eval ctx, string
 
 run_in_context = (run_context, fn) ->
   try
     previous_running_context_binding = running_context_binding
     running_context_binding = run_context
-    result = fn.apply run_context
+    result = fn run_context
     display_object run_context, result
   finally
     running_context_binding = previous_running_context_binding

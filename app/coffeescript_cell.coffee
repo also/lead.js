@@ -23,16 +23,16 @@ get_fn = (run_context) ->
 # create the function for a string
 # this is exposed for cases where there is no input cell
 create_fn = (string) ->
-  ->
+  (ctx) ->
     try
       compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      return Context.scoped_eval @, compiled
+      return Context.scoped_eval ctx, compiled
     catch e
       if e instanceof SyntaxError
-        Context.add_component @, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         console.error e.stack
-        Context.add_component @, React.DOM.div null,
+        Context.add_component ctx, React.DOM.div null,
           Builtins.ErrorComponent message: printStackTrace({e}).join('\n')
           'Compiled JavaScript:'
           Components.SourceComponent language: 'javascript', value: compiled

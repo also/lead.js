@@ -89,9 +89,9 @@ describe 'contexts', ->
     it 'can use other contexts', ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
-      Context.run_in_context context_a, ->
-        @function_in_context_a = =>
-          @value_in_context_a = 'a'
+      Context.run_in_context context_a, (ctx) ->
+        ctx.function_in_context_a = ->
+          ctx.value_in_context_a = 'a'
       eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
@@ -99,9 +99,9 @@ describe 'contexts', ->
     it 'can use the running context', ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
-      Context.run_in_context context_a, ->
-        @function_in_context_a = =>
-          @in_running_context ->
+      Context.run_in_context context_a, (ctx) ->
+        ctx.function_in_context_a = ->
+          ctx.in_running_context ->
             @value_in_context_a = 'a'
       eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be(undefined)
@@ -111,9 +111,9 @@ describe 'contexts', ->
     it 'can keep the running context in an async function', (done) ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
-      Context.run_in_context context_a, ->
-        @function_in_context_a = =>
-          @in_running_context ->
+      Context.run_in_context context_a, (ctx) ->
+        ctx.function_in_context_a = ->
+          ctx.in_running_context ->
             @value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
         async = ->
@@ -128,8 +128,8 @@ describe 'contexts', ->
     it 'can use the running context when calling a function from another context', ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
-      Context.run_in_context context_a, ->
-        @function_in_context_a = ->
+      Context.run_in_context context_a, (ctx) ->
+        ctx.function_in_context_a = ->
             @value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
         @value_in_context_b = @in_running_context @context_a.function_in_context_a

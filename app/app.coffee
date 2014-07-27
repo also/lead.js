@@ -58,12 +58,12 @@ exports.init_app = (target) ->
       repo = settings.get 'app', 'paths', repo_name
       if repo?
         url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
-        program = ->
-          GitHub.context_fns.load.fn @, url, run: true
+        program = (ctx) ->
+          GitHub.context_fns.load.fn ctx, url, run: true
           Context.IGNORE
       else
-        program = ->
-          GitHub.context_fns.gist.fn @, path, run: true
+        program = (ctx) ->
+          GitHub.context_fns.gist.fn ctx, path, run: true
           Context.IGNORE
       notebook.run_without_input_cell nb, null, program
 
