@@ -147,27 +147,12 @@ describe 'contexts', ->
       $el = render context_a
       expect($el.text()).to.be 'ab'
 
-    # TODO reconsider this behavior
-    ###
-    it "doesn't allow output after render", ->
-      context_a = Context.create_run_context [ctx, {set_test_result}]
-      Context.eval_in_context context_a, ->
-        setTimeout =>
-          expect =>
-            @text 'a'
-          .toThrow new Error 'already rendered'
-          @set_test_result true
-        , 0
-      $el = render context_a
-      waitsFor (-> result), 1000
-    ###
-
     it "allows output after render", (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
       Context.eval_in_context context_a, ->
         text 'a'
-        setTimeout =>
-          @text 'c'
+        setTimeout @keeping_context ->
+          text 'c'
           complete()
         , 0
         text 'b'
@@ -181,10 +166,10 @@ describe 'contexts', ->
       Context.eval_in_context context_a, ->
         Context.nested_item @, ->
           setTimeout @keeping_context ->
-            @text 'a'
+            text 'a'
             complete()
           , 0
-        @text 'b'
+        text 'b'
       $el = render context_a
       on_complete done, ->
         expect($el.find('p').text()).to.be 'ab'
