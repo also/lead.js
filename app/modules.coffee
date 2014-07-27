@@ -36,10 +36,14 @@ _.extend exports,
 
     # TODO does this belong here?
     component_fn = optional_doc_fn (name, f) ->
-      fn name, (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped = (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped.raw_fn = f
+      fn name, wrapped
 
     component_cmd = optional_doc_fn (name, f) ->
-      cmd name, (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped = (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped.raw_fn = f
+      cmd name, wrapped
 
     mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?
