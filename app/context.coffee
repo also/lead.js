@@ -279,18 +279,6 @@ create_context_run_context = ->
     apply_to nested_context, fn, args
     nested_context.component
 
-
-  # TODO
-  # async and renderable don't make much sense together. a context is only async if it is the target of something async.
-  # if you start something async in a context but it will have no effect on the context, this shouldn't trigger a promise_status.
-  async: (fn) ->
-    start_time = new Date
-    promise = nested_item @, fn
-
-    @promise_status promise, start_time
-
-    register_promise @, promise
-    promise
   scoped_eval: scoped_eval
 
 register_promise = (ctx, promise) ->
@@ -317,7 +305,6 @@ create_run_context = (extra_contexts) ->
     changes: changes
     asyncs: asyncs
     pending: asyncs.scan 0, (a, b) -> a + b
-
 
   scope_context.current_context = result
 

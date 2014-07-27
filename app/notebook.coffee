@@ -5,12 +5,13 @@ Bacon = require 'bacon.model'
 Editor = require './editor'
 http = require './http'
 graphite = require './graphite'
-context = require './context'
+Context = require './context'
 modules = require './modules'
 React = require './react_abuse'
 CoffeeScriptCell = require './coffeescript_cell'
+Builtins = require './builtins'
 
-modules.export exports, 'notebook', ({fn, cmd}) ->
+modules.export exports, 'notebook', ({component_fn, fn, cmd}) ->
   cmd 'save', 'Saves the current notebook to a file', ->
     link = save @notebook, @input_cell
     @add_component React.DOM.a {href: link.href}, 'Download Notebook'
@@ -18,18 +19,21 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
   cmd 'load_file', 'Loads a notebook from a file', ->
     open_file_picker @
 
-  fn 'load', 'Loads a script from a URL', (url, options={}) ->
-    @async ->
-      promise = http.execute_xhr url, dataType: 'text', type: 'get'
-      promise.then (xhr) =>
-        handle_file @,
-          filename: URI(url).filename()
-          type: xhr.getResponseHeader 'content-type'
-          content: xhr.responseText
-        , options
-      promise.fail (response) =>
-        @error response.statusText
-      promise
+  component_fn 'load', 'Loads a script from a URL', (ctx, url, options={}) ->
+    promise = http.execute_xhr(url, dataType: 'text', type: 'get')
+    .fail (response) ->
+      throw response.statusText
+    .then (xhr) ->
+      handle_file ctx,
+        filename: URI(url).filename()
+        type: xhr.getResponseHeader 'content-type'
+        content: xhr.responseText
+      , options
+
+    Context.AsyncComponent {promise},
+      Builtins.ComponentAndError {promise},
+        "Loading #{url}"
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   cmd 'clear', 'Clears the notebook', ->
     clear_notebook @notebook
@@ -89,7 +93,7 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
         # FIXME
         $('html, body').scrollTop $(output_cell.dom_node).offset().top
 
-    context.create_base_context(opts).then (base_context) ->
+    Context.create_base_context(opts).then (base_context) ->
       notebook.base_context = base_context
       notebook
 
@@ -253,7 +257,7 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
     input_cell.output_cell = output_cell
 
     # TODO cell type
-    run_context = context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
+    run_context = Context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
     fn = CoffeeScriptCell.get_fn run_context
     run_with_context run_context, fn
     input_cell.notebook.cell_run.push input_cell
@@ -269,13 +273,13 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
     # or when the first async task completes
     no_longer_pending = run_context.changes.skipWhile has_pending
     output_cell.done = no_longer_pending.take(1).map -> output_cell
-    context.run_in_context run_context, fn
+    Context.run_in_context run_context, fn
 
     output_cell.component_model.set run_context.component
 
   create_bare_output_cell_and_context = (notebook) ->
     output_cell = create_output_cell notebook
-    run_context = context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
+    run_context = Context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
     run_context
 
   eval_coffeescript_without_input_cell = (notebook, string) ->
@@ -287,7 +291,7 @@ modules.export exports, 'notebook', ({fn, cmd}) ->
     run_with_context run_context, fn
 
   create_input_context = (notebook) ->
-    context.create_context notebook.base_context
+    Context.create_context notebook.base_context
 
   create_notebook_run_context = (cell) ->
     notebook = cell.notebook

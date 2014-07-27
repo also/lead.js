@@ -177,13 +177,11 @@ describe 'contexts', ->
     it 'allows output in an async block after render', (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
       Context.eval_in_context context_a, ->
-        Q = require 'q'
-        @async ->
+        @nested_item ->
           setTimeout @keeping_context ->
             @text 'a'
             complete()
           , 0
-          Q true
         @text 'b'
       $el = render context_a
       on_complete done, ->
