@@ -264,14 +264,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  fn 'websocket', 'Runs commands from a web socket', (ctx, url) ->
-    ws = new WebSocket url
-    ctx.async ->
-      ws.onopen = => ctx.text 'Connected'
-      ws.onclose = =>
-        ctx.text 'Closed. Reconnect:'
-        ctx.example "websocket #{JSON.stringify url}"
-      ws.onmessage = (e) => ctx.run e.data
-      ws.onerror = => ctx.error 'Error'
-
   {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent}
