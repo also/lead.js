@@ -48,7 +48,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     For example, `sumSeries(q('twitter.*.tweetcount'))` will be sent as `sumSeries(twitter.*.tweetcount)`.
     """
 
-  fn 'q', (ctx, targets...) ->
+  fn 'q', (targets...) ->
     for t in targets
       unless _.isString t
         throw new TypeError "#{t} is not a string"
