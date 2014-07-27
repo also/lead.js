@@ -89,7 +89,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           React.DOM.td {}, command.doc
         ]
 
-  component_cmd 'keys', 'Shows the key bindings', ->
+  component_cmd 'keys', 'Shows the key bindings', (ctx) ->
     all_keys = {}
     # TODO some commands are functions instead of names
     build_map = (map) ->

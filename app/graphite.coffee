@@ -74,25 +74,25 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         if href[0] is '#'
           ctx.run "docs '#{decodeURI href[1..]}'"
 
-  cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (name) ->
+  cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (ctx, name) ->
     if name?
       name = name.to_js_string() if name.to_js_string?
       name = name._lead_context_fn?.name if name._lead_op?
       function_docs = docs.function_docs[name]
       if function_docs?
-        @help "graphite_functions.#{name}"
+        ctx.help "graphite_functions.#{name}"
       name = docs.parameter_doc_ids[name] ? name
       parameter_docs = docs.parameter_docs[name]
       if parameter_docs?
-        @help "graphite_parameters.#{name}"
+        ctx.help "graphite_parameters.#{name}"
       unless function_docs? or parameter_docs?
-        @text 'Documentation not found'
+        ctx.text 'Documentation not found'
     else
-      @add_component React.DOM.h3 {}, 'Functions'
-      @help 'graphite_functions'
+      ctx.add_component React.DOM.h3 {}, 'Functions'
+      ctx.help 'graphite_functions'
 
-      @add_component React.DOM.h3 {}, 'Parameters'
-      @help 'graphite_parameters'
+      ctx.add_component React.DOM.h3 {}, 'Parameters'
+      ctx.help 'graphite_parameters'
 
   doc 'params',
     'Generates the parameters for a render API call'

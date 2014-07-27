@@ -11,13 +11,13 @@ React = require './react_abuse'
 CoffeeScriptCell = require './coffeescript_cell'
 Builtins = require './builtins'
 
-modules.export exports, 'notebook', ({component_fn, fn, cmd}) ->
-  cmd 'save', 'Saves the current notebook to a file', ->
-    link = save @notebook, @input_cell
-    @add_component React.DOM.a {href: link.href}, 'Download Notebook'
+modules.export exports, 'notebook', ({component_fn, fn, cmd, component_cmd}) ->
+  component_cmd 'save', 'Saves the current notebook to a file', (ctx) ->
+    link = save ctx.notebook, ctx.input_cell
+    React.DOM.a {href: link.href}, 'Download Notebook'
 
-  cmd 'load_file', 'Loads a notebook from a file', ->
-    open_file_picker @
+  cmd 'load_file', 'Loads a notebook from a file', (ctx) ->
+    open_file_picker ctx
 
   component_fn 'load', 'Loads a script from a URL', (ctx, url, options={}) ->
     promise = http.execute_xhr(url, dataType: 'text', type: 'get')
@@ -35,8 +35,8 @@ modules.export exports, 'notebook', ({component_fn, fn, cmd}) ->
         "Loading #{url}"
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
-  cmd 'clear', 'Clears the notebook', ->
-    clear_notebook @notebook
+  cmd 'clear', 'Clears the notebook', (ctx) ->
+    clear_notebook ctx.notebook
 
   notebook_content_type = 'application/x-lead-notebook'
 

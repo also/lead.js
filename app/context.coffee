@@ -52,7 +52,7 @@ ignored = (object) -> object == ignore
 handle_cmd = (object) ->
   if (op = object?._lead_context_fn)?
     if op.cmd_fn?
-      op.cmd_fn.apply @
+      op.cmd_fn.call null, @
       true
     else
       @text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
