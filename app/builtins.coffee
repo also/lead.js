@@ -70,10 +70,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     return React.DOM.pre null, "Documentation for #{cmd} not found."
 
   component_cmd 'help', 'Shows this help', (ctx, cmd) ->
-    if arguments.length > 0
+    if arguments.length > 1
       help_component ctx, cmd
     else
-      help_component ctx 'imported_context_fns'
+      help_component ctx, 'imported_context_fns'
 
   KeySequenceComponent = React.createClass
     displayName: 'KeySequenceComponent'
