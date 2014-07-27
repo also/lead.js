@@ -188,29 +188,26 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
               handle_token: (t) => @state.tokens.push t
 
   component_cmd 'gist', 'Loads a script from a gist', (ctx, gist, options={}) ->
-    if arguments.length is 0
-      @github.save_gist()
-    else
-      url = github.to_gist_url gist
+    url = github.to_gist_url gist
 
-      deferred = Q.defer()
-      gist_promise = deferred.promise.then ->
-        http.get url
-      .fail (response) ->
-        Q.reject response.statusText
-      promise = gist_promise
-      .then (response) ->
-        for name, file of response.files
-          Notebook.handle_file ctx, file, options
+    deferred = Q.defer()
+    gist_promise = deferred.promise.then ->
+      http.get url
+    .fail (response) ->
+      Q.reject response.statusText
+    promise = gist_promise
+    .then (response) ->
+      for name, file of response.files
+        Notebook.handle_file ctx, file, options
 
-      EnsureAccessComponent {url, on_access: deferred.resolve},
-        Context.AsyncComponent {promise},
-          Builtins.ComponentAndError {promise},
-            "Loading gist #{gist}"
-            Builtins.PromiseResolvedComponent
-              constructor: GistLinkComponent
-              promise: gist_promise.then (r) -> gist: r
-        Builtins.PromiseStatusComponent {promise, start_time: new Date}
+    EnsureAccessComponent {url, on_access: deferred.resolve},
+      Context.AsyncComponent {promise},
+        Builtins.ComponentAndError {promise},
+          "Loading gist #{gist}"
+          Builtins.PromiseResolvedComponent
+            constructor: GistLinkComponent
+            promise: gist_promise.then (r) -> gist: r
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   GistLinkComponent = React.createClass
     render: ->
