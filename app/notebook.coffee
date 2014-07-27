@@ -56,7 +56,23 @@ DocumentComponent = React.createClass
   mixins: [React.ObservableMixin]
   get_observable: -> @props.cells_model
   render: ->
-    React.DOM.div {className: 'document'}, _.pluck @state.value, 'component'
+    React.DOM.div {className: 'document cm-s-idle'}, _.pluck @state.value, 'component'
+
+NotebookComponent = React.createClass
+  displayName: 'NotebookComponent'
+  propTypes:
+    imports: React.PropTypes.arrayOf(React.PropTypes.string)
+    module_names: React.PropTypes.arrayOf(React.PropTypes.string)
+    init: React.PropTypes.func
+  getInitialState: ->
+    notebook = create_notebook @props
+    @props.init? notebook
+    document: notebook.component
+  shouldComponentUpdate: ->
+    # never changes, handled by document
+    false
+  render: ->
+    @state.document
 
 create_notebook = (opts) ->
   $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -364,7 +380,7 @@ save = (input_cell) ->
   link
 
 _.extend exports, {
-  create_notebook
+  NotebookComponent
   input_cell_at_offset
   add_input_cell
   remove_cell

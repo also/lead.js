@@ -1,7 +1,7 @@
 URI = require 'URIjs'
 _ = require 'underscore'
 React = require 'react'
-notebook = require './notebook'
+Notebook = require './notebook'
 settings = require './settings'
 GitHub = require './github'
 Context = require './context'
@@ -34,20 +34,21 @@ exports.init_app = (target) ->
     _.each JSON.parse(localStorage.getItem 'lead_user_settings'), (v, k) -> settings.user_settings.set k, v
   catch e
     console.error 'failed loading user settings', e
+
   settings.user_settings.changes.onValue ->
     localStorage.setItem 'lead_user_settings', JSON.stringify settings.user_settings.get()
 
-  nb = notebook.create_notebook {imports, module_names}
-
   app_component = React.DOM.div {className: 'lead'},
     React.DOM.div {className: 'nav-bar'}, 'lead'
-    React.DOM.div {className: 'document cm-s-idle'}, nb.component
+    Notebook.NotebookComponent {imports, module_names, init: init_notebook}
   React.renderComponent app_component, target
-  rc = localStorage.lead_rc
-  if rc?
-    notebook.eval_coffeescript_without_input_cell nb, rc
 
   window.onhashchange = -> window.location.reload()
+
+init_notebook = (nb) ->
+  rc = localStorage.lead_rc
+  if rc?
+    Notebook.eval_coffeescript_without_input_cell nb, rc
 
   uri = URI location.href
   fragment = uri.fragment()
@@ -64,10 +65,10 @@ exports.init_app = (target) ->
       program = (ctx) ->
         GitHub.context_fns.gist.fn ctx, path, run: true
         Context.IGNORE
-    notebook.run_without_input_cell nb, null, program
+    Notebook.run_without_input_cell nb, null, program
 
-    first_cell = notebook.add_input_cell nb
-    notebook.focus_cell first_cell
+    first_cell = Notebook.add_input_cell nb
+    Notebook.focus_cell first_cell
 
   else
     program = if location.search isnt ''
@@ -75,9 +76,9 @@ exports.init_app = (target) ->
     else
       intro_command = settings.get 'app', 'intro_command'
 
-    first_cell = notebook.add_input_cell nb
+    first_cell = Notebook.add_input_cell nb
     if program? and program != ''
-      notebook.set_cell_value first_cell, program
-      notebook.run first_cell
+      Notebook.set_cell_value first_cell, program
+      Notebook.run first_cell
     else
-      notebook.focus_cell first_cell
+      Notebook.focus_cell first_cell
