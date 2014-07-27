@@ -134,7 +134,7 @@ describe 'contexts', ->
 
     it 'can output in nested items', ->
       context_a = Context.create_run_context [ctx]
-      context_a.imported_vars.Context = Context
+      context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
         Context.nested_item @, ->
@@ -157,7 +157,7 @@ describe 'contexts', ->
 
     it 'allows output in an async block after render', (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
-      context_a.imported_vars.Context = Context
+      context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         Context.nested_item @, ->
           setTimeout @keeping_context ->
