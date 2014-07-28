@@ -20,7 +20,8 @@
     "react": "~0.11.1",
     "bacon.model": "0.1.10",
     "codemirror": "^4.3.0",
-    "jsdom": "~0.8.4"
+    "jsdom": "~0.8.4",
+    "react-router": "^0.5.0"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

@@ -1,7 +1,10 @@
 URI = require 'URIjs'
 _ = require 'underscore'
 React = require 'react'
+{Route, Routes} = Router = require 'react-router'
+makeHref = require 'react-router/modules/helpers/makeHref'
 Notebook = require './notebook'
+Builtins = require './builtins'
 settings = require './settings'
 GitHub = require './github'
 Context = require './context'
@@ -24,9 +27,59 @@ imports.push.apply imports, settings.get('app', 'imports') or []
 module_names.push.apply imports, settings.get('app', 'module_names') or []
 
 settings.default 'app', 'intro_command', "help 'introduction'"
-settings.set 'app', 'paths', 'also',
-  site: 'github.com'
-  repo: 'also/lead.js'
+
+AppComponent = React.createClass
+  render: ->
+    React.DOM.div {className: 'lead'},
+      React.DOM.div {className: 'nav-bar'}, 'lead'
+      this.props.activeRouteHandler()
+
+HelpWrapperComponent = React.createClass
+  mixins: [Context.ContextAwareMixin]
+  render: ->
+    Builtins.help_component @state.ctx, @props.key
+
+HelpComponent = React.createClass
+  render: ->
+    # TODO don't lie about class. fix the stylesheet to apply
+    React.DOM.div {className: 'output cell'},
+      Context.TopLevelContextComponent {imports, module_names, ref: 'ctx'},
+        HelpWrapperComponent {key: @props.params.key}
+
+NewNotebookComponent = React.createClass
+  render: ->
+    intro_command = settings.get 'app', 'intro_command'
+    if intro_command? and intro_command != ''
+      SingleCoffeeScriptCellNotebookComponent {value: intro_command}
+    else
+      Notebook.NotebookComponent {imports, module_names, init: (nb) ->
+        Notebook.focus_cell Notebook.add_input_cell nb
+      }
+
+GistNotebookComponent = React.createClass
+  render: ->
+    gist = @props.params.gist
+    Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
+      Notebook.run_without_input_cell notebook, null, (ctx) ->
+        GitHub.context_fns.gist.fn ctx, gist, run: true
+        Context.IGNORE
+
+      Notebook.focus_cell Notebook.add_input_cell notebook
+    }
+
+Base64EncodedNotebookCellComponent = React.createClass
+  render: ->
+    value = atob @props.params.splat
+    SingleCoffeeScriptCellNotebookComponent {value}
+
+SingleCoffeeScriptCellNotebookComponent = React.createClass
+  render: ->
+    value = @props.value
+    Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
+      first_cell = Notebook.add_input_cell notebook
+      Notebook.set_cell_value first_cell, value
+      Notebook.run first_cell
+    }
 
 exports.init_app = (target) ->
   # TODO warn
@@ -38,47 +91,30 @@ exports.init_app = (target) ->
   settings.user_settings.changes.onValue ->
     localStorage.setItem 'lead_user_settings', JSON.stringify settings.user_settings.get()
 
-  app_component = React.DOM.div {className: 'lead'},
-    React.DOM.div {className: 'nav-bar'}, 'lead'
-    Notebook.NotebookComponent {imports, module_names, init: init_notebook}
-  React.renderComponent app_component, target
+  raw_cell_value = null
+  if location.search isnt ''
+    uri = URI location.href
+    raw_cell_value = uri.query()
+    uri.query null
+    window.history.replaceState null, document.title, uri.toString()
 
-  window.onhashchange = -> window.location.reload()
+  null_route = (fn) -> React.createClass render: -> fn.call(@); null
 
-init_notebook = (nb) ->
-  rc = localStorage.lead_rc
-  if rc?
-    Notebook.eval_coffeescript_without_input_cell nb, rc
+  routes = Routes null,
+    Route {handler: AppComponent},
+      Route {path: '/', name: 'default', handler: null_route ->
+        if raw_cell_value?
+          Router.replaceWith '/notebook/raw/' + raw_cell_value
+        else
+          Router.transitionTo 'notebook'
+      }
+      Route {name: 'notebook', handler: NewNotebookComponent}
+      Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent}
+      Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent}
+      Route {path: '/help/:key', name: 'help', handler: HelpComponent}
+      Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
 
-  uri = URI location.href
-  fragment = uri.fragment()
-  if fragment.length > 0 and fragment[0] == '/'
-    path = fragment[1..]
-    [repo_name, blob...] = path.split('/')
-    repo = settings.get 'app', 'paths', repo_name
-    if repo?
-      url = "https://#{repo.site}/#{repo.repo}/blob/master/#{blob.join '/'}"
-      program = (ctx) ->
-        GitHub.context_fns.load.fn ctx, url, run: true
-        Context.IGNORE
-    else
-      program = (ctx) ->
-        GitHub.context_fns.gist.fn ctx, path, run: true
-        Context.IGNORE
-    Notebook.run_without_input_cell nb, null, program
+  React.renderComponent routes, target
 
-    first_cell = Notebook.add_input_cell nb
-    Notebook.focus_cell first_cell
-
-  else
-    program = if location.search isnt ''
-      atob decodeURIComponent location.search[1..]
-    else
-      intro_command = settings.get 'app', 'intro_command'
-
-    first_cell = Notebook.add_input_cell nb
-    if program? and program != ''
-      Notebook.set_cell_value first_cell, program
-      Notebook.run first_cell
-    else
-      Notebook.focus_cell first_cell
+exports.raw_cell_url = (value) ->
+  URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()

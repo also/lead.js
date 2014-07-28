@@ -9,6 +9,7 @@ Documentation = require './documentation'
 React = require './react_abuse'
 Components = require './components'
 Context = require './context'
+App = require './app'
 
 Documentation.register_documentation 'introduction', complete: """
 # Welcome to lead.js
@@ -171,11 +172,8 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.value ctx.current_options
 
   component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
-    uri = URI location.href
-    uri.hash null
     code ?= ctx.previously_run()
-    uri.query '?' + encodeURIComponent btoa code
-    uri = uri.toString()
+    uri = App.raw_cell_url code
     React.DOM.a {href: uri}, uri
 
   PromiseResolvedComponent = React.createClass

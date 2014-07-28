@@ -154,6 +154,19 @@ ContextComponent = React.createIdentityClass
   render: ->
     @props.layout _.extend {children: @state.value}, @props.layout_props
 
+TopLevelContextComponent = React.createClass
+  set_components: (ctx, components) ->
+    React.Children.forEach components, (c) -> add_component ctx, c
+
+  getInitialState: ->
+    ctx = create_standalone_context @props
+    @set_components ctx, @props.children
+    {ctx}
+  componentWillReceiveProps: (next_props) ->
+    @set_components @state.ctx, next_props.children
+  render: ->
+    @state.ctx.component
+
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
   modules = Modules.get_modules(_.union imports or [], module_names or [])
@@ -328,5 +341,6 @@ _.extend exports, {
   remove_all_components,
   nested_item,
   AsyncComponent,
+  TopLevelContextComponent,
   IGNORE: ignore
 }
