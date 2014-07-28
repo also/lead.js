@@ -240,8 +240,12 @@ set_cell_value = (cell, value) ->
   Editor.set_value cell.editor, value
 
 focus_cell = (cell) ->
-  cell.editor.focus()
-  cell.notebook.cell_focused.push cell
+  # hack around not understanding how this plays with react
+  # https://github.com/facebook/react/issues/1791
+  setTimeout ->
+    cell.editor.focus()
+    cell.notebook.cell_focused.push cell
+  , 0
 
 OutputCellComponent = React.createIdentityClass
   displayName: 'OutputCellComponent'
