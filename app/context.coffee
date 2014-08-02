@@ -239,14 +239,13 @@ capture_context = (ctx) ->
     finally
       running_context_binding = previous_running_context_binding
 
+in_running_context = (ctx, fn, args) ->
+  throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
+  apply_to running_context_binding, fn, args
+
 # TODO this is an awful name
 context_run_context_prototype =
   options: -> @current_options
-
-  in_running_context: (fn, args) ->
-    throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-    apply_to running_context_binding, fn, args
-
 
   # wraps a function so that it is called in the current context
   keeping_context: (fn) ->
@@ -327,6 +326,7 @@ _.extend exports, {
   eval_in_context,
   collect_extension_points,
   is_run_context,
+  in_running_context,
   register_promise,
   apply_to,
   value,
