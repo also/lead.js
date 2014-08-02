@@ -183,6 +183,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     promise = graphite.find(query)
     .then (r) =>
       results.set r.result
+      r
     .fail (reason) =>
       Q.reject 'Find request failed'
 
