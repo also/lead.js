@@ -3,23 +3,32 @@ d3 = require 'd3'
 _ = require 'underscore'
 moment = require 'moment'
 Q = require 'q'
-Bacon = require 'baconjs'
+Bacon = require 'bacon.model'
+React = require './react_abuse'
 modules = require './modules'
 
-graph = modules.export exports, 'graph', ({fn, cmd, settings}) ->
-  fn 'graph', 'Graphs time series data using d3', (data, params={}) ->
-    $result = @div()
-    $result.addClass 'graph'
+graph = modules.export exports, 'graph', ({component_fn}) ->
+  component_fn 'graph', 'Graphs time series data using d3', (ctx, data, params={}) ->
+    graph.create_component data, params
+
+  create_component: (data, params) ->
     data = Bacon.fromPromise data if Q.isPromise data
     stream = Bacon.combineTemplate {data, params}
-    stream.onValue ({data, params}) =>
-      $result.empty()
-      graph.draw $result.get(0), data, params
+    model = Bacon.Model()
+    model.addSource stream
     # TODO seems like the combined stream doesn't error?
-    stream.onError (error) =>
-      # TODO this should be in a nested context
-      # TODO error handling
-      @error error
+    # TODO error handling
+    graph.GraphComponent {model}
+
+  GraphComponent: React.createClass
+    displayName: 'GraphComponent'
+    render: ->
+      React.DOM.div {className: 'graph'}
+    componentDidMount: ->
+      node = @getDOMNode()
+      @props.model.onValue ({data, params}) ->
+        node.removeChild(node.lastChild) while node.hasChildNodes()
+        graph.draw node, data, params
 
   default_params:
     width: 800

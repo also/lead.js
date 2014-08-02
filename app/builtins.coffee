@@ -6,20 +6,24 @@ Markdown = require './markdown'
 modules = require './modules'
 http = require './http'
 Documentation = require './documentation'
-React = require 'react'
+React = require './react_abuse'
 Components = require './components'
+Context = require './context'
+App = require './app'
 
 Documentation.register_documentation 'introduction', complete: """
 # Welcome to lead.js
 
 Press <kbd>Shift</kbd><kbd>Enter</kbd> to execute the CoffeeScript in the console. Try running
 
+<!-- noinline -->
 ```
 browser '*'
 ```
 
 Look at
 
+<!-- noinline -->
 ```
 docs
 ```
@@ -64,13 +68,13 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         return fn_help_index ctx, fns
 
     # TODO shouldn't be pre
-    return PreComponent value: "Documentation for #{cmd} not found."
+    return React.DOM.pre null, "Documentation for #{cmd} not found."
 
-  component_cmd 'help', 'Shows this help', (cmd) ->
-    if arguments.length > 0
-      help_component @, cmd
+  component_cmd 'help', 'Shows this help', (ctx, cmd) ->
+    if arguments.length > 1
+      help_component ctx, cmd
     else
-      help_component @, 'imported_context_fns'
+      help_component ctx, 'imported_context_fns'
 
   KeySequenceComponent = React.createClass
     displayName: 'KeySequenceComponent'
@@ -86,7 +90,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           React.DOM.td {}, command.doc
         ]
 
-  component_cmd 'keys', 'Shows the key bindings', ->
+  component_cmd 'keys', 'Shows the key bindings', (ctx) ->
     all_keys = {}
     # TODO some commands are functions instead of names
     build_map = (map) ->
@@ -101,8 +105,8 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
-  fn 'In', 'Gets previous input', (n) ->
-    @value @get_input_value n
+  fn 'In', 'Gets previous input', (ctx, n) ->
+    Context.value ctx.get_input_value n
 
   doc 'object',
     'Prints an object as JSON'
@@ -117,7 +121,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ```
     """
 
-  component_fn 'object', (o) ->
+  component_fn 'object', (ctx, o) ->
     try
       s = JSON.stringify(o, null, '  ')
     catch
@@ -125,70 +129,71 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     s ||= new String o
     Components.SourceComponent value: s, language: 'json'
 
-  component_fn 'md', 'Renders Markdown', (string, opts) ->
+  component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
-
-  TextComponent = React.createClass
-    displayName: 'TextComponent'
-    render: -> React.DOM.p {}, @props.value
-
-  PreComponent = React.createClass
-    displayName: 'PreComponent'
-    render: -> React.DOM.pre {}, @props.value
 
   HtmlComponent = React.createClass
     displayName: 'HtmlComponent'
     render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
-  component_fn 'text', 'Prints text', (string) ->
-    TextComponent value: string
+  component_fn 'text', 'Prints text', (ctx, string) ->
+    React.DOM.p {}, string
 
-  component_fn 'pre', 'Prints preformatted text', (string) ->
-    PreComponent value: string
+  component_fn 'pre', 'Prints preformatted text', (ctx, string) ->
+    React.DOM.pre null, string
 
-  component_fn 'html', 'Adds some HTML', (string) ->
+  component_fn 'html', 'Adds some HTML', (ctx, string) ->
     HtmlComponent value: string
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
-    render: -> React.DOM.pre {className: 'error'}, @props.message
+    render: ->
+      message = @props.message
+      if not message?
+        message = 'Unknown error'
+        # TODO include stack trace?
+      else if not _.isString message
+        message = message.toString()
+        # TODO handle exceptions better
+      React.DOM.pre {className: 'error'}, message
 
-  component_fn 'error', 'Shows a preformatted error message', (message) ->
-    if not message?
-      message = 'Unknown error'
-      # TODO include stack trace?
-    else if not _.isString message
-      message = message.toString()
-      # TODO handle exceptions better
+  component_fn 'error', 'Shows a preformatted error message', (ctx, message) ->
     ErrorComponent {message}
 
-  component_fn 'example', 'Makes a clickable code example', (value, opts) ->
-    ExampleComponent ctx: @, value: value, run: opts?.run ? true
+  component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
+    ExampleComponent value: value, run: opts?.run ? true
 
-  component_fn 'source', 'Shows source code with syntax highlighting', (language, value) ->
+  component_fn 'source', 'Shows source code with syntax highlighting', (ctx, language, value) ->
     Components.SourceComponent {language, value}
 
-  fn 'options', 'Gets or sets options', (options) ->
+  fn 'options', 'Gets or sets options', (ctx, options) ->
     if options?
-      _.extend @current_options, options
-    @value @current_options
+      _.extend ctx.current_options, options
+    Context.value ctx.current_options
 
-  LinkComponent = React.createClass
-    displayName: 'LinkComponent'
-    render: -> React.DOM.a {href: @props.href}, @props.value
+  component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
+    code ?= ctx.previously_run()
+    uri = App.raw_cell_url code
+    React.DOM.a {href: uri}, uri
 
-  component_cmd 'permalink', 'Create a link to the code in the input cell above', (code) ->
-    uri = URI location.href
-    uri.hash null
-    code ?= @previously_run()
-    uri.query '?' + encodeURIComponent btoa code
-    uri = uri.toString()
-    LinkComponent href: uri, value: uri
+  PromiseResolvedComponent = React.createClass
+    displayName: 'PromiseResolvedComponent'
+    getInitialState: ->
+      @props.promise.then (v) =>
+        @setState value: v, resolved: true
+
+      value: null
+      resolved: false
+    render: ->
+      if @state.resolved
+        React.DOM.div null, @props.constructor @state.value
+      else
+        null
 
   PromiseStatusComponent = React.createClass
     displayName: 'PromiseStatusComponent'
     render: ->
-      if @state?
+      if @state?.duration?
         ms = @state.duration
         duration = if ms >= 1000
           s = (ms / 1000).toFixed 1
@@ -213,17 +218,48 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       # TODO this should probably happen earlier, in case the promise finishes before componentWillMount
       @props.promise.finally @finished
 
-  component_fn 'promise_status', 'Displays the status of a promise', (promise, start_time=new Date) ->
+  component_fn 'promise_status', 'Displays the status of a promise', (ctx, promise, start_time=new Date) ->
     PromiseStatusComponent {promise, start_time}
 
-  fn 'websocket', 'Runs commands from a web socket', (url) ->
-    ws = new WebSocket url
-    @async ->
-      ws.onopen = => @text 'Connected'
-      ws.onclose = =>
-        @text 'Closed. Reconnect:'
-        @example "websocket #{JSON.stringify url}"
-      ws.onmessage = (e) => @run e.data
-      ws.onerror = => @error 'Error'
+  ComponentAndError = React.createClass
+    displayName: 'ComponentAndError'
+    componentWillMount: ->
+      @props.promise.fail (e) =>
+        @setState error: e
+    getInitialState: -> error: null
+    render: ->
+      if @state.error?
+        error = ErrorComponent {message: @state.error}
+      React.DOM.div null, @props.children, error
 
-  {ExampleComponent}
+  GridComponent = React.createClass
+    displayName: 'GridComponent'
+    propTypes:
+      cols: React.PropTypes.number.isRequired
+    render: ->
+      rows = []
+      row = null
+      cols = @props.cols
+      _.each @props.children, (component, i) ->
+        if i % cols == 0
+          row = []
+          rows.push row
+        row.push React.DOM.div {style: {flex: 1}}, component
+      React.DOM.div null, _.map rows, (row) -> React.DOM.div {style: {display: 'flex'}}, row
+
+  FlowComponent = React.createClass
+    displayName: 'FlowComponent'
+    render: ->
+      React.DOM.div {style: {display: 'flex', flexWrap: 'wrap'}}, @props.children
+
+  fn 'grid', 'Generates a grid with a number of columns', (ctx, cols, fn) ->
+    nested_context = Context.create_nested_context ctx, layout: GridComponent, layout_props: {cols}
+    Context.add_component ctx, nested_context.component
+    Context.apply_to nested_context, fn
+
+  fn 'flow', 'Flows components next to each other', (ctx, fn) ->
+    nested_context = Context.create_nested_context ctx, layout: FlowComponent
+    Context.add_component ctx, nested_context.component
+    Context.apply_to nested_context, fn
+
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent}

@@ -2,6 +2,7 @@ Q = require 'q'
 Documentation = require './documentation'
 _ = require 'underscore'
 settings = require './settings'
+Context = require './context'
 
 _.extend exports,
   export: (exports, module_name, definition_fn) ->
@@ -35,10 +36,14 @@ _.extend exports,
 
     # TODO does this belong here?
     component_fn = optional_doc_fn (name, f) ->
-      fn name, -> @add_component f.apply @, arguments
+      wrapped = (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped.raw_fn = f
+      fn name, wrapped
 
     component_cmd = optional_doc_fn (name, f) ->
-      cmd name, -> @add_component f.apply @, arguments
+      wrapped = (ctx) -> Context.add_component ctx, f.apply null, arguments
+      wrapped.raw_fn = f
+      cmd name, wrapped
 
     mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?
@@ -49,10 +54,10 @@ _.extend exports,
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
 
-  load_module: (module_name) ->
+  get_module: (module_name) ->
     mod = require './' + module_name
     mod.init?()
     mod
 
-  load_modules: (module_names) ->
-    Q.resolve _.object module_names, _.map module_names, module.exports.load_module
+  get_modules: (module_names) ->
+    _.object module_names, _.map module_names, module.exports.get_module

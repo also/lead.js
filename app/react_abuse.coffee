@@ -1,35 +1,18 @@
-React = require 'react'
+React = require 'react/lib/ReactWithAddons'
 _ = require 'underscore'
 Bacon = require 'bacon.model'
 
 component_id = 1
-assign_key = (component) ->
-  component.props.key ?= "component_#{component_id++}"
 
 createIdentityClass = (args...) ->
   cls = React.createClass args...
-  prefix = cls.originalSpec.displayName ? 'identity'
+  prefix = cls.displayName ? 'identity'
   (props, args...) ->
     props ?= {}
     props.key = "#{prefix}_#{component_id++}"
     cls props, args...
 
-ComponentProxy = ->
-  component = null
-  state = null
-  bind_to_component: (c) ->
-    component = c
-    if state != null
-      component.setState state
-  setState: (s) ->
-    if component?
-      component.setState s
-    else
-      state = s
-
-ComponentProxyMixin =
-  componentWillMount: ->
-    @props.component_proxy?.bind_to_component @
+generate_component_id = -> component_id++
 
 ObservableMixin =
   #get_observable: -> @props.observable
@@ -51,19 +34,10 @@ SimpleObservableComponent = createIdentityClass
   render: ->
     React.DOM.div {}, @state.value
 
-component_list = ->
-  components = []
-  model = new Bacon.Model []
-
-  model: model
-  _lead_render: SimpleObservableComponent observable: model
-  add_component: (c) ->
-    assign_key c
-    components.push c
-    model.set components.slice()
-  empty: ->
-    components = []
-    model.set []
+SimpleLayoutComponent = createIdentityClass
+  displayName: 'SimpleLayoutComponent'
+  render: ->
+    React.DOM.div {}, @props.children
 
 PropsModelComponent = createIdentityClass
   displayName: 'PropsModelComponent'
@@ -71,5 +45,5 @@ PropsModelComponent = createIdentityClass
   get_observable: -> @props.child_props
   render: -> @props.constructor @state.value
 
-_.extend exports, {PropsModelComponent, ComponentProxy, ComponentProxyMixin, ObservableMixin, component_list, createIdentityClass}, React
+_.extend exports, {PropsModelComponent, ObservableMixin, SimpleLayoutComponent, createIdentityClass, generate_component_id}, React
 

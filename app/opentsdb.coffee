@@ -4,10 +4,11 @@ Q = require 'q'
 Html = require './html'
 modules = require './modules'
 http = require './http'
+Context = require './context'
 
 opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings}) ->
-  fn 'tsd', 'Fetches time series data from OpenTSDB', (args...) ->
-    @value opentsdb.tsd args...
+  fn 'tsd', 'Fetches time series data from OpenTSDB', (ctx, args...) ->
+    Context.value opentsdb.tsd args...
 
   to_metric_string: (time_series) ->
     if _.isString time_series
@@ -36,7 +37,7 @@ opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings}) ->
           all_series[name] = points
         points.push [parseInt(value, 10), parseInt(time, 10)]
 
-    result = for name, points of all_series
+    for name, points of all_series
       target: name
       datapoints: _.sortBy points, ([v, t]) -> t
 

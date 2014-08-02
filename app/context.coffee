@@ -1,51 +1,81 @@
 ###
 context_fns: context functions collected from all modules. unbound
 imported_context_fns: context_fns + the fns from all modules listed in imports
-fns: imported_context_fns, bound to the scope_context
+fns: imported_context_fns, bound to the scope.ctx
 ###
 
-$ = require 'jquery'
 _ = require 'underscore'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require './react_abuse'
-modules = require './modules'
+
+# CAREFUL ABOUT PUTTING MORE IMPORTS HERE! OTHER MODULES DEPEND ON THE COMPONENTS BELOW
+
+contexts_by_root_node_id = {}
+
+find_ancestor_contexts = (component_instance) ->
+  result = []
+  _.each React.__internals.InstanceHandles.traverseAncestors component_instance._rootNodeID, (id) ->
+    context = contexts_by_root_node_id[id]
+    if context
+      result.unshift context
+  result
+
+ContextRegisteringMixin =
+  componentWillMount: ->
+    contexts_by_root_node_id[@_rootNodeID] = @props.ctx
+  componentWillUnmount: ->
+    delete contexts_by_root_node_id[@_rootNodeID]
+
+ContextAwareMixin =
+  contextTypes: ctx: React.PropTypes.object
+  getInitialState: ->
+    ctx: find_ancestor_contexts(@)[0]
+
+ComponentContextComponent = React.createIdentityClass
+  displayName: 'ComponentContextComponent'
+  mixins: [ContextRegisteringMixin]
+  render: -> React.DOM.div null, @props.children
+
+_.extend exports, {
+  ComponentContextComponent,
+  ContextAwareMixin
+}
+
+Builtins = require './builtins'
+Modules = require './modules'
 
 ignore = new Object
 
 running_context_binding = null
 
 # statement result handlers. return truthy if handled.
-ignored = (object) -> object == ignore
+ignored = (ctx, object) -> object == ignore
 
-handle_cmd = (object) ->
+handle_cmd = (ctx, object) ->
   if (op = object?._lead_context_fn)?
     if op.cmd_fn?
-      op.cmd_fn.apply @
+      op.cmd_fn.call null, ctx
       true
     else
-      @text "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
-      @help object
+      add_component ctx, React.DOM.div null,
+        "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
+        Builtins.help_component object
       true
 
-handle_module = (object) ->
+handle_module = (ctx, object) ->
   if object?._lead_context_name
-    @text "#{object._lead_context_name} is a module."
-    @help object
+    add_component ctx, React.DOM.div null,
+      "#{object._lead_context_name} is a module."
+      Builtins.help_component object
     true
 
-handle_renderable = (object) ->
-  if is_renderable object
-    @add_renderable object
-    true
+handle_using_extension = (ctx, object) ->
+  handlers = collect_extension_points ctx, 'context_result_handler'
+  _.find handlers, (handler) -> handler ctx, object
 
-handle_using_extension = (object) ->
-  handlers = collect_extension_points @, 'context_result_handler'
-  context = @
-  _.find handlers, (handler) -> handler.call context, object
-
-handle_any_object = (object) ->
-  @object object
+handle_any_object = (ctx, object) ->
+  add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
   true
 
 # TODO make this configurable
@@ -53,18 +83,16 @@ result_handlers =[
   ignored
   handle_cmd
   handle_module
-  handle_renderable
   handle_using_extension
   handle_any_object
 ]
 
 display_object = (ctx, object) ->
   for handler in result_handlers
-    return if handler.call ctx, object
-
+    return if handler ctx, object
 
 collect_extension_points = (context, extension_point) ->
-  modules.collect_extension_points context.modules, extension_point
+  Modules.collect_extension_points context.modules, extension_point
 
 collect_context_vars = (context) ->
   module_vars = (module, name) ->
@@ -78,36 +106,71 @@ collect_context_vars = (context) ->
 collect_context_fns = (context) ->
   _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
 
-# There are a few different reasons for binding function:
-# * a simple api for eval
-# * unimported functions: so that `this` points to the context when calling a function like
-#   `@github.load()`
-bind_context_fns = (run_context, fns, name_prefix='') ->
-  bind_fn = (name, op) ->
-    bound = (args...) ->
-      if @imported_context_fns? and @ != run_context.current_context
-        # it looks like this is a context, but not the current one
-        console.warn 'mismatched run context'
-        console.trace()
-      # if the function returned a value, unwrap it. otherwise, ignore it
-      op.fn.apply(run_context.current_context, args)?._lead_context_fn_value ? ignore
-    bound._lead_context_fn = op
-    bound._lead_context_name = name
-    bound
+is_run_context = (o) ->
+  o?.component_list?
 
-  bound_fns = {}
+bind_fn_to_current_context = (scope, fn) ->
+  (args...) ->
+    args.unshift scope.ctx
+    fn.apply scope.ctx, args
+
+bind_context_fns = (scope, fns, name_prefix='') ->
+  result = {}
   for k, o of fns
-    if _.isFunction o.fn
-      bound_fns[k] = bind_fn "#{name_prefix}#{k}", o
-    else
-      bound_fns[k] = _.extend {_lead_context_name: k}, bind_context_fns run_context, o, k + '.'
+    do (k, o) ->
+      if _.isFunction o.fn
+        name = "#{name_prefix}#{k}"
+        wrapped_fn = ->
+          o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
+        bound = bind_fn_to_current_context scope, wrapped_fn
+        bound._lead_context_fn = o
+        bound._lead_context_name = name
+        result[k] = bound
+      else
+        result[k] = _.extend {_lead_context_name: k}, bind_context_fns scope, o, k + '.'
 
-  bound_fns
+  result
+
+AsyncComponent = React.createIdentityClass
+  displayName: 'AsyncComponent'
+  mixins: [ContextAwareMixin]
+  componentWillMount: ->
+    register_promise @state.ctx, @props.promise
+  componentWillUnmount: ->
+    # FIXME should unregister
+  render: ->
+    React.DOM.div null, @props.children
+
+ContextComponent = React.createIdentityClass
+  displayName: 'ContextComponent'
+  mixins: [ContextRegisteringMixin, React.ObservableMixin]
+  get_observable: -> @props.model
+  propTypes:
+    ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
+    # TODO type
+    model: React.PropTypes.object.isRequired
+    layout: React.PropTypes.func.isRequired
+    layout_props: React.PropTypes.object
+  render: ->
+    @props.layout _.extend {children: @state.value}, @props.layout_props
+
+TopLevelContextComponent = React.createClass
+  set_components: (ctx, components) ->
+    React.Children.forEach components, (c) -> add_component ctx, c
+
+  getInitialState: ->
+    ctx = create_standalone_context @props
+    @set_components ctx, @props.children
+    {ctx}
+  componentWillReceiveProps: (next_props) ->
+    @set_components @state.ctx, next_props.children
+  render: ->
+    @state.ctx.component
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
-  modules.load_modules(_.union imports or [], module_names or []).then (modules) ->
-    {modules, imports}
+  modules = Modules.get_modules(_.union imports or [], module_names or [])
+  {modules, imports}
 
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
@@ -125,68 +188,52 @@ create_context = (base) ->
     vars: vars
     imported_vars: imported_vars
 
-render = (renderable) ->
-  $wrapper = $ '<div/>'
-  component = component_for_renderable renderable
-  React.renderComponent component, $wrapper.get 0
-  $wrapper
-
 # FIXME figure out a real check for a react component
 is_component = (o) -> o?.__realComponentInstance?
 
-is_renderable = (o) ->
-  o? and (is_component(o) or o._lead_render?)
+component_list = ->
+  components = []
+  model = new Bacon.Model []
 
-RenderableComponent = React.createClass
-  render: -> React.DOM.div()
-  componentDidMount: -> $(@getDOMNode()).append @props.renderable._lead_render()
+  model: model
+  add_component: (c) ->
+    unless c.props.key?
+      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{React.generate_component_id()}"
+    components.push c
+    model.set components.slice()
+  empty: ->
+    components = []
+    model.set []
 
-component_for_renderable = (renderable) ->
-  if is_component renderable
-    renderable
-  else if is_component renderable._lead_render
-    renderable._lead_render
-  # TODO remove context special case
-  else if renderable.component_list?
-    renderable.component_list._lead_render
-  else
-    RenderableComponent {renderable}
+add_component = (ctx, component) ->
+  ctx.component_list.add_component component
 
-create_nested_renderable_context = (ctx) ->
-  ctx.create_nested_context
-    component_list: React.component_list()
+remove_all_components = (ctx) ->
+  ctx.component_list.empty()
 
-# creates a nested context, adds it to the renderable list, and applies the function to it
+# creates a nested context, adds it to the component list, and applies the function to it
 nested_item = (ctx, fn, args...) ->
-  nested_context = create_nested_renderable_context ctx
-  ctx.add_component nested_context.component_list._lead_render
-  nested_context.apply_to fn, args
+  nested_context = create_nested_context ctx
+  add_component ctx, nested_context.component
+  apply_to nested_context, fn, args
+
+apply_to = (ctx, fn, args) ->
+  previous_context = ctx.scope.ctx
+  ctx.scope.ctx = ctx
+  try
+    fn.apply ctx, args
+  finally
+    ctx.scope.ctx = previous_context
+
+value = (value) -> _lead_context_fn_value: value
 
 # TODO this is an awful name
-create_context_run_context = ->
-  asyncs = new Bacon.Bus
-  changes = new Bacon.Bus
-  component_list = React.component_list()
-  changes.plug component_list.model
-
-  changes: changes
-  pending: asyncs.scan 0, (a, b) -> a + b
-  current_options: {}
-  component_list: component_list
-
+context_run_context_prototype =
   options: -> @current_options
-
-  apply_to: (fn, args) ->
-    previous_context = @scope_context.current_context
-    @scope_context.current_context = @
-    try
-      fn.apply @, args
-    finally
-      @scope_context.current_context = previous_context
 
   in_running_context: (fn, args) ->
     throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-    running_context_binding.apply_to fn, args
+    apply_to running_context_binding, fn, args
 
   # returns a function that calls its argument in the current context
   capture_context: ->
@@ -196,7 +243,7 @@ create_context_run_context = ->
       previous_running_context_binding = running_context_binding
       running_context_binding = running_context
       try
-        context.apply_to fn, args
+        apply_to context, fn, args
       finally
         running_context_binding = previous_running_context_binding
 
@@ -206,130 +253,87 @@ create_context_run_context = ->
     ->
       restoring_context fn, arguments
 
-  add_renderable: (renderable) ->
-    @add_component component_for_renderable renderable
-    ignore
-
-  add_component: (component) ->
-    @component_list.add_component component
-
-  add_rendered: (rendered) ->
-    @add_renderable _lead_render: -> rendered
-
-  render: render
-
-  empty: -> @component_list.empty()
-
-  div: (contents) ->
-    $div = $('<div/>')
-    if contents?
-      if _.isFunction contents
-        return nested_item @, contents
-      else
-        $div.append contents
-    @add_rendered $div
-    $div
-
-  # makes o renderable using the given function or renderable
-  renderable: (o, fn) ->
-    if is_component fn
-      o._lead_render = fn
-    else if fn._lead_render?
-      o._lead_render = fn._lead_render
-    else
-      nested_context = @create_nested_context
-        component_list: add_component: -> throw new Error 'Output functions not allowed inside a renderable'
-      o._lead_render = -> nested_context.apply_to fn
-    o
-
-  create_nested_context: (overrides) ->
-    nested_context = _.extend create_new_run_context(@), overrides
-
-  detached: (fn, args) ->
-    nested_context = create_nested_renderable_context @
-    nested_context.apply_to fn, args
-    nested_context.component_list
-
-  value: (value) -> _lead_context_fn_value: value
-
-  async: (fn) ->
-    start_time = new Date
-    promise = nested_item @, fn
-
-    @promise_status promise, start_time
-
-    asyncs.push 1
-    promise.finally =>
-      asyncs.push -1
-      @changes.push true
-    promise
-  scoped_eval: scoped_eval
+register_promise = (ctx, promise) ->
+  ctx.asyncs.push 1
+  promise.finally =>
+    ctx.asyncs.push -1
+    ctx.changes.push true
 
 create_run_context = (extra_contexts) ->
-  run_context_prototype = _.extend {}, extra_contexts..., create_context_run_context()
-  run_context_prototype.run_context_prototype = run_context_prototype
-  scope_context = {}
-  run_context_prototype.fns = bind_context_fns scope_context, run_context_prototype.imported_context_fns
-  run_context_prototype.scope_context = scope_context
+  run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
+  scope = {}
+  run_context_prototype.scoped_fns = bind_context_fns scope, run_context_prototype.imported_context_fns
+  _.extend scope, run_context_prototype.scoped_fns, run_context_prototype.imported_vars
+  run_context_prototype.scope = scope
 
-  scope_context.current_context = create_new_run_context run_context_prototype
+  result = create_nested_context run_context_prototype
 
-create_new_run_context = (parent) ->
-  new_context = Object.create parent
+  asyncs = new Bacon.Bus
+  changes = new Bacon.Bus
+  changes.plug result.component_list.model
 
-  fns_and_vars = bind_context_fns new_context, new_context.context_fns
-  _.each new_context.vars, (vars, name) -> _.extend (fns_and_vars[name] ?= {}), vars
+  _.extend result,
+    current_options: {}
+    changes: changes
+    asyncs: asyncs
+    pending: asyncs.scan 0, (a, b) -> a + b
 
-  # TODO isn't this just importing builtins?
-  _.extend fns_and_vars, fns_and_vars.builtins
-  _.each fns_and_vars, (mod, name) ->
-    if parent.run_context_prototype[name]?
-      console.warn mod._lead_context_name, 'would overwrite core'
-    else
-      new_context[name] = mod
-  new_context.current_context = new_context
+  scope.ctx = result
+
+create_nested_context = (parent, overrides) ->
+  new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
+  new_context.component_list = component_list()
+  new_context.component = ContextComponent
+    ctx: new_context
+    model: new_context.component_list.model
+    layout: new_context.layout
+    layout_props: new_context.layout_props
+
   new_context
 
-scope = (run_context) ->
-  _.extend {}, run_context.fns, run_context.imported_vars
-
 create_standalone_context = ({imports, module_names}={}) ->
-  create_base_context({imports: ['builtins'].concat(imports or []), module_names})
-  .then (base_context) ->
-    create_run_context [create_context base_context]
+  base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
+  create_run_context [create_context base_context]
 
-scoped_eval = (string) ->
+scoped_eval = (ctx, string) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
-  context_scope = scope @
+  context_scope = ctx.scope
   `with (context_scope) {`
-  result = (-> eval string).call @
+  result = (-> eval string).call ctx
   `}`
   result
 
 eval_in_context = (run_context, string) ->
-  run_in_context run_context, -> @scoped_eval string
+  run_in_context run_context, (ctx) -> scoped_eval ctx, string
 
 run_in_context = (run_context, fn) ->
   try
     previous_running_context_binding = running_context_binding
     running_context_binding = run_context
-    result = fn.apply run_context
+    result = fn run_context
     display_object run_context, result
   finally
     running_context_binding = previous_running_context_binding
 
-module.exports = {
+_.extend exports, {
   create_base_context,
   create_context,
   create_run_context,
   create_standalone_context,
+  create_nested_context,
   run_in_context,
   eval_in_context,
-  render: (ctx) ->
-    result = render ctx
-    ctx.changes.push true
-    result
-  scope,
-  collect_extension_points
+  collect_extension_points,
+  is_run_context,
+  register_promise,
+  apply_to,
+  value,
+  scoped_eval,
+  add_component,
+  remove_all_components,
+  nested_item,
+  AsyncComponent,
+  TopLevelContextComponent,
+  IGNORE: ignore
 }

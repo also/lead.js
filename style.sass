@@ -14,17 +14,6 @@ body
   font-size: 14px
   font-family: "Helvetica Neue"
 
-h1
-  margin: 20px 0 30px 0
-
-  font-weight: 600
-  font-size: 30px
-
-h3
-  font-weight: 600
-  font-size: 20px
-  margin: 10px 0
-
 em
   font-style: italic
 
@@ -71,101 +60,18 @@ pre
     pre
       padding: 0
 
-#document
+.nav-bar
+  position: fixed
+  top: 0
+  left: 0
+  background-color: #333
+  color: white
+  padding: 10px
+
+.document
   .cell
     margin-bottom: 20px
     position: relative
-
-  .input, .output
-    &[data-cell-number]::before
-      position: absolute
-      right: 100%
-      padding: 8px 12px
-      font-family: $monospace
-      line-height: 1.6em
-      color: #ddd
-
-  .input
-    .permalink
-      position: absolute
-      left: calc(100% + 1em)
-      color: #ddd
-      text-decoration: underline
-      cursor: pointer
-
-    &[data-cell-number]::before
-      // content: 'In[' attr(data-cell-number) ']'
-
-  .output
-    &[data-cell-number]::before
-      // content: 'Out[' attr(data-cell-number) ']'
-
-    .close::before
-      content: '×'
-      position: absolute
-      right: 10px
-      font-weight: bold
-      color: #ddd
-
-    padding-left: 16px
-    padding-right: 16px
-    line-height: 1.4em
-    min-height: 1em
-
-    .user-html
-      @include user-html
-
-    .promise-status
-      padding: 2px 8px
-      margin: 3px 0 10px 0
-      -webkit-border-bottom-right-radius: 6px
-      -webkit-border-bottom-left-radius: 6px
-      background-color: #eee
-      border-bottom: 1px solid #ddd
-      font-size: 0.8em
-      color: #bbb
-
-    .cm-comment
-      color: #aaa
-
-    p
-      font-family: "Helvetica Neue"
-      font-size: 14px
-      line-height: 1.7em
-
-    .example
-      margin: 10px 6px
-      border: 1px solid #d0d0d0
-      padding: 6px
-      cursor: pointer
-
-    .user-html .example pre
-      margin-bottom: 0
-
-    .error
-      border: 1px solid $error-fg
-      background-color: $error-bg
-      padding: 5px
-      -webkit-border-radius: 4px
-      margin-bottom: .5em
-
-    table
-      border-collapse: collapse
-      border-spacing: 0
-      margin-bottom: 1.5em
-
-      td, th
-        background: #fff
-        border: 1px solid #d0d0d0
-        padding: 8px 14px
-        font-size: 14px
-        &.number
-          text-align: right
-
-    img, svg
-      background-color: #fff
-      padding: 3px
-      -webkit-border-radius: 6px
 
     // docs pulled from sphinx
     dl
@@ -181,6 +87,97 @@ pre
 
         p, pre
           margin: 0.5em 0
+
+.input.cell, .output.cell
+  &[data-cell-number]::before
+    position: absolute
+    right: 100%
+    padding: 8px 12px
+    font-family: $monospace
+    line-height: 1.6em
+    color: #ddd
+
+.input.cell
+  .permalink
+    position: absolute
+    left: calc(100% + 1em)
+    color: #ddd
+    text-decoration: underline
+    cursor: pointer
+
+  &[data-cell-number]::before
+    // content: 'In[' attr(data-cell-number) ']'
+
+.output.cell
+  &[data-cell-number]::before
+    // content: 'Out[' attr(data-cell-number) ']'
+
+  .close::before
+    content: '×'
+    position: absolute
+    right: 10px
+    font-weight: bold
+    color: #ddd
+
+  padding-left: 16px
+  padding-right: 16px
+  line-height: 1.4em
+  min-height: 1em
+
+  .user-html
+    @include user-html
+
+  .promise-status
+    padding: 2px 8px
+    margin: 3px 0 10px 0
+    -webkit-border-bottom-right-radius: 6px
+    -webkit-border-bottom-left-radius: 6px
+    background-color: #eee
+    border-bottom: 1px solid #ddd
+    font-size: 0.8em
+    color: #bbb
+
+  .cm-comment
+    color: #aaa
+
+  p
+    font-family: "Helvetica Neue"
+    font-size: 14px
+    line-height: 1.7em
+
+  .example
+    margin: 10px 6px
+    border: 1px solid #d0d0d0
+    padding: 6px
+    cursor: pointer
+
+  .user-html .example pre
+    margin-bottom: 0
+
+  .error
+    border: 1px solid $error-fg
+    background-color: $error-bg
+    padding: 5px
+    -webkit-border-radius: 4px
+    margin-bottom: .5em
+
+  table
+    border-collapse: collapse
+    border-spacing: 0
+    margin-bottom: 1.5em
+
+    td, th
+      background: #fff
+      border: 1px solid #d0d0d0
+      padding: 8px 14px
+      font-size: 14px
+      &.number
+        text-align: right
+
+  img, svg
+    background-color: #fff
+    padding: 3px
+    -webkit-border-radius: 6px
 
 .find-results
   padding-left: 10px

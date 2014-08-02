@@ -11,11 +11,12 @@ function_names = require './functions'
 http = require './http'
 docs = require './graphite_docs'
 parser = require './graphite_parser'
-builtins = require './builtins'
+Builtins = require './builtins'
 Html = require './html'
 Documentation = require './documentation'
+Context = require './context'
 
-graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) ->
+graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   build_function_doc = (ctx, doc) ->
     FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
 
@@ -51,14 +52,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     for t in targets
       unless _.isString t
         throw new TypeError "#{t} is not a string"
-    @value new dsl.type.q targets.map(String)...
+    Context.value new dsl.type.q targets.map(String)...
 
   FunctionDocsComponent = React.createClass
     render: ->
       React.DOM.div {}, [
         React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
         _.map @props.docs.examples, (example) =>
-          builtins.ExampleComponent ctx: @props.ctx, value: "#{default_target_command} #{JSON.stringify example}", run: false
+          Builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: false
       ]
 
   ParameterDocsComponent = React.createClass
@@ -73,25 +74,28 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         if href[0] is '#'
           ctx.run "docs '#{decodeURI href[1..]}'"
 
-  cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (name) ->
+  component_cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (ctx, name) ->
     if name?
       name = name.to_js_string() if name.to_js_string?
       name = name._lead_context_fn?.name if name._lead_op?
       function_docs = docs.function_docs[name]
+      help_components = []
       if function_docs?
-        @help "graphite_functions.#{name}"
+        help_components.push Builtins.help_component ctx, "graphite_functions.#{name}"
       name = docs.parameter_doc_ids[name] ? name
       parameter_docs = docs.parameter_docs[name]
       if parameter_docs?
-        @help "graphite_parameters.#{name}"
-      unless function_docs? or parameter_docs?
-        @text 'Documentation not found'
-    else
-      @add_component React.DOM.h3 {}, 'Functions'
-      @help 'graphite_functions'
+        help_components.push Builtins.help_component ctx, "graphite_parameters.#{name}"
 
-      @add_component React.DOM.h3 {}, 'Parameters'
-      @help 'graphite_parameters'
+      if help_components.length == 0
+        help_components.push 'Documentation not found'
+      React.DOM.div null, help_components
+    else
+      React.DOM.div null,
+        React.DOM.h3 {}, 'Functions'
+        Builtins.help_component ctx, 'graphite_functions'
+        React.DOM.h3 {}, 'Parameters'
+        Builtins.help_component ctx, 'graphite_parameters'
 
   doc 'params',
     'Generates the parameters for a render API call'
@@ -106,31 +110,24 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
     ```
     '''
 
-  fn 'params', (args...) ->
-    result = args_to_params @, args
-    @value result
+  fn 'params', (ctx, args...) ->
+    result = args_to_params ctx, args
+    Context.value result
 
-  component_fn 'url', 'Generates a URL for a graph image', (args...) ->
-    params = args_to_params @, args
+  component_fn 'url', 'Generates a URL for a graph image', (ctx, args...) ->
+    params = args_to_params ctx, args
     url = graphite.render_url params
     React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
-  fn 'img', 'Renders a graph image', (args...) ->
-    params = args_to_params @, args
+  component_fn 'img', 'Renders a graph image', (ctx, args...) ->
+    params = args_to_params ctx, args
     url = graphite.render_url params
-    @async ->
-      # TODO move this to react once it supports onload and onerror
-      # https://github.com/facebook/react/pull/774
-      $img = $ "<img src='#{url}'/>"
-      @div $img
-      deferred = Q.defer()
-      $img.on 'load', deferred.resolve
-      $img.on 'error', deferred.reject
-
-      promise = deferred.promise
-      promise.fail (args...) =>
-        @error 'Failed to load image'
-      promise
+    deferred = Q.defer()
+    promise = deferred.promise.fail -> Q.reject 'Failed to load image'
+    Context.AsyncComponent {promise},
+      Builtins.ComponentAndError {promise},
+        React.DOM.img onLoad: deferred.resolve, onError: deferred.reject, src: url
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   TimeSeriesTable = React.createClass
     render: ->
@@ -149,28 +146,26 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
           TimeSeriesTable datapoints: series.datapoints
         ]
 
-  fn 'table', 'Displays Graphite data in a table', (args...) ->
-    params = args_to_params @, args
-    @async ->
-      props = new Bacon.Model serieses: []
-      result = React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
-      @add_component result
-      promise = graphite.get_data params
-      promise.then (response) =>
-        props.set serieses: response
-      .fail (error) =>
-        @error error
-        Q.reject error
-      promise
+  component_fn 'table', 'Displays Graphite data in a table', (ctx, args...) ->
+    params = args_to_params ctx, args
+    props = new Bacon.Model serieses: []
+    promise = graphite.get_data(params)
+    .then (response) =>
+      props.set serieses: response
 
-  fn 'browser', 'Browse Graphite metrics using a wildcard query', (query) ->
-    finder = @graphite.find query
+    Context.AsyncComponent {promise},
+      Builtins.ComponentAndError {promise},
+        React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
+
+  component_fn 'browser', 'Browse Graphite metrics using a wildcard query', (ctx, query) ->
+    finder = graphite.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
     finder.clicks.onValue (node) =>
       if node.is_leaf
-        @run "q(#{JSON.stringify node.path})"
+        ctx.run "q(#{JSON.stringify node.path})"
       else
-        @run "browser #{JSON.stringify node.path + '.*'}"
-    @add_renderable finder
+        ctx.run "browser #{JSON.stringify node.path + '.*'}"
+    finder.component
 
   TreeNodeComponent = React.createClass
     render: ->
@@ -255,9 +250,9 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
         close: @close
         load: @props.load
 
-  fn 'tree', 'Generates a browsable tree of metrics', (query) ->
-    @add_component TreeComponent root: query ? '', load: (path) =>
-      @run "q(#{JSON.stringify path})"
+  component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
+    TreeComponent root: query ? '', load: (path) =>
+      ctx.run "q(#{JSON.stringify path})"
 
 
   FindResultsComponent = React.createClass
@@ -272,24 +267,26 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, settings, doc}) -
           s = '.' + s unless i == 0
           React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
 
-  fn 'find', 'Finds Graphite metrics', (query) ->
-    promise = graphite.find query
-    promise.clicks = new Bacon.Bus
+  fn 'find', 'Finds Graphite metrics', (ctx, query) ->
+    promise = graphite.find(query)
+    .then (r) =>
+      results.set r.result
+    .fail (reason) =>
+      Q.reject 'Find request failed'
 
-    @value @renderable promise, @detached -> @async ->
-      results = new Bacon.Model []
-      props = Bacon.Model.combine {results, query, on_click: (node) -> promise.clicks.push node}
-      result = React.PropsModelComponent constructor: FindResultsComponent, child_props: props
-      @add_component result
-      promise.then (r) =>
-        results.set r.result
-      .fail (reason) =>
-        @error 'Find request failed'
-        Q.reject reason
-      promise
+    clicks = new Bacon.Bus
 
-  fn 'get_data', 'Fetches Graphite metric data', (args...) ->
-    @value graphite.get_data graphite.args_to_params {args, default_options: @options()}
+    results = new Bacon.Model []
+    props = Bacon.Model.combine {results, query, on_click: (node) -> clicks.push node}
+    component = Context.AsyncComponent {promise},
+      Builtins.ComponentAndError {promise},
+        React.PropsModelComponent constructor: FindResultsComponent, child_props: props
+      Builtins.PromiseStatusComponent {promise, start_time: new Date}
+
+    Context.value {promise, clicks, component}
+
+  fn 'get_data', 'Fetches Graphite metric data', (ctx, args...) ->
+    Context.value graphite.get_data graphite.args_to_params {args, default_options: ctx.options()}
 
   context_vars: -> dsl.define_functions {}, function_names
 

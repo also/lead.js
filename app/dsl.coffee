@@ -1,4 +1,7 @@
 _ = require 'underscore'
+React = require 'react'
+Context = require './context'
+Components = require './components'
 
 dsl_type = ->
 dsl = type: dsl_type
@@ -96,16 +99,18 @@ dsl.is_dsl_node = (x) ->
   x instanceof dsl.type
 
 # TODO rename
-dsl.context_result_handler = (object) ->
+dsl.context_result_handler = (ctx, object) ->
   if dsl.is_dsl_node object
     lead_string = dsl.to_string object
     if _.isFunction object
-      @text "#{lead_string} is a Graphite function"
-      @example "docs #{object.values[0]}"
+      Context.add_component ctx, React.DOM.div null,
+        "#{lead_string} is a Graphite function"
+        Components.ExampleComponent value: "docs #{object.values[0]}", run: true
     else
-      @text "What do you want to do with #{lead_string}?"
-      for f in ['data', 'graph', 'img', 'url']
-        @example "#{f} #{object.to_js_string()}"
+      Context.add_component ctx, React.DOM.div null,
+        "What do you want to do with #{lead_string}?"
+        _.map ['data', 'graph', 'img', 'url'], (f) ->
+          Components.ExampleComponent value: "#{f} #{object.to_js_string()}", run: true
     true
 
 module.exports = dsl

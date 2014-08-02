@@ -3,15 +3,10 @@
 <head>
 <title>lead.js</title>
 <meta charset="UTF-8">
-<script src="src/requirejs_config.js"></script>
-<script data-main="src/app" src="lib/require.js"></script>
-<script>
-require(['app'], function(app) { $(app.init_app) })
-</script>
-<link rel="stylesheet" href="dist/style.css"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
-<body class="cm-s-idle">
-<h1>lead.js</h1>
-<div id="document"></div>
+<body>
+<script src="lead-app.js"></script>
+<script src="config.js"></script>
 </body>
 </html>
