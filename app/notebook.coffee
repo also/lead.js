@@ -47,7 +47,7 @@ backwards = -1
 # predicates for cells
 is_input = (cell) -> cell.type is 'input'
 is_output = (cell) -> cell.type is 'output'
-is_clean = (cell) -> Editor.get(value cell.editor) is '' and not cell.used
+is_clean = (cell) -> Editor.get_value(cell.editor) is '' and not cell.used
 visible = (cell) -> cell.visible
 identity = (cell) -> true
 
