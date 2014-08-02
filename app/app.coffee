@@ -21,8 +21,6 @@ imports = [
   'compat'
 ]
 
-window.lead = {settings}
-
 imports.push.apply imports, settings.get('app', 'imports') or []
 module_names.push.apply imports, settings.get('app', 'module_names') or []
 
@@ -118,3 +116,5 @@ exports.init_app = (target) ->
 
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
+
+window.lead = {settings, init_app: exports.init_app}
