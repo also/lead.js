@@ -106,6 +106,7 @@ describe 'contexts', ->
     it 'can keep the running context in an async function', (done) ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
+      context_b.scope.Context = Context
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
           Context.in_running_context ctx, ->
@@ -114,7 +115,7 @@ describe 'contexts', ->
         async = ->
           @value_in_context_b = @context_a.function_in_context_a()
           complete()
-        setTimeout @keeping_context(async), 0
+        setTimeout Context.keeping_context(@, async), 0
       on_complete done, ->
         expect(context_a.value_in_context_a).to.be undefined
         expect(context_b.value_in_context_a).to.be 'a'
@@ -123,15 +124,12 @@ describe 'contexts', ->
     it 'can use the running context when calling a function from another context', ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
-
-      # TODO this is to trick webpack into not interpreting the require inside of the eval_in_context
-      require = null
+      context_b.scope.Context = Context
 
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
             @value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
-        Context = require 'context'
         @value_in_context_b = Context.in_running_context @, @context_a.function_in_context_a
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
@@ -149,9 +147,10 @@ describe 'contexts', ->
 
     it "allows output after render", (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
+      context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
-        setTimeout @keeping_context ->
+        setTimeout Context.keeping_context @, ->
           text 'c'
           complete()
         , 0
@@ -165,7 +164,7 @@ describe 'contexts', ->
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         Context.nested_item @, ->
-          setTimeout @keeping_context ->
+          setTimeout Context.keeping_context @, ->
             text 'a'
             complete()
           , 0

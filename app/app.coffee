@@ -125,3 +125,5 @@ exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
 
 window.lead = {settings, init_app: exports.init_app}
+
+window.React = React
