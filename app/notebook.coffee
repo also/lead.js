@@ -304,9 +304,6 @@ create_bare_output_cell_and_context = (notebook) ->
   run_context = Context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
   run_context
 
-eval_coffeescript_without_input_cell = (notebook, string) ->
-  run_without_input_cell notebook, null, CoffeeScriptCell.create_fn string
-
 run_without_input_cell = (notebook, position, fn) ->
   run_context = create_bare_output_cell_and_context notebook
   insert_cell run_context.output_cell, position
@@ -390,7 +387,6 @@ _.extend exports, {
   add_input_cell
   remove_cell
   focus_cell
-  eval_coffeescript_without_input_cell
   run_without_input_cell
   set_cell_value
 
