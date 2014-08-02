@@ -191,13 +191,6 @@ create_context = (base) ->
 # FIXME figure out a real check for a react component
 is_component = (o) -> o?.__realComponentInstance?
 
-component_for_renderable = (renderable) ->
-  if is_component renderable
-    renderable
-  # TODO remove context special case
-  else if is_run_context renderable
-    renderable.component
-
 component_list = ->
   components = []
   model = new Bacon.Model []
