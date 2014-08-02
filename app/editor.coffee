@@ -7,8 +7,8 @@ require 'codemirror/mode/javascript/javascript'
 require 'codemirror/mode/coffeescript/coffeescript'
 require 'codemirror/addon/hint/show-hint'
 
-context = require './context'
-notebook = require './notebook'
+Context = require './context'
+Notebook = require './notebook'
 
 create_editor = (target) ->
   if is_nodejs?
@@ -87,11 +87,11 @@ token_after = (cm, token, line) ->
   last_interesting_token
 
 collect_string_suggestions = (ctx, string) ->
-  Q.all(_.flatten _.map context.collect_extension_points(ctx, 'suggest_strings'), (fn) -> fn string)
+  Q.all(_.flatten _.map Context.collect_extension_points(ctx, 'suggest_strings'), (fn) -> fn string)
   .then (suggestions) -> _.flatten suggestions
 
 collect_key_suggestions = (ctx, string) ->
-  _.flatten _.map context.collect_extension_points(ctx, 'suggest_keys'), (fn) -> fn string
+  _.flatten _.map Context.collect_extension_points(ctx, 'suggest_keys'), (fn) -> fn string
 
 follow_path = (o, path) ->
   result = o
@@ -180,32 +180,32 @@ cmd = (doc, fn) ->
 
 commands =
   run: cmd 'Runs the contents of the cell and advances the cursor to the next cell', (cm) ->
-    notebook.run cm.lead_cell, advance: true
+    Notebook.run cm.lead_cell, advance: true
 
   run_in_place: cmd 'Runs the contents of the cell and keeps the cursor in the cell', (cm) ->
-    notebook.run cm.lead_cell, advance: false
+    Notebook.run cm.lead_cell, advance: false
 
   context_help: cmd 'Shows help for the token under the cursor', (cm) ->
     cur = cm.getCursor()
     token = cm.getTokenAt(cur)
-    notebook.context_help cm.lead_cell, token.string
+    Notebook.context_help cm.lead_cell, token.string
 
   suggest: cmd 'Suggests a function or metric', (cm) ->
     CodeMirror.showHint cm, suggest, async: true
 
   fill_with_last_value: cmd 'Replaces the cell with the contents of the previous cell', (cm) ->
-    cell = notebook.input_cell_at_offset cm.lead_cell, -1
+    cell = Notebook.input_cell_at_offset cm.lead_cell, -1
     if cell?
-      set_value cm, notebook.cell_value cell
+      set_value cm, Notebook.cell_value cell
     else
       CodeMirror.Pass
 
   next_cell: cmd 'Moves the cursor to the next cell', (cm) ->
-    unless notebook.move_focus cm.lead_cell, 1
+    unless Notebook.move_focus cm.lead_cell, 1
       CodeMirror.Pass
 
   previous_cell: cmd 'Moves the cursor to the previous cell', (cm) ->
-    unless notebook.move_focus cm.lead_cell, -1
+    unless Notebook.move_focus cm.lead_cell, -1
       CodeMirror.Pass
 
   maybe_next_cell: cmd 'Moves the cursor to the next cell if the cursor is at the end', (cm) ->
@@ -223,7 +223,7 @@ commands =
       CodeMirror.Pass
 
   save: (cm) ->
-    notebook.save cm.lead_cell
+    Notebook.save cm.lead_cell
 
 key_map =
   Tab: (cm) ->
