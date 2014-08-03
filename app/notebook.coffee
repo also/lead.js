@@ -291,10 +291,10 @@ run = (input_cell) ->
   output_cell = create_output_cell input_cell.notebook
   input_cell.used = true
   remove_cell input_cell.output_cell if input_cell.output_cell?
+  input_cell.output_cell = output_cell
   insert_cell output_cell, after: input_cell
   input_cell.number = input_cell.notebook.input_number++
   input_cell.changes.push input_cell
-  input_cell.output_cell = output_cell
 
   # TODO cell type
   run_context = Context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
