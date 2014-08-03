@@ -241,6 +241,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       msg = pre.innerText.trim()
     msg ? 'Unknown error'
 
+  # TODO this is only use for complete
   parse_find_response: (query, response) ->
     parts = query.split '.'
     pattern_parts = parts.map graphite.is_pattern
@@ -248,7 +249,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       if node.is_leaf
         node.path
       else
-        node.path + '.*'
+        node.path + '.'
     patterned_list = for path in list
       result = for matched, i in path.split '.'
         if pattern_parts[i]
