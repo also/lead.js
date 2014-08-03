@@ -18,8 +18,9 @@ create_editor = (target) ->
     mode: 'coffeescript'
     keyMap: 'lead'
     tabSize: 2
+    lineNumbers: true
     viewportMargin: Infinity
-    gutters: ['error']
+    #gutters: ['error']
 
   cm.setCursor(line: cm.lineCount() - 1)
   cm
