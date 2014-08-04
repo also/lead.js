@@ -5,6 +5,15 @@ Builtins = require './builtins'
 React = require 'react'
 Components = require './components'
 printStackTrace = require 'stacktrace-js'
+acorn = require 'acorn'
+escope = require 'escope'
+_ = require 'underscore'
+
+
+if process.browser
+  {Scope} = CoffeeScript.require './scope'
+  freeVariable = Scope::freeVariable
+  Scope::freeVariable = (name, reserve) -> freeVariable.call @, "LEAD_COFFEESCRIPT_FREE_VARIABLE_#{name}", reserve
 
 recompile = (error_marks, editor) ->
   m.clear() for m in error_marks
@@ -25,8 +34,13 @@ get_fn = (run_context) ->
 create_fn = (string) ->
   (ctx) ->
     try
-      compiled = CoffeeScript.compile(string, bare: true) + "\n//@ sourceURL=console-coffeescript.js"
-      return Context.scoped_eval ctx, compiled
+      locals = Object.keys ctx.repl_vars
+      compiled = CoffeeScript.compile(string, bare: true, locals: locals) + "\n//@ sourceURL=console-coffeescript.js"
+      ast = acorn.parse compiled
+      scopes = escope.analyze(ast).scopes
+      global_scope = _.find scopes, (s) -> s.type == 'global'
+      global_vars = _.pluck global_scope.variables, 'name'
+      return Context.scoped_eval ctx, compiled, _.reject global_vars, (name) -> name.indexOf('_LEAD_COFFEESCRIPT_FREE_VARIABLE_') == 0
     catch e
       if e instanceof SyntaxError
         Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"

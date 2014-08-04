@@ -170,7 +170,8 @@ TopLevelContextComponent = React.createClass
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
   modules = Modules.get_modules(_.union imports or [], module_names or [])
-  {modules, imports}
+  # TODO find a better home for repl vars
+  {modules, imports, repl_vars: {}}
 
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
@@ -298,13 +299,19 @@ create_standalone_context = ({imports, module_names}={}) ->
   base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
   create_run_context [create_context base_context]
 
-scoped_eval = (ctx, string) ->
+
+scoped_eval = (ctx, string, var_names=[]) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
-  context_scope = ctx.scope
-  `with (context_scope) {`
-  result = (-> eval string).call ctx
-  `}`
+  _.each var_names, (name) ->
+    ctx.repl_vars[name] ?= undefined
+  result = null
+  (->
+    `with (ctx.scope) { with (ctx.repl_vars) {`
+    result = eval string
+    `}}`
+  ).call ctx
+
   result
 
 eval_in_context = (run_context, string) ->
