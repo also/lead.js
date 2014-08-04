@@ -51,12 +51,30 @@ is_clean = (cell) -> Editor.get_value(cell.editor) is '' and not cell.used
 visible = (cell) -> cell.visible
 identity = (cell) -> true
 
+InputOutputComponent = React.createClass
+  displayName: 'InputOutputComponent'
+  render: ->
+    React.DOM.div {className: 'io'}, @props.input_cell?.component, @props.output_cell?.component
+
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
   mixins: [React.ObservableMixin]
   get_observable: -> @props.cells_model
   render: ->
-    React.DOM.div {className: 'document cm-s-idle'}, _.pluck @state.value, 'component'
+    props = null
+    ios = []
+    _.each @state.value, (cell) ->
+      if cell.type == 'input'
+        props = input_cell: cell
+        ios.push props
+      else
+        if !props? or props.input_cell.output_cell != cell
+          ios.push output_cell: cell
+        else
+          props.output_cell = cell
+        props = null
+
+    React.DOM.div {className: 'document cm-s-idle'}, _.map ios, InputOutputComponent
 
 NotebookComponent = React.createClass
   displayName: 'NotebookComponent'
@@ -137,6 +155,7 @@ clear_notebook = (notebook) ->
     cell.active = false
   notebook.cells.length = 0
   focus_cell add_input_cell notebook
+
 cell_index = (cell) ->
   cell.notebook.cells.indexOf cell
 
@@ -196,7 +215,6 @@ InputCellComponent = React.createIdentityClass
   mixins: [React.ObservableMixin]
   get_observable: -> @props.cell.changes
   render: ->
-    # TODO handle hiding
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
       React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, 'link'),
       React.DOM.div({className: 'code', ref: 'code'})
@@ -273,10 +291,10 @@ run = (input_cell) ->
   output_cell = create_output_cell input_cell.notebook
   input_cell.used = true
   remove_cell input_cell.output_cell if input_cell.output_cell?
+  input_cell.output_cell = output_cell
   insert_cell output_cell, after: input_cell
   input_cell.number = input_cell.notebook.input_number++
   input_cell.changes.push input_cell
-  input_cell.output_cell = output_cell
 
   # TODO cell type
   run_context = Context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]

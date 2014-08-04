@@ -8,7 +8,7 @@ $error-bg: #fee
 
 body
   margin: 0
-  padding: 20px 10%
+  padding: calc(1em + 20px) 10%
   color: #333
   background-color: $background
   font-size: 14px
@@ -33,7 +33,9 @@ pre
 
   border: 1px solid #D0E0EB
   background: #fff
-  padding: 8px 12px
+  .CodeMirror-linenumber
+    font-size: 12px
+
   font-family: $monospace
   line-height: 1.6em
 
@@ -41,7 +43,7 @@ pre
     border-bottom: 2px dotted $error-fg
 
   .CodeMirror-lines
-    padding: 0
+    padding: 8px 0
 
   .CodeMirror-gutters
     border: none
@@ -67,6 +69,8 @@ pre
   background-color: #333
   color: white
   padding: 10px
+  width: 100%
+  z-index: 10000000
 
 .document
   .cell

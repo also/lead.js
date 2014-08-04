@@ -8,7 +8,7 @@ Each input cell defines a *program* that runs in a *context*. The context provid
 
 ### Context Functions
 
-A *context function* is a function that is has access to the current context. It will be called with the context as `this`.
+A *context function* is a function that is has access to the current context. It will be called with the context as the first argument.
 
 ### Context Commands
 
@@ -30,7 +30,7 @@ A *context var* is simply a variable that is made available in the context scope
 
 ## Modules
 
-A lead.js module provides a set of functionality. It is implemented as an AMD module, and uses the `modules` module to set expose its features.
+A lead.js module provides a set of functionality. It is implemented as a CommonJS style module, and uses the `modules` module to set expose its features.
 
 The `modules` module provides helpers to define commands, functions, and to access settings.
 

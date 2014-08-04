@@ -21,25 +21,26 @@ imports = [
   'compat'
 ]
 
-window.lead = {settings}
-
 imports.push.apply imports, settings.get('app', 'imports') or []
 module_names.push.apply imports, settings.get('app', 'module_names') or []
 
 settings.default 'app', 'intro_command', "help 'introduction'"
 
 AppComponent = React.createClass
+  displayName: 'AppComponent'
   render: ->
     React.DOM.div {className: 'lead'},
       React.DOM.div {className: 'nav-bar'}, 'lead'
       this.props.activeRouteHandler()
 
 HelpWrapperComponent = React.createClass
+  displayName: 'HelpWrapperComponent'
   mixins: [Context.ContextAwareMixin]
   render: ->
     Builtins.help_component @state.ctx, @props.key
 
 HelpComponent = React.createClass
+  displayName: 'HelpComponent'
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'output cell'},
@@ -47,6 +48,7 @@ HelpComponent = React.createClass
         HelpWrapperComponent {key: @props.params.key}
 
 NewNotebookComponent = React.createClass
+  displayName: 'NewNotebookComponent'
   render: ->
     intro_command = settings.get 'app', 'intro_command'
     if intro_command? and intro_command != ''
@@ -57,6 +59,7 @@ NewNotebookComponent = React.createClass
       }
 
 GistNotebookComponent = React.createClass
+  displayName: 'GistNotebookComponent'
   render: ->
     gist = @props.params.gist
     Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
@@ -68,11 +71,13 @@ GistNotebookComponent = React.createClass
     }
 
 Base64EncodedNotebookCellComponent = React.createClass
+  displayName: 'Base64EncodedNotebookCellComponent'
   render: ->
     value = atob @props.params.splat
     SingleCoffeeScriptCellNotebookComponent {value}
 
 SingleCoffeeScriptCellNotebookComponent = React.createClass
+  displayName: 'SingleCoffeeScriptCellNotebookComponent'
   render: ->
     value = @props.value
     Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
@@ -118,3 +123,7 @@ exports.init_app = (target) ->
 
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
+
+window.lead = {settings, init_app: exports.init_app}
+
+window.React = React

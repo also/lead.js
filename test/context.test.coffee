@@ -55,7 +55,7 @@ describe 'contexts', ->
       complete_callback = ->
       ctx = null
       result = null
-      base_context = Context.create_base_context(imports: ['builtins'])
+      base_context = Context.create_base_context(imports: ['builtins', 'compat'])
       base_context.modules.test_module = test_module
       ctx = Context.create_context base_context
       ctx.imported_context_fns.complete = test_module.context_fns.complete
@@ -96,7 +96,7 @@ describe 'contexts', ->
       context_b = Context.create_run_context [ctx, {context_a}]
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
-          ctx.in_running_context ->
+          Context.in_running_context ctx, ->
             @value_in_context_a = 'a'
       eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be(undefined)
@@ -106,15 +106,16 @@ describe 'contexts', ->
     it 'can keep the running context in an async function', (done) ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
+      context_b.scope.Context = Context
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
-          ctx.in_running_context ->
+          Context.in_running_context ctx, ->
             @value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
         async = ->
           @value_in_context_b = @context_a.function_in_context_a()
           complete()
-        setTimeout @keeping_context(async), 0
+        setTimeout Context.keeping_context(@, async), 0
       on_complete done, ->
         expect(context_a.value_in_context_a).to.be undefined
         expect(context_b.value_in_context_a).to.be 'a'
@@ -123,11 +124,13 @@ describe 'contexts', ->
     it 'can use the running context when calling a function from another context', ->
       context_a = Context.create_run_context [ctx]
       context_b = Context.create_run_context [ctx, {context_a}]
+      context_b.scope.Context = Context
+
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
             @value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
-        @value_in_context_b = @in_running_context @context_a.function_in_context_a
+        @value_in_context_b = Context.in_running_context @, @context_a.function_in_context_a
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
@@ -144,9 +147,10 @@ describe 'contexts', ->
 
     it "allows output after render", (done) ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
+      context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
-        setTimeout @keeping_context ->
+        setTimeout Context.keeping_context @, ->
           text 'c'
           complete()
         , 0
@@ -160,7 +164,7 @@ describe 'contexts', ->
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         Context.nested_item @, ->
-          setTimeout @keeping_context ->
+          setTimeout Context.keeping_context @, ->
             text 'a'
             complete()
           , 0
