@@ -48,7 +48,7 @@ run_in_browser = ({driver_opts, init_opts}, browser_opts, fn) ->
       (result) -> Q.reject {browser, result}
     )
     .finally ->
-      browser.quit().fail ->
+      #browser.quit().fail ->
 
 run_in_sauce_browsers = (driver, sauce_opts, browsers, fn) ->
   run_in_browsers driver, _.map(browsers, (b) ->_.extend({}, sauce_opts, b)), (browser) ->

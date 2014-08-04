@@ -27,16 +27,16 @@ module.exports = (browser) ->
     -> browser.title()
     (title) -> expect(title).to.be 'lead.js'
 
-    -> browser.elementByCss('.input[data-cell-number="1"] .code').text()
+    -> browser.elementByCss('.input[data-cell-number="1"] .CodeMirror-code pre').text()
     (code) -> expect(code).to.be("help 'introduction'")
 
-    -> browser.elementByCss('.input:not([data-cell-number]) .code').text()
+    -> browser.elementByCss('.input:not([data-cell-number]) .CodeMirror-code pre').text()
     (code) -> expect(code.trim()).to.be ''
 
     -> browser.keys '1+1'
     # TODO wait for text in input cell, not everywhere
     -> browser.waitFor(wd.asserters.textInclude('1+1'))
-    -> browser.elementByCss('.input:not([data-cell-number]) .code').text()
+    -> browser.elementByCss('.input:not([data-cell-number]) .CodeMirror-code pre').text()
     (code) -> expect(code.trim()).to.be '1+1'
 
     -> browser.keys SHIFT_ENTER
@@ -48,7 +48,7 @@ module.exports = (browser) ->
     -> browser.keys wd.SPECIAL_KEYS['Back space']
     -> browser.keys '2+2'
     -> browser.keys SHIFT_ENTER
-    -> browser.elementByCss('.input[data-cell-number="3"] .code').text()
+    -> browser.elementByCss('.input[data-cell-number="3"] .CodeMirror-code pre').text()
     (code) -> expect(code.trim()).to.be '2+2'
 
     -> browser.elementByCss('.output[data-cell-number="3"]').text()
