@@ -1,18 +1,19 @@
 _ = require 'underscore'
+webpack_config = require './webpack.config'
+webpack_style_config = _.extend {}, webpack_config,
+  entry: '!css!sass!./style.scss'
+  output:
+    path: __dirname + '/build/web'
+    filename: 'style.js'
+    library: 'lead_style'
+    libraryTarget: 'commonjs2'
 
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
     webpack:
-      web: require './webpack.config'
-    sass:
-      dist:
-        files:
-          'build/style.css': 'style.sass'
-    concat:
-      css:
-        src: ['lib/reset.css', 'build/style.css', 'node_modules/codemirror/lib/codemirror.css', 'node_modules/codemirror/addon/hint/show-hint.css']
-        dest: 'build/web/style.css'
+      web: webpack_config
+      css: webpack_style_config
     copy:
       javascript:
         files: [
@@ -67,8 +68,6 @@ module.exports = (grunt) ->
     connect:
       server: {}
 
-  grunt.loadNpmTasks 'grunt-sass'
-  grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-connect'
@@ -76,12 +75,13 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-compress'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask 'css', ['sass', 'concat:css']
-
   grunt.registerTask 'node', ['coffee', 'copy:javascript']
-  grunt.registerTask 'web', ['css', 'webpack:web', 'copy:static']
+  grunt.registerTask 'web', ['webpack', 'css', 'copy:static']
   grunt.registerTask 'default', ['web', 'node']
   grunt.registerTask 'dist', ['copy:dist-node', 'copy:dist-web']
+
+  grunt.registerTask 'css', ->
+    grunt.file.write 'build/web/style.css', require './build/web/style.js'
 
   grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
     PEG = require 'pegjs'

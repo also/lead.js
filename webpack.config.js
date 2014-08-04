@@ -1,10 +1,12 @@
-webpack = require('webpack');
+var webpack = require('webpack');
 
 module.exports = {
   debug: true,
   context: __dirname,
+  // the arrays are a weird workaround the "a dependency to an entry point is not allowed" error
+  // https://github.com/webpack/webpack/issues/300#issuecomment-45313650
   entry: {
-    app: './app/app_main.entry',
+    app: ['./app/app'],
     'app-complete': './app/app_main_complete.entry',
     test: './test/run_mocha_browser'
   },

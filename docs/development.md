@@ -4,8 +4,6 @@
 
 lead.js uses [webpack](http://webpack.github.io/docs/) to build JavaScript that runs in the browser. The grunt task `webpack:web` task builds using the `webpack.config.js` file. The `webpack` and `webpack-dev-server` commands can both be used without grunt.
 
-All webpack builds require the CSS to be built before with the `css` grunt task.
-
 The `web` grunt task creates a complete working lead.js build in `build/web`.
 
 ### node.js

@@ -1,5 +1,5 @@
 document.title = 'lead.js'
 
-require 'style!raw!../build/web/style.css'
+require "!style!css!sass!../style.scss"
 app = require './app'
 app.init_app document.body
