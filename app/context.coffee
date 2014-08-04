@@ -218,13 +218,17 @@ nested_item = (ctx, fn, args...) ->
   add_component ctx, nested_context.component
   apply_to nested_context, fn, args
 
-apply_to = (ctx, fn, args) ->
-  previous_context = ctx.scope.ctx
-  ctx.scope.ctx = ctx
+
+splice_ctx = (ctx, target_ctx, fn, args) ->
+  previous_context = target_ctx.scope.ctx
+  target_ctx.scope.ctx = ctx
   try
     fn.apply ctx, args
   finally
-    ctx.scope.ctx = previous_context
+    target_ctx.scope.ctx = previous_context
+
+apply_to = (ctx, fn, args) ->
+  splice_ctx ctx, ctx, fn, args
 
 value = (value) -> _lead_context_fn_value: value
 
@@ -250,7 +254,7 @@ keeping_context = (ctx, fn) ->
 
 in_running_context = (ctx, fn, args) ->
   throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
-  apply_to running_context_binding, fn, args
+  splice_ctx running_context_binding, ctx, fn, args
 
 # TODO this is an awful name
 context_run_context_prototype =
