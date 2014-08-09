@@ -109,27 +109,29 @@ collect_context_fns = (context) ->
 is_run_context = (o) ->
   o?.component_list?
 
-bind_fn_to_current_context = (scope, fn) ->
+bind_fn_to_context = (ctx, fn) ->
   (args...) ->
-    args.unshift scope.ctx
-    fn.apply scope.ctx, args
+    args.unshift ctx
+    fn.apply ctx, args
 
-bind_context_fns = (scope, fns, name_prefix='') ->
-  result = {}
+bind_context_fns = (target, scope, fns, name_prefix='') ->
   for k, o of fns
     do (k, o) ->
       if _.isFunction o.fn
         name = "#{name_prefix}#{k}"
         wrapped_fn = ->
           o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
-        bound = bind_fn_to_current_context scope, wrapped_fn
-        bound._lead_context_fn = o
-        bound._lead_context_name = name
-        result[k] = bound
-      else
-        result[k] = _.extend {_lead_context_name: k}, bind_context_fns scope, o, k + '.'
 
-  result
+        bind = ->
+          bound = bind_fn_to_context scope.ctx, wrapped_fn
+          bound._lead_context_fn = o
+          bound._lead_context_name = name
+          bound
+        Object.defineProperty target, k, get: bind, enumerable: true
+      else
+        target[k] = bind_context_fns {_lead_context_name: k}, scope, o, k + '.'
+
+  target
 
 AsyncComponent = React.createIdentityClass
   displayName: 'AsyncComponent'
@@ -228,6 +230,7 @@ splice_ctx = (ctx, target_ctx, fn, args) ->
     target_ctx.scope.ctx = previous_context
 
 apply_to = (ctx, fn, args) ->
+  fn = fn._lead_unbound_fn ? fn
   splice_ctx ctx, ctx, fn, args
 
 value = (value) -> _lead_context_fn_value: value
@@ -269,9 +272,8 @@ register_promise = (ctx, promise) ->
 
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
-  scope = {}
-  run_context_prototype.scoped_fns = bind_context_fns scope, run_context_prototype.imported_context_fns
-  _.extend scope, run_context_prototype.scoped_fns, run_context_prototype.imported_vars
+  scope = _.extend {}, run_context_prototype.imported_vars
+  bind_context_fns scope, scope, run_context_prototype.imported_context_fns
   run_context_prototype.scope = scope
 
   result = create_nested_context run_context_prototype
@@ -312,6 +314,11 @@ scoped_eval = (ctx, string, var_names=[]) ->
   result = null
   (->
     `with (ctx.scope) { with (ctx.repl_vars) {`
+    _capture_context = (ctx) ->
+      restoring_context = capture_context ctx
+      (fn, _this, args) ->
+        restoring_context -> fn.apply _this, args
+
     result = eval string
     `}}`
   ).call ctx

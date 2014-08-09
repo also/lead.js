@@ -5,10 +5,8 @@ Builtins = require './builtins'
 React = require 'react'
 Components = require './components'
 printStackTrace = require 'stacktrace-js'
-acorn = require 'acorn'
-escope = require 'escope'
 _ = require 'underscore'
-
+Javascript = require './javascript'
 
 if process.browser
   {Scope} = CoffeeScript.require './scope'
@@ -36,11 +34,9 @@ create_fn = (string) ->
     try
       locals = Object.keys ctx.repl_vars
       compiled = CoffeeScript.compile(string, bare: true, locals: locals) + "\n//@ sourceURL=console-coffeescript.js"
-      ast = acorn.parse compiled
-      scopes = escope.analyze(ast).scopes
-      global_scope = _.find scopes, (s) -> s.type == 'global'
-      global_vars = _.pluck global_scope.variables, 'name'
-      return Context.scoped_eval ctx, compiled, _.reject global_vars, (name) -> name.indexOf('_LEAD_COFFEESCRIPT_FREE_VARIABLE_') == 0
+
+      {global_vars, source} = Javascript.mangle compiled
+      return Context.scoped_eval ctx, source, _.reject global_vars, (name) -> name.indexOf('_LEAD_COFFEESCRIPT_FREE_VARIABLE_') == 0
     catch e
       if e instanceof SyntaxError
         Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
