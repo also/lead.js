@@ -1,4 +1,5 @@
 React = require './react_abuse'
+Router = require 'react-router'
 _ = require 'underscore'
 Markdown = require './markdown'
 
@@ -18,9 +19,7 @@ normalize_key = (key) ->
 
 DocumentationIndexComponent = React.createClass
   show_help: (key) ->
-    if _.isArray key
-      key = key.join '.'
-    @props.ctx.run "help '#{key}'"
+    Documentation.navigate @props.ctx, key
   render: ->
     React.DOM.table {}, _.map @props.entries, (e) =>
       React.DOM.tr {},
@@ -36,6 +35,16 @@ DocumentationItemComponent = React.createClass
 Documentation =
   DocumentationItemComponent: DocumentationItemComponent
   DocumentationIndexComponent: DocumentationIndexComponent
+
+  navigate: (ctx, key) ->
+    if _.isArray key
+      key = key.join '.'
+    if ctx.run?
+      ctx.run "help '#{key}'"
+    else
+      Router.transitionTo 'help', {key}
+      # FIXME
+
   register_documentation: (key, doc) ->
     key = normalize_key key
     doc = _.extend {key}, doc

@@ -5,6 +5,7 @@ Context = require './context'
 URI = require 'URIjs'
 _ = require 'underscore'
 CoffeeScript = require 'coffee-script'
+Documentation = require './documentation'
 
 fix_marked_renderer_href = (fn, base_href) ->
   (href, args...) ->
@@ -80,7 +81,7 @@ LeadMarkdownComponent = React.createClass
         uri = URI a.href
         if uri.protocol() == 'help'
           e.preventDefault()
-          @state.ctx.run "help #{JSON.stringify uri.path()}"
+          Documentation.navigate @state.ctx, uri.path()
 
-module.exports = {MarkdownComponent, LeadMarkdownComponent}
+_.extend exports, {MarkdownComponent, LeadMarkdownComponent}
 
