@@ -68,7 +68,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         return fn_help_index ctx, fns
 
     # TODO shouldn't be pre
-    return React.DOM.pre null, "Documentation for #{cmd} not found."
+    if _.isString cmd
+      return React.DOM.pre null, "Documentation for #{cmd} not found."
+    else
+      return React.DOM.pre null, "Documentation not found."
 
   component_cmd 'help', 'Shows this help', (ctx, cmd) ->
     if arguments.length > 1
