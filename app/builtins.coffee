@@ -117,6 +117,16 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   fn 'In', 'Gets previous input', (ctx, n) ->
     Context.value ctx.get_input_value n
 
+  ObjectComponent = React.createClass
+    displayName: 'ObjectComponent'
+    render: ->
+      try
+        s = JSON.stringify(@props.object, null, '  ')
+      catch
+        s = null
+      s ||= new String @props.object
+      Components.SourceComponent value: s, language: 'json'
+
   doc 'object',
     'Prints an object as JSON'
     """
@@ -130,13 +140,9 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ```
     """
 
+
   component_fn 'object', (ctx, o) ->
-    try
-      s = JSON.stringify(o, null, '  ')
-    catch
-      s = null
-    s ||= new String o
-    Components.SourceComponent value: s, language: 'json'
+    ObjectComponent object: o
 
   component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
@@ -162,7 +168,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         message = 'Unknown error'
         # TODO include stack trace?
       else if not _.isString message
-        message = message.toString()
+        message =  ObjectComponent object: message
         # TODO handle exceptions better
       React.DOM.pre {className: 'error'}, message
 

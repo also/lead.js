@@ -300,8 +300,12 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     base_url = settings.get 'base_url'
     if not base_url?
       throw new Error 'Graphite base_url not set'
-    query_string = $.param params, true
-    "#{base_url}/#{path}?#{query_string}"
+
+    if params?
+      query_string = $.param params, true
+      "#{base_url}/#{path}?#{query_string}"
+    else
+      "#{base_url}/#{path}"
 
   render_url: (params) -> graphite.url 'render', params
 
@@ -316,6 +320,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     options: _.omit query, 'target'
 
   parse_error_response: (response) ->
+    return response.responseJSON if response.responseJSON?
     return 'request failed' unless response.responseText?
     html = Html.parse_document response.responseText
     pre = html.querySelector 'pre.exception_value'
@@ -349,20 +354,22 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
   transform_response: (response) ->
     if settings.get('type') == 'lead'
-      _.map response, ({name, start, step, values}) ->
+      _.map _.flatten(_.values(response.results)), ({name, start, step, values}) ->
         target: name
         datapoints: _.map values, (v, i) ->
           [v, start + step * i]
     else
       response
 
-
   # returns a promise
   get_data: (params) ->
     params.format = 'json'
-    deferred = http.get graphite.render_url params
+    if settings.get('type') == 'lead'
+      promise = http.get(graphite.url 'execute', params)
+    else
+      promise = http.get graphite.render_url(params)
 
-    deferred.then graphite.transform_response, (response) -> Q.reject graphite.parse_error_response response
+    promise.then graphite.transform_response, (response) -> Q.reject graphite.parse_error_response response
 
   # returns a promise
   complete: (query) ->
