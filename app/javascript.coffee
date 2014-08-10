@@ -25,22 +25,10 @@ exports.mangle = (src) ->
   , walk.scopeVisitor, global_scope
 
   _.each functions, (f) ->
+    # TODO handle function definitions
     if f.type == 'FunctionExpression'
       param_names = _.pluck(f.params, 'name').join ', '
-      if param_names.length > 0
-        params = ', ' + param_names
-      else
-        params = ''
-      update f, """
-      (function(_lead_unbound_fn) {
-        var _lead_restoring_context = _capture_context(ctx);
-        var _lead_bound_fn = function(#{param_names}) {
-          return _lead_restoring_context(_lead_unbound_fn, this, arguments);
-        };
-        _lead_bound_fn._lead_unbound_fn = _lead_unbound_fn;
-        return _lead_bound_fn;
-    })(#{source(f)})
-    """
+      update f, "(function(unbound) {var f = _capture_context(ctx, unbound);var bound = function(#{param_names}) {return f.apply(this, arguments);};bound._lead_unbound_fn = unbound;return bound;})(#{source(f)})"
 
   global_vars: Object.keys global_scope.vars
   source: chunks.join ''
