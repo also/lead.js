@@ -71,7 +71,7 @@ dsl_fn = (name) ->
   result = (args...) ->
     new dsl.type.f name, (process_arg arg for arg in args)...
   result.type = 'i'
-  result.name = name
+  result.fn_name = name
   result.values = [name]
   result.__proto__ = new dsl.type.i
 

@@ -48,24 +48,30 @@ fn_help_index = (ctx, fns) ->
 Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
 
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
+  get_doc_key = (ctx, o) ->
+    resolvers = Context.collect_extension_points ctx, 'resolve_documentation_key'
+    result = null
+    _.find resolvers, (resolver) ->
+      result = resolver ctx, o
+    result
+
   help_component = (ctx, o) ->
     if _.isString o
+      key
       doc = Documentation.get_documentation o
       if doc?
-        return Documentation.DocumentationItemComponent {ctx, name: o, doc}
-      op = ctx.imported_context_fns[o]
-      if op?
-        doc = get_fn_documentation op
-        if doc?
-          return Documentation.DocumentationItemComponent {ctx, name: o, doc}
-    else if o?._lead_context_name
-      name = o._lead_context_name
-      if o._lead_context_fn?
-        doc = get_fn_documentation o._lead_context_fn
-        return Documentation.DocumentationItemComponent {ctx, name, doc}
+        return Documentation.DocumentationItemComponent {ctx, doc}
       else
-        fns = _.object _.map o, (v, k) -> [k, v._lead_context_fn]
-        return fn_help_index ctx, fns
+        key = get_doc_key ctx, ctx.scope[o]
+    else
+      key = get_doc_key ctx, o
+
+    if key?
+      doc = Documentation.get_documentation key
+      if doc?
+        return Documentation.DocumentationItemComponent {ctx, doc}
+      else
+        o = "(key: #{key}}"
 
     # TODO shouldn't be pre
     if _.isString o

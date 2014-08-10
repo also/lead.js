@@ -424,6 +424,11 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   has_docs: (name) ->
     docs.parameter_docs[name]? or docs.parameter_doc_ids[name]? or docs.function_docs[name]?
 
+  resolve_documentation_key: (ctx, o) ->
+    return null unless o?
+    if _.isFunction(o) and dsl.is_dsl_node o
+      return ['graphite_functions', o.fn_name]
+
 graphite.suggest_strings = graphite.complete
 
 module.exports = graphite

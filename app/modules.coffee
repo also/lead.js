@@ -11,6 +11,8 @@ _.extend exports,
     module_settings = settings.with_prefix module_name
     context_fns = {}
 
+    Documentation.register_documentation module_name, index: true
+
     doc = (name, summary, complete) ->
       Documentation.register_documentation [module_name, name], {summary, complete}
 

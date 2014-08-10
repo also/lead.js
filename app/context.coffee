@@ -87,6 +87,13 @@ result_handlers =[
   handle_any_object
 ]
 
+resolve_documentation_key = (ctx, o) ->
+  if name = o?._lead_context_name
+    if fn = o._lead_context_fn
+      [fn.module_name, fn.name]
+    else
+      name
+
 display_object = (ctx, object) ->
   for handler in result_handlers
     return if handler ctx, object
@@ -171,7 +178,7 @@ TopLevelContextComponent = React.createClass
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}) ->
-  modules = Modules.get_modules(_.union imports or [], module_names or [])
+  modules = Modules.get_modules(_.union imports or [], module_names or [], ['context'])
   # TODO find a better home for repl vars
   {modules, imports, repl_vars: {}}
 
@@ -356,6 +363,7 @@ _.extend exports, {
   add_component,
   remove_all_components,
   nested_item,
+  resolve_documentation_key,
   AsyncComponent,
   TopLevelContextComponent,
   IGNORE: ignore
