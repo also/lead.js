@@ -60,14 +60,14 @@ handle_cmd = (ctx, object) ->
     else
       add_component ctx, React.DOM.div null,
         "Did you forget to call a function? \"#{object._lead_context_name}\" must be called with arguments."
-        Builtins.help_component object
+        Builtins.help_component ctx, object
       true
 
 handle_module = (ctx, object) ->
   if object?._lead_context_name
     add_component ctx, React.DOM.div null,
       "#{object._lead_context_name} is a module."
-      Builtins.help_component object
+      Builtins.help_component ctx, object
     true
 
 handle_using_extension = (ctx, object) ->

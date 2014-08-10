@@ -48,34 +48,34 @@ fn_help_index = (ctx, fns) ->
 Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
 
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
-  help_component = (ctx, cmd) ->
-    if _.isString cmd
-      doc = Documentation.get_documentation cmd
+  help_component = (ctx, o) ->
+    if _.isString o
+      doc = Documentation.get_documentation o
       if doc?
-        return Documentation.DocumentationItemComponent {ctx, name: cmd, doc}
-      op = ctx.imported_context_fns[cmd]
+        return Documentation.DocumentationItemComponent {ctx, name: o, doc}
+      op = ctx.imported_context_fns[o]
       if op?
         doc = get_fn_documentation op
         if doc?
-          return Documentation.DocumentationItemComponent {ctx, name: cmd, doc}
-    else if cmd?._lead_context_name
-      name = cmd._lead_context_name
-      if cmd._lead_context_fn?
-        doc = get_fn_documentation cmd._lead_context_fn
+          return Documentation.DocumentationItemComponent {ctx, name: o, doc}
+    else if o?._lead_context_name
+      name = o._lead_context_name
+      if o._lead_context_fn?
+        doc = get_fn_documentation o._lead_context_fn
         return Documentation.DocumentationItemComponent {ctx, name, doc}
       else
-        fns = _.object _.map cmd, (v, k) -> [k, v._lead_context_fn]
+        fns = _.object _.map o, (v, k) -> [k, v._lead_context_fn]
         return fn_help_index ctx, fns
 
     # TODO shouldn't be pre
-    if _.isString cmd
-      return React.DOM.pre null, "Documentation for #{cmd} not found."
+    if _.isString o
+      return React.DOM.pre null, "Documentation for #{o} not found."
     else
       return React.DOM.pre null, "Documentation not found."
 
-  component_cmd 'help', 'Shows this help', (ctx, cmd) ->
+  component_cmd 'help', 'Shows this help', (ctx, o) ->
     if arguments.length > 1
-      help_component ctx, cmd
+      help_component ctx, o
     else
       help_component ctx, 'imported_context_fns'
 
