@@ -167,6 +167,8 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       if not message?
         message = 'Unknown error'
         # TODO include stack trace?
+      else if message instanceof Error
+        message = message.toString()
       else if not _.isString message
         message =  ObjectComponent object: message
         # TODO handle exceptions better

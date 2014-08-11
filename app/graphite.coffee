@@ -354,6 +354,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
   transform_response: (response) ->
     if settings.get('type') == 'lead'
+      if response.exceptions.length > 0
+        return Q.reject response.exceptions
       _.map _.flatten(_.values(response.results)), ({name, start, step, values}) ->
         target: name
         datapoints: _.map values, (v, i) ->
@@ -365,7 +367,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   get_data: (params) ->
     params.format = 'json'
     if settings.get('type') == 'lead'
-      promise = http.get(graphite.url 'execute', params)
+      promise = http.post(graphite.url('execute'), params)
     else
       promise = http.get graphite.render_url(params)
 
