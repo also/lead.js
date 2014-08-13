@@ -49,6 +49,8 @@ ignore = new Object
 
 running_context_binding = null
 
+value = (value) -> _lead_context_fn_value: value
+
 # statement result handlers. return truthy if handled.
 ignored = (ctx, object) -> object == ignore
 
@@ -79,7 +81,7 @@ handle_any_object = (ctx, object) ->
   true
 
 # TODO make this configurable
-result_handlers =[
+result_handlers = [
   ignored
   handle_cmd
   handle_module
@@ -87,16 +89,17 @@ result_handlers =[
   handle_any_object
 ]
 
+display_object = (ctx, object) ->
+  for handler in result_handlers
+    return if handler ctx, object
+
+# extension point
 resolve_documentation_key = (ctx, o) ->
   if name = o?._lead_context_name
     if fn = o._lead_context_fn
       [fn.module_name, fn.name]
     else
       name
-
-display_object = (ctx, object) ->
-  for handler in result_handlers
-    return if handler ctx, object
 
 collect_extension_points = (context, extension_point) ->
   Modules.collect_extension_points context.modules, extension_point
@@ -225,22 +228,36 @@ remove_all_components = (ctx) ->
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_context ctx
   add_component ctx, nested_context.component
-  apply_to nested_context, fn, args
+  call_in_ctx nested_context, fn, args
 
 
-splice_ctx = (ctx, target_ctx, fn, args) ->
+# used by
+# * apply_to
+#   * grid and flow layouts (for evaled functions)
+#   * nested_item
+#   * capture_context
+#     * keeping_context
+#   * Input.live
+#   * Markdown.InlineExampleComponent
+# * in_running_context
+#
+splice_ctx = (ctx, target_ctx, fn, args=[]) ->
   previous_context = target_ctx.scope.ctx
   target_ctx.scope.ctx = ctx
+  fn = fn._lead_unbound_fn ? fn
   try
-    fn.apply ctx, args
+    fn ctx, args...
   finally
     target_ctx.scope.ctx = previous_context
 
+
 apply_to = (ctx, fn, args) ->
   fn = fn._lead_unbound_fn ? fn
-  splice_ctx ctx, ctx, fn, args
+  call_in_ctx ctx, (ctx) -> fn.apply ctx, args
 
-value = (value) -> _lead_context_fn_value: value
+
+call_in_ctx = (ctx, fn, args) ->
+  splice_ctx ctx, ctx, fn, args
 
 
 # returns a function that calls its argument in the current context
@@ -250,7 +267,7 @@ capture_context = (ctx) ->
     previous_running_context_binding = running_context_binding
     running_context_binding = running_context
     try
-      apply_to ctx, fn, args
+      call_in_ctx ctx, fn, args
     finally
       running_context_binding = previous_running_context_binding
 
@@ -297,6 +314,7 @@ create_run_context = (extra_contexts) ->
 
   scope.ctx = result
 
+
 create_nested_context = (parent, overrides) ->
   new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
   new_context.component_list = component_list()
@@ -307,6 +325,7 @@ create_nested_context = (parent, overrides) ->
     layout_props: new_context.layout_props
 
   new_context
+
 
 create_standalone_context = ({imports, module_names}={}) ->
   base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
@@ -323,7 +342,7 @@ scoped_eval = (ctx, string, var_names=[]) ->
     `with (ctx.scope) { with (ctx.repl_vars) {`
     _capture_context = (ctx, fn) ->
       restoring_context = capture_context ctx
-      (args...) ->
+      (ctx, args...) ->
         restoring_context => fn.apply @, args
 
     result = eval string
@@ -331,6 +350,7 @@ scoped_eval = (ctx, string, var_names=[]) ->
   ).call ctx
 
   result
+
 
 eval_in_context = (run_context, string) ->
   run_in_context run_context, (ctx) -> scoped_eval ctx, string

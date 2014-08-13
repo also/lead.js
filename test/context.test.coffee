@@ -12,7 +12,7 @@ render = (context) ->
   # FIXME renderComponentToString doesn't work for the output after render tests
   React.renderComponent context.component, $result.get(0)
   $result
-  
+
 
 later = (done, fn) ->
   try
@@ -96,8 +96,8 @@ describe 'contexts', ->
       context_b = Context.create_run_context [ctx, {context_a}]
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
-          Context.in_running_context ctx, ->
-            @value_in_context_a = 'a'
+          Context.in_running_context ctx, (ctx) ->
+            ctx.value_in_context_a = 'a'
       eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
@@ -109,11 +109,11 @@ describe 'contexts', ->
       context_b.scope.Context = Context
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
-          Context.in_running_context ctx, ->
-            @value_in_context_a = 'a'
+          Context.in_running_context ctx, (ctx) ->
+            ctx.value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
-        async = ->
-          @value_in_context_b = @context_a.function_in_context_a()
+        async = (ctx) ->
+          ctx.value_in_context_b = ctx.context_a.function_in_context_a()
           complete()
         setTimeout Context.keeping_context(@, async), 0
       on_complete done, ->
@@ -128,9 +128,10 @@ describe 'contexts', ->
 
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
-            @value_in_context_a = 'a'
+          Context.in_running_context ctx, (ctx) ->
+            ctx.value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
-        @value_in_context_b = Context.in_running_context @, @context_a.function_in_context_a
+        @value_in_context_b = @context_a.function_in_context_a()
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
@@ -163,8 +164,8 @@ describe 'contexts', ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
-        Context.nested_item @, ->
-          setTimeout Context.keeping_context @, ->
+        Context.nested_item @, (ctx) ->
+          setTimeout Context.keeping_context ctx, ->
             text 'a'
             complete()
           , 0

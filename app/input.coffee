@@ -62,9 +62,9 @@ input = modules.export exports, 'input', ({fn}) ->
     Context.value bus
 
   fn 'live', 'Updates when the property changes', (ctx, property, fn) ->
-    Context.nested_item ctx, ->
+    Context.nested_item ctx, (ctx) ->
       unless property.onValue?
         property = Bacon.combineTemplate property
-      property.onValue Context.keeping_context @, (v) ->
-        Context.remove_all_components @
-        Context.apply_to @, fn, [v]
+      property.onValue (v) ->
+        Context.remove_all_components ctx
+        Context.apply_to ctx, fn, [v]
