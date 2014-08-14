@@ -48,36 +48,18 @@ fn_help_index = (ctx, fns) ->
 Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
 
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
-  get_doc_key = (ctx, o) ->
-    resolvers = Context.collect_extension_points ctx, 'resolve_documentation_key'
-    result = null
-    _.find resolvers, (resolver) ->
-      result = resolver ctx, o
-    result
 
   help_component = (ctx, o) ->
-    if _.isString o
-      key
-      doc = Documentation.get_documentation o
-      if doc?
-        return Documentation.DocumentationItemComponent {ctx, doc}
-      else
-        key = get_doc_key ctx, ctx.scope[o]
-    else
-      key = get_doc_key ctx, o
-
+    key = Documentation.get_key ctx, o
     if key?
       doc = Documentation.get_documentation key
-      if doc?
-        return Documentation.DocumentationItemComponent {ctx, doc}
-      else
-        o = "(key: #{key}}"
-
-    # TODO shouldn't be pre
-    if _.isString o
-      return React.DOM.pre null, "Documentation for #{o} not found."
+      return Documentation.DocumentationItemComponent {ctx, doc}
     else
-      return React.DOM.pre null, "Documentation not found."
+      # TODO shouldn't be pre
+      if _.isString o
+        return React.DOM.pre null, "Documentation for #{o} not found."
+      else
+        return React.DOM.pre null, "Documentation not found."
 
   component_cmd 'help', 'Shows this help', (ctx, o) ->
     if arguments.length > 1

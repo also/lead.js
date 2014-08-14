@@ -2,6 +2,7 @@ React = require './react_abuse'
 Router = require 'react-router'
 _ = require 'underscore'
 Markdown = require './markdown'
+Context = require './context'
 
 docs = {}
 
@@ -16,6 +17,15 @@ normalize_key = (key) ->
     key
   else
     key.split '.'
+
+resolve_key = (ctx, o) ->
+  resolvers = Context.collect_extension_points ctx, 'resolve_documentation_key'
+  result = null
+  _.find resolvers, (resolver) ->
+    key = resolver ctx, o
+    if key and Documentation.get_documentation key
+      result = key
+  result
 
 DocumentationIndexComponent = React.createClass
   show_help: (key) ->
@@ -36,9 +46,14 @@ Documentation =
   DocumentationItemComponent: DocumentationItemComponent
   DocumentationIndexComponent: DocumentationIndexComponent
 
-  navigate: (ctx, key) ->
+  key_to_string: (key) ->
     if _.isArray key
-      key = key.join '.'
+      key.join '.'
+    else
+      key
+
+  navigate: (ctx, key) ->
+    key = Documentation.key_to_string key
     if ctx.run?
       ctx.run "help '#{key}'"
     else
@@ -81,5 +96,27 @@ Documentation =
     DocumentationIndexComponent {ctx, entries: _.map(keys, (k) ->
       entry_key = key.concat(k)
       name: k, key: entry_key, doc: Documentation.get_documentation entry_key)}
+
+  get_key: (ctx, o) ->
+    if _.isString o
+      key
+      doc = Documentation.get_documentation o
+      if doc?
+        return o
+      else
+        scoped = Context.find_in_scope ctx, o
+        if scoped
+          key = resolve_key ctx, scoped
+        else
+          key = resolve_key ctx, o
+    else
+      key = resolve_key ctx, o
+
+    return null unless key
+
+    if Documentation.get_documentation key
+      return key
+    else
+      return null
 
 module.exports = Documentation

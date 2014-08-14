@@ -4,13 +4,13 @@ URI = require 'URIjs'
 Bacon = require 'bacon.model'
 Editor = require './editor'
 http = require './http'
-Graphite = require './graphite'
 Context = require './context'
 modules = require './modules'
 React = require './react_abuse'
 CoffeeScriptCell = require './coffeescript_cell'
 Markdown = require './markdown'
 Builtins = require './builtins'
+Documentation = require './documentation'
 
 modules.export exports, 'notebook', ({component_fn, fn, cmd, component_cmd}) ->
   component_cmd 'save', 'Saves the current notebook to a file', (ctx) ->
@@ -422,11 +422,10 @@ _.extend exports, {
       Context.IGNORE
 
   context_help: (cell, token) ->
+    key = Documentation.get_key cell.context, token
     run_without_input_cell cell.notebook, before: cell, (ctx) ->
-      if Graphite.has_docs token
-        Graphite.context_fns.docs.fn ctx, token
-      else if cell.context.imported_context_fns[token]?
-        Context.add_component ctx, Builtins.help_component ctx, token
+      if key?
+        Context.add_component ctx, Builtins.help_component ctx, Documentation.key_to_string key
       Context.IGNORE
 
   move_focus: (cell, offset) ->

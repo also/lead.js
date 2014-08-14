@@ -437,6 +437,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     return null unless o?
     if _.isFunction(o) and dsl.is_dsl_node o
       return ['graphite_functions', o.fn_name]
+    if _.isString(o) and docs.parameter_docs[o]
+      return ['graphite_parameters', o]
 
 graphite.suggest_strings = graphite.complete
 
