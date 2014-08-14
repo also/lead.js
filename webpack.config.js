@@ -28,7 +28,8 @@ module.exports = {
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
-      {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'}
+      {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
+      { test: /font-awesome\/fonts\/.+\.(ttf|woff|eot|svg)$/, loader: "file-loader?name=fonts/[name]-[hash].[ext]" },
     ],
     // TODO coffeescript has a weird require browser
     noParse: /coffee-script.js$/

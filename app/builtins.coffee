@@ -201,11 +201,16 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           "#{ms} ms"
         if @props.promise.isFulfilled()
           text = "Loaded in #{duration}"
+          icon = ''
         else
           text = "Failed after #{duration}"
+          icon = 'fa-exclamation-triangle'
       else
         text = "Loading"
-      React.DOM.div {className: 'promise-status'}, text
+        icon = 'fa-spinner fa-spin'
+      React.DOM.div {className: 'promise-status'},
+        React.DOM.i {className: "fa #{icon} fa-fw"}
+        " #{text}"
     getInitialState: ->
       if @props.promise.isPending()
         null
