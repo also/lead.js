@@ -24,14 +24,19 @@ later = (done, fn) ->
 describe 'contexts', ->
   describe 'base contexts', ->
     it 'can be created', ->
-      Context.create_base_context(imports: ['builtins'])
+      Context.create_base_context()
 
   describe 'run contexts', ->
+    context = null
+    beforeEach ->
+      base_context = Context.create_base_context()
+      context = Context.create_context(base_context)
+
     it 'can be created', ->
-      Context.create_run_context []
+      Context.create_run_context [context]
 
     it 'can output', ->
-      run_context = Context.create_run_context []
+      run_context = Context.create_run_context [context]
       text = 'hello, world'
       Context.add_component run_context, React.DOM.span null, text
       $el = render run_context
@@ -57,8 +62,8 @@ describe 'contexts', ->
       result = null
       base_context = Context.create_base_context(imports: ['builtins', 'compat'])
       base_context.modules.test_module = test_module
+      base_context.imports.push 'test_module'
       ctx = Context.create_context base_context
-      ctx.imported_context_fns.complete = test_module.context_fns.complete
 
     it 'can run javascript strings', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]

@@ -133,7 +133,7 @@ bind_context_fns = (target, scope, fns, name_prefix='') ->
           o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
 
         bind = ->
-          bound = bind_fn_to_context scope.ctx, wrapped_fn
+          bound = bind_fn_to_context @ctx, wrapped_fn
           bound._lead_context_fn = o
           bound._lead_context_name = name
           bound
@@ -142,6 +142,9 @@ bind_context_fns = (target, scope, fns, name_prefix='') ->
         target[k] = bind_context_fns {_lead_context_name: k}, scope, o, k + '.'
 
   target
+
+find_in_scope = (ctx, name) ->
+  ctx.scope_prototype[name]
 
 AsyncComponent = React.createIdentityClass
   displayName: 'AsyncComponent'
@@ -180,7 +183,7 @@ TopLevelContextComponent = React.createClass
     @state.ctx.component
 
 # the base context contains the loaded modules, and the list of modules to import into every context
-create_base_context = ({module_names, imports}) ->
+create_base_context = ({module_names, imports}={}) ->
   modules = Modules.get_modules(_.union imports or [], module_names or [], ['context'])
   # TODO find a better home for repl vars
   {modules, imports, repl_vars: {}}
@@ -195,11 +198,15 @@ create_context = (base) ->
   vars = collect_context_vars base
   imported_vars = _.extend {}, _.map(base.imports, (i) -> vars[i])...
 
+  scope_prototype = _.extend {}, imported_vars
+  bind_context_fns scope_prototype, scope_prototype, imported_context_fns
+
   context = _.extend {}, base,
     context_fns: context_fns
     imported_context_fns: imported_context_fns
     vars: vars
     imported_vars: imported_vars
+    scope_prototype: scope_prototype
 
 # FIXME figure out a real check for a react component
 is_component = (o) -> o?.__realComponentInstance?
@@ -296,8 +303,7 @@ register_promise = (ctx, promise) ->
 
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
-  scope = _.extend {}, run_context_prototype.imported_vars
-  bind_context_fns scope, scope, run_context_prototype.imported_context_fns
+  scope = Object.create run_context_prototype.scope_prototype
   run_context_prototype.scope = scope
 
   result = create_nested_context run_context_prototype
@@ -373,6 +379,7 @@ _.extend exports, {
   run_in_context,
   eval_in_context,
   collect_extension_points,
+  find_in_scope,
   is_run_context,
   in_running_context,
   keeping_context,
