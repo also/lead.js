@@ -35,7 +35,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   args_to_params = (context, args) ->
     graphite.args_to_params {args, default_options: context.options()}
 
-  default_target_command = 'img'
+  default_target_command = 'graph'
 
   doc 'q',
     'Escapes a metric query'
