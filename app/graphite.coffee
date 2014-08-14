@@ -173,15 +173,20 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       state = @props.tree_state[path]
 
       if state == 'open'
-        child = React.DOM.ul null, _.map @props.cache[path], (child) =>
+        child_nodes = _.map @props.value(path), (child) =>
           parts = child.path.split '.'
           name = parts[parts.length - 1]
-          TreeNodeComponent {cache: @props.cache, tree_state: @props.tree_state, node: child, open: @props.open, close: @props.close, load: @props.load, name: name}
+          TreeNodeComponent {value: @props.value, tree_state: @props.tree_state, node: child, toggle: @props.toggle, load: @props.load, name: name}
+        child = React.DOM.ul null, _.sortBy child_nodes, (node) -> node.props.name
+      else if state == 'failed'
+        child = React.DOM.div null,
+          React.DOM.i {className: 'fa fa-exclamation-triangle'}
+          ' Error loading metric names'
       else
         child = null
       if @props.node.is_leaf
-        toggle = ''
-      else if state == 'open'
+        toggle = 'fa fa-fw'
+      else if state == 'open' or state == 'failed'
         toggle = 'fa fa-fw fa-caret-down'
       else if state == 'opening'
         toggle = 'fa fa-fw fa-spinner fa-spin'
@@ -191,16 +196,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         React.DOM.span({onClick: @handle_click},
           React.DOM.i {className: toggle}
           "#{@props.name}")
-          child
+          React.DOM.div {className: 'child'}, child
     handle_click: ->
       path = @props.node.path
       state = @props.tree_state[path]
       if @props.node.is_leaf
         @props.load path
-      else if state == 'closed' or !state?
-        @props.open path
       else
-        @props.close path
+        @props.toggle path
 
   TreeComponent = React.createClass
     statics:
@@ -217,26 +220,50 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       cache: {}
       tree_state: {}
 
+    toggle: (path) ->
+      state = @state.tree_state[path]
+      if state == 'closed' or !state?
+        @open path
+      else
+        @close path
+
+    value: (path) ->
+      @state.cache[path]?.inspect()?.value?.result
+
     open: (path) ->
       tree_state = _.clone @state.tree_state
-      if @state.cache[path]
+      cache = _.clone @state.cache
+
+      state = @state.cache[path]
+      if state?.isFulfilled()
         tree_state[path] = 'open'
       else
         tree_state[path] = 'opening'
 
-        graphite.find(TreeComponent.subpath(path)).then (result) =>
-          tree_state = _.clone @state.tree_state
-          tree_state[path] = 'open'
-          cache = _.clone @state.cache
-          cache[path] = result.result
-          @setState {tree_state, cache}
+        if !state or state.isRejected()
+          promise = graphite.find(TreeComponent.subpath(path))
+          cache[path] = promise
+          promise.then (result) =>
+            return unless @state.cache[path] == promise
+            tree_state = _.clone @state.tree_state
+            tree_state[path] = 'open'
+            @setState {tree_state}
+          , (err) =>
+            return unless @state.cache[path] == promise
+            tree_state = _.clone @state.tree_state
+            tree_state[path] = 'failed'
+            @setState {tree_state}
 
-      @setState {tree_state}
+      @setState {tree_state, cache}
 
     close: (path) ->
       tree_state = _.clone @state.tree_state
       tree_state[path] = 'closed'
-      @setState {tree_state}
+      cache = @state.cache
+      if cache[path]?.isRejected()
+        cache = _.clone cache
+        delete cache[path]
+      @setState {tree_state, cache}
 
     componentWillMount: ->
       @open @props.root
@@ -246,12 +273,11 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       else
         name = @props.root
       React.DOM.ul {className: 'simple-tree'}, TreeNodeComponent
-        cache: @state.cache
+        value: @value
         tree_state: @state.tree_state
         node: {path: @props.root}
         name: name
-        open: @open
-        close: @close
+        toggle: @toggle
         load: @props.load
 
   component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
