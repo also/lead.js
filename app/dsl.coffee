@@ -109,7 +109,7 @@ dsl.context_result_handler = (ctx, object) ->
     else
       Context.add_component ctx, React.DOM.div null,
         "What do you want to do with #{lead_string}?"
-        _.map ['data', 'graph', 'img', 'url'], (f) ->
+        _.map ['graph', 'img', 'url'], (f) ->
           Components.ExampleComponent value: "#{f} #{object.to_js_string()}", run: true
     true
 
