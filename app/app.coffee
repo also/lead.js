@@ -9,15 +9,13 @@ settings = require './settings'
 GitHub = require './github'
 Context = require './context'
 
-module_names = ['http', 'dsl', 'graph', 'settings']
+module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
 imports = [
   'builtins'
   'graphite'
   'opentsdb'
   'github'
-  'input'
-  'notebook'
   'compat'
 ]
 
