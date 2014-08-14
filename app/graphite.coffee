@@ -177,17 +177,21 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
           parts = child.path.split '.'
           name = parts[parts.length - 1]
           TreeNodeComponent {cache: @props.cache, tree_state: @props.tree_state, node: child, open: @props.open, close: @props.close, load: @props.load, name: name}
-      else if state == 'opening'
-        child = React.DOM.span null, 'loading...'
       else
         child = null
       if @props.node.is_leaf
         toggle = ''
       else if state == 'open'
-        toggle = '- '
+        toggle = 'fa fa-fw fa-caret-down'
+      else if state == 'opening'
+        toggle = 'fa fa-fw fa-spinner fa-spin'
       else
-        toggle = '+ '
-      React.DOM.li null, React.DOM.span({onClick: @handle_click}, "#{toggle}#{@props.name}"), child
+        toggle = 'fa fa-fw fa-caret-right'
+      React.DOM.li null,
+        React.DOM.span({onClick: @handle_click},
+          React.DOM.i {className: toggle}
+          "#{@props.name}")
+          child
     handle_click: ->
       path = @props.node.path
       state = @props.tree_state[path]
