@@ -90,12 +90,26 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           .data(s)
           .classed 'deselected', (d) -> !d
 
-    hover_selections = mouse_over.map ({index}) -> d3.select(container).selectAll ".target#{index}"
-    hover_selections.onValue '.classed', 'hovered', true
+    hover_selections = mouse_over.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
+    hover_selections.onValue ({selection, index}) ->
+      if type == 'line'
+        path = selection.select('path')
+        path.style('stroke-width', (params.lineWidth ? 0) + 3)
+      else
+        circles = selection.selectAll('circle')
+        circles.attr('r', 4)
+      selection.classed 'hovered', true
     unhovers = hover_selections.merge(mouse_out)
       .withStateMachine([], (previous, event) -> [[event], previous])
-      .filter (e) -> e.classed?
-    unhovers.onValue '.classed', 'hovered', false
+      .filter (e) -> e.selection?
+    unhovers.onValue ({selection, index}) ->
+      selection.classed 'hovered', false
+      if type == 'line'
+        path = selection.select('path')
+        path.style('stroke-width', params.lineWidth)
+      else
+        circles = selection.selectAll('circle')
+        circles.attr('r', 2)
 
     mouse_position = mouse_moves.map (pos) ->
       x_constrained = Math.max 0, Math.min(pos[0], width)
@@ -275,4 +289,3 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-value')
 
     svg.style 'background-color', params.bgcolor
-
