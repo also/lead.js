@@ -74,7 +74,7 @@ DocumentComponent = React.createClass
           props.output_cell = cell
         props = null
 
-    React.DOM.div {className: 'document cm-s-idle'}, _.map ios, InputOutputComponent
+    React.DOM.div {className: 'document'}, _.map ios, InputOutputComponent
 
 NotebookComponent = React.createClass
   displayName: 'NotebookComponent'
