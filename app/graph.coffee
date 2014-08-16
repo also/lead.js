@@ -254,6 +254,13 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', (d, i) -> "target target#{i}")
         .call(observe_mouse)
 
+    if params.drawNullAsZero
+      filter_scatter_values = _.identity
+    else
+      filter_scatter_values = (values) ->
+        _.filter values, (d) -> d.value?
+
+
     if type is 'line'
       target.append("path")
           .attr('class', line_mode)
@@ -265,7 +272,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           .attr('d', (d, i) -> line_fn(d, i)(d.values))
     else if type is 'scatter'
       target.selectAll('circle')
-          .data((d) -> d.values)
+          .data((d) -> filter_scatter_values d.values)
         .enter().append("circle")
           .attr('cx', (d) -> x d.time)
           .attr('cy', (d) -> y d.value)
