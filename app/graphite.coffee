@@ -168,20 +168,26 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     finder.component
 
   TreeNodeComponent = React.createClass
+    displayName: 'TreeNodeComponent'
+    propTypes:
+      node: React.PropTypes.shape({
+        path: React.PropTypes.string.isRequired
+        is_leaf: React.PropTypes.bool.isRequired
+      }).isRequired
+      tree_state: React.PropTypes.object.isRequired
+      value: React.PropTypes.func.isRequired
+      create_node: React.PropTypes.func.isRequired
+      create_error_node: React.PropTypes.func.isRequired
     render: ->
       path = @props.node.path
       state = @props.tree_state[path]
 
       if state == 'open'
         child_nodes = _.map @props.value(path), (child) =>
-          parts = child.path.split '.'
-          name = parts[parts.length - 1]
-          TreeNodeComponent {value: @props.value, tree_state: @props.tree_state, node: child, toggle: @props.toggle, load: @props.load, name: name}
+          @props.create_node _.extend {}, @props, {node: child}
         child = React.DOM.ul null, _.sortBy child_nodes, (node) -> node.props.name
       else if state == 'failed'
-        child = React.DOM.div null,
-          React.DOM.i {className: 'fa fa-exclamation-triangle'}
-          ' Error loading metric names'
+        child = @props.create_error_node props
       else
         child = null
       if @props.node.is_leaf
@@ -195,7 +201,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       React.DOM.li null,
         React.DOM.span({onClick: @handle_click},
           React.DOM.i {className: toggle}
-          "#{@props.name}")
+          @props.children)
           React.DOM.div {className: 'child'}, child
     handle_click: ->
       path = @props.node.path
@@ -206,12 +212,13 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         @props.toggle path
 
   TreeComponent = React.createClass
-    statics:
-      subpath: (path) ->
-        if path == ''
-          '*'
-        else
-          "#{path}.*"
+    displayName: 'TreeComponent'
+    propTypes:
+      root: React.PropTypes.string.isRequired
+      load: React.PropTypes.func.isRequired
+      load_children: React.PropTypes.func.isRequired
+      create_node: React.PropTypes.func.isRequired
+      create_error_node: React.PropTypes.func.isRequired
 
     getDefaultProps: ->
       root: ''
@@ -228,7 +235,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         @close path
 
     value: (path) ->
-      @state.cache[path]?.inspect()?.value?.result
+      @state.cache[path]?.inspect()?.value
 
     open: (path) ->
       tree_state = _.clone @state.tree_state
@@ -241,7 +248,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         tree_state[path] = 'opening'
 
         if !state or state.isRejected()
-          promise = graphite.find(TreeComponent.subpath(path))
+          promise = @props.load_children path
           cache[path] = promise
           promise.then (result) =>
             return unless @state.cache[path] == promise
@@ -268,21 +275,39 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     componentWillMount: ->
       @open @props.root
     render: ->
-      if @props.root == ''
-        name = 'All Metrics'
-      else
-        name = @props.root
-      React.DOM.ul {className: 'simple-tree'}, TreeNodeComponent
-        value: @value
-        tree_state: @state.tree_state
-        node: {path: @props.root}
-        name: name
-        toggle: @toggle
-        load: @props.load
+      React.DOM.ul {className: 'simple-tree'},
+        @props.create_node {
+          value: @value
+          tree_state: @state.tree_state
+          node: {path: @props.root, is_leaf: false}
+          toggle: @toggle
+          load: @props.load
+          create_node: @props.create_node
+          create_error_node: @props.create_error_node
+        }, name
 
   component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
-    TreeComponent root: query ? '', load: (path) =>
-      ctx.run "q(#{JSON.stringify path})"
+    TreeComponent
+      root: query ? '',
+      load: (path) =>
+        ctx.run "q(#{JSON.stringify path})"
+      load_children: (path) ->
+        if path == ''
+          subpath = '*'
+        else
+          subpath = "#{path}.*"
+        graphite.find(subpath).get 'result'
+      create_node: (props) ->
+        if props.node.path == ''
+          name = 'All Metrics'
+        else
+          parts = props.node.path.split '.'
+          name = parts[parts.length - 1]
+        TreeNodeComponent _.extend({}, props, {name}), name
+      create_error_node: (props) ->
+        React.DOM.div null,
+          React.DOM.i {className: 'fa fa-exclamation-triangle'}
+          ' Error loading metric names'
 
 
   FindResultsComponent = React.createClass
