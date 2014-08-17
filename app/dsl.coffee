@@ -113,4 +113,4 @@ dsl.context_result_handler = (ctx, object) ->
           Components.ExampleComponent value: "#{f} #{object.to_js_string()}", run: true
     true
 
-module.exports = dsl
+_.extend exports, dsl
