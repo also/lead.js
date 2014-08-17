@@ -8,6 +8,7 @@ Builtins = require './builtins'
 settings = require './settings'
 GitHub = require './github'
 Context = require './context'
+Graphite = require './graphite'
 
 module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
@@ -84,6 +85,13 @@ SingleCoffeeScriptCellNotebookComponent = React.createClass
       Notebook.run first_cell
     }
 
+BuilderComponent = React.createClass
+  displayName: 'BuilderComponent'
+  render: ->
+    # TODO don't lie about class. fix the stylesheet to apply
+    React.DOM.div {className: 'output cell'},
+      Graphite.MetricTreeComponent()
+
 exports.init_app = (target) ->
   # TODO warn
   try
@@ -114,6 +122,7 @@ exports.init_app = (target) ->
       Route {name: 'notebook', handler: NewNotebookComponent}
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent}
       Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent}
+      Route {path: '/builder', handler: BuilderComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent}
       Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
 

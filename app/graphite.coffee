@@ -168,29 +168,9 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         ctx.run "browser #{JSON.stringify node.path + '.*'}"
     finder.component
 
-  component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
-    Components.TreeComponent
-      root: query ? '',
-      load: (path) =>
-        ctx.run "q(#{JSON.stringify path})"
-      load_children: (path) ->
-        if path == ''
-          subpath = '*'
-        else
-          subpath = "#{path}.*"
-        graphite.find(subpath).get 'result'
-      create_node: (props) ->
-        if props.node.path == ''
-          name = 'All Metrics'
-        else
-          parts = props.node.path.split '.'
-          name = parts[parts.length - 1]
-        Components.TreeNodeComponent _.extend({}, props, {name}), name
-      create_error_node: (props) ->
-        React.DOM.div null,
-          React.DOM.i {className: 'fa fa-exclamation-triangle'}
-          ' Error loading metric names'
 
+  component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
+    graphite.MetricTreeComponent {query}
 
   FindResultsComponent = React.createClass
     render: ->
@@ -225,6 +205,30 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
   fn 'get_data', 'Fetches Graphite metric data', (ctx, args...) ->
     Context.value graphite.get_data graphite.args_to_params {args, default_options: ctx.options()}
+
+  MetricTreeComponent: React.createClass
+    render: ->
+      Components.TreeComponent
+        root: @props.query ? '',
+        load: (path) =>
+          ctx.run "q(#{JSON.stringify path})"
+        load_children: (path) ->
+          if path == ''
+            subpath = '*'
+          else
+            subpath = "#{path}.*"
+          graphite.find(subpath).get 'result'
+        create_node: (props) ->
+          if props.node.path == ''
+            name = 'All Metrics'
+          else
+            parts = props.node.path.split '.'
+            name = parts[parts.length - 1]
+          Components.TreeNodeComponent _.extend({}, props, {name}), name
+        create_error_node: (props) ->
+          React.DOM.div null,
+            React.DOM.i {className: 'fa fa-exclamation-triangle'}
+            ' Error loading metric names'
 
   context_vars: -> dsl.define_functions {}, function_names
 
