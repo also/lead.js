@@ -119,4 +119,15 @@ Documentation =
     else
       return null
 
+  load_file: (name) ->
+    # TODO run in node
+    if process.browser
+      {images, content} = require "../lib/markdown-loader.coffee!../docs/#{name}.md"
+      ->
+        Markdown.LeadMarkdownComponent
+          value: content
+          image_urls: images
+
+Documentation.register_documentation 'quickstart', complete: Documentation.load_file 'quickstart'
+
 module.exports = Documentation

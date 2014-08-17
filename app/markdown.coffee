@@ -45,6 +45,11 @@ LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'
   mixins: [Context.ContextAwareMixin]
   getInitialState: ->
+    image_urls = @props.image_urls ? {}
+    renderer = new Marked.Renderer
+    image_renderer = renderer.image.bind renderer
+    renderer.image = (href, title, text) -> image_renderer image_urls[href] ? href, title, text
+    opts = _.defaults {renderer}, Marked.defaults
     tokens = Marked.Lexer.lex @props.value, Marked.defaults
     current_tokens = []
     components = []
@@ -62,7 +67,7 @@ LeadMarkdownComponent = React.createClass
       else
         if current_tokens.length > 0
           current_tokens.links = tokens.links
-          components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, Marked.defaults
+          components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
           current_tokens = []
         value = t.text.trim()
         if t.norun or t.noinline
@@ -71,7 +76,7 @@ LeadMarkdownComponent = React.createClass
           components.push InlineExampleComponent {value}
     if current_tokens.length > 0
       current_tokens.links = tokens.links
-      components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, Marked.defaults
+      components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
     {components}
   render: ->
     React.DOM.div className: 'lead-markdown', @state.components
@@ -84,4 +89,3 @@ LeadMarkdownComponent = React.createClass
           Documentation.navigate @state.ctx, uri.path()
 
 _.extend exports, {MarkdownComponent, LeadMarkdownComponent}
-
