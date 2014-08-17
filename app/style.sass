@@ -42,21 +42,6 @@ pre
     margin-bottom: 20px
     position: relative
 
-    // docs pulled from sphinx
-    dl
-      a
-        display: none
-      dt
-        margin: 0.5em
-        font-family: $monospace
-        font-weight: bold
-      dd
-        margin-left: 2em
-        font-family: helvetica, arial, sans-serif
-
-        p, pre
-          margin: 0.5em 0
-
 .input.cell, .output.cell
   &[data-cell-number]::before
     position: absolute
@@ -165,6 +150,20 @@ pre
     &::before, &::after
       letter-spacing: -0.2em
       content: "\00a0"
+.graphite-sphinx-docs
+  dl
+    a
+      display: none
+    dt
+      margin: 0.5em
+      font-family: $monospace
+      font-weight: bold
+    dd
+      margin-left: 2em
+      font-family: helvetica, arial, sans-serif
+
+      p, pre
+        margin: 0.5em 0
 
 .find-results
   padding-left: 10px

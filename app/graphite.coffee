@@ -57,14 +57,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
   FunctionDocsComponent = React.createClass
     render: ->
-      React.DOM.div {}, [
+      React.DOM.div {className: 'graphite-sphinx-docs'}, [
         React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
         _.map @props.docs.examples, (example) =>
           Builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: false
       ]
 
   ParameterDocsComponent = React.createClass
-    render: -> React.DOM.div()
+    render: -> React.DOM.div {className: 'graphite-sphinx-docs'}
     componentDidMount: ->
       ctx = @props.ctx
       # TODO
