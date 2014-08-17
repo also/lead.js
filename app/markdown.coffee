@@ -32,14 +32,16 @@ InlineExampleComponent = React.createClass
   displayName: 'InlineExampleComponent'
   mixins: [Context.ContextAwareMixin]
   render: ->
-    example_component = Components.ExampleComponent value: @props.value, run: true
+    example_component = Components.SourceComponent value: @props.value, language: 'coffeescript'
 
     nested_context = Context.create_nested_context @state.ctx
     value = @props.value
     Context.apply_to nested_context, ->
       Context.run_in_context @, (ctx) ->
         Context.scoped_eval ctx, CoffeeScript.compile value, {bare: true}
-    React.DOM.div {className: 'inline-example'}, example_component, nested_context.component
+    React.DOM.div {className: 'inline-example'},
+      React.DOM.div {className: 'example'}, example_component
+      React.DOM.div {className: 'output'}, nested_context.component
 
 LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'

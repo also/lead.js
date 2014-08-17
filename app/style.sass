@@ -114,8 +114,12 @@ pre
   &[data-cell-number]::before
     // content: 'In[' attr(data-cell-number) ']'
 
-.io .output.cell
+.io .output.cell, .inline-example .output
   border-left: 3px solid #f0f0f0
+
+.inline-example .output
+  padding: 0 0 0 16px
+
 .output.cell
   &[data-cell-number]::before
     // content: 'Out[' attr(data-cell-number) ']'
@@ -127,8 +131,7 @@ pre
     font-weight: bold
     color: #ddd
 
-  padding-left: 16px
-  padding-right: 16px
+  padding: 0 16px
   line-height: 1.4em
   min-height: 1em
 
@@ -154,7 +157,7 @@ pre
     line-height: 1.7em
 
   .example
-    margin: 10px 6px
+    margin: 10px 0
     background: #f7f7f7
     padding: 6px
     .run-example
