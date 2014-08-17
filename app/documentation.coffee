@@ -128,6 +128,10 @@ Documentation =
           value: content
           image_urls: images
 
-Documentation.register_documentation 'quickstart', complete: Documentation.load_file 'quickstart'
+  register_file: (name, key) ->
+    Documentation.register_documentation key ? name, complete: Documentation.load_file name
+
+Documentation.register_file 'quickstart'
+Documentation.register_file 'style'
 
 module.exports = Documentation
