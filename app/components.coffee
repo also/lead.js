@@ -17,7 +17,12 @@ ExampleComponent = React.createClass
   displayName: 'ExampleComponent'
   mixins: [Context.ContextAwareMixin]
   getDefaultProps: -> language: 'coffeescript'
-  render: -> React.DOM.div {className: 'example', onClick: @on_click}, @transferPropsTo SourceComponent()
+  render: ->
+    React.DOM.div {className: 'example'},
+      @transferPropsTo SourceComponent()
+      React.DOM.div {className: 'run-example', onClick: @on_click},
+        React.DOM.i {className: 'fa fa-play-circle'}
+        ' Run this example'
   on_click: ->
     if @props.run
       @state.ctx.run @props.value
