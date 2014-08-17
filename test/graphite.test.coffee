@@ -1,4 +1,4 @@
- expect = require 'expect.js'
+expect = require 'expect.js'
 graphite = require '../app/graphite'
 
 describe 'graphite', ->
