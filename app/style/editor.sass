@@ -1,0 +1,43 @@
+.input .CodeMirror
+  height: auto
+
+  .CodeMirror-scroll
+    overflow-y: hidden
+    overflow-x: auto
+
+  border: 1px solid #ddd
+  background: #fff
+  .CodeMirror-linenumber
+    font-size: 12px
+
+  font-family: $monospace
+  line-height: 1.6em
+
+  span.error
+    border-bottom: 2px dotted $error-fg
+
+  .CodeMirror-lines
+    padding: 8px 0
+
+  .CodeMirror-gutters
+    border: none
+    border-right: 1px solid #ccc
+    background: #f7f7f7
+
+    .error
+      width: 4px
+
+  .errorMarker
+    position: relative
+    margin-top: .3em
+    width: 4px
+    height: 1em
+    background-color: $error-fg
+
+    pre
+      padding: 0
+
+.CodeMirror-hints
+  .CodeMirror-hint
+    line-height: 1.3
+    max-width: none

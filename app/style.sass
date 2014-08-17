@@ -6,6 +6,9 @@ $monospace: Monaco, Consolas, "Lucida Console", monospace
 $error-fg: #faa
 $error-bg: #fee
 
+@import "./style/editor"
+@import "./style/graph"
+
 body
   margin: 0
   padding: calc(1em + 20px + 3em) 10%
@@ -23,45 +26,6 @@ pre
 
 .file_picker
   display: none
-
-.input .CodeMirror
-  height: auto
-
-  .CodeMirror-scroll
-    overflow-y: hidden
-    overflow-x: auto
-
-  border: 1px solid #ddd
-  background: #fff
-  .CodeMirror-linenumber
-    font-size: 12px
-
-  font-family: $monospace
-  line-height: 1.6em
-
-  span.error
-    border-bottom: 2px dotted $error-fg
-
-  .CodeMirror-lines
-    padding: 8px 0
-
-  .CodeMirror-gutters
-    border: none
-    border-right: 1px solid #ccc
-    background: #f7f7f7
-
-    .error
-      width: 4px
-
-  .errorMarker
-    position: relative
-    margin-top: .3em
-    width: 4px
-    height: 1em
-    background-color: $error-fg
-
-    pre
-      padding: 0
 
 .nav-bar
   position: fixed
@@ -148,13 +112,6 @@ pre
     font-size: 0.8em
     color: #bbb
 
-  .cm-comment
-    color: #aaa
-
-  p
-    font-family: "Helvetica Neue"
-    font-size: 14px
-    line-height: 1.7em
 
   .example
     margin: 10px 0
@@ -168,6 +125,11 @@ pre
       padding: .2em .8em
       margin-top: .5em
       cursor: pointer
+
+  p
+    font-family: "Helvetica Neue"
+    font-size: 14px
+    line-height: 1.7em
 
   .user-html .example pre
     margin-bottom: 0
@@ -266,42 +228,6 @@ span
   &.cm-thisvar
     color: #A535AE
 
-.crosshair-value
-  color: #aaa
-  margin-left: 1em
-
-svg
-  font-size: 10px
-
-  .axis
-    text
-      fill: #aaa
-    path, line
-      fill: none
-      stroke: #ccc
-      shape-rendering: crispEdges
-
-  .crosshair
-    stroke-width: 1px
-    stroke: #ddd
-
-  .crosshair-time
-    fill: #aaa
-    text-anchor: middle
-
-  .line
-    fill: none
-    stroke-width: 1px
-    stroke-linecap: square
-  .deselected
-    .line, circle, .area
-      opacity: 0.2
-
-.CodeMirror-hints
-  .CodeMirror-hint
-    line-height: 1.3
-    max-width: none
-
 kbd
   background: #eee
   padding: 0.1em 0.6em
@@ -318,17 +244,6 @@ kbd
   margin: 0 0.1em
   text-shadow: 0 1px 0 #fff
   line-height: 1.4
-
-.legend
-  .color::before
-    content: '■ '
-  font: 12px $monospace
-  li
-    margin: 6px
-    &.hovered
-      background-color: #ddd
-    &.deselected
-      opacity: 0.5
 
 ul.simple-tree
   cursor: default

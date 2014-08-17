@@ -1,0 +1,41 @@
+.crosshair-value
+  color: #aaa
+  margin-left: 1em
+
+svg
+  font-size: 10px
+
+  .axis
+    text
+      fill: #aaa
+    path, line
+      fill: none
+      stroke: #ccc
+      shape-rendering: crispEdges
+
+  .crosshair
+    stroke-width: 1px
+    stroke: #ddd
+
+  .crosshair-time
+    fill: #aaa
+    text-anchor: middle
+
+  .line
+    fill: none
+    stroke-width: 1px
+    stroke-linecap: square
+    .deselected
+      .line, circle, .area
+        opacity: 0.2
+
+.legend
+  .color::before
+    content: '■ '
+  font: 12px $monospace
+  li
+    margin: 6px
+    &.hovered
+      background-color: #ddd
+    &.deselected
+      opacity: 0.5
