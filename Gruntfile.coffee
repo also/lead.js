@@ -1,7 +1,7 @@
 _ = require 'underscore'
 webpack_config = require './webpack.config'
 webpack_style_config = _.extend {}, webpack_config,
-  entry: '!css!sass!./style.scss'
+  entry: '!css!sass!./app/style.scss'
   output:
     path: __dirname + '/build/web'
     filename: 'style.js'
