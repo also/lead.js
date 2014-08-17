@@ -44,6 +44,8 @@ notebook_content_type = 'application/x-lead-notebook'
 forwards = +1
 backwards = -1
 
+cell_key = 0
+
 # predicates for cells
 is_input = (cell) -> cell.type is 'input'
 is_output = (cell) -> cell.type is 'output'
@@ -53,8 +55,11 @@ identity = (cell) -> true
 
 InputOutputComponent = React.createClass
   displayName: 'InputOutputComponent'
+  mixins: [React.addons.PureRenderMixin]
   render: ->
-    React.DOM.div {className: 'io'}, @props.input_cell?.component, @props.output_cell?.component
+    React.DOM.div {className: 'io'},
+      @props.input_cell?.component cell: @props.input_cell, key: @props.input_cell.key
+      @props.output_cell?.component cell: @props.output_cell, key: @props.output_cell.key
 
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
@@ -211,9 +216,9 @@ add_input_cell = (notebook, opts={}) ->
     insert_cell cell, opts
   cell
 
-InputCellComponent = React.createIdentityClass
+InputCellComponent = React.createClass
   displayName: 'InputCellComponent'
-  mixins: [React.ObservableMixin]
+  mixins: [React.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: -> @props.cell.changes
   render: ->
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
@@ -236,6 +241,7 @@ create_input_cell = (notebook) ->
   editor = Editor.create_editor ->
   cell =
     type: 'input'
+    key: "input#{cell_key++}"
     visible: true
     active: true
     notebook: notebook
@@ -246,8 +252,7 @@ create_input_cell = (notebook) ->
     editor_changes: Editor.as_event_stream editor, 'change'
 
   editor.lead_cell = cell
-  component = InputCellComponent {cell}
-  cell.component = component
+  cell.component = InputCellComponent
 
   # scan changes for the side effect in recompile
   # we have to subscribe so that the events are sent
@@ -266,7 +271,7 @@ focus_cell = (cell) ->
     cell.notebook.cell_focused.push cell
   , 0
 
-OutputCellComponent = React.createIdentityClass
+OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
   mixins: [React.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: -> @props.cell.component_model
@@ -280,12 +285,13 @@ create_output_cell = (notebook) ->
   cell =
     component_model: new Bacon.Model null
     type: 'output'
+    key: "output#{cell_key++}"
     visible: true
     active: true
     notebook: notebook
     number: number
 
-  cell.component = OutputCellComponent {cell}
+  cell.component = OutputCellComponent
   cell
 
 run = (input_cell) ->
