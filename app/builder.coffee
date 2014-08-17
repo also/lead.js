@@ -1,5 +1,5 @@
 React = require 'react'
-Bacon = require 'bacon'
+Bacon = require 'baconjs'
 _ = require 'underscore'
 Graphite = require './graphite'
 Graph = require './graph'
