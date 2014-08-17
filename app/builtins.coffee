@@ -92,7 +92,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       fallthroughs = map.fallthrough
       if fallthroughs?
         build_map CodeMirror.keyMap[name] for name in fallthroughs
-    build_map CodeMirror.keyMap.lead
+    build_map CodeMirror.keyMap.notebook
 
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 

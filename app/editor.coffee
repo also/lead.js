@@ -10,13 +10,13 @@ require 'codemirror/addon/hint/show-hint'
 Context = require './context'
 Notebook = require './notebook'
 
-create_editor = (target) ->
+create_editor = (target, keyMap='notebook') ->
   if is_nodejs?
     return CodeMirror target
   cm = CodeMirror target,
     value: ''
     mode: 'coffeescript'
-    keyMap: 'lead'
+    keyMap: keyMap
     tabSize: 2
     lineNumbers: true
     viewportMargin: Infinity
@@ -141,6 +141,7 @@ suggest = (cm, showHints, options) ->
     sub_s = full_s[...cur.ch-token.start]
     next_token = token_after cm, token, cur.line
 
+    # TODO shouldn't reference inported_context_fns
     imported_context_fns = follow_path cm.lead_cell.context.imported_context_fns, path
     imported_vars = follow_path cm.lead_cell.context.imported_vars, path
 
@@ -180,10 +181,10 @@ cmd = (doc, fn) ->
   fn
 
 commands =
-  run: cmd 'Runs the contents of the cell and advances the cursor to the next cell', (cm) ->
+  nb_run: cmd 'Runs the contents of the cell and advances the cursor to the next cell', (cm) ->
     Notebook.run cm.lead_cell, advance: true
 
-  run_in_place: cmd 'Runs the contents of the cell and keeps the cursor in the cell', (cm) ->
+  nb_run_in_place: cmd 'Runs the contents of the cell and keeps the cursor in the cell', (cm) ->
     Notebook.run cm.lead_cell, advance: false
 
   context_help: cmd 'Shows help for the token under the cursor', (cm) ->
@@ -226,27 +227,30 @@ commands =
   save: (cm) ->
     Notebook.save cm.lead_cell
 
-key_map =
+lead_key_map =
   Tab: (cm) ->
     if cm.somethingSelected()
       cm.indentSelection 'add'
     else
       spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
       cm.replaceSelection(spaces, "end", "+input")
+
+notebook_key_map =
   Up: 'maybe_previous_cell'
   Down: 'maybe_next_cell'
   #'Shift-Up': 'fill_with_last_value'
-  'Shift-Enter': 'run'
-  'Ctrl-Enter': 'run_in_place'
+  'Shift-Enter': 'nb_run'
+  'Ctrl-Enter': 'nb_run_in_place'
   'F1': 'context_help'
   'Ctrl-Space': 'suggest'
   'Shift-Tab': 'indentLess'
 
-  fallthrough: ['default']
+  fallthrough: ['lead', 'default']
 
 # we don't have a real codemirror in node
 unless is_nodejs?
-  CodeMirror.keyMap.lead = key_map
+  CodeMirror.keyMap.notebook = notebook_key_map
+  CodeMirror.keyMap.lead = lead_key_map
   _.extend CodeMirror.commands, commands
 
-_.extend exports, {commands, key_map, as_event_stream, add_error_mark, create_editor, set_value, get_value}
+_.extend exports, {commands, as_event_stream, add_error_mark, create_editor, set_value, get_value}
