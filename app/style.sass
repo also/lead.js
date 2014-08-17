@@ -84,6 +84,7 @@ pre
   line-height: 1.4em
   min-height: 1em
 
+.output
   .user-html
     @include user-html
 
@@ -96,7 +97,6 @@ pre
     border-bottom: 1px solid #ddd
     font-size: 0.8em
     color: #bbb
-
 
   .example
     margin: 10px 0
@@ -150,102 +150,103 @@ pre
     &::before, &::after
       letter-spacing: -0.2em
       content: "\00a0"
-.graphite-sphinx-docs
-  dl
-    a
-      display: none
-    dt
-      margin: 0.5em
+
+  .graphite-sphinx-docs
+    dl
+      a
+        display: none
+      dt
+        margin: 0.5em
+        font-family: $monospace
+        font-weight: bold
+      dd
+        margin-left: 2em
+        font-family: helvetica, arial, sans-serif
+
+        p, pre
+          margin: 0.5em 0
+
+  .find-results
+    padding-left: 10px
+    li
       font-family: $monospace
-      font-weight: bold
-    dd
-      margin-left: 2em
-      font-family: helvetica, arial, sans-serif
+      cursor: pointer
+      margin: 6px 0
+      &:hover
+        text-decoration: underline
+      .light
+        color: #ccc
 
-      p, pre
-        margin: 0.5em 0
+  .gist-link
+    overflow: auto
+    font-size: 13px
+    .datetime
+      display: block
+    img
+      float: left
+      width: 30px
+      height: 30px
 
-.find-results
-  padding-left: 10px
-  li
-    font-family: $monospace
+  .run-link
+    text-decoration: underline
+    color: blue
     cursor: pointer
-    margin: 6px 0
-    &:hover
-      text-decoration: underline
-    .light
-      color: #ccc
 
-.gist-link
-  overflow: auto
-  font-size: 13px
-  .datetime
-    display: block
-  img
-    float: left
-    width: 30px
-    height: 30px
+  span
+    &.cm-comment
+      color: #919191
+    &.cm-keyword
+      color: #ff5600
+    &.cm-string
+      color: #00a33f
+    &.cm-builtin
+      font-weight: bold
+      color: #077
+    &.cm-special
+      font-weight: bold
+      color: #0aa
+    &.cm-reserved
+      font-weight: bold
+      background: #e22
+      color: #fff
+    &.cm-variable
+      color: black
+    &.cm-atom
+      color: #A535AE
+    &.cm-number
+      color: black
+    &.cm-meta
+      color: #555
+    &.cm-link
+      color: #3a3
+    &.cm-operator
+      color: #ff5600
+    &.cm-def
+      color: #21439c
+    &.cm-argument
+      color: #0076ad
+    &.cm-thisvar
+      color: #A535AE
 
-.run-link
-  text-decoration: underline
-  color: blue
-  cursor: pointer
+  kbd
+    background: #eee
+    padding: 0.1em 0.6em
+    border: 1px solid #ccc
+    font-size: 0.8em
+    background-color: #f7f7f7
+    -moz-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
+    -webkit-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
+    box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
+    -moz-border-radius: 3px
+    -webkit-border-radius: 3px
+    border-radius: 3px
+    display: inline-block
+    margin: 0 0.1em
+    text-shadow: 0 1px 0 #fff
+    line-height: 1.4
 
-span
-  &.cm-comment
-    color: #919191
-  &.cm-keyword
-    color: #ff5600
-  &.cm-string
-    color: #00a33f
-  &.cm-builtin
-    font-weight: bold
-    color: #077
-  &.cm-special
-    font-weight: bold
-    color: #0aa
-  &.cm-reserved
-    font-weight: bold
-    background: #e22
-    color: #fff
-  &.cm-variable
-    color: black
-  &.cm-atom
-    color: #A535AE
-  &.cm-number
-    color: black
-  &.cm-meta
-    color: #555
-  &.cm-link
-    color: #3a3
-  &.cm-operator
-    color: #ff5600
-  &.cm-def
-    color: #21439c
-  &.cm-argument
-    color: #0076ad
-  &.cm-thisvar
-    color: #A535AE
-
-kbd
-  background: #eee
-  padding: 0.1em 0.6em
-  border: 1px solid #ccc
-  font-size: 0.8em
-  background-color: #f7f7f7
-  -moz-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
-  -webkit-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
-  box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2),0 0 0 2px #ffffff inset
-  -moz-border-radius: 3px
-  -webkit-border-radius: 3px
-  border-radius: 3px
-  display: inline-block
-  margin: 0 0.1em
-  text-shadow: 0 1px 0 #fff
-  line-height: 1.4
-
-ul.simple-tree
-  cursor: default
-  font-size: .85em
-  .child
-    margin-left: 1em
+  ul.simple-tree
+    cursor: default
+    font-size: .85em
+    .child
+      margin-left: 1em

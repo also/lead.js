@@ -42,7 +42,7 @@ HelpComponent = React.createClass
   displayName: 'HelpComponent'
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
-    React.DOM.div {className: 'output cell'},
+    React.DOM.div {className: 'output'},
       Context.TopLevelContextComponent {imports, module_names, ref: 'ctx'},
         HelpWrapperComponent {key: @props.params.key}
 
@@ -89,7 +89,7 @@ BuilderComponent = React.createClass
   displayName: 'BuilderComponent'
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
-    React.DOM.div {className: 'output cell'},
+    React.DOM.div {className: 'output'},
       Graphite.MetricTreeComponent()
 
 exports.init_app = (target) ->
