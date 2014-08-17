@@ -178,6 +178,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   PromiseResolvedComponent = React.createClass
     displayName: 'PromiseResolvedComponent'
     getInitialState: ->
+      # FIXME #175 props can change
       @props.promise.then (v) =>
         @setState value: v, resolved: true
 
@@ -212,6 +213,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         React.DOM.i {className: "fa #{icon} fa-fw"}
         " #{text}"
     getInitialState: ->
+      # FIXME #175 props can change
       if @props.promise.isPending()
         null
       else

@@ -30,6 +30,7 @@ ContextRegisteringMixin =
 ContextAwareMixin =
   contextTypes: ctx: React.PropTypes.object
   getInitialState: ->
+    # TODO update later in lifecycle
     ctx: find_ancestor_contexts(@)[0]
 
 ComponentContextComponent = React.createIdentityClass
@@ -174,6 +175,7 @@ TopLevelContextComponent = React.createClass
     React.Children.forEach components, (c) -> add_component ctx, c
 
   getInitialState: ->
+    # FIXME #175 props can change
     ctx = create_standalone_context @props
     @set_components ctx, @props.children
     {ctx}

@@ -36,7 +36,6 @@ SourceComponent = React.createClass
   componentDidMount: -> format_code @props.value, @props.language, @getDOMNode()
 
 
-
 TreeNodeComponent = React.createClass
   displayName: 'TreeNodeComponent'
   propTypes:

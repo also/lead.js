@@ -138,6 +138,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
     getDefaultProps: ->
       on_access: ->
     getInitialState: ->
+      # FIXME #175 props can change
       if @props.url?
         site = github.get_site_from_url @props.url
       else if @props.site?

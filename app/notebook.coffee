@@ -83,6 +83,7 @@ NotebookComponent = React.createClass
     module_names: React.PropTypes.arrayOf(React.PropTypes.string)
     init: React.PropTypes.func
   getInitialState: ->
+    # FIXME #175 props can change
     notebook = create_notebook @props
     @props.init? notebook
     document: notebook.component

@@ -47,6 +47,7 @@ LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'
   mixins: [Context.ContextAwareMixin]
   getInitialState: ->
+    # FIXME #175 props can change
     image_urls = @props.image_urls ? {}
     renderer = new Marked.Renderer
     image_renderer = renderer.image.bind renderer
