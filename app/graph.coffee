@@ -161,11 +161,32 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         else
           area
 
-    transform_value =
-      if params.drawNullAsZero
-        (v) -> v ? 0
-      else
-        (v) -> v
+    if params.drawNullAsZero
+      transform_value = (v) -> v ? 0
+      filter_scatter_values = _.identity
+      expand_line_values = _.identity
+    else
+      transform_value = (v) -> v
+      filter_scatter_values = (values) ->
+        _.filter values, (d) -> d.value?
+      expand_line_values = (values) ->
+        result = []
+        segment_length = 0
+        previous = null
+        _.each values, (v, i) ->
+          if v.value?
+            segment_length++
+            previous = v
+          else
+            if segment_length is 1
+              result.push previous
+            segment_length = 0
+
+          result.push v
+
+        if segment_length is 1
+          result.push previous
+        result
 
     time_min = null
     time_max = null
@@ -254,12 +275,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', (d, i) -> "target target#{i}")
         .call(observe_mouse)
 
-    if params.drawNullAsZero
-      filter_scatter_values = _.identity
-    else
-      filter_scatter_values = (values) ->
-        _.filter values, (d) -> d.value?
-
 
     if type is 'line'
       target.append("path")
@@ -269,7 +284,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           .style('stroke-opacity', line_opacity)
           .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
           .style('fill-opacity', area_opacity)
-          .attr('d', (d, i) -> line_fn(d, i)(d.values))
+          .attr('d', (d, i) -> line_fn(d, i)(expand_line_values(d.values)))
     else if type is 'scatter'
       target.selectAll('circle')
           .data((d) -> filter_scatter_values d.values)
