@@ -96,7 +96,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         path = selection.select('path')
         path.style('stroke-width', (params.lineWidth ? 0) + 3)
       else
-        circles = selection.selectAll('circle')
+        circles = selection.select('.circles').selectAll('circle')
         circles.attr('r', 4)
       selection.classed 'hovered', true
     unhovers = hover_selections.merge(mouse_out)
@@ -108,7 +108,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         path = selection.select('path')
         path.style('stroke-width', params.lineWidth)
       else
-        circles = selection.selectAll('circle')
+        circles = selection.select('.circles').selectAll('circle')
         circles.attr('r', 2)
 
     mouse_position = mouse_moves.map (pos) ->
@@ -276,23 +276,50 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .call(observe_mouse)
 
 
-    if type is 'line'
-      target.append("path")
+    add_path = (target, hover) ->
+      if hover
+        lineWidth = (params.lineWidth ? 0) + 10
+      else
+        lineWidth = params.lineWidth
+
+      path = target.append("path")
           .attr('class', line_mode)
           .attr('stroke', (d, i) -> color i)
-          .style('stroke-width', (d, i) -> params.lineWidth)
-          .style('stroke-opacity', line_opacity)
+          .style('stroke-width', lineWidth)
           .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
-          .style('fill-opacity', area_opacity)
           .attr('d', (d, i) -> line_fn(d, i)(expand_line_values(d.values)))
-    else if type is 'scatter'
-      target.selectAll('circle')
+      if hover
+        path
+        .style('stroke-opacity', 0)
+        .style('fill-opacity', 0)
+      else
+        path
+          .style('stroke-opacity', line_opacity)
+          .style('fill-opacity', area_opacity)
+
+    add_circles = (target, hover) ->
+      if hover
+        radius = 5
+        opacity = 0
+      else
+        radius = 2
+        opacity = 1
+      target.append('g').attr('class', 'circles')
+        .selectAll('circle')
           .data((d) -> filter_scatter_values d.values)
         .enter().append("circle")
           .attr('cx', (d) -> x d.time)
           .attr('cy', (d) -> y d.value)
           .attr('fill', (d, i, j) -> color j)
-          .attr('r', 2)
+          .attr('r', radius)
+          .style('fill-opacity', opacity)
+
+    if type is 'line'
+      add_path target, false
+      add_path target, true
+    else if type is 'scatter'
+      add_circles target, false
+      add_circles target, true
 
     legend = d3.select(container).append('ul')
         .attr('class', 'legend')
