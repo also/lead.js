@@ -5,6 +5,7 @@ fns: imported_context_fns, bound to the scope.ctx
 ###
 
 _ = require 'underscore'
+Q = require  'q'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require './react_abuse'
@@ -77,6 +78,10 @@ handle_using_extension = (ctx, object) ->
   handlers = collect_extension_points ctx, 'context_result_handler'
   _.find handlers, (handler) -> handler ctx, object
 
+handle_promise = (ctx, object) ->
+  if Q.isPromise object
+    add_component ctx, Builtins.PromiseStatusComponent {promise: object, start_time: new Date}
+
 handle_any_object = (ctx, object) ->
   add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
   true
@@ -87,6 +92,7 @@ result_handlers = [
   handle_cmd
   handle_module
   handle_using_extension
+  handle_promise
   handle_any_object
 ]
 
