@@ -25,6 +25,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     render: ->
       React.DOM.div {className: 'graph'}
     componentDidMount: ->
+      # FIXME #175 props can change
       node = @getDOMNode()
       @props.model.onValue ({data, params}) ->
         node.removeChild(node.lastChild) while node.hasChildNodes()
