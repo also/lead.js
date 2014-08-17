@@ -28,6 +28,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
       # FIXME #175 props can change
       node = @getDOMNode()
       @props.model.onValue ({data, params}) ->
+        return unless data?
         node.removeChild(node.lastChild) while node.hasChildNodes()
         graph.draw node, data, params
 

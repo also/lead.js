@@ -169,8 +169,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     finder.component
 
 
-  component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, query) ->
-    graphite.MetricTreeComponent {query}
+  component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, root) ->
+    graphite.MetricTreeComponent {root}
 
   FindResultsComponent = React.createClass
     render: ->
@@ -209,8 +209,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   MetricTreeComponent: React.createClass
     render: ->
       Components.TreeComponent
-        root: @props.query ? '',
-        load: (path) =>
+        root: @props.root ? '',
+        load: @props.leaf_clicked ? (path) =>
           ctx.run "q(#{JSON.stringify path})"
         load_children: (path) ->
           if path == ''

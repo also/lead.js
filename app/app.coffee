@@ -8,7 +8,7 @@ Builtins = require './builtins'
 settings = require './settings'
 GitHub = require './github'
 Context = require './context'
-Graphite = require './graphite'
+Builder = require './builder'
 
 module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
@@ -30,7 +30,8 @@ AppComponent = React.createClass
   render: ->
     React.DOM.div {className: 'lead'},
       React.DOM.div {className: 'nav-bar'}, 'lead'
-      this.props.activeRouteHandler()
+        React.DOM.div {className: 'body'},
+          this.props.activeRouteHandler()
 
 HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
@@ -42,7 +43,7 @@ HelpComponent = React.createClass
   displayName: 'HelpComponent'
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
-    React.DOM.div {className: 'output'},
+    React.DOM.div {className: 'help output'},
       Context.TopLevelContextComponent {imports, module_names, ref: 'ctx'},
         HelpWrapperComponent {key: @props.params.key}
 
@@ -85,12 +86,10 @@ SingleCoffeeScriptCellNotebookComponent = React.createClass
       Notebook.run first_cell
     }
 
-BuilderComponent = React.createClass
-  displayName: 'BuilderComponent'
+BuilderAppComponent = React.createClass
+  displayName: 'BuilderAppComponent'
   render: ->
-    # TODO don't lie about class. fix the stylesheet to apply
-    React.DOM.div {className: 'output'},
-      Graphite.MetricTreeComponent()
+    Builder.BuilderComponent {root: @props.query.root}
 
 exports.init_app = (target) ->
   # TODO warn
@@ -122,7 +121,7 @@ exports.init_app = (target) ->
       Route {name: 'notebook', handler: NewNotebookComponent}
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent}
       Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent}
-      Route {path: '/builder', handler: BuilderComponent}
+      Route {path: '/builder', handler: BuilderAppComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent}
       Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
 

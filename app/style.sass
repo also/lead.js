@@ -8,14 +8,26 @@ $error-bg: #fee
 
 @import "./style/editor"
 @import "./style/graph"
+@import "./style/builder"
+
+html, body
+  height: 100%
 
 body
   margin: 0
-  padding: calc(1em + 20px + 3em) 10%
+  padding: 0
   color: #333
   background-color: $background
   font-size: 14px
   font-family: "Helvetica Neue"
+
+.lead
+  height: 100%
+.body
+  box-sizing: border-box
+  padding: calc(1em + 20px) 0 0 0
+  height: 100%
+  position: relative
 
 em
   font-style: italic
@@ -37,7 +49,12 @@ pre
   width: 100%
   z-index: 10000000
 
-.document
+.help
+  padding-left: 10%
+  max-width: 1000px
+
+.notebook
+  padding: 0 10%
   .cell
     margin-bottom: 20px
     position: relative
@@ -81,12 +98,13 @@ pre
     color: #ddd
 
   padding: 0 16px
-  line-height: 1.4em
   min-height: 1em
 
 .output
   .user-html
     @include user-html
+
+  line-height: 1.4em
 
   .promise-status
     padding: 2px 8px
