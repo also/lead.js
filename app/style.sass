@@ -1,6 +1,6 @@
 @import "./app/base"
 
-$background: #fafafa
+$background: #fff
 $monospace: Monaco, Consolas, "Lucida Console", monospace
 
 $error-fg: #faa
@@ -8,7 +8,7 @@ $error-bg: #fee
 
 body
   margin: 0
-  padding: calc(1em + 20px) 10%
+  padding: calc(1em + 20px + 3em) 10%
   color: #333
   background-color: $background
   font-size: 14px
@@ -31,7 +31,7 @@ pre
     overflow-y: hidden
     overflow-x: auto
 
-  border: 1px solid #D0E0EB
+  border: 1px solid #ddd
   background: #fff
   .CodeMirror-linenumber
     font-size: 12px
@@ -47,7 +47,8 @@ pre
 
   .CodeMirror-gutters
     border: none
-    background: transparent
+    border-right: 1px solid #ccc
+    background: #f7f7f7
 
     .error
       width: 4px
@@ -152,7 +153,7 @@ pre
 
   .example
     margin: 10px 6px
-    border: 1px solid #d0d0d0
+    background: #f7f7f7
     padding: 6px
     cursor: pointer
 
@@ -183,6 +184,14 @@ pre
     background-color: #fff
     padding: 3px
     -webkit-border-radius: 6px
+
+  code
+    padding: 0.2em 0
+    background-color: #f7f7f7
+    font-family: $monospace
+    &::before, &::after
+      letter-spacing: -0.2em
+      content: "\00a0"
 
 .find-results
   padding-left: 10px
