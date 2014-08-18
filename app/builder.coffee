@@ -40,10 +40,29 @@ TargetsEditorComponent = React.createClass
     remove_target @props.targets, target
   render: ->
     React.DOM.ul {className: 'targets-editor'},
-      _.map @state.value, (target) =>
+      _.map @state.value, (target, i) =>
         React.DOM.li null,
           React.DOM.i {className: 'fa fa-minus-circle', onClick: => @remove_target target}
-          target
+          TargetEditorComponent target: @props.targets.lens '' + i
+
+TargetEditorComponent = React.createClass
+  displayName: 'TargetEditorComponent'
+  make_segment_wildcard: (i) ->
+    path = @props.target.get()
+    segments = path.split '.'
+    segments[i] = '*'
+    @props.target.set segments.join '.'
+  render: ->
+    path = @props.target.get()
+    segments = path.split '.'
+    React.DOM.span null,
+      _.map segments, (segment, i) =>
+        if i is 0
+          result = []
+        else
+          result = ['.']
+        result.push React.DOM.span {onClick: => @make_segment_wildcard i}, segment
+        result
 
 exports.BuilderComponent = React.createClass
   displayName: 'BuilderComponent'
