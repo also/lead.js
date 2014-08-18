@@ -73,6 +73,7 @@ dsl_fn = (name) ->
   result.type = 'i'
   result.fn_name = name
   result.values = [name]
+  # TODO this will break f.bind() etc.
   result.__proto__ = new dsl.type.i
 
   result
