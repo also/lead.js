@@ -160,7 +160,7 @@ suggest = (cm, showHints, options) ->
         unless next_token?.string is ':'
           key_suggestions = _.map key_suggestions, (k) -> k + ':'
 
-        list.concat key_suggestions
+        list.push key_suggestions...
       list
 
     list = collect_suggestions full_s
