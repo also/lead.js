@@ -55,13 +55,22 @@ TargetEditorComponent = React.createClass
   render: ->
     path = @props.target.get()
     segments = path.split '.'
-    React.DOM.span null,
+    React.DOM.span {className: 'target-editor'},
       _.map segments, (segment, i) =>
+        is_wildcard = segment != '*'
+        if is_wildcard
+          className = 'target-segment'
+        else
+          className = ''
         if i is 0
           result = []
         else
           result = ['.']
-        result.push React.DOM.span {onClick: => @make_segment_wildcard i}, segment
+        result.push React.DOM.span {className, onClick: => @make_segment_wildcard i},
+          React.DOM.span {className: 'target-segment-name'}, segment
+          if is_wildcard
+            React.DOM.span {className: 'target-segment-menu'},
+              '*'
         result
 
 exports.BuilderComponent = React.createClass
@@ -107,9 +116,9 @@ exports.BuilderComponent = React.createClass
           leaf_clicked: (path) =>
             @state.leaf_clicks.push path
       React.DOM.div {className: 'output main'},
-        Graph.GraphComponent model: @state.model
         Components.ToggleComponent {title: 'Targets'},
           TargetsEditorComponent targets: @state.targets
+        Graph.GraphComponent model: @state.model
         Context.ComponentContextComponent ctx: @state.ctx,
           EditorComponent {run: @run, ref: 'editor'}
         React.DOM.span {className: 'run-button', onClick: => @run()},
