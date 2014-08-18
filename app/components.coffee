@@ -155,4 +155,22 @@ TreeComponent = React.createClass
         create_error_node: @props.create_error_node
       }, name
 
-module.exports = {ExampleComponent, SourceComponent, TreeNodeComponent, TreeComponent}
+ToggleComponent = React.createClass
+  displayName: 'ToggleComponent'
+  getInitialState: ->
+    open: @props.initially_open or false
+  toggle: ->
+    @setState open: !@state.open
+  render: ->
+    if @state.open
+      toggle_class = 'fa-caret-down'
+    else
+      toggle_class = 'fa-caret-right'
+    React.DOM.div null,
+      React.DOM.div {className: 'toggle', onClick: @toggle},
+        React.DOM.i {className: "fa fa-fw #{toggle_class}"}
+        @props.title
+      if @state.open
+        @props.children
+
+module.exports = {ExampleComponent, SourceComponent, TreeNodeComponent, TreeComponent, ToggleComponent}

@@ -1,4 +1,4 @@
-React = require 'react'
+React = require './react_abuse'
 Bacon = require 'baconjs'
 _ = require 'underscore'
 Graphite = require './graphite'
@@ -6,6 +6,7 @@ Graph = require './graph'
 Editor = require './editor'
 Context = require './context'
 CoffeeScriptCell = require './coffeescript_cell'
+Components = require './components'
 
 EditorComponent = React.createClass
   displayName: 'EditorComponent'
@@ -26,6 +27,23 @@ EditorComponent = React.createClass
     @state.editor.getValue()
   render: ->
     React.DOM.div {className: 'code'}
+
+remove_target = (targets, target) ->
+  targets.modify (targets) ->
+    _.without targets, target
+
+TargetsEditorComponent = React.createClass
+  displayName: 'TargetsEditorComponent'
+  mixins: [React.ObservableMixin]
+  get_observable: -> @props.targets
+  remove_target: (target) ->
+    remove_target @props.targets, target
+  render: ->
+    React.DOM.ul {className: 'targets-editor'},
+      _.map @state.value, (target) =>
+        React.DOM.li null,
+          React.DOM.i {className: 'fa fa-minus-circle', onClick: => @remove_target target}
+          target
 
 exports.BuilderComponent = React.createClass
   displayName: 'BuilderComponent'
@@ -53,6 +71,7 @@ exports.BuilderComponent = React.createClass
     leaf_clicks: leaf_clicks
     params: params
     server_params: server_params
+    targets: targets
   run: (value) ->
     value ?= @refs.editor.get_value()
     fn = CoffeeScriptCell.create_fn value
@@ -70,6 +89,8 @@ exports.BuilderComponent = React.createClass
             @state.leaf_clicks.push path
       React.DOM.div {className: 'output main'},
         Graph.GraphComponent model: @state.model
+        Components.ToggleComponent {title: 'Targets'},
+          TargetsEditorComponent targets: @state.targets
         Context.ComponentContextComponent ctx: @state.ctx,
           EditorComponent {run: @run, ref: 'editor'}
         React.DOM.span {className: 'run-button', onClick: => @run()},
