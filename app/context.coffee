@@ -398,5 +398,6 @@ _.extend exports, {
   resolve_documentation_key,
   AsyncComponent,
   TopLevelContextComponent,
+  ContextComponent,
   IGNORE: ignore
 }

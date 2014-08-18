@@ -38,6 +38,7 @@ InlineExampleComponent = React.createClass
     value = @props.value
     Context.apply_to nested_context, ->
       Context.run_in_context @, (ctx) ->
+        # FIXME use CoffeeScriptCell
         Context.scoped_eval ctx, CoffeeScript.compile value, {bare: true}
     React.DOM.div {className: 'inline-example'},
       React.DOM.div {className: 'example'}, example_component

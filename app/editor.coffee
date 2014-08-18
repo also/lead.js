@@ -10,7 +10,8 @@ require 'codemirror/addon/hint/show-hint'
 Context = require './context'
 Notebook = require './notebook'
 
-create_editor = (target, keyMap='notebook') ->
+create_editor = (keyMap='notebook') ->
+  target = ->
   if is_nodejs?
     return CodeMirror target
   cm = CodeMirror target,
@@ -181,6 +182,9 @@ cmd = (doc, fn) ->
   fn
 
 commands =
+  ctx_run: cmd 'Runs the contents of the cell', (cm) ->
+    cm.run()
+
   nb_run: cmd 'Runs the contents of the cell and advances the cursor to the next cell', (cm) ->
     Notebook.run cm.lead_cell, advance: true
 
@@ -234,6 +238,15 @@ lead_key_map =
     else
       spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
       cm.replaceSelection(spaces, "end", "+input")
+  'Shift-Tab': 'indentLess'
+  fallthrough: ['default']
+
+context_key_map =
+  'Shift-Enter': 'ctx_run'
+  'Ctrl-Enter': 'ctx_run'
+  'Ctrl-Space': 'suggest'
+
+  fallthrough: ['lead']
 
 notebook_key_map =
   Up: 'maybe_previous_cell'
@@ -243,13 +256,13 @@ notebook_key_map =
   'Ctrl-Enter': 'nb_run_in_place'
   'F1': 'context_help'
   'Ctrl-Space': 'suggest'
-  'Shift-Tab': 'indentLess'
 
-  fallthrough: ['lead', 'default']
+  fallthrough: ['lead']
 
 # we don't have a real codemirror in node
 unless is_nodejs?
   CodeMirror.keyMap.notebook = notebook_key_map
+  CodeMirror.keyMap.context = context_key_map
   CodeMirror.keyMap.lead = lead_key_map
   _.extend CodeMirror.commands, commands
 

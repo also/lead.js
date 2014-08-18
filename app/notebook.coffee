@@ -238,7 +238,7 @@ generate_permalink = (cell) ->
     Context.IGNORE
 
 create_input_cell = (notebook) ->
-  editor = Editor.create_editor ->
+  editor = Editor.create_editor()
   cell =
     type: 'input'
     key: "input#{cell_key++}"

@@ -21,7 +21,7 @@ ExampleComponent = React.createClass
   render: ->
     React.DOM.div {className: 'example'},
       @transferPropsTo SourceComponent()
-      React.DOM.div {className: 'run-example', onClick: @on_click},
+      React.DOM.span {className: 'run-button', onClick: @on_click},
         React.DOM.i {className: 'fa fa-play-circle'}
         ' Run this example'
   on_click: ->
