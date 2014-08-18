@@ -108,7 +108,7 @@ suggest = (cm, showHints, options) ->
   token = cm.getTokenAt(cur)
   if token.type is null
     # TODO why only vars here?
-    list = (k for k of cm.lead_cell.context.imported_vars)
+    list = (k for k of cm.ctx.imported_vars)
     showHints
       list: list
       from: CodeMirror.Pos cur.line, token.end
@@ -122,7 +122,7 @@ suggest = (cm, showHints, options) ->
       end_offset = 1
     else
       end_offset = 0
-    promise = collect_string_suggestions cm.lead_cell.context, string
+    promise = collect_string_suggestions cm.ctx, string
     promise.done (list) ->
       showHints
         list: list
@@ -142,8 +142,8 @@ suggest = (cm, showHints, options) ->
     next_token = token_after cm, token, cur.line
 
     # TODO shouldn't reference inported_context_fns
-    imported_context_fns = follow_path cm.lead_cell.context.imported_context_fns, path
-    imported_vars = follow_path cm.lead_cell.context.imported_vars, path
+    imported_context_fns = follow_path cm.ctx.imported_context_fns, path
+    imported_vars = follow_path cm.ctx.imported_vars, path
 
     collect_suggestions = (s) ->
       list = []
@@ -156,7 +156,7 @@ suggest = (cm, showHints, options) ->
           list.push prefix + k
 
       if path.length == 0
-        key_suggestions = collect_key_suggestions cm.lead_cell.context, s
+        key_suggestions = collect_key_suggestions cm.ctx, s
         unless next_token?.string is ':'
           key_suggestions = _.map key_suggestions, (k) -> k + ':'
 

@@ -252,6 +252,7 @@ create_input_cell = (notebook) ->
     editor_changes: Editor.as_event_stream editor, 'change'
 
   editor.lead_cell = cell
+  editor.ctx = cell.context
   cell.component = InputCellComponent
 
   # scan changes for the side effect in recompile
