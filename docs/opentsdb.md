@@ -35,7 +35,7 @@ graph tsd
   time_series: [
     'sys.cpu.user',
     {
-      metric_name: 'sys.cpu.user', 
+      metric_name: 'sys.cpu.user',
       tags: {host: 'webserver01'}
       downsample: {period: '10m', aggregation: 'max'}
     }
