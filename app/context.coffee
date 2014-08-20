@@ -353,7 +353,7 @@ scoped_eval = (ctx, string, var_names=[]) ->
     `with (ctx.scope) { with (ctx.repl_vars) {`
     _capture_context = (ctx, fn) ->
       restoring_context = capture_context ctx
-      (ctx, args...) ->
+      (args...) ->
         restoring_context => fn.apply @, args
 
     result = eval string
