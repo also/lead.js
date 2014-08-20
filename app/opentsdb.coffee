@@ -5,7 +5,7 @@ Html = require './html'
 modules = require './modules'
 http = require './http'
 Context = require './context'
-Documentation = require './Documentation'
+Documentation = require './documentation'
 
 opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
   doc 'tsd', 'Fetches time series data from OpenTSDB', Documentation.load_file 'opentsdb'
