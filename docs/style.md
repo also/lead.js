@@ -26,6 +26,12 @@
     Context.add_component ctx, Builtins.ComponentAndError {promise: Q.reject 'nope'}, 'Component Goes Here'
     ignore
 
+## Grid
+
+    grid 5, ->
+      _.each [1..13], (i) ->
+        html "<div style='background: #eee; margin: .3em; text-align: center; padding: .5em'>#{i}</div>"
+
 # Output
 ## Text
 
