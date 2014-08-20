@@ -1,5 +1,6 @@
 # OpenTSDB
 
+<!-- norun -->
 ```coffeescript
 {start, end, aggregation, group, time_series}
 ```
@@ -10,6 +11,7 @@
 
 **`time_series`**: an array of strings (see [OpenTSDB Metric Query String Format](http://opentsdb.net/docs/build/html/api_http/query/index.html#metric-query-string-format)), or
 
+<!-- norun -->
 ```coffeescript
 {metric_name, aggregation, downsample, tags, rate}
 ```
@@ -18,12 +20,14 @@
 
 **`downsample`**:
 
+<!-- norun -->
 ```coffeescript
 {period, aggregation}
 ```
 
 ## Examples
 
+<!-- norun -->
 ```coffeescript
 graph tsd
   start: '2d-ago'
