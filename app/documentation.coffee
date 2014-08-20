@@ -27,13 +27,19 @@ resolve_key = (ctx, o) ->
       result = key
   result
 
+DocumentationLinkComponent = React.createClass
+  displayName: 'DocumentationLinkComponent'
+  mixins: [Context.ContextAwareMixin]
+  show_help: ->
+    Documentation.navigate @state.ctx, @props.key
+  render: ->
+    React.DOM.span {className: 'run-link', onClick: @show_help}, @props.children
+
 DocumentationIndexComponent = React.createClass
-  show_help: (key) ->
-    Documentation.navigate @props.ctx, key
   render: ->
     React.DOM.table {}, _.map @props.entries, (e) =>
       React.DOM.tr {},
-        React.DOM.td {}, React.DOM.code {className: 'run-link', onClick: => @show_help e.key ? e.name}, e.name
+        React.DOM.td {}, DocumentationLinkComponent {key: e.key ? e.name}, React.DOM.code null, e.name
         React.DOM.td {}, Documentation.summary @props.ctx, e.doc
 
 DocumentationItemComponent = React.createClass
@@ -43,6 +49,7 @@ DocumentationItemComponent = React.createClass
       complete_docs
 
 Documentation =
+  DocumentationLinkComponent: DocumentationLinkComponent
   DocumentationItemComponent: DocumentationItemComponent
   DocumentationIndexComponent: DocumentationIndexComponent
 
@@ -130,6 +137,8 @@ Documentation =
 
   register_file: (name, key) ->
     Documentation.register_documentation key ? name, complete: Documentation.load_file name
+
+  key_to_path: normalize_key
 
 Documentation.register_file 'quickstart'
 Documentation.register_file 'style'

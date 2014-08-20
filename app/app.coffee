@@ -9,6 +9,7 @@ settings = require './settings'
 GitHub = require './github'
 Context = require './context'
 Builder = require './builder'
+Documentation = require './documentation'
 
 module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
@@ -37,7 +38,22 @@ HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
   mixins: [Context.ContextAwareMixin]
   render: ->
-    Builtins.help_component @state.ctx, @props.key
+    resolved_key = Documentation.get_key @state.ctx, @props.key
+    # FIXME 404 on missing docs
+    path = Documentation.key_to_path resolved_key
+    paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
+
+    doc = Documentation.get_documentation resolved_key
+    React.DOM.div null,
+      React.DOM.div null,
+        Documentation.DocumentationLinkComponent {key: 'imported_context_fns'}, 'help'
+        _.map paths, ({path, segment}) ->
+          React.DOM.span null, ' ',
+            React.DOM.i({className: 'fa fa-caret-right'}),
+            ' ',
+            Documentation.DocumentationLinkComponent {key: path},
+              Documentation.key_to_string segment
+      Documentation.DocumentationItemComponent {ctx: @state.ctx, doc}
 
 HelpComponent = React.createClass
   displayName: 'HelpComponent'
