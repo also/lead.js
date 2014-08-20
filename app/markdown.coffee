@@ -4,7 +4,7 @@ Components = require './components'
 Context = require './context'
 URI = require 'URIjs'
 _ = require 'underscore'
-CoffeeScript = require 'coffee-script'
+CoffeeScriptCell = require './coffeescript_cell'
 Documentation = require './documentation'
 
 fix_marked_renderer_href = (fn, base_href) ->
@@ -36,10 +36,10 @@ InlineExampleComponent = React.createClass
 
     nested_context = Context.create_nested_context @state.ctx
     value = @props.value
+    fn = CoffeeScriptCell.create_fn value
     Context.apply_to nested_context, ->
       Context.run_in_context @, (ctx) ->
-        # FIXME use CoffeeScriptCell
-        Context.scoped_eval ctx, CoffeeScript.compile value, {bare: true}
+        fn ctx
     React.DOM.div {className: 'inline-example'},
       React.DOM.div {className: 'example'}, example_component
       React.DOM.div {className: 'output'}, nested_context.component
