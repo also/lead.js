@@ -243,6 +243,7 @@ remove_all_components = (ctx) ->
 nested_item = (ctx, fn, args...) ->
   nested_context = create_nested_context ctx
   add_component ctx, nested_context.component
+  args.unshift nested_context
   call_in_ctx nested_context, fn, args
 
 
@@ -261,7 +262,7 @@ splice_ctx = (ctx, target_ctx, fn, args=[]) ->
   target_ctx.scope.ctx = ctx
   fn = fn._lead_unbound_fn ? fn
   try
-    fn ctx, args...
+    fn args...
   finally
     target_ctx.scope.ctx = previous_context
 
@@ -353,7 +354,7 @@ scoped_eval = (ctx, string, var_names=[]) ->
     `with (ctx.scope) { with (ctx.repl_vars) {`
     _capture_context = (ctx, fn) ->
       restoring_context = capture_context ctx
-      (ctx, args...) ->
+      (args...) ->
         restoring_context => fn.apply @, args
 
     result = eval string
@@ -390,6 +391,7 @@ _.extend exports, {
   keeping_context,
   register_promise,
   apply_to,
+  call_in_ctx,
   value,
   scoped_eval,
   add_component,
