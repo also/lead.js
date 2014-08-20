@@ -5,9 +5,11 @@ Html = require './html'
 modules = require './modules'
 http = require './http'
 Context = require './context'
+Documentation = require './Documentation'
 
-opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings}) ->
-  fn 'tsd', 'Fetches time series data from OpenTSDB', (ctx, args...) ->
+opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
+  doc 'tsd', 'Fetches time series data from OpenTSDB', Documentation.load_file 'opentsdb'
+  fn 'tsd', (ctx, args...) ->
     Context.value opentsdb.tsd args...
 
   to_metric_string: (time_series) ->
