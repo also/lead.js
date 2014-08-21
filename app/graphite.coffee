@@ -298,9 +298,13 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
       if response.exceptions.length > 0
         return Q.reject response.exceptions
       _.map _.flatten(_.values(response.results)), ({name, start, step, values}) ->
-        target: name
-        datapoints: _.map values, (v, i) ->
-          [v, start + step * i]
+        if step?
+          target: name
+          datapoints: _.map values, (v, i) ->
+            [v, start + step * i]
+        else
+          target: name
+          datapoints: _.map values, ([ts, v]) -> [v, ts]
     else
       response
 
