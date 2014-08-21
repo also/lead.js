@@ -21,8 +21,9 @@ imports = [
   'compat'
 ]
 
-imports.push.apply imports, settings.get('app', 'imports') or []
-module_names.push.apply imports, settings.get('app', 'module_names') or []
+imports.push (settings.get('app', 'imports') or [])...
+module_names.push imports...
+module_names.push (settings.get('app', 'module_names') or [])...
 
 settings.default 'app', 'intro_command', "help 'introduction'"
 
