@@ -34,6 +34,7 @@ InlineExampleComponent = React.createClass
   render: ->
     example_component = Components.SourceComponent value: @props.value, language: 'coffeescript'
 
+    # TODO should use new context
     nested_context = Context.create_nested_context @state.ctx
     value = @props.value
     fn = CoffeeScriptCell.create_fn value

@@ -57,9 +57,17 @@ _.extend exports,
     _.flatten _.compact _.pluck modules, ep
 
   get_module: (module_name) ->
-    mod = require './' + module_name
-    mod.init?()
-    mod
+    require './' + module_name
 
   get_modules: (module_names) ->
     _.object module_names, _.map module_names, module.exports.get_module
+
+  init_modules: (module_names) ->
+    promises = _.map module_names, (name) ->
+      mod = module.exports.get_module name
+      if mod.init?
+        Q(mod.init()).then -> mod
+      else
+        Q(mod)
+    Q.all(promises).then (modules) ->
+      _.object module_names, modules

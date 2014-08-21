@@ -10,6 +10,7 @@ GitHub = require './github'
 Context = require './context'
 Builder = require './builder'
 Documentation = require './documentation'
+Modules = require './modules'
 
 module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
@@ -142,7 +143,9 @@ exports.init_app = (target) ->
       Route {path: '/help/:key', name: 'help', handler: HelpComponent}
       Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
 
-  React.renderComponent routes, target
+  # TODO handler errors, timeouts
+  Modules.init_modules(module_names).finally ->
+    React.renderComponent routes, target
 
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()

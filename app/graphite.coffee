@@ -7,7 +7,7 @@ moment = require 'moment'
 React = require './react_abuse'
 dsl = require './dsl'
 modules = require './modules'
-function_names = require './functions'
+graphite_function_names = require './functions'
 http = require './http'
 docs = require './graphite_docs'
 parser = require './graphite_parser'
@@ -18,6 +18,9 @@ Context = require './context'
 Components = require './components'
 
 graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
+  functions_promise = null
+  function_names = null
+
   build_function_doc = (ctx, doc) ->
     FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
 
@@ -206,6 +209,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   fn 'get_data', 'Fetches Graphite metric data', (ctx, args...) ->
     Context.value graphite.get_data graphite.args_to_params {args, default_options: ctx.options()}
 
+  init: ->
+    if settings.get('type') == 'lead'
+      unless function_names
+        functions_promise = http.get(graphite.url 'functions').then (functions) ->
+          function_names = _.filter functions, (f) -> f.indexOf('-') == -1
+    else
+      function_names = graphite_function_names
+
   MetricTreeComponent: React.createClass
     render: ->
       Components.TreeComponent
@@ -230,7 +241,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
             React.DOM.i {className: 'fa fa-exclamation-triangle'}
             ' Error loading metric names'
 
-  context_vars: -> dsl.define_functions {}, function_names
+  context_vars: ->
+    dsl.define_functions {}, function_names
 
   is_pattern: (s) ->
     for c in '*?[{'
