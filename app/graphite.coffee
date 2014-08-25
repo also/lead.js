@@ -383,8 +383,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     # flatten one level of nested arrays
     targets = Array.prototype.concat.apply [], targets
 
-    params = _.extend {}, default_options, options
-    params.target = (dsl.to_target_string(target) for target in targets)
+    params = {}
+    _.extend params, default_options, options, target: _.map targets, (target) -> dsl.to_target_string target, params
     params
 
   has_docs: (name) ->

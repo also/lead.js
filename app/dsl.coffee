@@ -11,6 +11,9 @@ create_type = (n, parent) ->
   t.prototype = new parent
   dsl_type[n] = t
 
+# binding for converting objects to param() calls
+to_string_context = null
+
 # Create the types:
 #  f: function invocation
 #  q: raw string
@@ -18,6 +21,7 @@ create_type = (n, parent) ->
 #  n: number
 #  s: string
 #  i: identifier
+#  o: jsonable object
 create_type n, dsl.type for n in "pfqi"
 
 dsl.type.f::to_target_string = ->
@@ -34,12 +38,12 @@ dsl.type.q::to_target_string = ->
 dsl.type.q::to_js_string = ->
   "q(#{(@values.map JSON.stringify).join ', '})"
 
-# numbers, strings, and booleans use json serialization
+# numbers, strings, jsonable objects, and booleans use json serialization
 dsl.type.p::to_js_string =
 dsl.type.p::to_target_string = ->
   JSON.stringify @values[0]
 
-create_type n, dsl.type.p for n in "nsb"
+create_type n, dsl.type.p for n in "nsbo"
 
 dsl.type.TRUE = new dsl.type.b true
 dsl.type.FALSE = new dsl.type.b false
@@ -57,6 +61,12 @@ dsl.type.i::to_target_string = dsl.type.s::to_target_string
 dsl.type.i::to_js_string = ->
   @values[0]
 
+dsl.type.o::to_target_string = ->
+  objects = to_string_context.objects ?= []
+  i = objects.length
+  objects.push @values[0]
+  "param('objects',#{i})"
+
 process_arg = (arg) ->
   return arg if arg instanceof dsl.type
   if typeof arg is "number"
@@ -65,6 +75,8 @@ process_arg = (arg) ->
     return new dsl.type.s arg
   if _.isBoolean arg
     return new dsl.type.b arg
+  else if _.isArray(arg) or _.isObject(arg)
+    return new dsl.type.o arg
   throw new TypeError('illegal argument ' + arg)
 
 dsl_fn = (name) ->
@@ -87,11 +99,15 @@ dsl.to_string = (node) ->
     throw new TypeError(node + " is not a dsl node")
   node.to_target_string()
 
-dsl.to_target_string = (node) ->
+dsl.to_target_string = (node, context) ->
   if _.isString node
     node
   else
-    dsl.to_string node
+    try
+      to_string_context = context
+      dsl.to_string node
+    finally
+      to_string_context = null
 
 dsl.to_js_string = (node) ->
   node.to_js_string()
