@@ -213,7 +213,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     if settings.get('type') == 'lead'
       unless function_names
         functions_promise = http.get(graphite.url 'functions').then (functions) ->
-          function_names = _.filter functions, (f) -> f.indexOf('-') == -1
+          function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
     else
       function_names = graphite_function_names
 
