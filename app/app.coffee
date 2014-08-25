@@ -17,7 +17,6 @@ module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 imports = [
   'builtins'
   'graphite'
-  'opentsdb'
   'github'
   'compat'
 ]
