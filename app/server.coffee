@@ -28,13 +28,13 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     ParameterDocsComponent {ctx, docs: docs.parameter_docs[doc.parameter_name]}
 
   _.each docs.function_docs, (d, n) ->
-    Documentation.register_documentation ['server_functions', n], function_name: n, summary: d.signature, complete: build_function_doc
+    Documentation.register_documentation ['server', 'functions', n], function_name: n, summary: d.signature, complete: build_function_doc
 
   _.each docs.parameter_docs, (d, n) ->
-    Documentation.register_documentation ['server_parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
+    Documentation.register_documentation ['server', 'parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
 
-  Documentation.register_documentation 'server_functions', index: true
-  Documentation.register_documentation 'server_parameters', index: true
+  Documentation.register_documentation ['server', 'functions'], index: true
+  Documentation.register_documentation ['server', 'parameters'], index: true
 
   args_to_params = (context, args) ->
     server.args_to_params {args, default_options: context.options()}
@@ -85,11 +85,11 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       function_docs = docs.function_docs[name]
       help_components = []
       if function_docs?
-        help_components.push Builtins.help_component ctx, "server_functions.#{name}"
+        help_components.push Builtins.help_component ctx, "server.functions.#{name}"
       name = docs.parameter_doc_ids[name] ? name
       parameter_docs = docs.parameter_docs[name]
       if parameter_docs?
-        help_components.push Builtins.help_component ctx, "server_parameters.#{name}"
+        help_components.push Builtins.help_component ctx, "server.parameters.#{name}"
 
       if help_components.length == 0
         help_components.push 'Documentation not found'
@@ -97,9 +97,9 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     else
       React.DOM.div null,
         React.DOM.h3 {}, 'Functions'
-        Builtins.help_component ctx, 'server_functions'
+        Builtins.help_component ctx, 'server.functions'
         React.DOM.h3 {}, 'Parameters'
-        Builtins.help_component ctx, 'server_parameters'
+        Builtins.help_component ctx, 'server.parameters'
 
   doc 'params',
     'Generates the parameters for a render API call'
@@ -393,9 +393,9 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
   resolve_documentation_key: (ctx, o) ->
     return null unless o?
     if _.isFunction(o) and dsl.is_dsl_node o
-      return ['server_functions', o.fn_name]
+      return ['server', 'functions', o.fn_name]
     if _.isString(o) and docs.parameter_docs[o]
-      return ['server_parameters', o]
+      return ['server', 'parameters', o]
 
 server.suggest_strings = server.complete
 

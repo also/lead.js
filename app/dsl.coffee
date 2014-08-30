@@ -121,8 +121,8 @@ dsl.context_result_handler = (ctx, object) ->
     lead_string = dsl.to_string object
     if _.isFunction object
       Context.add_component ctx, React.DOM.div null,
-        "#{lead_string} is a Graphite function"
-        Components.ExampleComponent value: "docs #{object.values[0]}", run: true
+        "#{lead_string} is a server function"
+        Components.ExampleComponent value: "help 'server.functions.#{object.values[0]}'", run: true
     else
       Context.add_component ctx, React.DOM.div null,
         "What do you want to do with #{lead_string}?"

@@ -1,4 +1,4 @@
-`graph` accepts a [Graphite target](help:server_functions) or promise of graph data.
+`graph` accepts a [Graphite target](help:server.functions) or promise of graph data.
 
 Graphite targets are converted to a promise using [`server.get_data`](help:server.get_data).
 
