@@ -36,8 +36,8 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
   Documentation.register_documentation ['server', 'functions'], index: true
   Documentation.register_documentation ['server', 'parameters'], index: true
 
-  args_to_params = (context, args) ->
-    server.args_to_params {args, default_options: context.options()}
+  args_to_server_params = (context, args) ->
+    server.args_to_params({args, default_options: context.options()}).server
 
   default_target_command = 'graph'
 
@@ -92,16 +92,16 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     '''
 
   fn 'params', (ctx, args...) ->
-    result = args_to_params ctx, args
+    result = args_to_server_params ctx, args
     Context.value result
 
   component_fn 'url', 'Generates a URL for a graph image', (ctx, args...) ->
-    params = args_to_params ctx, args
+    params = args_to_server_params ctx, args
     url = server.render_url params
     React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
   component_fn 'img', 'Renders a graph image', (ctx, args...) ->
-    params = args_to_params ctx, args
+    params = args_to_server_params ctx, args
     url = server.render_url params
     deferred = Q.defer()
     promise = deferred.promise.fail -> Q.reject 'Failed to load image'
@@ -128,7 +128,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         ]
 
   component_fn 'table', 'Displays data in a table', (ctx, args...) ->
-    params = args_to_params ctx, args
+    params = args_to_server_params ctx, args
     props = new Bacon.Model serieses: []
     promise = server.get_data(params)
     .then (response) =>
@@ -184,7 +184,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     Context.value {promise, clicks, component}
 
   fn 'get_data', 'Fetches metric data', (ctx, args...) ->
-    Context.value server.get_data server.args_to_params {args, default_options: ctx.options()}
+    Context.value server.get_data server.args_to_server_params {args, default_options: ctx.options()}
 
   init: ->
     if settings.get('type') == 'lead'
@@ -360,9 +360,24 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     # flatten one level of nested arrays
     targets = Array.prototype.concat.apply [], targets
 
-    params = {}
-    _.extend params, default_options, options, target: _.map targets, (target) -> dsl.to_target_string target, params
-    params
+    if settings.get('type') == 'lead'
+      server_option_names = ['start', 'from', 'end', 'until']
+    else
+      server_option_names = Object.keys docs.parameter_docs
+
+    server_options = _.extend {},
+      _.pick(default_options, server_option_names),
+      default_options.server_options,
+      _.pick(options, server_option_names),
+      options.server_options
+
+    server_params = {}
+    target = _.map targets, (target) -> dsl.to_target_string target, server_params
+    _.extend server_params, server_options, target: target
+
+    client_params = _.extend {}, default_options, options, target: target
+
+    {server: server_params, client: client_params}
 
   resolve_documentation_key: (ctx, o) ->
     return null unless o?

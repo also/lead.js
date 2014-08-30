@@ -25,9 +25,9 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
       promise = args[0]
       params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
     else
-      server_params = Server.args_to_params {args, default_options: ctx.options()}
-      params = Bacon.constant server_params
-      promise = Server.get_data server_params
+      all_params = Server.args_to_params {args, default_options: ctx.options()}
+      params = Bacon.constant all_params.client
+      promise = Server.get_data all_params.server
 
     data = Bacon.fromPromise(promise)
     Context.AsyncComponent {promise},
