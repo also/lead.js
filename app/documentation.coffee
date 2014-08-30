@@ -61,11 +61,10 @@ Documentation =
 
   navigate: (ctx, key) ->
     key = Documentation.key_to_string key
-    if ctx.run?
-      ctx.run "help '#{key}'"
+    if ctx.docs_navigate?
+      ctx.docs_navigate key
     else
-      Router.transitionTo 'help', {key}
-      # FIXME
+      ctx.run "help '#{key}'"
 
   register_documentation: (key, doc) ->
     key = normalize_key key

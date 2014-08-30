@@ -59,10 +59,14 @@ HelpWrapperComponent = React.createClass
 
 HelpComponent = React.createClass
   displayName: 'HelpComponent'
+  run: (value) ->
+    Router.transitionTo 'raw_notebook', splat: btoa value
+  navigate: (key) ->
+    Router.transitionTo 'help', {key}
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
-      Context.TopLevelContextComponent {imports, module_names, ref: 'ctx'},
+      Context.TopLevelContextComponent {imports, module_names, context: {run: @run, docs_navigate: @navigate}},
         HelpWrapperComponent {key: @props.params.key}
 
 NewNotebookComponent = React.createClass
