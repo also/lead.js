@@ -7,7 +7,7 @@ CodeMirror = require 'codemirror'
 React = require './react_abuse'
 colors = require './colors'
 modules = require './modules'
-graphite = require './graphite'
+Server = require './server'
 graph = require './graph'
 Builtins = require './builtins'
 Context = require './context'
@@ -25,9 +25,9 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
       promise = args[0]
       params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
     else
-      graphite_params = graphite.args_to_params {args, default_options: ctx.options()}
-      params = Bacon.constant graphite_params
-      promise = graphite.get_data graphite_params
+      server_params = Server.args_to_params {args, default_options: ctx.options()}
+      params = Bacon.constant server_params
+      promise = Server.get_data server_params
 
     data = Bacon.fromPromise(promise)
     Context.AsyncComponent {promise},

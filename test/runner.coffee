@@ -9,7 +9,7 @@ tests = [
   'dsl'
   'settings'
   'context'
-  'graphite'
+  'server'
   'github'
   'html'
 ]

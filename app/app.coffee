@@ -16,7 +16,7 @@ module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
 imports = [
   'builtins'
-  'graphite'
+  'server'
   'github'
   'compat'
 ]

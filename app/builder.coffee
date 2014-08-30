@@ -1,7 +1,7 @@
 React = require './react_abuse'
 Bacon = require 'baconjs'
 _ = require 'underscore'
-Graphite = require './graphite'
+Server = require './server'
 Graph = require './graph'
 Editor = require './editor'
 Context = require './context'
@@ -88,13 +88,13 @@ exports.BuilderComponent = React.createClass
         result
     render_results = targets.combine(server_params, (targets, server_params) -> {targets, server_params}).flatMapLatest ({targets, server_params}) ->
       if targets.length > 0
-        Bacon.fromPromise Graphite.get_data _.defaults {target: targets}, server_params
+        Bacon.fromPromise Server.get_data _.defaults {target: targets}, server_params
       else
         Bacon.once []
     data = Bacon.Model()
     data.addSource render_results
 
-    ctx: Context.create_standalone_context {imports: ['graphite'], ref: 'ctx'}
+    ctx: Context.create_standalone_context {imports: ['server'], ref: 'ctx'}
     model: Bacon.Model.combine {data, params}
     leaf_clicks: leaf_clicks
     params: params
@@ -111,7 +111,7 @@ exports.BuilderComponent = React.createClass
   render: ->
     React.DOM.div {className: 'builder'},
       React.DOM.div {className: 'output tree'},
-        Graphite.MetricTreeComponent
+        Server.MetricTreeComponent
           root: @props.root
           leaf_clicked: (path) =>
             @state.leaf_clicks.push path

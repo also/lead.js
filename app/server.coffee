@@ -17,7 +17,7 @@ Documentation = require './documentation'
 Context = require './context'
 Components = require './components'
 
-graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
+server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   functions_promise = null
   function_names = null
 
@@ -28,16 +28,16 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     ParameterDocsComponent {ctx, docs: docs.parameter_docs[doc.parameter_name]}
 
   _.each docs.function_docs, (d, n) ->
-    Documentation.register_documentation ['graphite_functions', n], function_name: n, summary: d.signature, complete: build_function_doc
+    Documentation.register_documentation ['server_functions', n], function_name: n, summary: d.signature, complete: build_function_doc
 
   _.each docs.parameter_docs, (d, n) ->
-    Documentation.register_documentation ['graphite_parameters', n], parameter_name: n, summary: 'A Graphite parameter', complete: build_parameter_doc
+    Documentation.register_documentation ['server_parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
 
-  Documentation.register_documentation 'graphite_functions', index: true
-  Documentation.register_documentation 'graphite_parameters', index: true
+  Documentation.register_documentation 'server_functions', index: true
+  Documentation.register_documentation 'server_parameters', index: true
 
   args_to_params = (context, args) ->
-    graphite.args_to_params {args, default_options: context.options()}
+    server.args_to_params {args, default_options: context.options()}
 
   default_target_command = 'graph'
 
@@ -78,18 +78,18 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         if href[0] is '#'
           ctx.run "docs '#{decodeURI href[1..]}'"
 
-  component_cmd 'docs', 'Shows the documentation for a Graphite function or parameter', (ctx, name) ->
+  component_cmd 'docs', 'Shows the documentation for a server function or parameter', (ctx, name) ->
     if name?
       name = name.to_js_string() if name.to_js_string?
       name = name._lead_context_fn?.name if name._lead_op?
       function_docs = docs.function_docs[name]
       help_components = []
       if function_docs?
-        help_components.push Builtins.help_component ctx, "graphite_functions.#{name}"
+        help_components.push Builtins.help_component ctx, "server_functions.#{name}"
       name = docs.parameter_doc_ids[name] ? name
       parameter_docs = docs.parameter_docs[name]
       if parameter_docs?
-        help_components.push Builtins.help_component ctx, "graphite_parameters.#{name}"
+        help_components.push Builtins.help_component ctx, "server_parameters.#{name}"
 
       if help_components.length == 0
         help_components.push 'Documentation not found'
@@ -97,14 +97,14 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     else
       React.DOM.div null,
         React.DOM.h3 {}, 'Functions'
-        Builtins.help_component ctx, 'graphite_functions'
+        Builtins.help_component ctx, 'server_functions'
         React.DOM.h3 {}, 'Parameters'
-        Builtins.help_component ctx, 'graphite_parameters'
+        Builtins.help_component ctx, 'server_parameters'
 
   doc 'params',
     'Generates the parameters for a render API call'
     '''
-    `params` interprets its arguments in the same way as [`get_data`](help:graphite.get_data),
+    `params` interprets its arguments in the same way as [`get_data`](help:server.get_data),
     but simply returns the arguments that would be passed to the API.
 
     For example:
@@ -120,12 +120,12 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
   component_fn 'url', 'Generates a URL for a graph image', (ctx, args...) ->
     params = args_to_params ctx, args
-    url = graphite.render_url params
+    url = server.render_url params
     React.DOM.pre {}, React.DOM.a {href: url, target: 'blank'}, url
 
   component_fn 'img', 'Renders a graph image', (ctx, args...) ->
     params = args_to_params ctx, args
-    url = graphite.render_url params
+    url = server.render_url params
     deferred = Q.defer()
     promise = deferred.promise.fail -> Q.reject 'Failed to load image'
     Context.AsyncComponent {promise},
@@ -150,10 +150,10 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
           TimeSeriesTable datapoints: series.datapoints
         ]
 
-  component_fn 'table', 'Displays Graphite data in a table', (ctx, args...) ->
+  component_fn 'table', 'Displays data in a table', (ctx, args...) ->
     params = args_to_params ctx, args
     props = new Bacon.Model serieses: []
-    promise = graphite.get_data(params)
+    promise = server.get_data(params)
     .then (response) =>
       props.set serieses: response
 
@@ -162,8 +162,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
         React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
-  component_fn 'browser', 'Browse Graphite metrics using a wildcard query', (ctx, query) ->
-    finder = graphite.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
+  component_fn 'browser', 'Browse metrics using a wildcard query', (ctx, query) ->
+    finder = server.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
     finder.clicks.onValue (node) =>
       if node.is_leaf
         ctx.run "q(#{JSON.stringify node.path})"
@@ -173,7 +173,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
 
   component_fn 'tree', 'Generates a browsable tree of metrics', (ctx, root) ->
-    graphite.MetricTreeComponent {root}
+    server.MetricTreeComponent {root}
 
   FindResultsComponent = React.createClass
     render: ->
@@ -187,8 +187,8 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
           s = '.' + s unless i == 0
           React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
 
-  fn 'find', 'Finds Graphite metrics', (ctx, query) ->
-    promise = graphite.find(query)
+  fn 'find', 'Finds metrics', (ctx, query) ->
+    promise = server.find(query)
     .then (r) =>
       results.set r.result
       r
@@ -206,13 +206,13 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
 
     Context.value {promise, clicks, component}
 
-  fn 'get_data', 'Fetches Graphite metric data', (ctx, args...) ->
-    Context.value graphite.get_data graphite.args_to_params {args, default_options: ctx.options()}
+  fn 'get_data', 'Fetches metric data', (ctx, args...) ->
+    Context.value server.get_data server.args_to_params {args, default_options: ctx.options()}
 
   init: ->
     if settings.get('type') == 'lead'
       unless function_names
-        functions_promise = http.get(graphite.url 'functions').then (functions) ->
+        functions_promise = http.get(server.url 'functions').then (functions) ->
           function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
     else
       function_names = graphite_function_names
@@ -228,7 +228,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
             subpath = '*'
           else
             subpath = "#{path}.*"
-          graphite.find(subpath).get 'result'
+          server.find(subpath).get 'result'
         create_node: (props) ->
           if props.node.path == ''
             name = 'All Metrics'
@@ -252,7 +252,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   url: (path, params) ->
     base_url = settings.get 'base_url'
     if not base_url?
-      throw new Error 'Graphite base_url not set'
+      throw new Error 'Server base_url not set'
 
     if params?
       query_string = $.param params, true
@@ -260,7 +260,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     else
       "#{base_url}/#{path}"
 
-  render_url: (params) -> graphite.url 'render', params
+  render_url: (params) -> server.url 'render', params
 
   parse_target: (string) -> parser.parse string
 
@@ -269,7 +269,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
     query = url.query true
     targets = query.target or []
     targets = [targets] unless _.isArray targets
-    targets: _.map targets, graphite.parse_target
+    targets: _.map targets, server.parse_target
     options: _.omit query, 'target'
 
   parse_error_response: (response) ->
@@ -290,7 +290,7 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   # TODO this is only use for complete
   parse_find_response: (query, response) ->
     parts = query.split '.'
-    pattern_parts = parts.map graphite.is_pattern
+    pattern_parts = parts.map server.is_pattern
     list = for node in response
       if node.is_leaf
         node.path
@@ -324,28 +324,28 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   get_data: (params) ->
     params.format = 'json'
     if settings.get('type') == 'lead'
-      promise = http.post(graphite.url('execute'), params)
+      promise = http.post(server.url('execute'), params)
     else
-      promise = http.get graphite.render_url(params)
+      promise = http.get server.render_url(params)
 
-    promise.then graphite.transform_response, (response) -> Q.reject graphite.parse_error_response response
+    promise.then server.transform_response, (response) -> Q.reject server.parse_error_response response
 
   # returns a promise
   complete: (query) ->
-    graphite.find(query + '*')
+    server.find(query + '*')
     .then ({result}) ->
-      graphite.parse_find_response query, result
+      server.parse_find_response query, result
 
   find: (query) ->
     if settings.get('type') == 'lead'
-      http.get(graphite.url 'find', {query}).then (response) ->
+      http.get(server.url 'find', {query}).then (response) ->
         result = _.map response, (m) -> {path: m.name, name: m.name, is_leaf: m['is-leaf']}
         {query, result}
     else
       params =
         query: query
         format: 'completer'
-      http.get(graphite.url 'metrics/find', params)
+      http.get(server.url 'metrics/find', params)
       .then (response) ->
         result = _.map response.metrics, ({path, name, is_leaf}) -> {path: path.replace(/\.$/, ''), name, is_leaf: is_leaf == '1'}
         {query, result}
@@ -393,10 +393,10 @@ graphite = modules.create 'graphite', ({fn, component_fn, cmd, component_cmd, se
   resolve_documentation_key: (ctx, o) ->
     return null unless o?
     if _.isFunction(o) and dsl.is_dsl_node o
-      return ['graphite_functions', o.fn_name]
+      return ['server_functions', o.fn_name]
     if _.isString(o) and docs.parameter_docs[o]
-      return ['graphite_parameters', o]
+      return ['server_parameters', o]
 
-graphite.suggest_strings = graphite.complete
+server.suggest_strings = server.complete
 
-module.exports = graphite
+module.exports = server

@@ -5,7 +5,7 @@ Download a release from https://github.com/also/lead.js/releases, or check out t
 You'll want to customize the settings in `config.js`, or you won't be able to graph anything:
 
 ```javascript
-settings.set('graphite', 'base_url', 'http://graphite.example.com');
+settings.set('server', 'base_url', 'http://graphite.example.com');
 settings.set('github', 'githubs', 'github.example.com', {api_base_url: 'https://github.example.com/api/v3', requires_access_token: true});
 ```
 
