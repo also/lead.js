@@ -31,9 +31,10 @@ AppComponent = React.createClass
   displayName: 'AppComponent'
   render: ->
     React.DOM.div {className: 'lead'},
-      React.DOM.div {className: 'nav-bar'}, 'lead'
-        React.DOM.div {className: 'body'},
-          this.props.activeRouteHandler()
+      React.DOM.div {className: 'nav-bar'},
+        Router.Link {to: 'notebook'}, 'lead'
+      React.DOM.div {className: 'body'},
+        this.props.activeRouteHandler()
 
 HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
