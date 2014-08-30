@@ -50,11 +50,13 @@ describe 'dsl', ->
       result = fake_function fake_function
       expect(dsl.is_dsl_node result).to.be true
 
-    it 'should not take array arguments', ->
-      expect(-> fake_function []).to.throwException()
+    it 'should take array arguments', ->
+      result = fake_function []
+      expect(dsl.is_dsl_node result).to.be true
 
-    it 'should not take object arguments', ->
-      expect(-> fake_function {}).to.throwException()
+    it 'should take object arguments', ->
+      result = fake_function {}
+      expect(dsl.is_dsl_node result).to.be true
 
     it 'should not take null arguments', ->
       expect(-> fake_function null).to.throwException()
