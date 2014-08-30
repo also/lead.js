@@ -337,9 +337,9 @@ create_nested_context = (parent, overrides) ->
   new_context
 
 
-create_standalone_context = ({imports, module_names}={}) ->
+create_standalone_context = ({imports, module_names, context}={}) ->
   base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
-  create_run_context [create_context base_context]
+  create_run_context [context ? {}, create_context base_context]
 
 
 scoped_eval = (ctx, string, var_names=[]) ->
