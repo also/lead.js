@@ -76,7 +76,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         e.preventDefault()
         href = $(this).attr 'href'
         if href[0] is '#'
-          ctx.run "docs '#{decodeURI href[1..]}'"
+          ctx.run "help 'server.parameters.#{decodeURI href[1..]}'"
 
   doc 'params',
     'Generates the parameters for a render API call'
