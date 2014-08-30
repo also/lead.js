@@ -25,7 +25,7 @@ Look at
 
 <!-- noinline -->
 ```
-docs
+help 'server.functions'
 ```
 
 to see what you can do with Graphite.

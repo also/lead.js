@@ -78,29 +78,6 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         if href[0] is '#'
           ctx.run "docs '#{decodeURI href[1..]}'"
 
-  component_cmd 'docs', 'Shows the documentation for a server function or parameter', (ctx, name) ->
-    if name?
-      name = name.to_js_string() if name.to_js_string?
-      name = name._lead_context_fn?.name if name._lead_op?
-      function_docs = docs.function_docs[name]
-      help_components = []
-      if function_docs?
-        help_components.push Builtins.help_component ctx, "server.functions.#{name}"
-      name = docs.parameter_doc_ids[name] ? name
-      parameter_docs = docs.parameter_docs[name]
-      if parameter_docs?
-        help_components.push Builtins.help_component ctx, "server.parameters.#{name}"
-
-      if help_components.length == 0
-        help_components.push 'Documentation not found'
-      React.DOM.div null, help_components
-    else
-      React.DOM.div null,
-        React.DOM.h3 {}, 'Functions'
-        Builtins.help_component ctx, 'server.functions'
-        React.DOM.h3 {}, 'Parameters'
-        Builtins.help_component ctx, 'server.parameters'
-
   doc 'params',
     'Generates the parameters for a render API call'
     '''
@@ -386,9 +363,6 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     params = {}
     _.extend params, default_options, options, target: _.map targets, (target) -> dsl.to_target_string target, params
     params
-
-  has_docs: (name) ->
-    docs.parameter_docs[name]? or docs.parameter_doc_ids[name]? or docs.function_docs[name]?
 
   resolve_documentation_key: (ctx, o) ->
     return null unless o?
