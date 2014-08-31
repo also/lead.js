@@ -48,13 +48,24 @@ pre
   padding: 10px
   width: 100%
   z-index: 10000000
+  display: flex
+  box-sizing: border-box
+
+  .title
+    flex: 0 0 100px
+
+  .menu
+    flex: 1
+    text-align: right
+    i
+      margin-left: 1em
 
   a
     text-decoration: none
     color: #fff
 
-.help
-  padding-left: 10%
+.help, .settings
+  padding: 20px 10%
   max-width: 1000px
 
 .notebook

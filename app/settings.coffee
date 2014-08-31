@@ -23,6 +23,8 @@ create = (overrides=get:->) ->
     get d[key], keys
 
   set = (d, value, keys) ->
+    if keys.length == 0
+      data = _.clone value
     [key, keys...] = keys
     if keys.length is 0
       d[key] = value
@@ -41,6 +43,8 @@ create = (overrides=get:->) ->
         $.extend true, {}, value, override
       else
         override
+    get_without_overrides: (keys...) ->
+      get data, prefix.concat keys
 
     set: (keys..., value) ->
       k = prefix.concat keys

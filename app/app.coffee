@@ -5,12 +5,15 @@ React = require 'react'
 makeHref = require 'react-router/modules/helpers/makeHref'
 Notebook = require './notebook'
 Builtins = require './builtins'
-settings = require './settings'
+Settings = require './settings'
 GitHub = require './github'
 Context = require './context'
 Builder = require './builder'
 Documentation = require './documentation'
 Modules = require './modules'
+Editor = require './editor'
+Components = require './components'
+CoffeeScriptCell = require './coffeescript_cell'
 
 module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
@@ -21,18 +24,21 @@ imports = [
   'compat'
 ]
 
-imports.push (settings.get('app', 'imports') or [])...
+imports.push (Settings.get('app', 'imports') or [])...
 module_names.push imports...
-module_names.push (settings.get('app', 'module_names') or [])...
+module_names.push (Settings.get('app', 'module_names') or [])...
 
-settings.default 'app', 'intro_command', "help 'introduction'"
+Settings.default 'app', 'intro_command', "help 'introduction'"
 
 AppComponent = React.createClass
   displayName: 'AppComponent'
   render: ->
     React.DOM.div {className: 'lead'},
       React.DOM.div {className: 'nav-bar'},
-        Router.Link {to: 'notebook'}, 'lead'
+        Router.Link {to: 'notebook', className: 'title'}, 'lead'
+        React.DOM.div {className: 'menu'},
+          Router.Link {to: 'help-index'}, React.DOM.i {className: 'fa fa-question-circle'}
+          Router.Link {to: 'settings'}, React.DOM.i {className: 'fa fa-cog'}
       React.DOM.div {className: 'body'},
         this.props.activeRouteHandler()
 
@@ -40,7 +46,7 @@ HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
   mixins: [Context.ContextAwareMixin]
   render: ->
-    resolved_key = Documentation.get_key @state.ctx, @props.key
+    resolved_key = Documentation.get_key @state.ctx, @props.doc_key
     # FIXME 404 on missing docs
     path = Documentation.key_to_path resolved_key
     paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
@@ -67,12 +73,34 @@ HelpComponent = React.createClass
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
       Context.TopLevelContextComponent {imports, module_names, context: {run: @run, docs_navigate: @navigate}},
-        HelpWrapperComponent {key: @props.params.key}
+        HelpWrapperComponent {doc_key: @props.params.key}
+
+SettingsComponent = React.createClass
+  displayName: 'SettingsComponent'
+  save_settings: (value) ->
+    fn = CoffeeScriptCell.create_fn value ? @refs.editor.get_value()
+    ctx = @refs.ctx.get_ctx()
+    Context.remove_all_components ctx
+    user_settings = fn ctx
+    # TODO Context.IGNORE can indicate an error. handle this better
+    if user_settings != Context.IGNORE and _.isObject user_settings
+      reset_user_settings user_settings
+  render: ->
+    initial_value = JSON.stringify Settings.user_settings.get_without_overrides(), null, '  '
+    # TODO don't lie about class. fix the stylesheet to apply
+    React.DOM.div {className: 'settings output'},
+      Components.ToggleComponent {title: 'Default Settings'},
+        Builtins.ObjectComponent object: Settings.get_without_overrides()
+      Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
+      Context.TopLevelContextComponent {ref: 'ctx'}
+      React.DOM.span {className: 'run-button', onClick: => @save_settings()},
+        React.DOM.i {className: 'fa fa-floppy-o'}
+        ' Save User Settings'
 
 NewNotebookComponent = React.createClass
   displayName: 'NewNotebookComponent'
   render: ->
-    intro_command = settings.get 'app', 'intro_command'
+    intro_command = Settings.get 'app', 'intro_command'
     if intro_command? and intro_command != ''
       SingleCoffeeScriptCellNotebookComponent {value: intro_command}
     else
@@ -113,15 +141,18 @@ BuilderAppComponent = React.createClass
   render: ->
     Builder.BuilderComponent {root: @props.query.root}
 
+reset_user_settings = (settings) ->
+  Settings.user_settings.set settings
+
 exports.init_app = (target) ->
   # TODO warn
   try
-    _.each JSON.parse(localStorage.getItem 'lead_user_settings'), (v, k) -> settings.user_settings.set k, v
+    Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings')
   catch e
     console.error 'failed loading user settings', e
 
-  settings.user_settings.changes.onValue ->
-    localStorage.setItem 'lead_user_settings', JSON.stringify settings.user_settings.get()
+  Settings.user_settings.changes.onValue ->
+    localStorage.setItem 'lead_user_settings', JSON.stringify Settings.user_settings.get()
 
   raw_cell_value = null
   if location.search isnt ''
@@ -144,7 +175,9 @@ exports.init_app = (target) ->
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent}
       Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent}
       Route {path: '/builder', handler: BuilderAppComponent}
+      Route {path: '/help', name: 'help-index', handler: HelpComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent}
+      Route {name: 'settings', handler: SettingsComponent}
       Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
 
   # TODO handler errors, timeouts
@@ -154,6 +187,6 @@ exports.init_app = (target) ->
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
 
-window.lead = {settings, init_app: exports.init_app}
+window.lead = {settings: Settings, init_app: exports.init_app}
 
 window.React = React

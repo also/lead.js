@@ -1,8 +1,8 @@
 Q = require 'q'
 Bacon = require 'baconjs'
-
 _ = require 'underscore'
 CodeMirror = require 'codemirror'
+React = require 'react'
 require 'codemirror/mode/javascript/javascript'
 require 'codemirror/mode/coffeescript/coffeescript'
 require 'codemirror/addon/hint/show-hint'
@@ -266,4 +266,29 @@ unless is_nodejs?
   CodeMirror.keyMap.lead = lead_key_map
   _.extend CodeMirror.commands, commands
 
-_.extend exports, {commands, as_event_stream, add_error_mark, create_editor, set_value, get_value}
+
+EditorComponent = React.createClass
+  displayName: 'EditorComponent'
+  propTypes:
+    run: React.PropTypes.func.isRequired
+    initial_value: React.PropTypes.string
+  mixins: [Context.ContextAwareMixin]
+  getInitialState: ->
+    editor: create_editor 'context'
+  run: ->
+    @props.run @state.editor.getValue()
+  componentDidMount: ->
+    editor = @state.editor
+    editor.ctx = @state.ctx
+    editor.run = @run
+    @getDOMNode().appendChild editor.display.wrapper
+    if @props.initial_value?
+      editor.setValue @props.initial_value
+    editor.refresh()
+  get_value: ->
+    @state.editor.getValue()
+  render: ->
+    React.DOM.div {className: 'code'}
+
+
+_.extend exports, {commands, as_event_stream, add_error_mark, create_editor, set_value, get_value, EditorComponent}

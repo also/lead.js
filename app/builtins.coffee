@@ -65,7 +65,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     if arguments.length > 1
       help_component ctx, o
     else
-      help_component ctx, 'imported_context_fns'
+      help_component ctx
 
   KeySequenceComponent = React.createClass
     displayName: 'KeySequenceComponent'
@@ -268,4 +268,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent}

@@ -36,6 +36,7 @@ SimpleObservableComponent = createIdentityClass
 
 SimpleLayoutComponent = createIdentityClass
   displayName: 'SimpleLayoutComponent'
+  mixins: [React.addons.PureRenderMixin]
   render: ->
     React.DOM.div {}, @props.children
 
@@ -46,4 +47,3 @@ PropsModelComponent = createIdentityClass
   render: -> @props.constructor @state.value
 
 _.extend exports, {PropsModelComponent, ObservableMixin, SimpleLayoutComponent, createIdentityClass, generate_component_id}, React
-

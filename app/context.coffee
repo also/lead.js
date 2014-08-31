@@ -177,6 +177,7 @@ ContextComponent = React.createIdentityClass
     @props.layout _.extend {children: @state.value}, @props.layout_props
 
 TopLevelContextComponent = React.createClass
+  displayName: 'TopLevelContextComponent'
   set_components: (ctx, components) ->
     React.Children.forEach components, (c) -> add_component ctx, c
 
@@ -185,6 +186,8 @@ TopLevelContextComponent = React.createClass
     ctx = create_standalone_context @props
     @set_components ctx, @props.children
     {ctx}
+  get_ctx: ->
+    @state.ctx
   componentWillReceiveProps: (next_props) ->
     @set_components @state.ctx, next_props.children
   render: ->

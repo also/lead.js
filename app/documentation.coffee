@@ -104,6 +104,8 @@ Documentation =
       name: k, key: entry_key, doc: Documentation.get_documentation entry_key)}
 
   get_key: (ctx, o) ->
+    if !o?
+      return ['imported_context_fns']
     if _.isString o
       key
       doc = Documentation.get_documentation o
