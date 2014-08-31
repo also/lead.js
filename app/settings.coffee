@@ -11,6 +11,15 @@ init = ->
     fn 'get', 'Gets a setting', (ctx, keys...) ->
       Context.value global_settings.get keys...
 
+keys_overlap = (a, b) ->
+  if a.length < b.length
+    shorter = a
+    longer = b
+  else
+    shorter = b
+    longer = a
+  _.isEqual longer.slice(0, shorter.length), shorter
+
 create = (overrides=get:->) ->
   data = {}
   change_bus = new Bacon.Bus
@@ -38,11 +47,13 @@ create = (overrides=get:->) ->
       value = get data, k
       unless override?
         value
+      # TODO how does this handle arrays?
       else if _.isObject(override) and _.isObject(value)
         # TODO use lodash?
         $.extend true, {}, value, override
       else
         override
+
     get_without_overrides: (keys...) ->
       get data, prefix.concat keys
 
@@ -51,8 +62,17 @@ create = (overrides=get:->) ->
       set data, value, k
       change_bus.push k
       @
+
     default: (keys..., value) ->
       @get(keys...) or @set keys..., value
+
+    toProperty: (keys...) ->
+      current = @get keys...
+      k = prefix.concat keys
+      change_bus.filter((changed_k) ->
+        console.log 'filter', k, changed_k
+        keys_overlap k, changed_k).map(=> @get keys...).toProperty current
+
 
   settings = with_prefix()
   # TODO is this necessary? i just want a normal EventStream that isn't pluggable or pushable

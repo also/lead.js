@@ -10,6 +10,23 @@ require 'codemirror/addon/hint/show-hint'
 Context = require './context'
 Notebook = require './notebook'
 
+user_notebook_keymap = null
+
+update_user_keymap = (keymap) ->
+  console.log 'updating keymap to ', keymap
+  for k of user_notebook_keymap
+    delete user_notebook_keymap[k]
+  if keymap?
+    _.extend user_notebook_keymap, keymap
+
+init_user_keymap = ->
+  # TODO resolve circular imports
+  Settings = require './settings'
+  unless user_notebook_keymap?
+    user_notebook_keymap = {}
+    Settings.user_settings.toProperty('editor', 'keymap', 'notebook').onValue update_user_keymap
+  user_notebook_keymap
+
 create_editor = (keyMap='notebook') ->
   target = ->
   if is_nodejs?
@@ -23,6 +40,8 @@ create_editor = (keyMap='notebook') ->
     viewportMargin: Infinity
     #gutters: ['error']
 
+  if keyMap == 'notebook'
+    cm.addKeyMap init_user_keymap()
   cm.setCursor(line: cm.lineCount() - 1)
   cm
 
