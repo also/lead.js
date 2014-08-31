@@ -165,16 +165,22 @@ AsyncComponent = React.createIdentityClass
 
 ContextComponent = React.createIdentityClass
   displayName: 'ContextComponent'
-  mixins: [ContextRegisteringMixin, React.ObservableMixin]
-  get_observable: -> @props.model
+  mixins: [ContextRegisteringMixin]
   propTypes:
     ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
-    # TODO type
-    model: React.PropTypes.object.isRequired
-    layout: React.PropTypes.func.isRequired
-    layout_props: React.PropTypes.object
   render: ->
-    @props.layout _.extend {children: @state.value}, @props.layout_props
+    ContextLayoutComponent {ctx: @props.ctx}
+
+
+ContextLayoutComponent = React.createClass
+  displayName: 'ContextLayoutComponent'
+  mixins: [React.ObservableMixin]
+  propTypes:
+    ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
+  get_observable: -> @props.ctx.component_list.model
+  render: ->
+    ctx = @props.ctx
+    ctx.layout _.extend {children: @state.value}, ctx.layout_props
 
 TopLevelContextComponent = React.createClass
   displayName: 'TopLevelContextComponent'
@@ -331,11 +337,7 @@ create_run_context = (extra_contexts) ->
 create_nested_context = (parent, overrides) ->
   new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
   new_context.component_list = component_list()
-  new_context.component = ContextComponent
-    ctx: new_context
-    model: new_context.component_list.model
-    layout: new_context.layout
-    layout_props: new_context.layout_props
+  new_context.component = ContextComponent ctx: new_context
 
   new_context
 
