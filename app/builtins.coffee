@@ -33,20 +33,6 @@ to see what you can do with Graphite.
 
 ExampleComponent = Components.ExampleComponent
 
-get_fn_documentation = (fn) ->
-  Documentation.get_documentation [fn.module_name, fn.name]
-
-fn_help_index = (ctx, fns) ->
-  docs = _.map fns, (fn, name) ->
-    if fn?
-      doc = get_fn_documentation fn
-      if doc?
-        {name, doc}
-  documented_fns = _.sortBy _.filter(docs, _.identity), 'name'
-  Documentation.DocumentationIndexComponent entries: documented_fns, ctx: ctx
-
-Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) -> fn_help_index ctx, ctx.imported_context_fns
-
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
 
   help_component = (ctx, o) ->

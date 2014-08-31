@@ -144,4 +144,14 @@ Documentation =
 Documentation.register_file 'quickstart'
 Documentation.register_file 'style'
 
+Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) ->
+  fn_docs = _.map ctx.imported_context_fns, (fn, name) ->
+    if fn?
+      key = [fn.module_name, fn.name]
+      doc = Documentation.get_documentation key
+      if doc?
+        {name, doc, key}
+  documented_fns = _.sortBy _.filter(fn_docs, _.identity), 'name'
+  Documentation.DocumentationIndexComponent entries: documented_fns, ctx: ctx
+
 module.exports = Documentation
