@@ -34,7 +34,7 @@ SimpleObservableComponent = createIdentityClass
   render: ->
     React.DOM.div {}, @state.value
 
-SimpleLayoutComponent = createIdentityClass
+SimpleLayoutComponent = React.createClass
   displayName: 'SimpleLayoutComponent'
   mixins: [React.addons.PureRenderMixin]
   render: ->
