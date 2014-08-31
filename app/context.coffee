@@ -163,6 +163,7 @@ AsyncComponent = React.createIdentityClass
   render: ->
     React.DOM.div null, @props.children
 
+
 ContextComponent = React.createIdentityClass
   displayName: 'ContextComponent'
   mixins: [ContextRegisteringMixin]
@@ -182,22 +183,24 @@ ContextLayoutComponent = React.createClass
     ctx = @props.ctx
     ctx.layout _.extend {children: @state.value}, ctx.layout_props
 
+
+ContextOutputComponent = React.createClass
+  displayName: 'ContextOutputComponent'
+  mixins: [ContextAwareMixin]
+  render: -> ContextLayoutComponent ctx: @state.ctx
+
+
 TopLevelContextComponent = React.createClass
   displayName: 'TopLevelContextComponent'
-  set_components: (ctx, components) ->
-    React.Children.forEach components, (c) -> add_component ctx, c
-
   getInitialState: ->
     # FIXME #175 props can change
     ctx = create_standalone_context @props
-    @set_components ctx, @props.children
     {ctx}
   get_ctx: ->
     @state.ctx
-  componentWillReceiveProps: (next_props) ->
-    @set_components @state.ctx, next_props.children
   render: ->
-    @state.ctx.component
+    ComponentContextComponent {children: @props.children, ctx: @state.ctx}
+
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}={}) ->
@@ -403,5 +406,6 @@ _.extend exports, {
   AsyncComponent,
   TopLevelContextComponent,
   ContextComponent,
+  ContextOutputComponent,
   IGNORE: ignore
 }

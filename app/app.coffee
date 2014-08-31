@@ -48,6 +48,7 @@ HelpWrapperComponent = React.createClass
   render: ->
     resolved_key = Documentation.get_key @state.ctx, @props.doc_key
     # FIXME 404 on missing docs
+
     path = Documentation.key_to_path resolved_key
     paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
 
@@ -91,8 +92,9 @@ SettingsComponent = React.createClass
     React.DOM.div {className: 'settings output'},
       Components.ToggleComponent {title: 'Default Settings'},
         Builtins.ObjectComponent object: Settings.get_without_overrides()
-      Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
-      Context.TopLevelContextComponent {ref: 'ctx'}
+      Context.TopLevelContextComponent {ref: 'ctx'},
+        Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
+        Context.ContextOutputComponent {}
       React.DOM.span {className: 'run-button', onClick: => @save_settings()},
         React.DOM.i {className: 'fa fa-floppy-o'}
         ' Save User Settings'
