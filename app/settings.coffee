@@ -69,9 +69,7 @@ create = (overrides=get:->) ->
     toProperty: (keys...) ->
       current = @get keys...
       k = prefix.concat keys
-      change_bus.filter((changed_k) ->
-        console.log 'filter', k, changed_k
-        keys_overlap k, changed_k).map(=> @get keys...).toProperty current
+      change_bus.filter((changed_k) -> keys_overlap k, changed_k).map(=> @get keys...).toProperty current
 
 
   settings = with_prefix()
