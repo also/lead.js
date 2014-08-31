@@ -74,7 +74,7 @@ exports.BuilderComponent = React.createClass
     data = Bacon.Model()
     data.addSource render_results
 
-    ctx: Context.create_standalone_context {imports: ['server'], ref: 'ctx'}
+    ctx: Context.create_standalone_context {imports: ['server']}
     model: Bacon.Model.combine {data, params}
     leaf_clicks: leaf_clicks
     params: params
@@ -85,7 +85,8 @@ exports.BuilderComponent = React.createClass
     fn = CoffeeScriptCell.create_fn value
     ctx = @state.ctx
     #ctx.current_options = {}
-    Context.run_in_context ctx, fn
+    Context.remove_all_components ctx
+    fn ctx
     @state.params.set _.clone ctx.current_options
 
   render: ->
@@ -101,6 +102,7 @@ exports.BuilderComponent = React.createClass
         Graph.GraphComponent model: @state.model
         Context.ComponentContextComponent ctx: @state.ctx,
           Editor.EditorComponent {run: @run, ref: 'editor'}
+          Context.ContextOutputComponent {}
         React.DOM.span {className: 'run-button', onClick: => @run()},
           React.DOM.i {className: 'fa fa-play-circle'}
           ' Run'
