@@ -224,6 +224,17 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         error = ErrorComponent {message: @state.error}
       React.DOM.div null, @props.children, error
 
+  ObservableComponent = React.createClass
+    displayName: 'BaconStreamComponent'
+    mixins: [React.ObservableMixin]
+    render: ->
+      if @state.value?
+        valueComponent = ObjectComponent object: @state.value
+      else
+        valueComponent = '(no value)'
+      Components.ToggleComponent {title: 'Live Value'},
+        valueComponent
+
   GridComponent = React.createClass
     displayName: 'GridComponent'
     propTypes:
@@ -254,4 +265,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObservableComponent}

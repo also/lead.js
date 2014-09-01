@@ -82,6 +82,10 @@ handle_promise = (ctx, object) ->
   if Q.isPromise object
     add_component ctx, Builtins.PromiseStatusComponent {promise: object, start_time: new Date}
 
+handleObservable = (ctx, object) ->
+  if object instanceof Bacon.Observable
+    add_component ctx, Builtins.ObservableComponent observable: object
+
 handle_any_object = (ctx, object) ->
   add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
   true
@@ -93,6 +97,7 @@ result_handlers = [
   handle_module
   handle_using_extension
   handle_promise
+  handleObservable
   handle_any_object
 ]
 
