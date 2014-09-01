@@ -25,9 +25,8 @@ The format for graph data is an array of time series:
 For example:
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -40,9 +39,8 @@ graph data
 ## [`areaMode`](help:graphite_parameters.areaMode)
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -62,9 +60,8 @@ Set the width and height of the plot area. The legend is outside this area.
 The type of graph to generate. `"line"` (the default) and `"scatter"` are supported.
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -77,9 +74,8 @@ graph data, type: 'scatter'
 ## `lineWidth`
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -97,9 +93,8 @@ This is used as the argument to the d3 [`offset` function](https://github.com/mb
 and can be used to create "streamgraphs" or graphs that are normalized to fill the plot area.
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -113,9 +108,8 @@ graph data, areaMode: 'stacked', areaOffset: 'expand'
 ## `interpolate`
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
@@ -132,9 +126,8 @@ md 'see http://bl.ocks.org/mbostock/3310323'
 ## `drawNullAsZero`
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, null], [now + 180, 4]]}
   {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1], [now + 180, 2]]}
 ]
@@ -153,14 +146,12 @@ are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purpl
 The default is `d3.category10`.
 
 ```
-Q = require 'q'
 Colors = require 'colors'
 now = moment().unix()
 
 targets = (n) ->
-  Q(for i in [1..n]
+  for i in [1..n]
     target: "target #{i}", datapoints: [now + j * 60, i + j] for j in [0...3]
-  )
 
 options width: 400, height: 200, lineWidth: 2
 graph targets(10)
@@ -177,9 +168,8 @@ graph targets(9), d3_colors: Colors.brewer.Set1[3]
 ## `get_value` and `get_timestamp`
 
 ```
-Q = require 'q'
 now = moment().unix()
-data = Q [
+data = [
   {target: 'target 1', datapoints: [1, 2, 3]}
   {target: 'target 2', datapoints: [0, 3, 1]}
 ]
