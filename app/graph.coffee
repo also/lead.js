@@ -36,8 +36,8 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     width: 800
     height: 400
     type: 'line'
-    get_value: ([value, timestamp]) -> value
-    get_timestamp: ([value, timestamp]) -> timestamp
+    get_value: (dp) -> dp[1]
+    get_timestamp: (dp) -> dp[0]
     d3_colors: colors.d3.category10
     areaAlpha: 1.0
     bgcolor: '#fff'

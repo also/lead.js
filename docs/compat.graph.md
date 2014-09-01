@@ -28,8 +28,8 @@ For example:
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 graph data
@@ -43,8 +43,8 @@ graph data
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 options width: 400, height: 200
@@ -65,8 +65,8 @@ The type of graph to generate. `"line"` (the default) and `"scatter"` are suppor
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 options width: 400, height: 200
@@ -80,8 +80,8 @@ graph data, type: 'scatter'
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 options width: 400, height: 200
@@ -100,8 +100,8 @@ and can be used to create "streamgraphs" or graphs that are normalized to fill t
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 options width: 400, height: 200
@@ -116,8 +116,8 @@ graph data, areaMode: 'stacked', areaOffset: 'expand'
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [3, now + 120]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
 ]
 
 options width: 400, height: 200
@@ -135,8 +135,8 @@ md 'see http://bl.ocks.org/mbostock/3310323'
 Q = require 'q'
 now = moment().unix()
 data = Q [
-  {target: 'target 1', datapoints: [[1, now], [2, now + 60], [null, now + 120], [4, now + 180]]}
-  {target: 'target 2', datapoints: [[0, now], [3, now + 60], [1, now + 120], [2, now + 180]]}
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, null], [now + 180, 4]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1], [now + 180, 2]]}
 ]
 
 options width: 400, height: 200
@@ -159,7 +159,7 @@ now = moment().unix()
 
 targets = (n) ->
   Q(for i in [1..n]
-    target: "target #{i}", datapoints: [i + j, now + j * 60] for j in [0...3]
+    target: "target #{i}", datapoints: [now + j * 60, i + j] for j in [0...3]
   )
 
 options width: 400, height: 200, lineWidth: 2

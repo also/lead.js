@@ -290,12 +290,14 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         if step?
           target: name
           datapoints: _.map values, (v, i) ->
-            [v, start + step * i]
+            [start + step * i, v]
         else
           target: name
-          datapoints: _.map values, ([ts, v]) -> [v, ts]
+          datapoints: values
     else
-      response
+      _.map response, ({target, datapoints}) ->
+        target: target
+        datapoints: _.map datapoints, ([v, ts]) -> [ts, v]
 
   # returns a promise
   get_data: (params) ->
