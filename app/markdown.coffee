@@ -75,8 +75,10 @@ LeadMarkdownComponent = React.createClass
           components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
           current_tokens = []
         value = t.text.trim()
-        if t.norun or t.noinline
-          components.push Components.ExampleComponent {value, run: t.noinline}
+        if t.norun
+          components.push Components.SourceComponent {value, language: 'coffeescript'}
+        else if t.noinline
+          components.push Components.ExampleComponent {value}
         else
           components.push InlineExampleComponent {value}
     if current_tokens.length > 0
