@@ -32,8 +32,10 @@ ExampleComponent = React.createClass
 
 SourceComponent = React.createClass
   displayName: 'SourceComponent'
+  renderCode: -> format_code @props.value, @props.language, @getDOMNode()
   render: -> React.DOM.pre()
-  componentDidMount: -> format_code @props.value, @props.language, @getDOMNode()
+  componentDidMount: -> @renderCode()
+  componentDidUpdate: -> @renderCode()
 
 
 TreeNodeComponent = React.createClass
