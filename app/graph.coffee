@@ -66,13 +66,13 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     height = params.height
 
     cursorModel = params.cursor ? new Bacon.Model
-    brushModel = params.brush ? new Bacon.Model
+    brushModel = params.brush ? new Bacon.Model brushing: false
 
     cursorBus = new Bacon.Bus
     brushBus = new Bacon.Bus
 
     externalCursorChanges = cursorModel.addSource cursorBus
-    externalBrushChanges = brushModel.addSource brushBus
+    externalBrushChanges = brushModel.apply brushBus
 
     type = params.type
 
@@ -275,18 +275,25 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-time')
         .attr('y', -6)
 
+    clearExtent = (v) -> _.extend {}, v, {extent: null}
+    setBrushing = (v) -> _.extend {}, v, {brushing: true}
+    setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
     brushed = ->
-      brushBus.push if brush.empty() then null else brush.extent()
+      brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
+    brushstart = -> brushBus.push setBrushing
+    brushend = -> brushBus.push setNotBrushing
 
     brush = d3.svg.brush()
       .x(x)
       .on("brush", brushed)
+      .on('brushstart', brushstart)
+      .on('brushend', brushend)
 
     brushG = g.append("g")
         .attr("class", "x brush")
         .call(brush)
 
-    externalBrushChanges.onValue (extent) ->
+    externalBrushChanges.onValue ({extent}) ->
       if extent?
         domain = x.domain()
         []
