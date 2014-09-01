@@ -8,11 +8,23 @@ React = require './react_abuse'
 modules = require './modules'
 
 graph = modules.export exports, 'graph', ({component_fn}) ->
+  wrapModel = (model) ->
+    if model?
+      unless model.get() instanceof Bacon.Observable
+        new Bacon.Model model
+
+  paramsToProperty = (params) ->
+    if params.cursor? or params.brush?
+      params = _.extend params, cursor: wrapModel(params.cursor), brush: wrapModel(params.brush)
+
+    Bacon.combineTemplate params
+
   component_fn 'graph', 'Graphs time series data using d3', (ctx, data, params={}) ->
     graph.create_component data, params
 
   create_component: (data, params) ->
     data = Bacon.fromPromise data if Q.isPromise data
+    params = paramsToProperty params
     stream = Bacon.combineTemplate {data, params}
     model = Bacon.Model()
     model.addSource stream

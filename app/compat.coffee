@@ -23,13 +23,13 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
   component_fn 'graph', (ctx, args...) ->
     if Q.isPromise args[0]
       promise = args[0]
-      params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
+      params = _.extend {}, ctx.options(), args[1]
     else if _.isArray(args[0]) and args[0][0]?.datapoints?
       promise = Q args[0]
-      params = Bacon.combineTemplate _.extend {}, ctx.options(), args[1]
+      params = _.extend {}, ctx.options(), args[1]
     else
       all_params = Server.args_to_params {args, default_options: ctx.options()}
-      params = Bacon.constant all_params.client
+      params = all_params.client
       promise = Server.get_data all_params.server
 
     data = Bacon.fromPromise(promise)
