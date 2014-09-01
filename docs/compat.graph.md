@@ -36,7 +36,7 @@ graph data
 
 # Options
 
-## [`areaMode`](help:graphite_parameters.areaMode)
+## [`areaMode`](help:server.parameters.areaMode)
 
 ```
 now = moment().unix()
