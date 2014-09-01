@@ -10,7 +10,9 @@ modules = require './modules'
 graph = modules.export exports, 'graph', ({component_fn}) ->
   wrapModel = (model) ->
     if model?
-      unless model.get() instanceof Bacon.Observable
+      if model.get() instanceof Bacon.Observable
+        model
+      else
         new Bacon.Model model
 
   paramsToProperty = (params) ->
