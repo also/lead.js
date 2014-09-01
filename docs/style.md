@@ -4,6 +4,10 @@
     input.live input.button('Show Promise Status'), ->
       promise_status Q.delay(2000)
 
+## Observable
+
+    input.text_input()
+
 ## Button
 
     input.button 'This is a button'
