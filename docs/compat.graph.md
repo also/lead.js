@@ -149,16 +149,16 @@ The default is `d3.category10`.
 Colors = require 'colors'
 now = moment().unix()
 
-targets = (n) ->
-  for i in [1..n]
+targets =
+  for i in [1..10]
     target: "target #{i}", datapoints: [now + j * 60, i + j] for j in [0...3]
 
 options width: 400, height: 200, lineWidth: 2
-graph targets(10)
-graph targets(10), d3_colors: Colors.brewer.Spectral[10]
-graph targets(3), d3_colors: ['#333', '#777', '#bbb']
-graph targets(3), d3_colors: Colors.brewer.Set1[3]
-graph targets(9), d3_colors: Colors.brewer.Set1[3]
+graph targets
+graph targets, d3_colors: Colors.brewer.Spectral[10]
+graph targets[...3], d3_colors: ['#333', '#777', '#bbb']
+graph targets[...3], d3_colors: Colors.brewer.Set1[3]
+graph targets[...9], d3_colors: Colors.brewer.Set1[3]
 ```
 
 ## `yMin` and `yMax`
