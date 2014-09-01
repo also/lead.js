@@ -27,17 +27,25 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
     else if _.isArray(args[0]) and args[0][0]?.datapoints?
       promise = Q args[0]
       params = _.extend {}, ctx.options(), args[1]
+    else if args[0] instanceof Bacon.Observable
+      data = args[0]
+      params = _.extend {}, ctx.options(), args[1]
     else
       all_params = Server.args_to_params {args, default_options: ctx.options()}
       params = all_params.client
       promise = Server.get_data all_params.server
 
-    data = Bacon.fromPromise(promise)
-    Context.AsyncComponent {promise},
+    if promise
+      data = Bacon.fromPromise(promise)
+      Context.AsyncComponent {promise},
+        React.DOM.div {style: {width: '-webkit-min-content'}},
+          Builtins.ComponentAndError {promise},
+            graph.create_component(data, params)
+          Builtins.PromiseStatusComponent {promise, start_time: new Date}
+    else
+      # TODO async, error
       React.DOM.div {style: {width: '-webkit-min-content'}},
-        Builtins.ComponentAndError {promise},
-          graph.create_component(data, params),
-        Builtins.PromiseStatusComponent {promise, start_time: new Date}
+        graph.create_component(data, params)
 
   context_vars:
     moment: moment
