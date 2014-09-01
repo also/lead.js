@@ -211,7 +211,7 @@ TopLevelContextComponent = React.createClass
 create_base_context = ({module_names, imports}={}) ->
   modules = Modules.get_modules(_.union imports or [], module_names or [], ['context'])
   # TODO find a better home for repl vars
-  {modules, imports, repl_vars: {}}
+  {modules, imports, repl_vars: {}, prop_vars: {}}
 
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
@@ -355,6 +355,21 @@ create_standalone_context = ({imports, module_names, context}={}) ->
   create_run_context [context ? {}, create_context base_context]
 
 
+make_prop_var = (ctx, name) ->
+  if ctx.prop_vars[name]?
+    return ctx.prop_vars[name]
+
+  current_value = ctx.repl_vars[name]
+  delete ctx.repl_vars[name]
+  model = new Bacon.Model current_value
+  ctx.prop_vars[name] = model
+  Object.defineProperty ctx.repl_vars, name,
+    enumerable: true
+    get: -> model.get()
+    set: (v) -> model.set(v)
+  model
+
+
 scoped_eval = (ctx, string, var_names=[]) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
@@ -412,5 +427,6 @@ _.extend exports, {
   TopLevelContextComponent,
   ContextComponent,
   ContextOutputComponent,
+  make_prop_var,
   IGNORE: ignore
 }
