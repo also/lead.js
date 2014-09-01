@@ -51,6 +51,15 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     width = params.width
     height = params.height
 
+    cursorModel = params.cursor ? new Bacon.Model
+    brushModel = params.brush ? new Bacon.Model
+
+    cursorBus = new Bacon.Bus
+    brushBus = new Bacon.Bus
+
+    externalCursorChanges = cursorModel.addSource cursorBus
+    externalBrushChanges = brushModel.addSource brushBus
+
     type = params.type
 
     margin = top: 20, right: 80, bottom: 30, left: 80
@@ -252,24 +261,61 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-time')
         .attr('y', -6)
 
-    mouse_position.onValue (p) ->
+    brushed = ->
+      brushBus.push if brush.empty() then null else brush.extent()
+
+    brush = d3.svg.brush()
+      .x(x)
+      .on("brush", brushed)
+
+    brushG = g.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+
+    externalBrushChanges.onValue (extent) ->
+      if extent?
+        domain = x.domain()
+        []
+        brush.extent [Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])]
+      else
+        brush.clear()
+      brush brushG
+
+    brushG.selectAll("rect")
+        .attr("y", 0)
+        .attr("height", height)
+        .attr('fill', '#efefef')
+
+    positionCrosshair = (x, time) ->
       vertical_crosshair
-        .attr('x1', p.x)
-        .attr('x2', p.x)
+        .attr('x1', x)
+        .attr('x2', x)
 
       crosshair_time
-        .text(moment(p.time).format('lll'))
-        .attr('x', p.x)
+        .text(moment(time).format('lll'))
+        .attr('x', x)
 
       target_values = _.map targets, (t) ->
-        i = t.bisector.left t.values, p.time, 1
+        i = t.bisector.left t.values, time, 1
         d0 = t.values[i - 1]
         d1 = t.values[i]
-        if p.time - d0.time > d1.time - p.time then d1 else d0
+        if time - d0.time > d1.time - time then d1 else d0
 
       legend.selectAll('.crosshair-value')
         .data(target_values)
         .text((d) -> d.value)
+
+    mouse_position.onValue (p) ->
+      positionCrosshair p.x, p.time
+      cursorBus.push p.time
+
+    externalCursorChanges.onValue (time) ->
+      domain = x.domain()
+      if time < domain[0]
+        time = domain[0]
+      else if time > domain[1]
+        time = domain[1]
+      positionCrosshair x(time), time
 
     target = g.selectAll('.target')
         .data(targets)
