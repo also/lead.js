@@ -25,7 +25,7 @@ compat = modules.export exports, 'compat', ({doc, component_fn} ) ->
       promise = args[0]
       params = _.extend {}, ctx.options(), args[1]
     else if _.isArray(args[0]) and args[0][0]?.datapoints?
-      promise = Q args[0]
+      data = Bacon.constant args[0]
       params = _.extend {}, ctx.options(), args[1]
     else if args[0] instanceof Bacon.Observable
       data = args[0]
