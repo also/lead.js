@@ -30,6 +30,11 @@ module_names.push (Settings.get('app', 'module_names') or [])...
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
+NotFoundComponent = React.createClass
+  displayName: 'NotFoundComponent'
+  render: ->
+    React.DOM.div {}, "Not Found"
+
 AppComponent = React.createClass
   displayName: 'AppComponent'
   render: ->
@@ -42,27 +47,33 @@ AppComponent = React.createClass
       React.DOM.div {className: 'body'},
         this.props.activeRouteHandler()
 
+HelpPathComponent = React.createClass
+  displayName: 'HelpPathComponent'
+  render: ->
+    path = Documentation.key_to_path @props.doc_key
+    paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
+
+    React.DOM.div null,
+      Documentation.DocumentationLinkComponent {key: 'imported_context_fns'}, 'help'
+      _.map paths, ({path, segment}) ->
+        React.DOM.span null, ' ',
+          React.DOM.i({className: 'fa fa-caret-right'}),
+          ' ',
+          Documentation.DocumentationLinkComponent {key: path},
+            Documentation.key_to_string segment
+
 HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
   mixins: [Context.ContextAwareMixin]
   render: ->
     resolved_key = Documentation.get_key @state.ctx, @props.doc_key
-    # FIXME 404 on missing docs
-
-    path = Documentation.key_to_path resolved_key
-    paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
-
-    doc = Documentation.get_documentation resolved_key
-    React.DOM.div null,
+    if resolved_key
+      doc = Documentation.get_documentation resolved_key
       React.DOM.div null,
-        Documentation.DocumentationLinkComponent {key: 'imported_context_fns'}, 'help'
-        _.map paths, ({path, segment}) ->
-          React.DOM.span null, ' ',
-            React.DOM.i({className: 'fa fa-caret-right'}),
-            ' ',
-            Documentation.DocumentationLinkComponent {key: path},
-              Documentation.key_to_string segment
-      Documentation.DocumentationItemComponent {ctx: @state.ctx, doc}
+        HelpPathComponent {doc_key: resolved_key}
+        Documentation.DocumentationItemComponent {ctx: @state.ctx, doc}
+    else
+      NotFoundComponent()
 
 HelpComponent = React.createClass
   displayName: 'HelpComponent'
