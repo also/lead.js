@@ -184,7 +184,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     Context.value {promise, clicks, component}
 
   fn 'get_data', 'Fetches metric data', (ctx, args...) ->
-    Context.value server.get_data server.args_to_server_params {args, default_options: ctx.options()}
+    Context.value server.get_data args_to_server_params ctx, args
 
   init: ->
     if settings.get('type') == 'lead'
