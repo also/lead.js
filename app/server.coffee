@@ -72,11 +72,21 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       ]
 
   ParameterDocsComponent = React.createClass
-    render: -> React.DOM.div {className: 'graphite-sphinx-docs'}
+    render: ->
+      React.DOM.div {className: 'graphite-sphinx-docs'},
+        React.DOM.div {className: 'tip'},
+          'This'
+          ' is a Graphite parameter. The text below was extracted from the '
+          React.DOM.a {href: 'http://graphite.readthedocs.org/en/0.9.12/render_api.html'}, 'Graphite documentation'
+          '. Some Graphite parameters are supported by the '
+          # TODO format
+          Documentation.DocumentationLinkComponent {key: 'compat.graph'}, 'graph'
+          ' function'
+        React.DOM.div {ref: 'docs'}
     componentDidMount: ->
       ctx = @props.ctx
       # TODO
-      $docs = $(@getDOMNode()).append @props.docs
+      $docs = $(@refs.docs.getDOMNode()).append @props.docs
       $docs.find('a').on 'click', (e) ->
         e.preventDefault()
         href = $(this).attr 'href'
