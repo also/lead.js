@@ -39,17 +39,23 @@ compat = modules.export exports, 'compat', ({doc, component_fn, cmd, fn} ) ->
   fn 'brushParams', (ctx, brush) ->
     Context.value compat.brushParams brush ? ctx.options().brush
 
-  bindToBrush = (brush, allParams) ->
-    serverParams = new Bacon.Model allParams.server
-    serverParams.addSource compat.brushParams(brush).map (brushParams) ->
-      _.extend {}, allParams.server, brushParams
+  bindToBrush = (brush, source) ->
+    serverParams = new Bacon.Model null
+    serverParams.addSource compat.brushParams(brush)
 
-    serverParams.flatMapLatest (params) ->
-      Bacon.fromPromise Server.get_data params
+    serverParams.flatMapLatest (brushParams) ->
+      Bacon.fromPromise source.load brushParams
 
   fn 'bindToBrush', (ctx, args...) ->
-    allParams = Server.args_to_params {args, default_options: ctx.options()}
-    Context.value bindToBrush allParams.client.brush, allParams
+    if args[0] instanceof Server.LeadDataSource
+      source = args[0]
+      brush = args[1]?.brush ? ctx.options().brush
+    else
+      allParams = Server.args_to_params {args, default_options: ctx.options()}
+      source = new Server.LeadDataSource (brushParams) ->
+        Server.get_data _.extend {}, allParams.server, brushParams
+      brush = allParams.client.brush
+    Context.value bindToBrush brush, source
 
   doc 'graph',
     'Loads and graphs time-series data'
@@ -65,14 +71,26 @@ compat = modules.export exports, 'compat', ({doc, component_fn, cmd, fn} ) ->
     else if args[0] instanceof Bacon.Observable
       data = args[0]
       params = _.extend {}, ctx.options(), args[1]
+    else if args[0] instanceof Server.LeadDataSource
+      # TODO opentsdb won't like some of these params
+      params = _.extend {}, ctx.options(), args[1]
+      if params.bindToBrush == true
+        params.brush ?= new Bacon.Model
+        data = bindToBrush params.brush, args[0]
+      else if params.bindToBrush instanceof Bacon.Observable
+        data = bindToBrush params.bindToBrush, args[0]
+      else
+        promise = args[0].load params
     else
       all_params = Server.args_to_params {args, default_options: ctx.options()}
       params = all_params.client
+      source = new Server.LeadDataSource (brushParams) ->
+        Server.get_data _.extend {}, all_params.server, brushParams
       if params.bindToBrush == true
         params.brush ?= new Bacon.Model
-        data = bindToBrush params.brush, all_params
+        data = bindToBrush params.brush, source
       else if params.bindToBrush instanceof Bacon.Observable
-        data = bindToBrush params.bindToBrush, all_params
+        data = bindToBrush params.bindToBrush, source
         params.brush ?= params.bindToBrush
         delete params.bindToBrush
       else

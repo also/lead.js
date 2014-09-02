@@ -6,11 +6,12 @@ modules = require './modules'
 http = require './http'
 Context = require './context'
 Documentation = require './documentation'
+Server = require './server'
 
 opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
   doc 'tsd', 'Fetches time series data from OpenTSDB', Documentation.load_file 'opentsdb'
-  fn 'tsd', (ctx, args...) ->
-    Context.value opentsdb.tsd args...
+  fn 'tsd', (ctx, params) ->
+    Context.value new Server.LeadDataSource (loadParams) -> opentsdb.tsd _.extend {}, params, loadParams
 
   to_metric_string: (time_series) ->
     if _.isString time_series

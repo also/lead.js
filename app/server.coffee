@@ -399,6 +399,10 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
 
     {server: server_params, client: client_params}
 
+  LeadDataSource: class
+    constructor: (load) ->
+      @load = load
+
   resolve_documentation_key: (ctx, o) ->
     return null unless o?
     if _.isFunction(o) and dsl.is_dsl_node o

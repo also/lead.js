@@ -15,7 +15,7 @@ Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 
-module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
+module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook', 'opentsdb']
 
 imports = [
   'builtins'
