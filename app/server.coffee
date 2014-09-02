@@ -341,6 +341,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     _.filter _.keys(docs.parameter_docs), (k) -> k.indexOf(s) is 0
 
   args_to_params: ({args, default_options}) ->
+    default_options ?= {}
     if args.legnth == 0
       # you're doing it wrong
       {}
