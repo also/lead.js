@@ -3,51 +3,51 @@ Server = require '../app/server'
 
 describe 'server', ->
   it 'converts a single string to a single raw string target', ->
-    params = Server.args_to_params args: ['test']
-    expect(params.target.length).to.be 1
-    expect(params.target[0]).to.be 'test'
+    {server} = Server.args_to_params args: ['test']
+    expect(server.target.length).to.be 1
+    expect(server.target[0]).to.be 'test'
 
   it 'accepts a named single target', ->
-    params = Server.args_to_params args: [target: 'test']
-    expect(params.target.length).to.be 1
-    expect(params.target[0]).to.be 'test'
+    {server} = Server.args_to_params args: [target: 'test']
+    expect(server.target.length).to.be 1
+    expect(server.target[0]).to.be 'test'
 
   it 'accepts an array of targets', ->
-    params = Server.args_to_params args: [['test.1', 'test.2']]
-    expect(params.target.length).to.be 2
-    expect(params.target[0]).to.be 'test.1'
-    expect(params.target[1]).to.be 'test.2'
+    {server} = Server.args_to_params args: [['test.1', 'test.2']]
+    expect(server.target.length).to.be 2
+    expect(server.target[0]).to.be 'test.1'
+    expect(server.target[1]).to.be 'test.2'
 
   it 'accepts a named list of targets as target:', ->
-    params = Server.args_to_params args: [target: ['test.1', 'test.2']]
-    expect(params.target.length).to.be 2
-    expect(params.target[0]).to.be 'test.1'
-    expect(params.target[1]).to.be 'test.2'
+    {server} = Server.args_to_params args: [target: ['test.1', 'test.2']]
+    expect(server.target.length).to.be 2
+    expect(server.target[0]).to.be 'test.1'
+    expect(server.target[1]).to.be 'test.2'
 
   it 'accepts a named list of targets as targets:', ->
-    params = Server.args_to_params args: [targets: ['test.1', 'test.2']]
-    expect(params.target.length).to.be 2
-    expect(params.target[0]).to.be 'test.1'
-    expect(params.target[1]).to.be 'test.2'
+    {server} = Server.args_to_params args: [targets: ['test.1', 'test.2']]
+    expect(server.target.length).to.be 2
+    expect(server.target[0]).to.be 'test.1'
+    expect(server.target[1]).to.be 'test.2'
 
   it 'accepts options as options:', ->
-    params = Server.args_to_params args: [target: 'test', options: {yMax: 9999}]
-    expect(params.target.length).to.be 1
-    expect(params.target[0]).to.be 'test'
-    expect(params.yMax).to.be 9999
+    {server} = Server.args_to_params args: [target: 'test', options: {yMax: 9999}]
+    expect(server.target.length).to.be 1
+    expect(server.target[0]).to.be 'test'
+    expect(server.yMax).to.be 9999
 
   it 'treats everything except targets as options', ->
-    params = Server.args_to_params args: [target: 'test', yMax: 9999]
-    expect(params.target.length).to.be 1
-    expect(params.target[0]).to.be 'test'
-    expect(params.yMax).to.be 9999
+    {server} = Server.args_to_params args: [target: 'test', yMax: 9999]
+    expect(server.target.length).to.be 1
+    expect(server.target[0]).to.be 'test'
+    expect(server.yMax).to.be 9999
 
   it 'accepts variadic string arguments as targets', ->
-    params = Server.args_to_params args: ['a', 'b', 'c']
-    expect(params.target.length).to.be 3
-    expect(params.target[0]).to.be 'a'
-    expect(params.target[1]).to.be 'b'
-    expect(params.target[2]).to.be 'c'
+    {server} = Server.args_to_params args: ['a', 'b', 'c']
+    expect(server.target.length).to.be 3
+    expect(server.target[0]).to.be 'a'
+    expect(server.target[1]).to.be 'b'
+    expect(server.target[2]).to.be 'c'
 
   it "doesn't accept a single number", ->
     expect(-> Server.args_to_params args: [1]).to.throwException()
