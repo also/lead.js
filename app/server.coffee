@@ -61,6 +61,11 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
   FunctionDocsComponent = React.createClass
     render: ->
       React.DOM.div {className: 'graphite-sphinx-docs'}, [
+        React.DOM.div {className: 'tip'},
+          React.DOM.code({}, @props.docs.signature)
+          ' is a Graphite function. The text below was extracted from the '
+          React.DOM.a {href: 'http://graphite.readthedocs.org/en/0.9.12/functions.html'}, 'Graphite documentation'
+          '. Most Graphite functions are supported by the Lead server and lead.js DSL.'
         React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
         _.map @props.docs.examples, (example) =>
           Builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: true
