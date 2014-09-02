@@ -232,6 +232,14 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       throw new Error 'Server base_url not set'
 
     if params?
+      if params.start? or params.end?
+        params = _.clone params
+        if params.start?
+          params.from = params.start
+          delete params.start
+        if params.end?
+          params.until = params.end
+          delete params.end
       query_string = $.param params, true
       "#{base_url}/#{path}?#{query_string}"
     else
@@ -365,13 +373,22 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until']
     else
-      server_option_names = Object.keys docs.parameter_docs
+      server_option_names = Object.keys(docs.parameter_docs)
+      server_option_names.push 'start', 'end'
 
     server_options = _.extend {},
       _.pick(default_options, server_option_names),
       default_options.server_options,
       _.pick(options, server_option_names),
       options.server_options
+
+    if server_options.from?
+      server_options.start ?= server_options.from
+      delete server_options.from
+
+    if server_options.until?
+      server_options.end ?= server_options.util
+      delete server_options.util
 
     server_params = {}
     target = _.map targets, (target) -> dsl.to_target_string target, server_params
