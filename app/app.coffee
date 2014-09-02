@@ -53,7 +53,7 @@ HelpPathComponent = React.createClass
     path = Documentation.key_to_path @props.doc_key
     paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
 
-    React.DOM.div null,
+    React.DOM.div {className: 'help-path'},
       Documentation.DocumentationLinkComponent {key: 'main'}, 'help'
       _.map paths, ({path, segment}) ->
         React.DOM.span null, ' ',
