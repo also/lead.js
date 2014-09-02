@@ -130,8 +130,8 @@ Documentation =
   load_file: (name) ->
     # TODO run in node
     if process.browser
-      {images, content} = require "../lib/markdown-loader.coffee!../docs/#{name}.md"
       ->
+        {images, content} = require "../lib/markdown-loader.coffee!../docs/#{name}.md"
         Markdown.LeadMarkdownComponent
           value: content
           image_urls: images
