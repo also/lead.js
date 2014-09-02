@@ -54,7 +54,7 @@ HelpPathComponent = React.createClass
     paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
 
     React.DOM.div null,
-      Documentation.DocumentationLinkComponent {key: 'imported_context_fns'}, 'help'
+      Documentation.DocumentationLinkComponent {key: 'main'}, 'help'
       _.map paths, ({path, segment}) ->
         React.DOM.span null, ' ',
           React.DOM.i({className: 'fa fa-caret-right'}),
