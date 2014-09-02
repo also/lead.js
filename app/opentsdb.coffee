@@ -37,11 +37,11 @@ opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
         unless points
           points = []
           all_series[name] = points
-        points.push [parseInt(value, 10), parseInt(time, 10)]
+        points.push [parseInt(time, 10), parseInt(value, 10)]
 
     for name, points of all_series
       target: name
-      datapoints: _.sortBy points, ([v, t]) -> t
+      datapoints: _.sortBy points, ([ts, v]) -> ts
 
   parse_error_response: (response) ->
     doc = Html.parse_document response.responseText
