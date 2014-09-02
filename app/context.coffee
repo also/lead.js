@@ -209,22 +209,36 @@ TopLevelContextComponent = React.createClass
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({module_names, imports}={}) ->
-  modules = Modules.get_modules(_.union imports or [], module_names or [], ['context'])
+  modules = Modules.get_modules(_.union _.map(imports, (i) -> i.split('.')[0]) or [], module_names or [], ['context'])
   # TODO find a better home for repl vars
   {modules, imports, repl_vars: {}, prop_vars: {}}
+
+importInto = (obj, target, path) ->
+  segments = path.split('.')
+  lastSegment = segments[segments.length - 1]
+  if lastSegment = '*'
+    wildcard = true
+    segments.pop()
+  value = _.reduce segments, ((result, key) -> result[key]), obj
+  if wildcard
+    _.extend target, value
+  else
+    target[lastSegment] = value
 
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
 create_context = (base) ->
   context_fns = collect_context_fns base
   imported_context_fns = _.clone context_fns
-  _.extend imported_context_fns, _.map(base.imports, (i) -> context_fns[i])...
+  _.each base.imports, _.partial importInto, context_fns, imported_context_fns
+
+  scope = {}
+  bind_context_fns scope, scope, imported_context_fns
 
   vars = collect_context_vars base
-  imported_vars = _.extend {}, _.map(base.imports, (i) -> vars[i])...
-
-  scope = _.extend {}, imported_vars
-  bind_context_fns scope, scope, imported_context_fns
+  imported_vars = {}
+  _.each base.imports, _.partial importInto, vars, imported_vars
+  _.extend scope, imported_vars
 
   context = _.extend {}, base,
     context_fns: context_fns

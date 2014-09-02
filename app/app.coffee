@@ -15,17 +15,18 @@ Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 
-module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook', 'opentsdb']
+module_names = ['http', 'dsl', 'graph', 'settings', 'input', 'notebook']
 
 imports = [
-  'builtins'
-  'server'
-  'github'
-  'compat'
+  'builtins.*'
+  'server.*'
+  'github.*'
+  'compat.*',
+  'opentsdb.tsd'
 ]
 
 imports.push (Settings.get('app', 'imports') or [])...
-module_names.push imports...
+module_names.push _.map(imports, (i) -> i.split('.')[0])...
 module_names.push (Settings.get('app', 'module_names') or [])...
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
