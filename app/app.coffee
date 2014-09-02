@@ -167,6 +167,10 @@ exports.init_app = (target) ->
   Settings.user_settings.changes.onValue ->
     localStorage.setItem 'lead_user_settings', JSON.stringify Settings.user_settings.get()
 
+  publicUrl = Settings.get 'app', 'publicUrl'
+  if publicUrl?
+    `__webpack_public_path__ = publicUrl`
+
   raw_cell_value = null
   if location.search isnt ''
     uri = URI location.href
