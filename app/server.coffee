@@ -63,7 +63,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       React.DOM.div {className: 'graphite-sphinx-docs'}, [
         React.DOM.div dangerouslySetInnerHTML: __html: @props.docs.docs
         _.map @props.docs.examples, (example) =>
-          Builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: false
+          Builtins.ExampleComponent value: "#{default_target_command} #{JSON.stringify example}", run: true
       ]
 
   ParameterDocsComponent = React.createClass
