@@ -78,7 +78,7 @@ LeadMarkdownComponent = React.createClass
         if t.norun
           components.push Components.SourceComponent {value, language: 'coffeescript'}
         else if t.noinline
-          components.push Components.ExampleComponent {value}
+          components.push Components.ExampleComponent {value, run: true}
         else
           components.push InlineExampleComponent {value}
     if current_tokens.length > 0
