@@ -162,14 +162,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         line.interpolate params.interpolate
         area.interpolate params.interpolate
 
-      line_mode = (d, i) ->
-        if params.areaMode is 'all' or params.areaMode is 'stacked'
-          'area'
-        else if params.areaMode is 'first' and i is 0
-          'area'
-        else
-          'line'
-
       stack = d3.layout.stack()
         .offset(params.areaOffset)
         .values((d) -> d.values)
@@ -179,45 +171,22 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           d.y0 = y0
           d.value = y)
 
-      line_fn = (d, i) ->
-        mode = line_mode d, i
-        if mode is 'line'
-          line
-        else
-          area
-
     if params.drawNullAsZero
       transform_value = (v) -> v ? 0
       filter_scatter_values = _.identity
       expand_line_values = _.identity
     else
+      # TODO this won't work well with stack
       transform_value = (v) -> v
       filter_scatter_values = (values) ->
         _.filter values, (d) -> d.value?
-      expand_line_values = (values) ->
-        result = []
-        segment_length = 0
-        previous = null
-        _.each values, (v, i) ->
-          if v.value?
-            segment_length++
-            previous = v
-          else
-            if segment_length is 1
-              result.push previous
-            segment_length = 0
-
-          result.push v
-
-        if segment_length is 1
-          result.push previous
-        result
+      expand_line_values = expandIsolatedValuesToLineSegments
 
     time_min = null
     time_max = null
     value_min = null
     value_max = null
-    targets = for s in data
+    targets = for s, targetIndex in data
       values = for datapoint, i in s.datapoints
         value = get_value datapoint, i
         timestamp = get_timestamp datapoint, i
@@ -228,7 +197,22 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         value_max = Math.max value, value_max
         {value, time: moment(timestamp * 1000), original: datapoint}
       bisector = d3.bisector (d) -> d.time
-      {values, bisector, name: s.target}
+      lineValues = expand_line_values values
+      scatterValues = filter_scatter_values values
+      lineMode =
+        if params.areaMode is 'all' or params.areaMode is 'stacked'
+          'area'
+        else if params.areaMode is 'first' and targetIndex is 0
+          'area'
+        else
+          'line'
+
+      lineFn = if lineMode is 'line'
+        line
+      else
+        area
+      targetColor = color targetIndex
+      {values, bisector, name: s.target, lineValues, scatterValues, lineMode, lineFn, color: targetColor}
 
     if params.areaMode is 'stacked'
       stack targets
@@ -275,9 +259,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-time')
         .attr('y', -6)
 
-    clearExtent = (v) -> _.extend {}, v, {extent: null}
-    setBrushing = (v) -> _.extend {}, v, {brushing: true}
-    setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
     brushed = ->
       brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
     brushstart = -> brushBus.push setBrushing
@@ -296,7 +277,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     externalBrushChanges.onValue ({extent}) ->
       if extent?
         domain = x.domain()
-        []
         brush.extent [Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])]
       else
         brush.clear()
@@ -355,11 +335,11 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         lineWidth = params.lineWidth
 
       path = target.append("path")
-          .attr('class', line_mode)
-          .attr('stroke', (d, i) -> color i)
+          .attr('class', (d) -> d.lineMode)
+          .attr('stroke', (d, i) -> d.color)
           .style('stroke-width', lineWidth)
-          .attr('fill', (d, i) -> if line_mode(d, i) is 'area' then color i)
-          .attr('d', (d, i) -> line_fn(d, i)(expand_line_values(d.values)))
+          .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
+          .attr('d', (d, i) -> d.lineFn(d.lineValues))
       if hover
         path
         .style('stroke-opacity', 0)
@@ -377,14 +357,16 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         radius = 2
         opacity = 1
       target.append('g').attr('class', 'circles')
-        .selectAll('circle')
-          .data((d) -> filter_scatter_values d.values)
-        .enter().append("circle")
-          .attr('cx', (d) -> x d.time)
-          .attr('cy', (d) -> y d.value)
-          .attr('fill', (d, i, j) -> color j)
-          .attr('r', radius)
-          .style('fill-opacity', opacity)
+        .each (d) ->
+          circleColor = d.color
+          d3.select(this).selectAll('circle')
+            .data((d) -> d.scatterValues)
+          .enter().append("circle")
+            .attr('cx', (d) -> x d.time)
+            .attr('cy', (d) -> y d.value)
+            .attr('fill', circleColor)
+            .attr('r', radius)
+            .style('fill-opacity', opacity)
 
     if type is 'line'
       add_path target, false
@@ -402,7 +384,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('data-target', (d) -> d.name)
         .call(observe_mouse)
     legend_target.append('span')
-        .style('color', (d, i) -> color i)
+        .style('color', (d, i) -> d.color)
         .attr('class', 'color')
     legend_target.append('span')
         .text((d) -> d.name)
@@ -410,3 +392,26 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-value')
 
     svg.style 'background-color', params.bgcolor
+
+clearExtent = (v) -> _.extend {}, v, {extent: null}
+setBrushing = (v) -> _.extend {}, v, {brushing: true}
+setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
+
+expandIsolatedValuesToLineSegments = (values) ->
+  result = []
+  segment_length = 0
+  previous = null
+  _.each values, (v, i) ->
+    if v.value?
+      segment_length++
+      previous = v
+    else
+      if segment_length is 1
+        result.push previous
+      segment_length = 0
+
+    result.push v
+
+  if segment_length is 1
+    result.push previous
+  result
