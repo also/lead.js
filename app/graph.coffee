@@ -320,11 +320,14 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         i = t.bisector.left t.values, time, 1
         d0 = t.values[i - 1]
         d1 = t.values[i]
-        if time - d0.time > d1.time - time then d1 else d0
+        if d0 and d1
+          if time - d0.time > d1.time - time then d1 else d0
+        else if d0
+          d0
 
       legend.selectAll('.crosshair-value')
         .data(target_values)
-        .text((d) -> d.value)
+        .text((d) -> d?.value)
 
     mouse_position.onValue (p) ->
       positionCrosshair p.x, p.time
