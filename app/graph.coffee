@@ -148,7 +148,8 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     time_max = null
     _.each data, ({datapoints}) ->
       if datapoints.length > 0
-        _.each [datapoints[0], datapoints[datapoints.length - 1]], (datapoint, i) ->
+        _.each [0, datapoints.length - 1], (i) ->
+          datapoint = datapoints[i]
           value = get_value datapoint, i
           timestamp = get_timestamp datapoint, i
           time_min = Math.min timestamp, time_min ? timestamp
