@@ -178,14 +178,14 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         line.interpolate params.interpolate
         area.interpolate params.interpolate
 
-      stack = d3.layout.stack()
-        .offset(params.areaOffset)
-        .values((d) -> d.values)
-        .x((d) -> d.time)
-        .y((d) -> d.value)
-        .out((d, y0, y) ->
-          d.y0 = y0
-          d.value = y)
+    stack = d3.layout.stack()
+      .offset(params.areaOffset)
+      .values((d) -> d.values)
+      .x((d) -> d.time)
+      .y((d) -> d.value)
+      .out((d, y0, y) ->
+        d.y0 = y0
+        d.value = y)
 
     if params.simplify
       simplify = _.partial simplifyPoints, params.simplify
