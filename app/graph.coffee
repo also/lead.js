@@ -143,18 +143,32 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
       x: x_constrained
       y: pos[1]
 
+    time_min = null
+    time_max = null
+    _.each data, ({datapoints}) ->
+      if datapoints.length > 0
+        _.each [datapoints[0], datapoints[datapoints.length - 1]], (datapoint, i) ->
+          value = get_value datapoint, i
+          timestamp = get_timestamp datapoint, i
+          time_min = Math.min timestamp, time_min ? timestamp
+          time_max = Math.max timestamp, time_max
+
+    time_min = new Date(time_min * 1000)
+    time_max = new Date(time_max * 1000)
+    x.domain [time_min, time_max]
+
     if type is 'line'
       area_opacity = params.areaAlpha
       line_opacity = 1.0
 
       area = d3.svg.area()
-        .x((d) -> x d.time)
+        .x((d) -> d.x)
         .y0((d) -> y d.y0 ? 0)
         .y1((d) -> y d.value + (d.y0 ? 0))
         .defined((d) -> d.value?)
 
       line = d3.svg.line()
-        .x((d) -> x d.time)
+        .x((d) -> d.x)
         .y((d) -> y d.value)
         .defined((d) -> d.value?)
 
@@ -182,20 +196,17 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         _.filter values, (d) -> d.value?
       expand_line_values = expandIsolatedValuesToLineSegments
 
-    time_min = null
-    time_max = null
     value_min = null
     value_max = null
     targets = for s, targetIndex in data
       values = for datapoint, i in s.datapoints
         value = get_value datapoint, i
         timestamp = get_timestamp datapoint, i
-        time_min = Math.min timestamp, time_min ? timestamp
-        time_max = Math.max timestamp, time_max
+        time = new Date(timestamp * 1000)
         value = transform_value value
         value_min = Math.min value, value_min ? value if value?
         value_max = Math.max value, value_max
-        {value, time: moment(timestamp * 1000), original: datapoint}
+        {value, time: time, x: x(time), original: datapoint}
       bisector = d3.bisector (d) -> d.time
       lineValues = expand_line_values values
       scatterValues = filter_scatter_values values
@@ -224,9 +235,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           value_min = Math.min value, value_min
           value_max = Math.max value, value_max
 
-    time_min = moment(time_min * 1000)
-    time_max = moment(time_max * 1000)
-    x.domain [time_min.toDate(), time_max.toDate()]
     if value_min == value_max
       value_min = Math.round(value_min) - 1
       value_max = Math.round(value_max) + 1
@@ -362,7 +370,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           d3.select(this).selectAll('circle')
             .data((d) -> d.scatterValues)
           .enter().append("circle")
-            .attr('cx', (d) -> x d.time)
+            .attr('cx', (d) -> d.x)
             .attr('cy', (d) -> y d.value)
             .attr('fill', circleColor)
             .attr('r', radius)
