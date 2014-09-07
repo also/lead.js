@@ -6,8 +6,10 @@ Components = require './components'
 dsl_type = ->
 dsl = type: dsl_type
 
-create_type = (n, parent) ->
-  t = (@values...) -> @type = n
+create_type = (n, parent, f) ->
+  t = (args...) ->
+    @type = n
+    f.apply @, args
   t.prototype = new parent
   dsl_type[n] = t
 
@@ -22,49 +24,51 @@ to_string_context = null
 #  s: string
 #  i: identifier
 #  o: jsonable object
-create_type n, dsl.type for n in "pfqi"
+
+create_type 'f', dsl.type, (@name, @args) ->
 
 dsl.type.f::to_target_string = ->
-  [name, args...] = @values
-  "#{name}(#{(a.to_target_string() for a in args).join ','})"
+  "#{@name}(#{(a.to_target_string() for a in @args).join ','})"
 
 dsl.type.f::to_js_string = ->
-  [name, args...] = @values
-  "#{name}(#{(a.to_js_string() for a in args).join ','})"
+  "#{@name}(#{(a.to_js_string() for a in @args).join ','})"
 
+create_type 'q', dsl.type, (@values...) ->
 dsl.type.q::to_target_string = ->
   @values.join ','
 
 dsl.type.q::to_js_string = ->
   "q(#{(@values.map JSON.stringify).join ', '})"
 
+create_type 'p', dsl.type, (@value) ->
 # numbers, strings, jsonable objects, and booleans use json serialization
 dsl.type.p::to_js_string =
 dsl.type.p::to_target_string = ->
-  JSON.stringify @values[0]
+  JSON.stringify @value
 
-create_type n, dsl.type.p for n in "nsbo"
+create_type(n, dsl.type.p, (@value) ->) for n in "nsbo"
 
 dsl.type.TRUE = new dsl.type.b true
 dsl.type.FALSE = new dsl.type.b false
 
 # Graphite doesn't support escaped quotes in strings, so avoid including any if possible.
 dsl.type.s::to_target_string = ->
-  s = @values[0]
+  s = @value
   if s.indexOf('"') >= 0 or s.indexOf("'") < 0
     quoteChar = "'"
   else
     quoteChar = '"'
   quoteChar + s.replace(quoteChar, "\\#{quoteChar}") + quoteChar
 
+create_type 'i', dsl.type, (@value) ->
 dsl.type.i::to_target_string = dsl.type.s::to_target_string
-dsl.type.i::to_js_string = ->
-  @values[0]
+dsl.type.i::to_js_string = -> @value
+dsl.type.i::toJSON = -> {@type, name: @fn_name}
 
 dsl.type.o::to_target_string = ->
   objects = to_string_context.objects ?= []
   i = objects.length
-  objects.push @values[0]
+  objects.push @value
   "param('objects',#{i})"
 
 process_arg = (arg) ->
@@ -81,10 +85,10 @@ process_arg = (arg) ->
 
 dsl_fn = (name) ->
   result = (args...) ->
-    new dsl.type.f name, (process_arg arg for arg in args)...
+    new dsl.type.f name, (process_arg arg for arg in args)
   result.type = 'i'
   result.fn_name = name
-  result.values = [name]
+  result.value = name
   # TODO this will break f.bind() etc.
   result.__proto__ = new dsl.type.i
 
@@ -122,7 +126,7 @@ dsl.context_result_handler = (ctx, object) ->
     if _.isFunction object
       Context.add_component ctx, React.DOM.div null,
         "#{lead_string} is a server function"
-        Components.ExampleComponent value: "help 'server.functions.#{object.values[0]}'", run: true
+        Components.ExampleComponent value: "help 'server.functions.#{object.fn_name}'", run: true
     else
       Context.add_component ctx, React.DOM.div null,
         "What do you want to do with #{lead_string}?"
