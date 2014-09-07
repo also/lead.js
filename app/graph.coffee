@@ -58,6 +58,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     areaMode: 'none'
     areaOffset: 'zero'
     drawNullAsZero: false
+    simplify: 0.5
     #lineWidth: 1
 
   draw: (container, data, params) ->
@@ -185,16 +186,21 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           d.y0 = y0
           d.value = y)
 
+    if params.simplify
+      simplify = _.partial simplifyPoints, params.simplify
+    else
+      simplify = _.identity
+
     if params.drawNullAsZero
       transform_value = (v) -> v ? 0
-      filter_scatter_values = _.identity
-      expand_line_values = _.identity
+      filter_scatter_values = simplify
+      expand_line_values = simplify
     else
       # TODO this won't work well with stack
       transform_value = (v) -> v
       filter_scatter_values = (values) ->
-        _.filter values, (d) -> d.value?
-      expand_line_values = expandIsolatedValuesToLineSegments
+        simplify _.filter values, (d) -> d.value?
+      expand_line_values = _.compose simplify, expandIsolatedValuesToLineSegments
 
     value_min = null
     value_max = null
@@ -208,8 +214,6 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
         value_max = Math.max value, value_max
         {value, time: time, x: x(time), original: datapoint}
       bisector = d3.bisector (d) -> d.time
-      lineValues = expand_line_values values
-      scatterValues = filter_scatter_values values
       lineMode =
         if params.areaMode is 'all' or params.areaMode is 'stacked'
           'area'
@@ -217,13 +221,12 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
           'area'
         else
           'line'
-
       lineFn = if lineMode is 'line'
         line
       else
         area
       targetColor = color targetIndex
-      {values, bisector, name: s.target, lineValues, scatterValues, lineMode, lineFn, color: targetColor}
+      {values, bisector, name: s.target, lineMode, lineFn, color: targetColor}
 
     if params.areaMode is 'stacked'
       stack targets
@@ -239,6 +242,14 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
       value_min = Math.round(value_min) - 1
       value_max = Math.round(value_max) + 1
     y.domain [params.yMin ? value_min, params.yMax ? value_max]
+
+    _.each targets, (target) ->
+      {values} = target
+      _.each values, (v) ->
+        if v.value?
+          v.y = y v.value
+      target.lineValues = expand_line_values values
+      target.scatterValues = filter_scatter_values values
 
     svg = d3.select(container).append('svg')
         .attr('width', width + margin.left + margin.right)
@@ -422,4 +433,26 @@ expandIsolatedValuesToLineSegments = (values) ->
 
   if segment_length is 1
     result.push previous
+  result
+
+simplifyPoints = (minDistance, values) ->
+  previous = null
+  result = []
+
+  _.each values, (v) ->
+    if previous?
+      if previous.y? != v.y? # discontinuity
+        result.push v
+        if v.y?
+          previous = v
+      else if v.y?
+        deltaX = Math.abs v.x - previous.x
+        deltaY = Math.abs v.y - previous.y
+        if Math.sqrt(deltaX * deltaX + deltaY * deltaY) > minDistance
+          previous = v
+          result.push v
+    else
+      previous = v
+      result.push v
+
   result
