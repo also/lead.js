@@ -126,7 +126,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
           "Please set a GitHub access token for #{@props.site.api_base_url}: "
           React.DOM.input ref: 'input'
           React.DOM.button {onClick: @handle_set}, 'Set'
-        React.DOM.p null,
+        React.DOM.p {className: 'tip'},
           'lead.js requires an access token to use the GitHub API. You can create a '
           React.DOM.a {href: 'https://github.com/blog/1509-personal-api-tokens', target: '_blank'}, 'personal access token'
           # TODO just link to the settings
