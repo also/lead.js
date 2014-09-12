@@ -70,11 +70,11 @@ DocumentComponent = React.createClass
     ios = []
     _.each @state.value, (cell) ->
       if cell.type == 'input'
-        props = input_cell: cell
+        props = input_cell: cell, key: cell.key
         ios.push props
       else
         if !props? or props.input_cell.output_cell != cell
-          ios.push output_cell: cell
+          ios.push output_cell: cell, key: cell.key
         else
           props.output_cell = cell
         props = null
