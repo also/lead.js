@@ -39,6 +39,10 @@ NotFoundComponent = React.createClass
 AppComponent = React.createClass
   displayName: 'AppComponent'
   render: ->
+    if @props.bodyWrapper
+      body = @props.bodyWrapper null, @props.activeRouteHandler()
+    else
+      body = @props.activeRouteHandler()
     React.DOM.div {className: 'lead'},
       React.DOM.div {className: 'nav-bar'},
         Router.Link {to: 'notebook', className: 'title'}, 'lead'
@@ -46,7 +50,7 @@ AppComponent = React.createClass
           Router.Link {to: 'help-index'}, React.DOM.i {className: 'fa fa-question-circle'}
           Router.Link {to: 'settings'}, React.DOM.i {className: 'fa fa-cog'}
       React.DOM.div {className: 'body'},
-        this.props.activeRouteHandler()
+        body
 
 HelpPathComponent = React.createClass
   displayName: 'HelpPathComponent'
@@ -172,6 +176,8 @@ exports.init_app = (target) ->
   if publicUrl?
     `__webpack_public_path__ = publicUrl`
 
+  bodyWrapper = Settings.get 'app', 'bodyWrapper'
+
   raw_cell_value = null
   if location.search isnt ''
     uri = URI location.href
@@ -181,8 +187,8 @@ exports.init_app = (target) ->
 
   null_route = (fn) -> React.createClass render: -> fn.call(@); null
 
-  routes = Routes null,
-    Route {handler: AppComponent},
+  routesComponent = Routes null,
+    Route {handler: AppComponent, bodyWrapper},
       Route {path: '/', name: 'default', handler: null_route ->
         if raw_cell_value?
           Router.replaceWith '/notebook/raw/' + raw_cell_value
@@ -200,7 +206,7 @@ exports.init_app = (target) ->
 
   # TODO handler errors, timeouts
   Modules.init_modules(module_names).finally ->
-    React.renderComponent routes, target
+    React.renderComponent routesComponent, target
 
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
