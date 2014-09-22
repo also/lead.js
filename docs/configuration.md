@@ -17,6 +17,7 @@ opentsdb:
 
 app:
   intro_command: 'intro'
+  publicUrl: 'http://cdn.example.com/'
   paths:
     also:
       site: 'github.com'
