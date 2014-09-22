@@ -9,7 +9,7 @@ github:
       access_token: 'access_token'
   default: 'github.example.com'
 
-graphite:
+server:
   base_url: 'http://graphite.example.com'
 
 opentsdb:
