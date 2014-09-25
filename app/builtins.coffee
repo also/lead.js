@@ -228,7 +228,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       React.DOM.div null, @props.children, error
 
   ObservableComponent = React.createClass
-    displayName: 'BaconStreamComponent'
+    displayName: 'ObservableComponent'
     mixins: [React.ObservableMixin]
     render: ->
       if @state.value?
@@ -237,6 +237,25 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         valueComponent = '(no value)'
       Components.ToggleComponent {title: 'Live Value'},
         valueComponent
+
+  PromiseComponent = React.createClass
+    displayName: 'PromiseComponent'
+    getInitialState: ->
+      @props.promise.finally =>
+        @setState snapshot: @props.promise.inspect()
+      snapshot: @props.promise.inspect()
+      startTime: new Date
+    render: ->
+      if @state.snapshot.state == 'pending'
+        value = Components.ToggleComponent {title: 'Pending Promise'},
+          '(no value)'
+      else if @state.snapshot.state == 'fulfilled'
+        value = Components.ToggleComponent {title: 'Fulfilled Promise'},
+          ObjectComponent object: @state.snapshot.value
+      else
+        value = Components.ToggleComponent {title: 'Rejected Promise'},
+          ObjectComponent object: @state.snapshot.reason
+      React.DOM.div {}, value, PromiseStatusComponent promise: @props.promise, start_time: @state.startTime
 
   GridComponent = React.createClass
     displayName: 'GridComponent'
@@ -268,4 +287,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObservableComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObservableComponent, PromiseComponent}

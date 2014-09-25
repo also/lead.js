@@ -80,7 +80,7 @@ handle_using_extension = (ctx, object) ->
 
 handle_promise = (ctx, object) ->
   if Q.isPromise object
-    add_component ctx, Builtins.PromiseStatusComponent {promise: object, start_time: new Date}
+    add_component ctx, Builtins.PromiseComponent {promise: object}
 
 handleObservable = (ctx, object) ->
   if object instanceof Bacon.Observable
