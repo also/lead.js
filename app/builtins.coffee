@@ -139,6 +139,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   component_fn 'dir', (ctx, object) ->
     ObjectBrowserComponent {object}
 
+
   component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
 
@@ -155,6 +156,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   component_fn 'html', 'Adds some HTML', (ctx, string) ->
     HtmlComponent value: string
 
+
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
     render: ->
@@ -169,8 +171,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
         # TODO handle exceptions better
       React.DOM.pre {className: 'error'}, message
 
-  component_fn 'error', 'Shows a preformatted error message', (ctx, message) ->
-    ErrorComponent {message}
 
   component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
     ExampleComponent value: value, run: opts?.run ? true
