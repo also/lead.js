@@ -83,8 +83,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
-  fn 'In', 'Gets previous input', (ctx, n) ->
-    Context.value ctx.get_input_value n
 
   ObjectComponent = React.createClass
     displayName: 'ObjectComponent'
