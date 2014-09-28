@@ -91,7 +91,7 @@ handleComponent = (ctx, object) ->
     add_component ctx, object
 
 handle_any_object = (ctx, object) ->
-  add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
+  add_component ctx, Builtins.ObjectBrowserComponent {object}
   true
 
 # TODO make this configurable

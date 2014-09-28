@@ -10,6 +10,7 @@ React = require './react_abuse'
 Components = require './components'
 Context = require './context'
 App = require './app'
+{ObjectBrowserComponent} = require './object_browser'
 
 Documentation.register_documentation 'introduction', complete: """
 # Welcome to lead.js
@@ -108,9 +109,35 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ```
     """
 
-
   component_fn 'object', (ctx, o) ->
     ObjectComponent object: o
+
+  doc 'dir',
+    'Displays a JavaScript representation of the object'
+    """
+    `dir` displays a JavaScript object's properties.
+
+    For example:
+
+    ```
+    dir 1
+    ```
+
+    ```
+    dir [1, 2, 3]
+    ```
+
+    ```
+    class Class
+    c = new Class
+    AnonymousClass = ->
+    ac = new AnonymousClass
+    x: {y: z: 1}, n: 2, d: new Date, s: "xxx", c: c, ac: ac, un: undefined, t: true
+    ```
+    """
+
+  component_fn 'dir', (ctx, object) ->
+    ObjectBrowserComponent {object}
 
   component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
@@ -138,7 +165,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       else if message instanceof Error
         message = message.toString()
       else if not _.isString message
-        message =  ObjectComponent object: message
+        message =  ObjectBrowserComponent object: message
         # TODO handle exceptions better
       React.DOM.pre {className: 'error'}, message
 
@@ -232,7 +259,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     mixins: [React.ObservableMixin]
     render: ->
       if @state.value?
-        valueComponent = ObjectComponent object: @state.value
+        valueComponent = ObjectBrowserComponent object: @state.value
       else
         valueComponent = '(no value)'
       Components.ToggleComponent {title: 'Live Value'},
@@ -251,10 +278,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           '(no value)'
       else if @state.snapshot.state == 'fulfilled'
         value = Components.ToggleComponent {title: 'Fulfilled Promise'},
-          ObjectComponent object: @state.snapshot.value
+          ObjectBrowserComponent object: @state.snapshot.value
       else
         value = Components.ToggleComponent {title: 'Rejected Promise'},
-          ObjectComponent object: @state.snapshot.reason
+          ObjectBrowserComponent object: @state.snapshot.reason
       React.DOM.div {}, value, PromiseStatusComponent promise: @props.promise, start_time: @state.startTime
 
   GridComponent = React.createClass
@@ -287,4 +314,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObservableComponent, PromiseComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObjectBrowserComponent, ObservableComponent, PromiseComponent}
