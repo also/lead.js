@@ -42,10 +42,12 @@ create_fn = (string) ->
         Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
         console.error e.stack
-        Context.add_component ctx, React.DOM.div null,
-          Builtins.ErrorComponent message: printStackTrace({e}).join('\n')
-          'Compiled JavaScript:'
-          Components.SourceComponent language: 'javascript', value: compiled
+        trace = printStackTrace({e})
+        Context.add_component ctx, React.DOM.div {className: 'error'},
+          Components.ToggleComponent {title: React.DOM.pre {}, trace[0]},
+            React.DOM.pre {}, trace[1..].join('\n')
+          Components.ToggleComponent {title: 'Compiled JavaScript'},
+            Components.SourceComponent language: 'javascript', value: compiled
      # this isn't a context fn, so it's value will be displayed
      Context.IGNORE
 
