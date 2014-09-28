@@ -184,11 +184,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
   fn 'dynamic', 'Returns a Bacon.Model bound to a global variable', (ctx, name) ->
     Context.value Context.make_prop_var ctx, name
 
-  component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
-    code ?= ctx.previously_run()
-    uri = App.raw_cell_url code
-    React.DOM.a {href: uri}, uri
-
   PromiseResolvedComponent = React.createClass
     displayName: 'PromiseResolvedComponent'
     getInitialState: ->
