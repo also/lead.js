@@ -169,11 +169,15 @@ ToggleComponent = React.createClass
       toggle_class = 'fa-caret-down'
     else
       toggle_class = 'fa-caret-right'
-    React.DOM.div null,
+    React.DOM.div {className: 'toggle-component'},
       React.DOM.div {className: 'toggle', onClick: @toggle},
         React.DOM.i {className: "fa fa-fw #{toggle_class}"}
-        @props.title
+        React.DOM.div {className: 'toggle-title'},
+          @props.title
       if @state.open
-        @props.children
+        React.DOM.div {},
+          React.DOM.i {className: "fa fa-fw"}
+            React.DOM.div {className: 'toggle-body'},
+              @props.children
 
 module.exports = {ExampleComponent, SourceComponent, TreeNodeComponent, TreeComponent, ToggleComponent}
