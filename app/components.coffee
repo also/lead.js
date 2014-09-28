@@ -161,7 +161,8 @@ ToggleComponent = React.createClass
   displayName: 'ToggleComponent'
   getInitialState: ->
     open: @props.initially_open or false
-  toggle: ->
+  toggle: (e) ->
+    e.stopPropagation()
     @setState open: !@state.open
   render: ->
     if @state.open
