@@ -68,7 +68,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           React.DOM.td {}, command.doc
         ]
 
-  component_cmd 'keys', 'Shows the key bindings', (ctx) ->
+  component_cmd 'keys', 'Displays the editor key bindings', (ctx) ->
     all_keys = {}
     # TODO some commands are functions instead of names
     build_map = (map) ->
@@ -95,7 +95,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       Components.SourceComponent value: s, language: 'json'
 
   doc 'object',
-    'Prints an object as JSON'
+    'Displays an object as JSON'
     """
     `object` converts an object to a string using `JSON.stringify` if possible and `new String` otherwise.
     The result is displayed using syntax highlighting.
@@ -111,7 +111,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ObjectComponent object: o
 
   doc 'dir',
-    'Displays a JavaScript representation of the object'
+    'Displays a JavaScript representation of an object'
     """
     `dir` displays a JavaScript object's properties.
 
@@ -138,20 +138,20 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ObjectBrowserComponent {object}
 
 
-  component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
+  component_fn 'md', 'Displays rendered Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
 
   HtmlComponent = React.createClass
     displayName: 'HtmlComponent'
     render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
-  component_fn 'text', 'Prints text', (ctx, string) ->
+  component_fn 'text', 'Displays text', (ctx, string) ->
     React.DOM.p {}, string
 
-  component_fn 'pre', 'Prints preformatted text', (ctx, string) ->
+  component_fn 'pre', 'Displays preformatted text', (ctx, string) ->
     React.DOM.pre null, string
 
-  component_fn 'html', 'Adds some HTML', (ctx, string) ->
+  component_fn 'html', 'Displays rendered HTML', (ctx, string) ->
     HtmlComponent value: string
 
 
@@ -170,10 +170,10 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       React.DOM.pre {className: 'error'}, message
 
 
-  component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
+  component_fn 'example', 'Displays a code example', (ctx, value, opts) ->
     ExampleComponent value: value, run: opts?.run ? true
 
-  component_fn 'source', 'Shows source code with syntax highlighting', (ctx, language, value) ->
+  component_fn 'source', 'Displays source code with syntax highlighting', (ctx, language, value) ->
     Components.SourceComponent {language, value}
 
   fn 'options', 'Gets or sets options', (ctx, options) ->
