@@ -125,34 +125,6 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         React.DOM.img onLoad: deferred.resolve, onError: deferred.reject, src: url
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
-  TimeSeriesTable = React.createClass
-    render: ->
-      React.DOM.table {}, _.map @props.datapoints, ([value, timestamp]) ->
-        time = moment(timestamp * 1000)
-        React.DOM.tr {}, [
-          React.DOM.th {}, time.format 'MMMM Do YYYY, h:mm:ss a'
-          React.DOM.td {className: 'cm-number number'}, value?.toFixed(3) or '(none)'
-        ]
-
-  TimeSeriesTableList = React.createClass
-    render: ->
-      React.DOM.div {}, _.map @props.serieses, (series) ->
-        React.DOM.div {}, [
-          React.DOM.h3 {}, series.target
-          TimeSeriesTable datapoints: series.datapoints
-        ]
-
-  component_fn 'table', 'Displays data in a table', (ctx, args...) ->
-    params = args_to_server_params ctx, args
-    props = new Bacon.Model serieses: []
-    promise = server.get_data(params)
-    .then (response) =>
-      props.set serieses: response
-
-    Context.AsyncComponent {promise},
-      Builtins.ComponentAndError {promise},
-        React.PropsModelComponent constructor: TimeSeriesTableList, child_props: props
-      Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   component_fn 'browser', 'Browse metrics using a wildcard query', (ctx, query) ->
     finder = server.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
