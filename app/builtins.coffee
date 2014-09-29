@@ -10,6 +10,7 @@ React = require './react_abuse'
 Components = require './components'
 Context = require './context'
 App = require './app'
+{ObjectBrowserComponent} = require './object_browser'
 
 Documentation.register_documentation 'introduction', complete: """
 # Welcome to lead.js
@@ -67,7 +68,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
           React.DOM.td {}, command.doc
         ]
 
-  component_cmd 'keys', 'Shows the key bindings', (ctx) ->
+  component_cmd 'keys', 'Displays the editor key bindings', (ctx) ->
     all_keys = {}
     # TODO some commands are functions instead of names
     build_map = (map) ->
@@ -82,8 +83,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
     KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
-  fn 'In', 'Gets previous input', (ctx, n) ->
-    Context.value ctx.get_input_value n
 
   ObjectComponent = React.createClass
     displayName: 'ObjectComponent'
@@ -96,7 +95,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       Components.SourceComponent value: s, language: 'json'
 
   doc 'object',
-    'Prints an object as JSON'
+    'Displays an object as JSON'
     """
     `object` converts an object to a string using `JSON.stringify` if possible and `new String` otherwise.
     The result is displayed using syntax highlighting.
@@ -108,25 +107,53 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     ```
     """
 
-
   component_fn 'object', (ctx, o) ->
     ObjectComponent object: o
 
-  component_fn 'md', 'Renders Markdown', (ctx, string, opts) ->
+  doc 'dir',
+    'Displays a JavaScript representation of an object'
+    """
+    `dir` displays a JavaScript object's properties.
+
+    For example:
+
+    ```
+    dir 1
+    ```
+
+    ```
+    dir [1, 2, 3]
+    ```
+
+    ```
+    class Class
+    c = new Class
+    AnonymousClass = ->
+    ac = new AnonymousClass
+    x: {y: z: 1}, n: 2, d: new Date, s: "xxx", c: c, ac: ac, un: undefined, t: true
+    ```
+    """
+
+  component_fn 'dir', (ctx, object) ->
+    ObjectBrowserComponent {object}
+
+
+  component_fn 'md', 'Displays rendered Markdown', (ctx, string, opts) ->
     Markdown.MarkdownComponent value: string, opts: opts
 
   HtmlComponent = React.createClass
     displayName: 'HtmlComponent'
     render: -> React.DOM.div className: 'user-html', dangerouslySetInnerHTML: __html: @props.value
 
-  component_fn 'text', 'Prints text', (ctx, string) ->
+  component_fn 'text', 'Displays text', (ctx, string) ->
     React.DOM.p {}, string
 
-  component_fn 'pre', 'Prints preformatted text', (ctx, string) ->
+  component_fn 'pre', 'Displays preformatted text', (ctx, string) ->
     React.DOM.pre null, string
 
-  component_fn 'html', 'Adds some HTML', (ctx, string) ->
+  component_fn 'html', 'Displays rendered HTML', (ctx, string) ->
     HtmlComponent value: string
+
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
@@ -138,17 +165,15 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       else if message instanceof Error
         message = message.toString()
       else if not _.isString message
-        message =  ObjectComponent object: message
+        message =  ObjectBrowserComponent object: message
         # TODO handle exceptions better
       React.DOM.pre {className: 'error'}, message
 
-  component_fn 'error', 'Shows a preformatted error message', (ctx, message) ->
-    ErrorComponent {message}
 
-  component_fn 'example', 'Makes a clickable code example', (ctx, value, opts) ->
+  component_fn 'example', 'Displays a code example', (ctx, value, opts) ->
     ExampleComponent value: value, run: opts?.run ? true
 
-  component_fn 'source', 'Shows source code with syntax highlighting', (ctx, language, value) ->
+  component_fn 'source', 'Displays source code with syntax highlighting', (ctx, language, value) ->
     Components.SourceComponent {language, value}
 
   fn 'options', 'Gets or sets options', (ctx, options) ->
@@ -228,15 +253,34 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       React.DOM.div null, @props.children, error
 
   ObservableComponent = React.createClass
-    displayName: 'BaconStreamComponent'
+    displayName: 'ObservableComponent'
     mixins: [React.ObservableMixin]
     render: ->
       if @state.value?
-        valueComponent = ObjectComponent object: @state.value
+        valueComponent = ObjectBrowserComponent object: @state.value
       else
         valueComponent = '(no value)'
       Components.ToggleComponent {title: 'Live Value'},
         valueComponent
+
+  PromiseComponent = React.createClass
+    displayName: 'PromiseComponent'
+    getInitialState: ->
+      @props.promise.finally =>
+        @setState snapshot: @props.promise.inspect()
+      snapshot: @props.promise.inspect()
+      startTime: new Date
+    render: ->
+      if @state.snapshot.state == 'pending'
+        value = Components.ToggleComponent {title: 'Pending Promise'},
+          '(no value)'
+      else if @state.snapshot.state == 'fulfilled'
+        value = Components.ToggleComponent {title: 'Fulfilled Promise'},
+          ObjectBrowserComponent object: @state.snapshot.value
+      else
+        value = Components.ToggleComponent {title: 'Rejected Promise'},
+          ObjectBrowserComponent object: @state.snapshot.reason
+      React.DOM.div {}, value, PromiseStatusComponent promise: @props.promise, start_time: @state.startTime
 
   GridComponent = React.createClass
     displayName: 'GridComponent'
@@ -268,4 +312,4 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
     Context.add_component ctx, nested_context.component
     Context.apply_to nested_context, fn
 
-  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObservableComponent}
+  {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObjectBrowserComponent, ObservableComponent, PromiseComponent}

@@ -86,7 +86,7 @@ LeadMarkdownComponent = React.createClass
       components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
     {components}
   render: ->
-    React.DOM.div className: 'lead-markdown', @state.components
+    React.DOM.div className: 'lead-markdown', @state.components...
   componentDidMount: ->
     _.each @getDOMNode().querySelectorAll('a'), (a) =>
       a.addEventListener 'click', (e) =>

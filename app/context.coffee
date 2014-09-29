@@ -80,14 +80,18 @@ handle_using_extension = (ctx, object) ->
 
 handle_promise = (ctx, object) ->
   if Q.isPromise object
-    add_component ctx, Builtins.PromiseStatusComponent {promise: object, start_time: new Date}
+    add_component ctx, Builtins.PromiseComponent {promise: object}
 
 handleObservable = (ctx, object) ->
   if object instanceof Bacon.Observable
     add_component ctx, Builtins.ObservableComponent observable: object
 
+handleComponent = (ctx, object) ->
+  if React.isValidComponent object
+    add_component ctx, object
+
 handle_any_object = (ctx, object) ->
-  add_component ctx, Builtins.context_fns.object.fn.raw_fn ctx, object
+  add_component ctx, Builtins.ObjectBrowserComponent {object}
   true
 
 # TODO make this configurable
@@ -98,6 +102,7 @@ result_handlers = [
   handle_using_extension
   handle_promise
   handleObservable
+  handleComponent
   handle_any_object
 ]
 
