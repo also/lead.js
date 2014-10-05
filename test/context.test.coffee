@@ -60,9 +60,9 @@ describe 'contexts', ->
       complete_callback = ->
       ctx = null
       result = null
-      base_context = Context.create_base_context(imports: ['builtins', 'compat'])
+      base_context = Context.create_base_context(imports: ['builtins.*'])
       base_context.modules.test_module = test_module
-      base_context.imports.push 'test_module'
+      base_context.imports.push 'test_module.*'
       ctx = Context.create_context base_context
 
     it 'can run javascript strings', ->
