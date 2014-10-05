@@ -13,7 +13,6 @@ Notebook = require './notebook'
 user_notebook_keymap = null
 
 update_user_keymap = (keymap) ->
-  console.log 'updating keymap to ', keymap
   for k of user_notebook_keymap
     delete user_notebook_keymap[k]
   if keymap?
