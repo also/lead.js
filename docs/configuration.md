@@ -21,4 +21,9 @@ app:
     also:
       site: 'github.com'
       repo: 'also/lead.js'
+
+editor:
+  keymap:
+    notebook:
+      'Ctrl-1': 'nb_run'
 ```
