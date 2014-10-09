@@ -201,7 +201,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
       transform_value = (v) -> v
       filter_scatter_values = (values) ->
         simplify _.filter values, (d) -> d.value?
-      expand_line_values = _.compose simplify, expandIsolatedValuesToLineSegments
+      expand_line_values = _.compose expandIsolatedValuesToLineSegments, simplify
 
     value_min = null
     value_max = null
