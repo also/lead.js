@@ -7,7 +7,7 @@ Bacon = require 'bacon.model'
 React = require './react_abuse'
 modules = require './modules'
 
-graph = modules.export exports, 'graph', ({component_fn}) ->
+Graph = modules.export exports, 'graph', ({component_fn}) ->
   wrapModel = (model) ->
     if model?
       if model.get() instanceof Bacon.Observable
@@ -22,7 +22,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     Bacon.combineTemplate params
 
   component_fn 'graph', 'Graphs time series data using d3', (ctx, data, params={}) ->
-    graph.create_component data, params
+    Graph.create_component data, params
 
   create_component: (data, params) ->
     data = Bacon.fromPromise data if Q.isPromise data
@@ -32,7 +32,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     model.addSource stream
     # TODO seems like the combined stream doesn't error?
     # TODO error handling
-    graph.GraphComponent {model}
+    Graph.GraphComponent {model}
 
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
@@ -44,7 +44,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
       @props.model.onValue ({data, params}) ->
         return unless data?
         node.removeChild(node.lastChild) while node.hasChildNodes()
-        graph.draw node, data, params
+        Graph.draw node, data, params
 
   default_params:
     width: 800
@@ -62,7 +62,7 @@ graph = modules.export exports, 'graph', ({component_fn}) ->
     #lineWidth: 1
 
   draw: (container, data, params) ->
-    params = _.extend {}, graph.default_params, params
+    params = _.extend {}, Graph.default_params, params
     width = params.width
     height = params.height
 
