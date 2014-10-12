@@ -27,11 +27,17 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
   build_parameter_doc = (ctx, doc) ->
     ParameterDocsComponent {ctx, docs: docs.parameter_docs[doc.parameter_name]}
 
-  _.each docs.function_docs, (d, n) ->
-    Documentation.register_documentation ['server', 'functions', n], function_name: n, summary: d.signature, complete: build_function_doc
+  initDocs = ->
+    _.each _.sortBy(function_names, _.identity), (n) ->
+      d = docs.function_docs[n]
+      if d?
+        value = function_name: n, summary: d.signature, complete: build_function_doc
+      else
+        value = summary: '(undocumented)'
+      Documentation.register_documentation ['server', 'functions', n], value
 
-  _.each docs.parameter_docs, (d, n) ->
-    Documentation.register_documentation ['server', 'parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
+    _.each docs.parameter_docs, (d, n) ->
+      Documentation.register_documentation ['server', 'parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
 
   Documentation.register_documentation ['server', 'functions'], index: true
   Documentation.register_documentation ['server', 'parameters'], index: true
@@ -178,8 +184,11 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       unless function_names
         functions_promise = http.get(server.url 'functions').then (functions) ->
           function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
+          initDocs()
     else
       function_names = graphite_function_names
+      initDocs()
+      function_names
 
   MetricTreeComponent: React.createClass
     render: ->
