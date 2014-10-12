@@ -67,7 +67,6 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     #lineWidth: 1
 
   create: (container) ->
-    ## INIT
     x = d3.time.scale()
     y = d3.scale.linear()
     x_axis = d3.svg.axis().scale(x).orient('bottom')
@@ -131,7 +130,6 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       _.each(destroyFunctions, (f) -> f())
       destroyFunctions = []
 
-    ## DRAW
     draw = (data, params) ->
       destroy()
       params = _.extend {}, Graph.default_params, params
@@ -379,9 +377,10 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
 
       target = g.selectAll('.target')
           .data(targets)
-        .enter().append("g")
+      target.enter().append("g")
           .attr('class', (d, i) -> "target target#{i}")
           .call(observe_mouse)
+      target.selectAll('g > *').remove()
 
 
       add_path = (target, hover) ->
