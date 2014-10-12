@@ -124,6 +124,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     legend = d3.select(container).append('ul')
       .attr('class', 'legend')
 
+    currentCrosshairTime = null
 
     destroyFunctions = []
     destroy = ->
@@ -342,6 +343,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
           .attr('fill', '#efefef')
 
       positionCrosshair = (x, time) ->
+        currentCrosshairTime = time
         vertical_crosshair
           .attr('x1', x)
           .attr('x2', x)
@@ -367,13 +369,20 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
         positionCrosshair p.x, p.time
         cursorBus.push p.time
 
-      destroyFunctions.push externalCursorChanges.onValue (time) ->
+      boundedPositionCrosshair = (time) ->
         domain = x.domain()
         if time < domain[0]
           time = domain[0]
         else if time > domain[1]
           time = domain[1]
         positionCrosshair x(time), time
+
+      if currentCrosshairTime?
+        boundedPositionCrosshair(currentCrosshairTime)
+      # TODO if the mouse is over the graph, use that position so it doesn't jump
+
+      destroyFunctions.push externalCursorChanges.onValue (time) ->
+        boundedPositionCrosshair(time)
 
       target = g.selectAll('.target')
           .data(targets)
