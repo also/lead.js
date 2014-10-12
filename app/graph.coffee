@@ -125,6 +125,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       .attr('class', 'legend')
 
     currentCrosshairTime = null
+    allNames = []
 
     destroyFunctions = []
     destroy = ->
@@ -162,6 +163,11 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       get_timestamp = params.get_timestamp
 
       color.range params.d3_colors
+      # ensure that colors are stable even if targets change position in the list
+      allNames = _.uniq(allNames.concat(_.pluck(data, 'target')...))
+      colorsByName = {}
+      _.each allNames, (name, i) ->
+        colorsByName[name] = color(i)
 
       observe_mouse = (s) ->
         s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
@@ -272,8 +278,9 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
           line
         else
           area
-        targetColor = color targetIndex
-        {values, bisector, name: s.target, lineMode, lineFn, color: targetColor}
+        name = s.target
+        targetColor = colorsByName[name]
+        {values, bisector, name, lineMode, lineFn, color: targetColor}
 
       if params.areaMode is 'stacked'
         stack targets
