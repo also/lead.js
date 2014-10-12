@@ -20,6 +20,7 @@ Components = require './components'
 server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   functions_promise = null
   function_names = null
+  server_option_names = null
 
   build_function_doc = (ctx, doc) ->
     FunctionDocsComponent {ctx, docs: docs.function_docs[doc.function_name]}
@@ -36,8 +37,13 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
         value = summary: '(undocumented)'
       Documentation.register_documentation ['server', 'functions', n], value
 
-    _.each docs.parameter_docs, (d, n) ->
-      Documentation.register_documentation ['server', 'parameters', n], parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
+    _.each _.sortBy(server_option_names, _.identity), (n) ->
+      d = docs.parameter_docs[n]
+      if d?
+        value = parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
+      else
+        value = summary: '(undocumented)'
+      Documentation.register_documentation ['server', 'parameters', n], value
 
   Documentation.register_documentation ['server', 'functions'], index: true
   Documentation.register_documentation ['server', 'parameters'], index: true
@@ -181,12 +187,15 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
 
   init: ->
     if settings.get('type') == 'lead'
+      server_option_names = ['start', 'from', 'end', 'until']
       unless function_names
         functions_promise = http.get(server.url 'functions').then (functions) ->
           function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
           initDocs()
     else
       function_names = graphite_function_names
+      server_option_names = Object.keys(docs.parameter_docs)
+      server_option_names.push 'start', 'end'
       initDocs()
       function_names
 
@@ -366,12 +375,6 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     targets = [targets] unless _.isArray targets
     # flatten one level of nested arrays
     targets = Array.prototype.concat.apply [], targets
-
-    if settings.get('type') == 'lead'
-      server_option_names = ['start', 'from', 'end', 'until']
-    else
-      server_option_names = Object.keys(docs.parameter_docs)
-      server_option_names.push 'start', 'end'
 
     server_options = _.extend {},
       _.pick(default_options, server_option_names),
