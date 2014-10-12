@@ -154,7 +154,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
       Context.AsyncComponent {promise},
         React.DOM.div {style: {width: '-webkit-min-content'}},
           Builtins.ComponentAndError {promise},
-            graph.create_component(data, params)
+            Graphing.create_component(data, params)
           Builtins.PromiseStatusComponent {promise, start_time: new Date}
     else
       # TODO async, error
