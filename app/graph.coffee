@@ -389,6 +389,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       target.enter().append("g")
           .attr('class', (d, i) -> "target target#{i}")
           .call(observe_mouse)
+      target.exit().remove()
       target.selectAll('g > *').remove()
 
 
@@ -441,17 +442,26 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
 
       legend_target = legend.selectAll('li')
           .data(targets)
-        .enter().append('li')
+
+      legendTargetEnter = legend_target.enter().append('li')
           .attr('class', (d, i) -> "target#{i}")
           .attr('data-target', (d) -> d.name)
           .call(observe_mouse)
-      legend_target.append('span')
-          .style('color', (d, i) -> d.color)
+
+      legendTargetEnter.append('span')
           .attr('class', 'color')
-      legend_target.append('span')
-          .text((d) -> d.name)
-      legend_target.append('span')
+      legendTargetEnter.append('span')
+          .attr('class', 'name')
+      legendTargetEnter.append('span')
           .attr('class', 'crosshair-value')
+
+      legend_target.select('span.color')
+        .style('color', (d, i) -> d.color)
+
+      legend_target.select('span.name')
+        .text((d) -> d.name)
+
+      legend_target.exit().remove()
 
     {draw, destroy}
 
