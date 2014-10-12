@@ -99,6 +99,29 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
         d.y0 = y0
         d.value = y)
 
+    svg = d3.select(container).append('svg')
+      .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
+
+    g = svg
+      .append("g")
+
+    xAxisG = g.append('g')
+      .attr('class', 'x axis')
+
+    yXaxisG = g.append('g')
+      .attr('class', 'y axis')
+
+    vertical_crosshair = g.append('line')
+      .attr('class', 'crosshair')
+      .attr('y1', 0)
+
+    crosshair_time = g.append('text')
+      .attr('class', 'crosshair-time')
+      .attr('y', -6)
+
+    legend = d3.select(container).append('ul')
+      .attr('class', 'legend')
+
     ## DRAW
 
     params = _.extend {}, Graph.default_params, params
@@ -143,14 +166,12 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       new_state[i] = !new_state[i]
       new_state
     selected.onValue (s) ->
-      # TODO
-      if g?
-        legend.selectAll('li')
-          .data(s)
-          .classed 'deselected', (d) -> !d
-        g.selectAll('.target')
-          .data(s)
-          .classed 'deselected', (d) -> !d
+      legend.selectAll('li')
+        .data(s)
+        .classed 'deselected', (d) -> !d
+      g.selectAll('.target')
+        .data(s)
+        .classed 'deselected', (d) -> !d
 
     hover_selections = mouse_over.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
     hover_selections.onValue ({selection, index}) ->
@@ -270,32 +291,22 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       target.lineValues = expand_line_values values
       target.scatterValues = filter_scatter_values values
 
-    svg = d3.select(container).append('svg')
+    svg
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-        .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
 
-    g = svg
-      .append("g")
+    g
         .attr("transform", "translate(#{margin.left},#{margin.top})")
 
-    g.append('g')
+    xAxisG
       .attr('class', 'x axis')
       .attr('transform', "translate(0, #{height})")
       .call(x_axis)
 
-    g.append('g')
-      .attr('class', 'y axis')
-      .call(y_axis)
+    yXaxisG.call(y_axis)
 
-    vertical_crosshair = g.append('line')
-        .attr('class', 'crosshair')
-        .attr('y1', 0)
+    vertical_crosshair
         .attr('y2', height)
-
-    crosshair_time = g.append('text')
-        .attr('class', 'crosshair-time')
-        .attr('y', -6)
 
     brushed = ->
       brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
@@ -413,8 +424,6 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       add_circles target, false
       add_circles target, true
 
-    legend = d3.select(container).append('ul')
-        .attr('class', 'legend')
     legend_target = legend.selectAll('li')
         .data(targets)
       .enter().append('li')
