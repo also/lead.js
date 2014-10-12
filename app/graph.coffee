@@ -67,6 +67,40 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     #lineWidth: 1
 
   draw: (container, data, params) ->
+    ## INIT
+    x = d3.time.scale()
+    y = d3.scale.linear()
+    x_axis = d3.svg.axis().scale(x).orient('bottom')
+    y_axis = d3.svg.axis().scale(y).orient('left')
+
+    color = d3.scale.ordinal()
+
+    mouse_over = new Bacon.Bus
+    mouse_out = new Bacon.Bus
+    clicks = new Bacon.Bus
+    mouse_moves = new Bacon.Bus
+
+    area = d3.svg.area()
+      .x((d) -> d.x)
+      .y0((d) -> y d.y0 ? 0)
+      .y1((d) -> y d.value + (d.y0 ? 0))
+      .defined((d) -> d.value?)
+
+    line = d3.svg.line()
+      .x((d) -> d.x)
+      .y((d) -> y d.value)
+      .defined((d) -> d.value?)
+
+    stack = d3.layout.stack()
+      .values((d) -> d.values)
+      .x((d) -> d.time)
+      .y((d) -> d.value)
+      .out((d, y0, y) ->
+        d.y0 = y0
+        d.value = y)
+
+    ## DRAW
+
     params = _.extend {}, Graph.default_params, params
     width = params.width
     height = params.height
@@ -91,21 +125,14 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     width -= margin.left + margin.right
     height -= margin.top + margin.bottom
 
-    x = d3.time.scale().range([0, width])
-    y = d3.scale.linear().range([height, 0])
+    x.range([0, width])
+    y.range([height, 0])
 
     get_value = params.get_value
     get_timestamp = params.get_timestamp
 
-    x_axis = d3.svg.axis().scale(x).orient('bottom')
-    y_axis = d3.svg.axis().scale(y).orient('left')
+    color.range params.d3_colors
 
-    color = d3.scale.ordinal().range params.d3_colors
-
-    mouse_over = new Bacon.Bus
-    mouse_out = new Bacon.Bus
-    clicks = new Bacon.Bus
-    mouse_moves = new Bacon.Bus
     observe_mouse = (s) ->
       s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
        .on('mouseout', (d, i) -> mouse_out.push {index: i, event: d3.event, data: d})
@@ -168,25 +195,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     time_max = new Date(time_max * 1000)
     x.domain [time_min, time_max]
 
-    area = d3.svg.area()
-      .x((d) -> d.x)
-      .y0((d) -> y d.y0 ? 0)
-      .y1((d) -> y d.value + (d.y0 ? 0))
-      .defined((d) -> d.value?)
-
-    stack = d3.layout.stack()
-      .offset(params.areaOffset)
-      .values((d) -> d.values)
-      .x((d) -> d.time)
-      .y((d) -> d.value)
-      .out((d, y0, y) ->
-        d.y0 = y0
-        d.value = y)
-
-    line = d3.svg.line()
-      .x((d) -> d.x)
-      .y((d) -> y d.value)
-      .defined((d) -> d.value?)
+    stack.offset(params.areaOffset)
 
     if type is 'line'
       area_opacity = params.areaAlpha
