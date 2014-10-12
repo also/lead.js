@@ -80,7 +80,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
           React.DOM.a {href: 'http://graphite.readthedocs.org/en/0.9.12/render_api.html'}, 'Graphite documentation'
           '. Some Graphite parameters are supported by the '
           # TODO format
-          Documentation.DocumentationLinkComponent {key: 'compat.graph'}, 'graph'
+          Documentation.DocumentationLinkComponent {key: 'graphing.graph'}, 'graph'
           ' function'
         React.DOM.div {ref: 'docs'}
     componentDidMount: ->

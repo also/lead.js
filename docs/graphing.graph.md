@@ -82,11 +82,11 @@ If `brush` is not set, this brush will be displayed.
 
 ## `brush`
 
-The brush to display on the graph. A single brush instance can be shared across multiple graphs. See [`shareBrush`](help:compat.shareBrush)
+The brush to display on the graph. A single brush instance can be shared across multiple graphs. See [`shareBrush`](help:graphing.shareBrush)
 
 ## `cursor`
 
-The cursor to display on the graph. A single cursor instance can be shared across multiple graphs. See [`shareCursor`](help:compat.shareCursor)
+The cursor to display on the graph. A single cursor instance can be shared across multiple graphs. See [`shareCursor`](help:graphing.shareCursor)
 
 ## `width` and `height`
 Set the width and height of the plot area. The legend is outside this area.

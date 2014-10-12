@@ -152,7 +152,7 @@ Documentation.register_documentation 'main', complete: '''
 
 ## Top Functions
 
-* [`graph`](help:compat.graph)
+* [`graph`](help:graphing.graph)
 * [`q`](help:server.q)
 * [`save_gist`](help:github.save_gist)
 * [`tsd`](help:opentsdb.tsd)

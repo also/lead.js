@@ -2,7 +2,7 @@ React = require './react_abuse'
 Bacon = require 'baconjs'
 _ = require 'underscore'
 Server = require './server'
-Graph = require './graph'
+Graphing = require './graphing'
 Editor = require './editor'
 Context = require './context'
 CoffeeScriptCell = require './coffeescript_cell'
@@ -99,7 +99,7 @@ exports.BuilderComponent = React.createClass
       React.DOM.div {className: 'output main'},
         Components.ToggleComponent {title: 'Targets'},
           TargetsEditorComponent targets: @state.targets
-        Graph.GraphComponent model: @state.model
+        Graphing.GraphComponent model: @state.model
         Context.ComponentContextComponent ctx: @state.ctx,
           Editor.EditorComponent {run: @run, ref: 'editor'}
           Context.ContextOutputComponent {}
