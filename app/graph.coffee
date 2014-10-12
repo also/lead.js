@@ -41,10 +41,15 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     componentDidMount: ->
       # FIXME #175 props can change
       node = @getDOMNode()
-      @props.model.onValue ({data, params}) ->
+      @props.model.onValue ({data, params}) =>
         return unless data?
         node.removeChild(node.lastChild) while node.hasChildNodes()
-        Graph.draw node, data, params
+        @state?.graph?.destroy()
+
+        graph = Graph.draw node, data, params
+        @setState {graph}
+    componentWillUnmount: ->
+      @state?.graph?.destroy()
 
   default_params:
     width: 800
@@ -66,11 +71,15 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     width = params.width
     height = params.height
 
+    destroyFunctions = []
+
     cursorModel = params.cursor ? new Bacon.Model
     brushModel = params.brush ? new Bacon.Model brushing: false
 
     cursorBus = new Bacon.Bus
     brushBus = new Bacon.Bus
+
+    destroyFunctions.push((-> cursorBus.end()), (-> brushBus.end()))
 
     externalCursorChanges = cursorModel.addSource cursorBus
     externalBrushChanges = brushModel.apply brushBus
@@ -294,7 +303,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr("class", "x brush")
         .call(brush)
 
-    externalBrushChanges.onValue ({extent}) ->
+    destroyFunctions.push externalBrushChanges.onValue ({extent}) ->
       if extent?
         domain = x.domain()
         brush.extent [Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])]
@@ -333,7 +342,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       positionCrosshair p.x, p.time
       cursorBus.push p.time
 
-    externalCursorChanges.onValue (time) ->
+    destroyFunctions.push externalCursorChanges.onValue (time) ->
       domain = x.domain()
       if time < domain[0]
         time = domain[0]
@@ -412,6 +421,9 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
         .attr('class', 'crosshair-value')
 
     svg.style 'background-color', params.bgcolor
+
+    destroy: ->
+      _.each(destroyFunctions, (f) -> f())
 
 clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
