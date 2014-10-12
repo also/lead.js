@@ -39,17 +39,17 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     render: ->
       React.DOM.div {className: 'graph'}
     componentDidMount: ->
-      # FIXME #175 props can change
       node = @getDOMNode()
-      @props.model.onValue ({data, params}) =>
+      graph = Graph.create(node)
+      # FIXME #175 props can change
+      unsubscribe = @props.model.onValue ({data, params}) =>
         return unless data?
-        node.removeChild(node.lastChild) while node.hasChildNodes()
-        @state?.graph?.destroy()
-
-        graph = Graph.draw node, data, params
-        @setState {graph}
+        graph.draw(data, params)
+      @setState {graph, unsubscribe}
     componentWillUnmount: ->
-      @state?.graph?.destroy()
+      if @state
+        @state.graph.destroy()
+        @state.unsubscribe()
 
   default_params:
     width: 800
@@ -66,7 +66,7 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     simplify: 0.5
     #lineWidth: 1
 
-  draw: (container, data, params) ->
+  create: (container) ->
     ## INIT
     x = d3.time.scale()
     y = d3.scale.linear()
@@ -119,329 +119,333 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       .attr('class', 'crosshair-time')
       .attr('y', -6)
 
+    brushG = g.append("g")
+      .attr("class", "x brush")
+
     legend = d3.select(container).append('ul')
       .attr('class', 'legend')
 
-    ## DRAW
-
-    params = _.extend {}, Graph.default_params, params
-    width = params.width
-    height = params.height
 
     destroyFunctions = []
+    destroy = ->
+      _.each(destroyFunctions, (f) -> f())
+      destroyFunctions = []
 
-    cursorModel = params.cursor ? new Bacon.Model
-    brushModel = params.brush ? new Bacon.Model brushing: false
+    ## DRAW
+    draw = (data, params) ->
+      destroy()
+      params = _.extend {}, Graph.default_params, params
+      width = params.width
+      height = params.height
 
-    cursorBus = new Bacon.Bus
-    brushBus = new Bacon.Bus
+      cursorModel = params.cursor ? new Bacon.Model
+      brushModel = params.brush ? new Bacon.Model brushing: false
 
-    destroyFunctions.push((-> cursorBus.end()), (-> brushBus.end()))
+      cursorBus = new Bacon.Bus
+      brushBus = new Bacon.Bus
 
-    externalCursorChanges = cursorModel.addSource cursorBus
-    externalBrushChanges = brushModel.apply brushBus
+      destroyFunctions.push((-> cursorBus.end()), (-> brushBus.end()))
 
-    type = params.type
+      externalCursorChanges = cursorModel.addSource cursorBus
+      externalBrushChanges = brushModel.apply brushBus
 
-    margin = top: 20, right: 80, bottom: 30, left: 80
+      type = params.type
 
-    width -= margin.left + margin.right
-    height -= margin.top + margin.bottom
+      margin = top: 20, right: 80, bottom: 30, left: 80
 
-    x.range([0, width])
-    y.range([height, 0])
+      width -= margin.left + margin.right
+      height -= margin.top + margin.bottom
 
-    get_value = params.get_value
-    get_timestamp = params.get_timestamp
+      x.range([0, width])
+      y.range([height, 0])
 
-    color.range params.d3_colors
+      get_value = params.get_value
+      get_timestamp = params.get_timestamp
 
-    observe_mouse = (s) ->
-      s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
-       .on('mouseout', (d, i) -> mouse_out.push {index: i, event: d3.event, data: d})
-       .on('click', (d, i) -> clicks.push i)
+      color.range params.d3_colors
 
-    selected = clicks.scan _.map(data, -> true), (state, i) ->
-      new_state = _.clone state
-      new_state[i] = !new_state[i]
-      new_state
-    selected.onValue (s) ->
-      legend.selectAll('li')
-        .data(s)
-        .classed 'deselected', (d) -> !d
-      g.selectAll('.target')
-        .data(s)
-        .classed 'deselected', (d) -> !d
+      observe_mouse = (s) ->
+        s.on('mouseover', (d, i) -> mouse_over.push {index: i, event: d3.event, data: d})
+         .on('mouseout', (d, i) -> mouse_out.push {index: i, event: d3.event, data: d})
+         .on('click', (d, i) -> clicks.push i)
 
-    hover_selections = mouse_over.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
-    hover_selections.onValue ({selection, index}) ->
-      if type == 'line'
-        path = selection.select('path')
-        path.style('stroke-width', (params.lineWidth ? 0) + 3)
-      else
-        circles = selection.select('.circles').selectAll('circle')
-        circles.attr('r', 4)
-      selection.classed 'hovered', true
-    unhovers = hover_selections.merge(mouse_out)
-      .withStateMachine([], (previous, event) -> [[event], previous])
-      .filter (e) -> e.selection?
-    unhovers.onValue ({selection, index}) ->
-      selection.classed 'hovered', false
-      if type == 'line'
-        path = selection.select('path')
-        path.style('stroke-width', params.lineWidth)
-      else
-        circles = selection.select('.circles').selectAll('circle')
-        circles.attr('r', 2)
+      selected = clicks.scan _.map(data, -> true), (state, i) ->
+        new_state = _.clone state
+        new_state[i] = !new_state[i]
+        new_state
+      selected.onValue (s) ->
+        legend.selectAll('li')
+          .data(s)
+          .classed 'deselected', (d) -> !d
+        g.selectAll('.target')
+          .data(s)
+          .classed 'deselected', (d) -> !d
 
-    mouse_position = mouse_moves.map (pos) ->
-      x_constrained = Math.max 0, Math.min(pos[0], width)
-      time: x.invert x_constrained
-      value: y.invert pos[1]
-      x: x_constrained
-      y: pos[1]
-
-    time_min = null
-    time_max = null
-    _.each data, ({datapoints}) ->
-      if datapoints.length > 0
-        _.each [0, datapoints.length - 1], (i) ->
-          datapoint = datapoints[i]
-          value = get_value datapoint, i
-          timestamp = get_timestamp datapoint, i
-          time_min = Math.min timestamp, time_min ? timestamp
-          time_max = Math.max timestamp, time_max
-
-    time_min = new Date(time_min * 1000)
-    time_max = new Date(time_max * 1000)
-    x.domain [time_min, time_max]
-
-    stack.offset(params.areaOffset)
-
-    if type is 'line'
-      area_opacity = params.areaAlpha
-      line_opacity = 1.0
-
-      if params.interpolate?
-        line.interpolate params.interpolate
-        area.interpolate params.interpolate
-
-    if params.simplify
-      simplify = _.partial simplifyPoints, params.simplify
-    else
-      simplify = _.identity
-
-    if params.drawNullAsZero
-      transform_value = (v) -> v ? 0
-      filter_scatter_values = simplify
-      expand_line_values = simplify
-    else
-      # TODO this won't work well with stack
-      transform_value = (v) -> v
-      filter_scatter_values = (values) ->
-        simplify _.filter values, (d) -> d.value?
-      expand_line_values = _.compose expandIsolatedValuesToLineSegments, simplify
-
-    value_min = null
-    value_max = null
-    targets = for s, targetIndex in data
-      values = for datapoint, i in s.datapoints
-        value = get_value datapoint, i
-        timestamp = get_timestamp datapoint, i
-        time = new Date(timestamp * 1000)
-        value = transform_value value
-        value_min = Math.min value, value_min ? value if value?
-        value_max = Math.max value, value_max
-        {value, time: time, x: x(time), original: datapoint}
-      bisector = d3.bisector (d) -> d.time
-      lineMode =
-        if params.areaMode is 'all' or params.areaMode is 'stacked'
-          'area'
-        else if params.areaMode is 'first' and targetIndex is 0
-          'area'
+      hover_selections = mouse_over.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
+      hover_selections.onValue ({selection, index}) ->
+        if type == 'line'
+          path = selection.select('path')
+          path.style('stroke-width', (params.lineWidth ? 0) + 3)
         else
-          'line'
-      lineFn = if lineMode is 'line'
-        line
-      else
-        area
-      targetColor = color targetIndex
-      {values, bisector, name: s.target, lineMode, lineFn, color: targetColor}
+          circles = selection.select('.circles').selectAll('circle')
+          circles.attr('r', 4)
+        selection.classed 'hovered', true
+      unhovers = hover_selections.merge(mouse_out)
+        .withStateMachine([], (previous, event) -> [[event], previous])
+        .filter (e) -> e.selection?
+      unhovers.onValue ({selection, index}) ->
+        selection.classed 'hovered', false
+        if type == 'line'
+          path = selection.select('path')
+          path.style('stroke-width', params.lineWidth)
+        else
+          circles = selection.select('.circles').selectAll('circle')
+          circles.attr('r', 2)
 
-    if params.areaMode is 'stacked'
-      stack targets
+      mouse_position = mouse_moves.map (pos) ->
+        x_constrained = Math.max 0, Math.min(pos[0], width)
+        time: x.invert x_constrained
+        value: y.invert pos[1]
+        x: x_constrained
+        y: pos[1]
+
+      time_min = null
+      time_max = null
+      _.each data, ({datapoints}) ->
+        if datapoints.length > 0
+          _.each [0, datapoints.length - 1], (i) ->
+            datapoint = datapoints[i]
+            value = get_value datapoint, i
+            timestamp = get_timestamp datapoint, i
+            time_min = Math.min timestamp, time_min ? timestamp
+            time_max = Math.max timestamp, time_max
+
+      time_min = new Date(time_min * 1000)
+      time_max = new Date(time_max * 1000)
+      x.domain [time_min, time_max]
+
+      stack.offset(params.areaOffset)
+
+      if type is 'line'
+        area_opacity = params.areaAlpha
+        line_opacity = 1.0
+
+        if params.interpolate?
+          line.interpolate params.interpolate
+          area.interpolate params.interpolate
+
+      if params.simplify
+        simplify = _.partial simplifyPoints, params.simplify
+      else
+        simplify = _.identity
+
+      if params.drawNullAsZero
+        transform_value = (v) -> v ? 0
+        filter_scatter_values = simplify
+        expand_line_values = simplify
+      else
+        # TODO this won't work well with stack
+        transform_value = (v) -> v
+        filter_scatter_values = (values) ->
+          simplify _.filter values, (d) -> d.value?
+        expand_line_values = _.compose expandIsolatedValuesToLineSegments, simplify
+
       value_min = null
       value_max = null
-      for {values} in targets
-        for {value, y0} in values
-          value += y0
-          value_min = Math.min value, value_min
+      targets = for s, targetIndex in data
+        values = for datapoint, i in s.datapoints
+          value = get_value datapoint, i
+          timestamp = get_timestamp datapoint, i
+          time = new Date(timestamp * 1000)
+          value = transform_value value
+          value_min = Math.min value, value_min ? value if value?
           value_max = Math.max value, value_max
+          {value, time: time, x: x(time), original: datapoint}
+        bisector = d3.bisector (d) -> d.time
+        lineMode =
+          if params.areaMode is 'all' or params.areaMode is 'stacked'
+            'area'
+          else if params.areaMode is 'first' and targetIndex is 0
+            'area'
+          else
+            'line'
+        lineFn = if lineMode is 'line'
+          line
+        else
+          area
+        targetColor = color targetIndex
+        {values, bisector, name: s.target, lineMode, lineFn, color: targetColor}
 
-    if value_min == value_max
-      value_min = Math.round(value_min) - 1
-      value_max = Math.round(value_max) + 1
-    y.domain [params.yMin ? value_min, params.yMax ? value_max]
+      if params.areaMode is 'stacked'
+        stack targets
+        value_min = null
+        value_max = null
+        for {values} in targets
+          for {value, y0} in values
+            value += y0
+            value_min = Math.min value, value_min
+            value_max = Math.max value, value_max
 
-    _.each targets, (target) ->
-      {values} = target
-      _.each values, (v) ->
-        if v.value?
-          v.y = y v.value
-      target.lineValues = expand_line_values values
-      target.scatterValues = filter_scatter_values values
+      if value_min == value_max
+        value_min = Math.round(value_min) - 1
+        value_max = Math.round(value_max) + 1
+      y.domain [params.yMin ? value_min, params.yMax ? value_max]
 
-    svg
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
+      _.each targets, (target) ->
+        {values} = target
+        _.each values, (v) ->
+          if v.value?
+            v.y = y v.value
+        target.lineValues = expand_line_values values
+        target.scatterValues = filter_scatter_values values
 
-    g
-        .attr("transform", "translate(#{margin.left},#{margin.top})")
+      svg
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', height + margin.top + margin.bottom)
+          .style('background-color', params.bgcolor)
 
-    xAxisG
-      .attr('class', 'x axis')
-      .attr('transform', "translate(0, #{height})")
-      .call(x_axis)
+      g
+          .attr("transform", "translate(#{margin.left},#{margin.top})")
 
-    yXaxisG.call(y_axis)
+      xAxisG
+        .attr('class', 'x axis')
+        .attr('transform', "translate(0, #{height})")
+        .call(x_axis)
 
-    vertical_crosshair
-        .attr('y2', height)
+      yXaxisG.call(y_axis)
 
-    brushed = ->
-      brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
-    brushstart = -> brushBus.push setBrushing
-    brushend = -> brushBus.push setNotBrushing
-
-    brush = d3.svg.brush()
-      .x(x)
-      .on("brush", brushed)
-      .on('brushstart', brushstart)
-      .on('brushend', brushend)
-
-    brushG = g.append("g")
-        .attr("class", "x brush")
-        .call(brush)
-
-    destroyFunctions.push externalBrushChanges.onValue ({extent}) ->
-      if extent?
-        domain = x.domain()
-        brush.extent [Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])]
-      else
-        brush.clear()
-      brush brushG
-
-    brushG.selectAll("rect")
-        .attr("y", 0)
-        .attr("height", height)
-        .attr('fill', '#efefef')
-
-    positionCrosshair = (x, time) ->
       vertical_crosshair
-        .attr('x1', x)
-        .attr('x2', x)
+          .attr('y2', height)
 
-      crosshair_time
-        .text(moment(time).format('lll'))
-        .attr('x', x)
+      brushed = ->
+        brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
+      brushstart = -> brushBus.push setBrushing
+      brushend = -> brushBus.push setNotBrushing
 
-      target_values = _.map targets, (t) ->
-        i = t.bisector.left t.values, time, 1
-        d0 = t.values[i - 1]
-        d1 = t.values[i]
-        if d0 and d1
-          if time - d0.time > d1.time - time then d1 else d0
-        else if d0
-          d0
+      brush = d3.svg.brush()
+        .x(x)
+        .on("brush", brushed)
+        .on('brushstart', brushstart)
+        .on('brushend', brushend)
 
-      legend.selectAll('.crosshair-value')
-        .data(target_values)
-        .text((d) -> d?.value)
+      brushG.call(brush)
 
-    mouse_position.onValue (p) ->
-      positionCrosshair p.x, p.time
-      cursorBus.push p.time
+      destroyFunctions.push externalBrushChanges.onValue ({extent}) ->
+        if extent?
+          domain = x.domain()
+          brush.extent [Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])]
+        else
+          brush.clear()
+        brush brushG
 
-    destroyFunctions.push externalCursorChanges.onValue (time) ->
-      domain = x.domain()
-      if time < domain[0]
-        time = domain[0]
-      else if time > domain[1]
-        time = domain[1]
-      positionCrosshair x(time), time
+      brushG.selectAll("rect")
+          .attr("y", 0)
+          .attr("height", height)
+          .attr('fill', '#efefef')
 
-    target = g.selectAll('.target')
-        .data(targets)
-      .enter().append("g")
-        .attr('class', (d, i) -> "target target#{i}")
-        .call(observe_mouse)
+      positionCrosshair = (x, time) ->
+        vertical_crosshair
+          .attr('x1', x)
+          .attr('x2', x)
+
+        crosshair_time
+          .text(moment(time).format('lll'))
+          .attr('x', x)
+
+        target_values = _.map targets, (t) ->
+          i = t.bisector.left t.values, time, 1
+          d0 = t.values[i - 1]
+          d1 = t.values[i]
+          if d0 and d1
+            if time - d0.time > d1.time - time then d1 else d0
+          else if d0
+            d0
+
+        legend.selectAll('.crosshair-value')
+          .data(target_values)
+          .text((d) -> d?.value)
+
+      mouse_position.onValue (p) ->
+        positionCrosshair p.x, p.time
+        cursorBus.push p.time
+
+      destroyFunctions.push externalCursorChanges.onValue (time) ->
+        domain = x.domain()
+        if time < domain[0]
+          time = domain[0]
+        else if time > domain[1]
+          time = domain[1]
+        positionCrosshair x(time), time
+
+      target = g.selectAll('.target')
+          .data(targets)
+        .enter().append("g")
+          .attr('class', (d, i) -> "target target#{i}")
+          .call(observe_mouse)
 
 
-    add_path = (target, hover) ->
-      if hover
-        lineWidth = (params.lineWidth ? 0) + 10
-      else
-        lineWidth = params.lineWidth
+      add_path = (target, hover) ->
+        if hover
+          lineWidth = (params.lineWidth ? 0) + 10
+        else
+          lineWidth = params.lineWidth
 
-      path = target.append("path")
-          .attr('class', (d) -> d.lineMode)
-          .attr('stroke', (d, i) -> d.color)
-          .style('stroke-width', lineWidth)
-          .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
-          .attr('d', (d, i) -> d.lineFn(d.lineValues))
-      if hover
-        path
-        .style('stroke-opacity', 0)
-        .style('fill-opacity', 0)
-      else
-        path
-          .style('stroke-opacity', line_opacity)
-          .style('fill-opacity', area_opacity)
+        path = target.append("path")
+            .attr('class', (d) -> d.lineMode)
+            .attr('stroke', (d, i) -> d.color)
+            .style('stroke-width', lineWidth)
+            .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
+            .attr('d', (d, i) -> d.lineFn(d.lineValues))
+        if hover
+          path
+          .style('stroke-opacity', 0)
+          .style('fill-opacity', 0)
+        else
+          path
+            .style('stroke-opacity', line_opacity)
+            .style('fill-opacity', area_opacity)
 
-    add_circles = (target, hover) ->
-      if hover
-        radius = 5
-        opacity = 0
-      else
-        radius = 2
-        opacity = 1
-      target.append('g').attr('class', 'circles')
-        .each (d) ->
-          circleColor = d.color
-          d3.select(this).selectAll('circle')
-            .data((d) -> d.scatterValues)
-          .enter().append("circle")
-            .attr('cx', (d) -> d.x)
-            .attr('cy', (d) -> y d.value)
-            .attr('fill', circleColor)
-            .attr('r', radius)
-            .style('fill-opacity', opacity)
+      add_circles = (target, hover) ->
+        if hover
+          radius = 5
+          opacity = 0
+        else
+          radius = 2
+          opacity = 1
+        target.append('g').attr('class', 'circles')
+          .each (d) ->
+            circleColor = d.color
+            d3.select(this).selectAll('circle')
+              .data((d) -> d.scatterValues)
+            .enter().append("circle")
+              .attr('cx', (d) -> d.x)
+              .attr('cy', (d) -> y d.value)
+              .attr('fill', circleColor)
+              .attr('r', radius)
+              .style('fill-opacity', opacity)
 
-    if type is 'line'
-      add_path target, false
-      add_path target, true
-    else if type is 'scatter'
-      add_circles target, false
-      add_circles target, true
+      if type is 'line'
+        add_path target, false
+        add_path target, true
+      else if type is 'scatter'
+        add_circles target, false
+        add_circles target, true
 
-    legend_target = legend.selectAll('li')
-        .data(targets)
-      .enter().append('li')
-        .attr('class', (d, i) -> "target#{i}")
-        .attr('data-target', (d) -> d.name)
-        .call(observe_mouse)
-    legend_target.append('span')
-        .style('color', (d, i) -> d.color)
-        .attr('class', 'color')
-    legend_target.append('span')
-        .text((d) -> d.name)
-    legend_target.append('span')
-        .attr('class', 'crosshair-value')
+      legend_target = legend.selectAll('li')
+          .data(targets)
+        .enter().append('li')
+          .attr('class', (d, i) -> "target#{i}")
+          .attr('data-target', (d) -> d.name)
+          .call(observe_mouse)
+      legend_target.append('span')
+          .style('color', (d, i) -> d.color)
+          .attr('class', 'color')
+      legend_target.append('span')
+          .text((d) -> d.name)
+      legend_target.append('span')
+          .attr('class', 'crosshair-value')
 
-    svg.style 'background-color', params.bgcolor
-
-    destroy: ->
-      _.each(destroyFunctions, (f) -> f())
+    {draw, destroy}
 
 clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
