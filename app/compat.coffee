@@ -16,6 +16,24 @@ Documentation = require './documentation'
 requireables = q: Q, _: _, moment: moment, colors: colors
 
 compat = modules.export exports, 'compat', ({doc, component_fn, cmd, fn} ) ->
+
+  doc 'shareCursor', 'Use the same cursor on multiple graphs',
+  '''
+  # Usage
+
+  ## `shareCursor()`
+
+  Sets the `cursor` option to a new cursor. This cursor will be used by all subsequent calls to [`graph`](help:compat.graph).
+
+  ## `shareCursor(false)`
+
+  Unsets the `cursor` option.
+
+  ## `shareCursor(cursor)`
+
+  Sets the value of the `cursor` option to the specified cursor.
+  '''
+
   cmd 'shareCursor', (ctx, share=true) ->
     options = ctx.options()
     if share == false
@@ -25,6 +43,23 @@ compat = modules.export exports, 'compat', ({doc, component_fn, cmd, fn} ) ->
         options.cursor = share
       else
         options.cursor = new Bacon.Model
+
+  doc 'shareBrush', 'Use the same brush on multiple graphs',
+  '''
+  # Usage
+
+  ## `shareBrush()`
+
+  Sets the `brush` option to a new brush. This brush will be used by all subsequent calls to [`graph`](help:compat.graph).
+
+  ## `shareBrush(false)`
+
+  Unsets the `brush` option.
+
+  ## `shareBrush(brush)`
+
+  Sets the value of the `brush` option to the specified brush.
+  '''
 
   cmd 'shareBrush', (ctx, share=true) ->
     options = ctx.options()

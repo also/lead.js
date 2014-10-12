@@ -1,6 +1,10 @@
-`graph` accepts a [Graphite target](help:server.functions) or promise of graph data.
+`graph` accepts a [DSL expression](help:server.functions), time-series data, or a promise or observable that produces time-series data.
 
-Graphite targets are converted to a promise using [`server.get_data`](help:server.get_data).
+# Usage
+
+## `graph(dslExpression..., options)`
+
+DSL expressions are converted to a promise using [`server.get_data`](help:server.get_data).
 
 For example:
 
@@ -8,6 +12,22 @@ For example:
 ```
 graph randomWalkFunction 'hello, world'
 ```
+
+## `graph(data, options)`
+
+Graphs `data` immediately.
+
+## `graph(leadDataSource, options)`
+
+Graphs the result of `leadDataSource` when it is fulfilled.
+
+## `graph(promise, options)`
+
+Graphs the result of `promise` when it is fulfilled.
+
+## `graph(dataObservable, options)`
+
+Graphs every new value of `dataObservable`.
 
 # Data format
 The format for graph data is an array of time series:
@@ -51,6 +71,22 @@ graph data, areaMode: 'first'
 graph data, areaMode: 'all'
 graph data, areaMode: 'stacked'
 ```
+
+## `bindToBrush`
+
+When called with a DSL expression or `LeadDataSource`, the data will be reloaded with the `start` and `end` options supplied by the bound brush.
+
+If the value is `true`, the value of the `brush` option will be used. Otherwise, a specific brush instance can be used by multiple graphs by passing the instance.
+
+If `brush` is not set, this brush will be displayed.
+
+## `brush`
+
+The brush to display on the graph. A single brush instance can be shared across multiple graphs. See [`shareBrush`](help:compat.shareBrush)
+
+## `cursor`
+
+The cursor to display on the graph. A single cursor instance can be shared across multiple graphs. See [`shareCursor`](help:compat.shareCursor)
 
 ## `width` and `height`
 Set the width and height of the plot area. The legend is outside this area.
