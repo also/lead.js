@@ -159,24 +159,11 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
     time_max = new Date(time_max * 1000)
     x.domain [time_min, time_max]
 
-    if type is 'line'
-      area_opacity = params.areaAlpha
-      line_opacity = 1.0
-
-      area = d3.svg.area()
-        .x((d) -> d.x)
-        .y0((d) -> y d.y0 ? 0)
-        .y1((d) -> y d.value + (d.y0 ? 0))
-        .defined((d) -> d.value?)
-
-      line = d3.svg.line()
-        .x((d) -> d.x)
-        .y((d) -> y d.value)
-        .defined((d) -> d.value?)
-
-      if params.interpolate?
-        line.interpolate params.interpolate
-        area.interpolate params.interpolate
+    area = d3.svg.area()
+      .x((d) -> d.x)
+      .y0((d) -> y d.y0 ? 0)
+      .y1((d) -> y d.value + (d.y0 ? 0))
+      .defined((d) -> d.value?)
 
     stack = d3.layout.stack()
       .offset(params.areaOffset)
@@ -186,6 +173,19 @@ Graph = modules.export exports, 'graph', ({component_fn}) ->
       .out((d, y0, y) ->
         d.y0 = y0
         d.value = y)
+
+    line = d3.svg.line()
+      .x((d) -> d.x)
+      .y((d) -> y d.value)
+      .defined((d) -> d.value?)
+
+    if type is 'line'
+      area_opacity = params.areaAlpha
+      line_opacity = 1.0
+
+      if params.interpolate?
+        line.interpolate params.interpolate
+        area.interpolate params.interpolate
 
     if params.simplify
       simplify = _.partial simplifyPoints, params.simplify
