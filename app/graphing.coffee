@@ -20,28 +20,6 @@ ExportModal = React.createClass
       React.DOM.img {src: @props.url, style: {border: '1px solid #aaa'}}
 
 Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
-  brushParams = (brush) ->
-    brush.filter(({brushing}) -> !brushing).map ({extent}) ->
-      if extent?
-        start: moment(extent[0]).unix(), end: moment(extent[1]).unix()
-      else
-        {}
-
-  wrapModel = (model) ->
-    if model?
-      if model.get() instanceof Bacon.Observable
-        model
-      else
-        new Bacon.Model model
-
-  paramsToProperty = (params) ->
-    if params.cursor? or params.brush?
-      params = _.extend params, cursor: wrapModel(params.cursor), brush: wrapModel(params.brush)
-
-    Bacon.combineTemplate params
-
-
-
   doc 'shareCursor', 'Use the same cursor on multiple graphs',
   '''
   # Usage
@@ -99,12 +77,32 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   fn 'brushParams', (ctx, brush) ->
     Context.value brushParams brush ? ctx.options().brush
 
-  bindToBrush = (brush, source) ->
-    serverParams = new Bacon.Model null
-    serverParams.addSource brushParams(brush)
+  brushParams = (brush) ->
+    brush.filter(({brushing}) -> !brushing).map ({extent}) ->
+      if extent?
+        start: moment(extent[0]).unix(), end: moment(extent[1]).unix()
+      else
+        {}
 
-    serverParams.flatMapLatest (brushParams) ->
-      Bacon.fromPromise source.load brushParams
+  wrapModel = (model) ->
+    if model?
+      if model.get() instanceof Bacon.Observable
+        model
+      else
+        new Bacon.Model model
+
+  paramsToProperty = (params) ->
+    if params.cursor? or params.brush?
+      params = _.extend params, cursor: wrapModel(params.cursor), brush: wrapModel(params.brush)
+
+    Bacon.combineTemplate params
+
+  bindToBrush = (brush, source) ->
+    sourceParams = new Bacon.Model null
+    sourceParams.addSource brushParams(brush)
+
+    sourceParams.flatMapLatest (params) ->
+      Bacon.fromPromise(source.load(params))
 
   fn 'bindToBrush', (ctx, args...) ->
     if args[0] instanceof Server.LeadDataSource
@@ -112,14 +110,17 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
       brush = args[1]?.brush ? ctx.options().brush
     else
       allParams = Server.args_to_params {args, default_options: ctx.options()}
-      source = new Server.LeadDataSource (brushParams) ->
-        Server.get_data _.extend {}, allParams.server, brushParams
+      source = serverDataSource(allParams.server)
       brush = allParams.client.brush
     Context.value bindToBrush brush, source
 
   doc 'graph',
     'Loads and graphs time-series data'
     Documentation.load_file 'graphing.graph'
+
+  serverDataSource = (serverParams) ->
+    new Server.LeadDataSource (params) ->
+      Server.get_data _.extend {}, serverParams, params
 
   component_fn 'graph', (ctx, args...) ->
     if Q.isPromise args[0]
@@ -131,30 +132,24 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     else if args[0] instanceof Bacon.Observable
       data = args[0]
       params = _.extend {}, ctx.options(), args[1]
-    else if args[0] instanceof Server.LeadDataSource
-      # TODO opentsdb won't like some of these params
-      params = _.extend {}, ctx.options(), args[1]
-      if params.bindToBrush == true
-        params.brush ?= new Bacon.Model
-        data = bindToBrush params.brush, args[0]
-      else if params.bindToBrush instanceof Bacon.Observable
-        data = bindToBrush params.bindToBrush, args[0]
-      else
-        promise = args[0].load params
     else
-      all_params = Server.args_to_params {args, default_options: ctx.options()}
-      params = all_params.client
-      source = new Server.LeadDataSource (brushParams) ->
-        Server.get_data _.extend {}, all_params.server, brushParams
+      if args[0] instanceof Server.LeadDataSource
+        source = args[0]
+        # TODO opentsdb won't like some of these params
+        params = _.extend {}, ctx.options(), args[1]
+      else
+        all_params = Server.args_to_params {args, default_options: ctx.options()}
+        params = all_params.client
+        source = serverDataSource(all_params.server)
+
       if params.bindToBrush == true
         params.brush ?= new Bacon.Model
         data = bindToBrush params.brush, source
       else if params.bindToBrush instanceof Bacon.Observable
         data = bindToBrush params.bindToBrush, source
         params.brush ?= params.bindToBrush
-        delete params.bindToBrush
       else
-        promise = Server.get_data all_params.server
+        promise = source.load params
 
     if promise
       data = Bacon.fromPromise(promise)
