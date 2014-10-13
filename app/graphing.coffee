@@ -164,7 +164,6 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         Graphing.create_component(data, params)
 
   create_component: (data, params) ->
-    data = Bacon.fromPromise data if Q.isPromise data
     params = paramsToProperty params
     stream = Bacon.combineTemplate {data, params}
     model = Bacon.Model()
