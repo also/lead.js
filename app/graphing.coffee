@@ -77,12 +77,12 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   fn 'brushParams', (ctx, brush) ->
     Context.value brushParams brush ? ctx.options().brush
 
-  brushParams = (brush) ->
+  brushParams = (params, brush) ->
     brush.filter(({brushing}) -> !brushing).map ({extent}) ->
       if extent?
         start: moment(extent[0]).unix(), end: moment(extent[1]).unix()
       else
-        {}
+        start: params.start, end: params.end
 
   wrapModel = (model) ->
     if model?
@@ -97,30 +97,22 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
 
     Bacon.combineTemplate params
 
-  bindToBrush = (brush, source) ->
-    sourceParams = new Bacon.Model null
-    sourceParams.addSource brushParams(brush)
+  serverDataSource = (serverParams) ->
+    new Server.LeadDataSource (params) ->
+      Server.get_data _.extend {}, serverParams, params
 
-    sourceParams.flatMapLatest (params) ->
-      Bacon.fromPromise(source.load(params))
-
-  fn 'bindToBrush', (ctx, args...) ->
-    if args[0] instanceof Server.LeadDataSource
-      source = args[0]
-      brush = args[1]?.brush ? ctx.options().brush
-    else
-      allParams = Server.args_to_params {args, default_options: ctx.options()}
-      source = serverDataSource(allParams.server)
-      brush = allParams.client.brush
-    Context.value bindToBrush brush, source
+  paramModifier = (newParams) ->
+    (currentParams) ->
+      result = _.extend {}, currentParams, newParams
+      # Bacon checks for quality with ===, so don't change the value if possible
+      if _.isEqual(currentParams, result)
+        currentParams
+      else
+        result
 
   doc 'graph',
     'Loads and graphs time-series data'
     Documentation.load_file 'graphing.graph'
-
-  serverDataSource = (serverParams) ->
-    new Server.LeadDataSource (params) ->
-      Server.get_data _.extend {}, serverParams, params
 
   component_fn 'graph', (ctx, args...) ->
     if Q.isPromise args[0]
@@ -142,26 +134,43 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         params = all_params.client
         source = serverDataSource(all_params.server)
 
+      paramModifiers = []
       if params.bindToBrush == true
         params.brush ?= new Bacon.Model
-        data = bindToBrush params.brush, source
+        paramModifiers.push(brushParams(params, params.brush))
       else if params.bindToBrush instanceof Bacon.Observable
-        data = bindToBrush params.bindToBrush, source
         params.brush ?= params.bindToBrush
+        paramModifiers.push(brushParams(params, params.bindToBrush))
+      if params.refreshInterval?
+        paramModifiers.push(Bacon.interval(params.refreshInterval * 1000, {}).map(-> refreshTime: +new Date))
+
+      if paramModifiers.length > 0
+        paramsModel = new Bacon.Model(params)
+        _.each paramModifiers, (observable) ->
+          paramsModel.apply(observable.map(paramModifier))
+
+        data = paramsModel.flatMapLatest (params) ->
+          Bacon.fromPromise(source.load(params))
       else
-        promise = source.load params
+        promise = source.load(params)
 
     if promise
-      data = Bacon.fromPromise(promise)
-      Context.AsyncComponent {promise},
-        React.DOM.div {style: {width: '-webkit-min-content'}},
-          Builtins.ComponentAndError {promise},
-            Graphing.create_component(data, params)
-          Builtins.PromiseStatusComponent {promise, start_time: new Date}
+      createPromiseComponent(promise, params)
     else
-      # TODO async, error
+      createDataComponent(data, params)
+
+  createPromiseComponent = (promise, params) ->
+    data = Bacon.fromPromise(promise)
+    Context.AsyncComponent {promise},
       React.DOM.div {style: {width: '-webkit-min-content'}},
-        Graphing.create_component(data, params)
+        Builtins.ComponentAndError {promise},
+          Graphing.create_component(data, params)
+        Builtins.PromiseStatusComponent {promise, start_time: new Date}
+
+  createDataComponent = (data, params) ->
+    # TODO async, error
+    React.DOM.div {style: {width: '-webkit-min-content'}},
+      Graphing.create_component(data, params)
 
   create_component: (data, params) ->
     params = paramsToProperty params
