@@ -214,6 +214,8 @@ exports.init_app = (target) ->
 exports.raw_cell_url = (value) ->
   URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
 
+exports.SingleCoffeeScriptCellNotebookComponent = SingleCoffeeScriptCellNotebookComponent
+
 window.lead =
   settings: Settings
   init_app: exports.init_app
