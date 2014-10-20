@@ -394,7 +394,6 @@ scoped_eval = (ctx, string, var_names=[]) ->
     string = "(#{string}).apply(this);"
   _.each var_names, (name) ->
     ctx.repl_vars[name] ?= undefined
-  result = null
   (->
     `with (ctx.scope) { with (ctx.repl_vars) {`
     _capture_context = (ctx, fn) ->
@@ -402,11 +401,9 @@ scoped_eval = (ctx, string, var_names=[]) ->
       (args...) ->
         restoring_context => fn.apply @, args
 
-    result = eval string
+    return eval string
     `}}`
   ).call ctx
-
-  result
 
 
 eval_in_context = (run_context, string) ->
