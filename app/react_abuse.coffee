@@ -2,18 +2,6 @@ React = require 'react/lib/ReactWithAddons'
 _ = require 'underscore'
 Bacon = require 'bacon.model'
 
-component_id = 1
-
-createIdentityClass = (args...) ->
-  cls = React.createClass args...
-  prefix = cls.displayName ? 'identity'
-  (props, args...) ->
-    props ?= {}
-    props.key = "#{prefix}_#{component_id++}"
-    cls props, args...
-
-generate_component_id = -> component_id++
-
 ObservableMixin =
   #get_observable: -> @props.observable
   getInitialState: ->
@@ -28,7 +16,7 @@ ObservableMixin =
   componentWillUnmount: ->
     @state.unsubscribe()
 
-SimpleObservableComponent = createIdentityClass
+SimpleObservableComponent = React.createClass
   displayName: 'SimpleObservableComponent'
   mixins: [ObservableMixin]
   render: ->
@@ -40,10 +28,10 @@ SimpleLayoutComponent = React.createClass
   render: ->
     React.DOM.div {}, @props.children
 
-PropsModelComponent = createIdentityClass
+PropsModelComponent = React.createClass
   displayName: 'PropsModelComponent'
   mixins: [ObservableMixin]
   get_observable: -> @props.child_props
   render: -> @props.constructor @state.value
 
-_.extend exports, {PropsModelComponent, ObservableMixin, SimpleLayoutComponent, createIdentityClass, generate_component_id}, React
+_.extend exports, {PropsModelComponent, ObservableMixin, SimpleLayoutComponent}, React

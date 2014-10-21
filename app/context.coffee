@@ -34,7 +34,7 @@ ContextAwareMixin =
     # TODO update later in lifecycle
     ctx: find_ancestor_contexts(@)[0]
 
-ComponentContextComponent = React.createIdentityClass
+ComponentContextComponent = React.createClass
   displayName: 'ComponentContextComponent'
   mixins: [ContextRegisteringMixin]
   render: -> React.DOM.div null, @props.children
@@ -163,7 +163,7 @@ bind_context_fns = (target, scope, fns, name_prefix='') ->
 find_in_scope = (ctx, name) ->
   ctx.scope[name]
 
-AsyncComponent = React.createIdentityClass
+AsyncComponent = React.createClass
   displayName: 'AsyncComponent'
   mixins: [ContextAwareMixin]
   componentWillMount: ->
@@ -174,7 +174,7 @@ AsyncComponent = React.createIdentityClass
     React.DOM.div null, @props.children
 
 
-ContextComponent = React.createIdentityClass
+ContextComponent = React.createClass
   displayName: 'ContextComponent'
   mixins: [ContextRegisteringMixin]
   propTypes:
@@ -256,12 +256,13 @@ is_component = (o) -> o?.__realComponentInstance?
 
 component_list = ->
   components = []
+  componentId = 1
   model = new Bacon.Model []
 
   model: model
   add_component: (c) ->
     unless c.props.key?
-      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{React.generate_component_id()}"
+      c = React.addons.cloneWithProps c, key: componentId++
     components.push c
     model.set components.slice()
   empty: ->
