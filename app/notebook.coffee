@@ -6,11 +6,12 @@ Editor = require './editor'
 http = require './http'
 Context = require './context'
 modules = require './modules'
-React = require './react_abuse'
+React = require 'react/addons'
 CoffeeScriptCell = require './coffeescript_cell'
 Markdown = require './markdown'
 Builtins = require './builtins'
 Documentation = require './documentation'
+Components = require './components'
 
 modules.export exports, 'notebook', ({component_fn, fn, cmd, component_cmd}) ->
   component_cmd 'save', 'Saves the current notebook to a file', (ctx) ->
@@ -63,7 +64,7 @@ InputOutputComponent = React.createClass
 
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
-  mixins: [React.ObservableMixin]
+  mixins: [Components.ObservableMixin]
   get_observable: -> @props.cells_model
   render: ->
     props = null
@@ -218,7 +219,7 @@ add_input_cell = (notebook, opts={}) ->
 
 InputCellComponent = React.createClass
   displayName: 'InputCellComponent'
-  mixins: [React.ObservableMixin, React.addons.PureRenderMixin]
+  mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: -> @props.cell.changes
   render: ->
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
@@ -274,7 +275,7 @@ focus_cell = (cell) ->
 
 OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
-  mixins: [React.ObservableMixin, React.addons.PureRenderMixin]
+  mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: -> @props.cell.component_model
   render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value
   componentDidMount: ->

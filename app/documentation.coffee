@@ -1,4 +1,4 @@
-React = require './react_abuse'
+React = require 'react'
 Router = require 'react-router'
 _ = require 'underscore'
 Markdown = require './markdown'

@@ -2,11 +2,11 @@ CodeMirror = require 'codemirror'
 require 'codemirror/addon/runmode/runmode'
 URI = require 'URIjs'
 _ = require 'underscore'
+React = require 'react'
 Markdown = require './markdown'
 modules = require './modules'
 http = require './http'
 Documentation = require './documentation'
-React = require './react_abuse'
 Components = require './components'
 Context = require './context'
 App = require './app'
@@ -254,7 +254,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   ObservableComponent = React.createClass
     displayName: 'ObservableComponent'
-    mixins: [React.ObservableMixin]
+    mixins: [Components.ObservableMixin]
     render: ->
       if @state.value?
         valueComponent = ObjectBrowserComponent object: @state.value

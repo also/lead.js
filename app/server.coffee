@@ -4,7 +4,7 @@ Bacon = require 'bacon.model'
 Q = require 'q'
 URI = require 'URIjs'
 moment = require 'moment'
-React = require './react_abuse'
+React = require 'react'
 dsl = require './dsl'
 modules = require './modules'
 graphite_function_names = require './functions'
@@ -177,7 +177,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     props = Bacon.Model.combine {results, query, on_click: (node) -> clicks.push node}
     component = Context.AsyncComponent {promise},
       Builtins.ComponentAndError {promise},
-        React.PropsModelComponent constructor: FindResultsComponent, child_props: props
+        Components.PropsModelComponent constructor: FindResultsComponent, child_props: props
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
     Context.value {promise, clicks, component}

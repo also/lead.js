@@ -1,4 +1,4 @@
-React = require './react_abuse'
+React = require 'react'
 Bacon = require 'baconjs'
 _ = require 'underscore'
 Server = require './server'
@@ -14,7 +14,7 @@ remove_target = (targets, target) ->
 
 TargetsEditorComponent = React.createClass
   displayName: 'TargetsEditorComponent'
-  mixins: [React.ObservableMixin]
+  mixins: [Components.ObservableMixin]
   get_observable: -> @props.targets
   remove_target: (target) ->
     remove_target @props.targets, target

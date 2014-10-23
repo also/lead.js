@@ -1,10 +1,11 @@
 _ = require 'underscore'
+React = require 'react'
 Bacon = require 'bacon.model'
 modules = require './modules'
-React = require './react_abuse'
 Context = require './context'
+Components = require './components'
 
-InputMixin = _.extend {}, React.ObservableMixin,
+InputMixin = _.extend {}, Components.ObservableMixin,
   get_observable: -> @props.model
   handle_change: (e) ->
     @props.model.set e.target.value
