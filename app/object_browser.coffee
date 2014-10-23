@@ -3,7 +3,7 @@ _ = require './core'
 
 Toggleable =
   getInitialState: ->
-    open: @props.initially_open or false
+    open: @props.initiallyOpen or false
   toggle: (e) ->
     e.stopPropagation()
     @setState open: !@state.open
@@ -15,14 +15,16 @@ Toggleable =
 
 ObjectBrowserComponent = React.createClass
   displayName: 'ObjectBrowserComponent'
+  getDefaultProps: ->
+    showProto: true
   render: ->
     React.DOM.div {className: 'object-browser'},
       if isSimple @props.object
         componentForObject @props.object
       else if _.isArray @props.object
-        ObjectBrowserTopLevelArrayComponent object: @props.object
+        ObjectBrowserTopLevelArrayComponent @props
       else
-        ObjectBrowserTopLevelObjectComponent object: @props.object
+        ObjectBrowserTopLevelObjectComponent @props
 
 ObjectBrowserTopLevelObjectComponent = React.createClass
   displayName: 'ObjectBrowserTopLevelObjectComponent'
@@ -36,7 +38,7 @@ ObjectBrowserTopLevelObjectComponent = React.createClass
         React.DOM.div {},
           # spacer lol
           React.DOM.i {className: "fa fa-fw"}
-          ObjectBrowserEntriesComponent object: @props.object
+          ObjectBrowserEntriesComponent object: @props.object, showProto: @props.showProto
 
 
 ObjectBrowserTopLevelArrayComponent = React.createClass
@@ -51,7 +53,7 @@ ObjectBrowserTopLevelArrayComponent = React.createClass
         React.DOM.div {},
           # spacer lol
           React.DOM.i {className: "fa fa-fw"}
-          ObjectBrowserEntriesComponent object: @props.object
+          ObjectBrowserEntriesComponent object: @props.object, showProto: @props.showProto
 
 OneLineArrayComponent = React.createClass
   displayName: 'OneLineArrayComponent'
@@ -104,7 +106,7 @@ ObjectBrowserEntriesComponent = React.createClass
         ObjectBrowserEntryComponent {key, value, enumerable}
       if props.length > @state.visibleEntries
         React.DOM.div {onClick: @expand, className: 'run-button'}, 'Show more'
-      if proto?
+      if proto? and @props.showProto
         ObjectBrowserEntryComponent {key: '__proto__', value: proto, own: false}
 
 isSimple = (o) ->
@@ -143,7 +145,7 @@ ObjectBrowserEntryComponent = React.createClass
           React.DOM.div {},
             # spacer lol
             React.DOM.i {className: "fa fa-fw"}
-            ObjectBrowserEntriesComponent object: value
+            ObjectBrowserEntriesComponent object: value, showProto: @props.showProto
 
 componentForObject = (o) ->
   if _.isUndefined o
