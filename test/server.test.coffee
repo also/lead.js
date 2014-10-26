@@ -31,16 +31,16 @@ describe 'server', ->
     expect(server.target[1]).to.be 'test.2'
 
   it 'accepts options as options:', ->
-    {server} = Server.args_to_params args: [target: 'test', options: {yMax: 9999}]
+    {client, server} = Server.args_to_params args: [target: 'test', options: {yMax: 9999}]
     expect(server.target.length).to.be 1
     expect(server.target[0]).to.be 'test'
-    expect(server.yMax).to.be 9999
+    expect(client.yMax).to.be 9999
 
   it 'treats everything except targets as options', ->
-    {server} = Server.args_to_params args: [target: 'test', yMax: 9999]
+    {client, server} = Server.args_to_params args: [target: 'test', yMax: 9999]
     expect(server.target.length).to.be 1
     expect(server.target[0]).to.be 'test'
-    expect(server.yMax).to.be 9999
+    expect(client.yMax).to.be 9999
 
   it 'accepts variadic string arguments as targets', ->
     {server} = Server.args_to_params args: ['a', 'b', 'c']
