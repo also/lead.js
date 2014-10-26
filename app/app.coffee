@@ -163,7 +163,7 @@ BuilderAppComponent = React.createClass
 reset_user_settings = (settings) ->
   Settings.user_settings.set settings
 
-exports.init_app = (target) ->
+exports.init_app = (target, options={}) ->
   # TODO warn
   try
     Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings')
@@ -177,8 +177,8 @@ exports.init_app = (target) ->
   if publicUrl?
     `__webpack_public_path__ = publicUrl`
 
-  extraRoutes = Settings.get('app', 'extraRoutes') or []
-  bodyWrapper = Settings.get 'app', 'bodyWrapper'
+  extraRoutes = options.extraRoutes or []
+  bodyWrapper = options.bodyWrapper
 
   raw_cell_value = null
   if location.search isnt ''
