@@ -1,5 +1,5 @@
 Marked = require 'marked'
-React = require './react_abuse'
+React = require 'react'
 Components = require './components'
 Context = require './context'
 URI = require 'URIjs'

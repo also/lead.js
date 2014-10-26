@@ -8,7 +8,7 @@ _ = require 'underscore'
 Q = require  'q'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
-React = require './react_abuse'
+React = require 'react/addons'
 
 # CAREFUL ABOUT PUTTING MORE IMPORTS HERE! OTHER MODULES DEPEND ON THE COMPONENTS BELOW
 
@@ -34,7 +34,7 @@ ContextAwareMixin =
     # TODO update later in lifecycle
     ctx: find_ancestor_contexts(@)[0]
 
-ComponentContextComponent = React.createIdentityClass
+ComponentContextComponent = React.createClass
   displayName: 'ComponentContextComponent'
   mixins: [ContextRegisteringMixin]
   render: -> React.DOM.div null, @props.children
@@ -44,6 +44,7 @@ _.extend exports, {
   ContextAwareMixin
 }
 
+Components = require './components'
 Builtins = require './builtins'
 Modules = require './modules'
 
@@ -163,7 +164,7 @@ bind_context_fns = (target, scope, fns, name_prefix='') ->
 find_in_scope = (ctx, name) ->
   ctx.scope[name]
 
-AsyncComponent = React.createIdentityClass
+AsyncComponent = React.createClass
   displayName: 'AsyncComponent'
   mixins: [ContextAwareMixin]
   componentWillMount: ->
@@ -174,7 +175,7 @@ AsyncComponent = React.createIdentityClass
     React.DOM.div null, @props.children
 
 
-ContextComponent = React.createIdentityClass
+ContextComponent = React.createClass
   displayName: 'ContextComponent'
   mixins: [ContextRegisteringMixin]
   propTypes:
@@ -185,7 +186,7 @@ ContextComponent = React.createIdentityClass
 
 ContextLayoutComponent = React.createClass
   displayName: 'ContextLayoutComponent'
-  mixins: [React.ObservableMixin]
+  mixins: [Components.ObservableMixin]
   propTypes:
     ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
   get_observable: -> @props.ctx.component_list.model
@@ -256,12 +257,13 @@ is_component = (o) -> o?.__realComponentInstance?
 
 component_list = ->
   components = []
+  componentId = 1
   model = new Bacon.Model []
 
   model: model
   add_component: (c) ->
     unless c.props.key?
-      c = React.addons.cloneWithProps c, key: "#{c.constructor.displayName ? 'component'}_#{React.generate_component_id()}"
+      c = React.addons.cloneWithProps c, key: componentId++
     components.push c
     model.set components.slice()
   empty: ->
@@ -362,7 +364,7 @@ create_run_context = (extra_contexts) ->
 
 
 create_nested_context = (parent, overrides) ->
-  new_context = _.extend Object.create(parent), {layout: React.SimpleLayoutComponent}, overrides
+  new_context = _.extend Object.create(parent), {layout: Components.SimpleLayoutComponent}, overrides
   new_context.component_list = component_list()
   new_context.component = ContextComponent ctx: new_context
 
