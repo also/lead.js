@@ -1,4 +1,5 @@
 var webpack = require('webpack');
+var _ = require('underscore');
 
 module.exports = {
   debug: true,
@@ -41,5 +42,11 @@ module.exports = {
     // no "." and no subdirectories in ./app context. this excludes .entry.coffee files, and files that don't match extensions
     new webpack.ContextReplacementPlugin(/\/app$/, false, /^\.\/[^.]*$/),
     new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
-  ]
+  ],
+  integrate: function (directory) {
+    var result = _.clone(module.exports);
+    result.resolve.root = [__dirname + '/node_modules', directory + '/node_modules'];
+    result.resolveLoader = {root: result.resolve.root};
+    return result;
+  }
 }
