@@ -175,14 +175,18 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     displayName: 'GraphComponent'
     render: ->
       React.DOM.div {className: 'graph'}
+    componentWillReceiveProps: (nextProps) ->
+      @state.unsubscribe()
+      @subscribe(nextProps.model, @state.graph)
     componentDidMount: ->
       node = @getDOMNode()
       graph = GraphDrawing.create(node)
-      # FIXME #175 props can change
-      unsubscribe = @props.model.onValue ({data, params}) =>
+      @subscribe(@props.model, graph)
+      @setState {graph}
+    subscribe: (model, graph) ->
+      @setState unsubscribe: model.onValue ({data, params}) =>
         return unless data?
         graph.draw(data, params)
-      @setState {graph, unsubscribe}
     componentWillUnmount: ->
       if @state
         @state.graph.destroy()
