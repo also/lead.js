@@ -214,12 +214,12 @@ create = (container) ->
 
     time_min = null
     time_max = null
-    _.each data, ({datapoints}) ->
+    _.each data, ({datapoints}, j) ->
       if datapoints.length > 0
         _.each [0, datapoints.length - 1], (i) ->
           datapoint = datapoints[i]
-          value = get_value datapoint, i
-          timestamp = get_timestamp datapoint, i
+          value = get_value datapoint, i, j
+          timestamp = get_timestamp datapoint, i, j
           time_min = Math.min timestamp, time_min ? timestamp
           time_max = Math.max timestamp, time_max
 
@@ -257,8 +257,8 @@ create = (container) ->
     value_max = null
     targets = for s, targetIndex in data
       values = for datapoint, i in s.datapoints
-        value = get_value datapoint, i
-        timestamp = get_timestamp datapoint, i
+        value = get_value datapoint, i, targetIndex
+        timestamp = get_timestamp datapoint, i, targetIndex
         time = new Date(timestamp * 1000)
         value = transform_value value
         value_min = Math.min value, value_min ? value if value?
