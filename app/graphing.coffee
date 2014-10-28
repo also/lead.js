@@ -4,7 +4,7 @@ _ = require 'underscore'
 moment = require 'moment'
 Q = require 'q'
 Bacon = require 'bacon.model'
-React = require 'react'
+React = require 'react/addons'
 modules = require './modules'
 Documentation = require './documentation'
 Server = require './server'
@@ -191,3 +191,17 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
       if @state
         @state.graph.destroy()
         @state.unsubscribe()
+
+  DirectGraphComponent: React.createClass
+    displayName: 'DirectGraphComponent'
+    mixins: [React.addons.PureRenderMixin]
+    getInitialState: ->
+      graph: null
+    componentDidMount: ->
+      graph = GraphDrawing.create(@getDOMNode())
+      graph.draw(@props.data, @props.params)
+      @setState {graph}
+    componentDidUpdate: ->
+      @state.graph.draw(@props.data, @props.params)
+    render: ->
+      React.DOM.div {className: 'graph'}
