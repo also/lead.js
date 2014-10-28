@@ -2,7 +2,6 @@ URI = require 'URIjs'
 _ = require 'underscore'
 React = require 'react'
 {Route, Routes} = Router = require 'react-router'
-makeHref = require 'react-router/modules/helpers/makeHref'
 Notebook = require './notebook'
 Builtins = require './builtins'
 Settings = require './settings'
@@ -32,6 +31,8 @@ module_names.push (Settings.get('app', 'module_names') or [])...
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
+appComponent = null
+
 NotFoundComponent = React.createClass
   displayName: 'NotFoundComponent'
   render: ->
@@ -39,7 +40,10 @@ NotFoundComponent = React.createClass
 
 AppComponent = React.createClass
   displayName: 'AppComponent'
+  mixins: [Router.Navigation]
   render: ->
+    # TODO don't do this :(
+    appComponent = @
     if @props.bodyWrapper
       body = @props.bodyWrapper null, @props.activeRouteHandler()
     else
@@ -83,10 +87,11 @@ HelpWrapperComponent = React.createClass
 
 HelpComponent = React.createClass
   displayName: 'HelpComponent'
+  mixins: [Router.Navigation]
   run: (value) ->
-    Router.transitionTo 'raw_notebook', splat: btoa value
+    @transitionTo 'raw_notebook', splat: btoa value
   navigate: (key) ->
-    Router.transitionTo 'help', {key}
+    @transitionTo 'help', {key}
   render: ->
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
@@ -187,32 +192,36 @@ exports.init_app = (target, options={}) ->
     uri.query null
     window.history.replaceState null, document.title, uri.toString()
 
-  null_route = (fn) -> React.createClass render: -> fn.call(@); null
+  null_route = (fn) ->
+    React.createClass
+      mixins: [Router.Navigation]
+      render: -> fn.call(@); null
 
   routesComponent = Routes null,
     Route {handler: AppComponent, bodyWrapper},
       Route {path: '/', name: 'default', handler: null_route ->
         if raw_cell_value?
-          Router.replaceWith '/notebook/raw/' + raw_cell_value
+          this.replaceWith '/notebook/raw/' + raw_cell_value
         else
-          Router.transitionTo 'notebook'
+          this.transitionTo 'notebook'
       }
       Route {name: 'notebook', handler: NewNotebookComponent}
-      Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent}
-      Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent}
+      Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent, addHandlerKey: true}
+      Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent, addHandlerKey: true}
       Route {path: '/builder', handler: BuilderAppComponent}
       Route {path: '/help', name: 'help-index', handler: HelpComponent}
-      Route {path: '/help/:key', name: 'help', handler: HelpComponent}
+      Route {path: '/help/:key', name: 'help', handler: HelpComponent, addHandlerKey: true}
       Route {name: 'settings', handler: SettingsComponent}
       extraRoutes...
-      Route {path: '/:gist', name: 'old_gist', handler: null_route -> Router.transitionTo 'gist_notebook', gist: @props.params.gist}
+      Route {path: '/:gist', name: 'old_gist', addHandlerKey: true, handler: null_route -> this.transitionTo 'gist_notebook', gist: @props.params.gist}
 
   # TODO handler errors, timeouts
   Modules.init_modules(module_names).finally ->
     React.renderComponent routesComponent, target
 
 exports.raw_cell_url = (value) ->
-  URI(makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
+  # TODO don't require appComponent
+  URI(appComponent.makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
 
 exports.SingleCoffeeScriptCellNotebookComponent = SingleCoffeeScriptCellNotebookComponent
 
