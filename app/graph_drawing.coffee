@@ -225,7 +225,7 @@ create = (container) ->
 
     time_min = new Date(time_min * 1000)
     time_max = new Date(time_max * 1000)
-    x.domain [time_min, time_max]
+    x.domain [params.xMin ? time_min, params.xMax ? time_max]
 
     stack.offset(params.areaOffset)
 
