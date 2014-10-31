@@ -14,6 +14,15 @@ Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 
+require './http'
+Modules.register 'dsl', require './dsl'
+Modules.register 'settings', Settings
+Modules.register 'context', Context
+require './compat'
+require './graphing'
+require './input'
+require './opentsdb'
+
 module_names = ['http', 'dsl', 'graphing', 'settings', 'input', 'notebook']
 
 imports = [

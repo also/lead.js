@@ -4,7 +4,11 @@ _ = require 'underscore'
 settings = require './settings'
 Context = require './context'
 
+registeredModules = {}
+
 _.extend exports,
+  register: (moduleName, module) ->
+    registeredModules[moduleName] = module
   export: (exports, module_name, definition_fn) ->
     _.extend exports, module.exports.create module_name, definition_fn
   create: (module_name, definition_fn) ->
@@ -49,15 +53,15 @@ _.extend exports,
 
     mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
     if definition_fn?
-      _.extend {context_fns, settings}, definition_fn mod
-    else
-      mod
+      mod = _.extend {context_fns, settings}, definition_fn mod
+
+    registeredModules[module_name] = mod
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
 
   get_module: (module_name) ->
-    require './' + module_name
+    registeredModules[module_name]
 
   get_modules: (module_names) ->
     _.object module_names, _.map module_names, module.exports.get_module
