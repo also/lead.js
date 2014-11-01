@@ -1,4 +1,5 @@
 CoffeeScript = require 'coffee-script'
+CoffeeReactTransform = require('coffee-react-transform')
 Editor = require './editor'
 Context = require './context'
 Builtins = require './builtins'
@@ -33,6 +34,7 @@ create_fn = (string) ->
   (ctx) ->
     try
       locals = Object.keys ctx.repl_vars
+      string = CoffeeReactTransform(string)
       compiled = CoffeeScript.compile(string, bare: true, locals: locals) + "\n//\# sourceURL=console-coffeescript-#{fnNumber++}.js"
 
       {global_vars, source} = Javascript.mangle compiled

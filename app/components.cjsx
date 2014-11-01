@@ -1,3 +1,4 @@
+# @cjsx React.DOM
 CodeMirror = require 'codemirror'
 _ = require 'underscore'
 React = require 'react/addons'
@@ -20,11 +21,13 @@ ExampleComponent = React.createClass
   mixins: [ContextComponents.ContextAwareMixin]
   getDefaultProps: -> language: 'coffeescript'
   render: ->
-    React.DOM.div {className: 'example'},
-      @transferPropsTo SourceComponent()
-      React.DOM.span {className: 'run-button', onClick: @on_click},
-        React.DOM.i {className: 'fa fa-play-circle'}
-        ' Run this example'
+    <div className='example'>
+      {@transferPropsTo SourceComponent()}
+      <span className='run-button' onClick={@on_click}>
+        <i className='fa fa-play-circle'/>
+        &nbsp;Run this example
+      </span>
+    </div>
   on_click: ->
     if @props.run
       @state.ctx.run @props.value
@@ -57,7 +60,7 @@ TreeNodeComponent = React.createClass
     if state == 'open'
       child_nodes = _.map @props.value(path), (child) =>
         @props.create_node _.extend {}, @props, {node: child}
-      child = React.DOM.ul null, _.sortBy child_nodes, (node) -> node.props.name
+      child = <ul>{_.sortBy child_nodes, (node) -> node.props.name}</ul>
     else if state == 'failed'
       child = @props.create_error_node(@props)
     else
@@ -70,11 +73,14 @@ TreeNodeComponent = React.createClass
       toggle = 'fa fa-fw fa-spinner fa-spin'
     else
       toggle = 'fa fa-fw fa-caret-right'
-    React.DOM.li null,
-      React.DOM.span({onClick: @handle_click},
-        React.DOM.i {className: toggle}
-        @props.children)
-        React.DOM.div {className: 'child'}, child
+
+    <li>
+      <span onClick={@handle_click}>
+        <i className={toggle}/>
+        {@props.children}
+      </span>
+      <div className='child'>{child}</div>
+    </li>
   handle_click: ->
     path = @props.node.path
     state = @props.tree_state[path]
@@ -170,16 +176,18 @@ ToggleComponent = React.createClass
       toggle_class = 'fa-caret-down'
     else
       toggle_class = 'fa-caret-right'
-    React.DOM.div {className: 'toggle-component'},
-      React.DOM.div {className: 'toggle', onClick: @toggle},
-        React.DOM.i {className: "fa fa-fw #{toggle_class}"}
-        React.DOM.div {className: 'toggle-title'},
-          @props.title
-      if @state.open
-        React.DOM.div {},
-          React.DOM.i {className: "fa fa-fw"}
-            React.DOM.div {className: 'toggle-body'},
-              @props.children
+
+    <div className='toggle-component'>
+      <div className='toggle' onClick={@toggle}>
+        <i className={"fa fa-fw #{toggle_class}"}/>
+        <div className='toggle-title'>{@props.title}</div>
+      </div>
+      {if @state.open
+        <div>
+          <i className="fa fa-fw"/>
+          <div className='toggle-body'>{@props.children}</div>
+        </div>}
+    </div>
 
 ObservableMixin =
   #get_observable: (props) -> props.observable
@@ -212,13 +220,13 @@ SimpleObservableComponent = React.createClass
   displayName: 'SimpleObservableComponent'
   mixins: [ObservableMixin]
   render: ->
-    React.DOM.div {}, @state.value
+    <div>{@state.value}</div>
 
 SimpleLayoutComponent = React.createClass
   displayName: 'SimpleLayoutComponent'
   mixins: [React.addons.PureRenderMixin]
   render: ->
-    React.DOM.div {}, @props.children
+    <div>{@props.children}</div>
 
 PropsModelComponent = React.createClass
   displayName: 'PropsModelComponent'

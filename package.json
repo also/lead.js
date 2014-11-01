@@ -22,7 +22,8 @@
     "jsdom": "~0.8.4",
     "react-router": "^0.9.4",
     "acorn": "^0.6.0",
-    "font-awesome": "4.2.0"
+    "font-awesome": "4.2.0",
+    "coffee-react-transform": "^1.0.4"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
