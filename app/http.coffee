@@ -5,9 +5,9 @@ modules = require './modules'
 Context = require './context'
 
 http = modules.create 'http', ({fn}) ->
-  fn 'execute', 'Executes an HTTP request', -> Context.value http.execute.apply http, arguments
-  fn 'get', 'Executes an HTTP GET', -> Context.value http.get.apply http, arguments
-  fn 'post', 'Executes an HTTP POST', -> Context.value http.post.apply http, arguments
+  fn 'execute', 'Executes an HTTP request', (ctx, args...) -> Context.value http.execute args...
+  fn 'get', 'Executes an HTTP GET', (ctx, args...) -> Context.value http.get args...
+  fn 'post', 'Executes an HTTP POST', (ctx, args...) -> Context.value http.post args...
 
   execute_xhr: (url, options) ->
     xhr = $.ajax _.extend {url, dataType: 'json', contentType: 'application/json'}, options
