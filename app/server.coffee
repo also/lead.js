@@ -17,6 +17,31 @@ Documentation = require './documentation'
 Context = require './context'
 Components = require './components'
 
+class ServerError
+  constructor: (@error) ->
+
+ServerExceptionDetailsComponent = React.createClass
+  render: ->
+    React.DOM.div {},
+      React.DOM.div {},
+        React.DOM.strong {}, @props.exception.message
+        if @props.exception.details?.message
+          React.DOM.div {}, @props.exception.details?.message
+
+ServerErrorComponent = React.createClass
+  render: ->
+    if _.isArray @props.error
+      body = _.map @props.error, (exception) -> ServerExceptionDetailsComponent {exception}
+    else if @props.error['unhandled-exception']
+      body = ServerExceptionDetailsComponent {exception: @props.error['unhandled-exception']}
+
+    React.DOM.div {},
+      React.DOM.strong {}, 'Server Error',
+        body
+        Components.ToggleComponent {title: 'Details'},
+          Builtins.ObjectBrowserComponent {object: @props.error, showProto: false}
+
+
 server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   functions_promise = null
   function_names = null
@@ -298,7 +323,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
   transform_response: (response) ->
     if settings.get('type') == 'lead'
       if response.exceptions.length > 0
-        return Q.reject response.exceptions
+        return Q.reject new ServerError(response.exceptions)
       _.map _.flatten(_.values(response.results)), ({name, start, step, values}) ->
         if step?
           target: name
@@ -320,7 +345,7 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     else
       promise = http.get server.render_url(params)
 
-    promise.then server.transform_response, (response) -> Q.reject server.parse_error_response response
+    promise.then server.transform_response, (response) -> Q.reject new ServerError(server.parse_error_response response)
 
   # returns a promise
   complete: (query) ->
@@ -408,6 +433,10 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
       return ['server', 'functions', o.fn_name]
     if _.isString(o) and docs.parameter_docs[o]
       return ['server', 'parameters', o]
+
+  renderError: (error) ->
+    if error instanceof ServerError
+      ServerErrorComponent {error: error.error}
 
 server.suggest_strings = server.complete
 

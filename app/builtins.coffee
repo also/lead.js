@@ -157,17 +157,24 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
+    mixins: [Context.ContextAwareMixin]
     render: ->
-      message = @props.message
-      if not message?
-        message = 'Unknown error'
-        # TODO include stack trace?
-      else if message instanceof Error
-        message = message.toString()
-      else if not _.isString message
-        message =  ObjectBrowserComponent object: message
-        # TODO handle exceptions better
-      React.DOM.pre {className: 'error'}, message
+      errorRenderers = Context.collect_extension_points(@state.ctx, 'renderError')
+      message = null
+      _.find errorRenderers, (renderer) =>
+        message = renderer(@props.message)
+
+      unless message
+        message = @props.message
+        if not message?
+          message = React.DOM.pre {}, 'Unknown error'
+          # TODO include stack trace?
+        else if message instanceof Error
+          message = React.DOM.pre {}, message.toString()
+        else if not _.isString message
+          message = ObjectBrowserComponent object: message
+          # TODO handle exceptions better
+      React.DOM.div {className: 'error'}, message
 
 
   component_fn 'example', 'Displays a code example', (ctx, value, opts) ->

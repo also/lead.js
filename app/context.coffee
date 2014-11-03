@@ -29,7 +29,6 @@ ContextRegisteringMixin =
     delete contexts_by_root_node_id[@_rootNodeID]
 
 ContextAwareMixin =
-  contextTypes: ctx: React.PropTypes.object
   getInitialState: ->
     # TODO update later in lifecycle
     ctx: find_ancestor_contexts(@)[0]
