@@ -188,7 +188,7 @@ ContextLayoutComponent = React.createClass
   mixins: [Components.ObservableMixin]
   propTypes:
     ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
-  get_observable: -> @props.ctx.component_list.model
+  get_observable: (props) -> props.ctx.component_list.model
   render: ->
     ctx = @props.ctx
     ctx.layout _.extend {children: @state.value}, ctx.layout_props

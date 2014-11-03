@@ -65,7 +65,7 @@ InputOutputComponent = React.createClass
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
   mixins: [Components.ObservableMixin]
-  get_observable: -> @props.cells_model
+  get_observable: (props) -> props.cells_model
   render: ->
     props = null
     ios = []
@@ -220,7 +220,7 @@ add_input_cell = (notebook, opts={}) ->
 InputCellComponent = React.createClass
   displayName: 'InputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  get_observable: -> @props.cell.changes
+  get_observable: (props) -> props.cell.changes
   render: ->
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
       React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, React.DOM.i {className: 'fa fa-link'}),
@@ -276,7 +276,7 @@ focus_cell = (cell) ->
 OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  get_observable: -> @props.cell.component_model
+  get_observable: (props) -> props.cell.component_model
   render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value
   componentDidMount: ->
     @props.cell.dom_node = @getDOMNode()

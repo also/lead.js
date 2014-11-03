@@ -6,7 +6,7 @@ Context = require './context'
 Components = require './components'
 
 InputMixin = _.extend {}, Components.ObservableMixin,
-  get_observable: -> @props.model
+  get_observable: (props) -> props.model
   handle_change: (e) ->
     @props.model.set e.target.value
 
