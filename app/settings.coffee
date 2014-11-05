@@ -1,11 +1,11 @@
 _ = require 'underscore'
 $ = require 'jquery'
 Bacon = require 'baconjs'
-modules = require './modules'
-Context = require './context'
 
 init = ->
-  modules.export exports, 'settings', ({fn}) ->
+  Modules = require './modules'
+  Context = require './context'
+  Modules.export exports, 'settings', ({fn}) ->
     fn 'set', 'Sets a user setting', (ctx, keys..., value) ->
       user_settings.set keys..., value
     fn 'get', 'Gets a setting', (ctx, keys...) ->
