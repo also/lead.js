@@ -194,11 +194,10 @@ exports.init_app = (target, options={}) ->
   extraRoutes = options.extraRoutes or []
   bodyWrapper = options.bodyWrapper
 
-  raw_cell_value = null
   if location.search isnt ''
     uri = URI location.href
-    raw_cell_value = uri.query()
-    uri.query null
+    uri.hash("#{uri.hash()}?#{uri.query()}")
+    uri.query(null)
     window.history.replaceState null, document.title, uri.toString()
 
   null_route = (fn) ->
@@ -208,12 +207,12 @@ exports.init_app = (target, options={}) ->
 
   routesComponent = Routes null,
     Route {handler: AppComponent, bodyWrapper},
-      Route {path: '/', name: 'default', handler: null_route ->
-        if raw_cell_value?
-          this.replaceWith '/notebook/raw/' + raw_cell_value
+      Route path: '/', name: 'default', handler: null_route ->
+        queryKeys = Object.keys(@props.query)
+        if queryKeys.length == 1 and @props.query[queryKeys[0]].length == 0
+          this.replaceWith '/notebook/raw/' + queryKeys[0]
         else
           this.transitionTo 'notebook'
-      }
       Route {name: 'notebook', handler: NewNotebookComponent}
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent, addHandlerKey: true}
       Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent, addHandlerKey: true}
