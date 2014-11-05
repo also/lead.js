@@ -221,7 +221,7 @@ exports.init_app = (target, options={}) ->
       Route {path: '/help/:key', name: 'help', handler: HelpComponent, addHandlerKey: true}
       Route {name: 'settings', handler: SettingsComponent}
       extraRoutes...
-      Route {path: '/:gist', name: 'old_gist', addHandlerKey: true, handler: null_route -> this.transitionTo 'gist_notebook', gist: @props.params.gist}
+      Router.NotFoundRoute {handler: NotFoundComponent}
 
   # TODO handler errors, timeouts
   Modules.init_modules(module_names).finally ->
