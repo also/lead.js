@@ -214,7 +214,12 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until']
       unless function_names
-        functions_promise = http.get(server.url 'functions').then (functions) ->
+        functions_promise = http.get(server.url 'functions')
+        .fail ->
+          function_names = []
+          initDocs()
+          Q.reject('failed to load functions from lead server')
+        .then (functions) ->
           function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
           initDocs()
     else

@@ -272,7 +272,7 @@ exports.init_app = (target, options={}) ->
       extraRoutes...
       Router.NotFoundRoute {handler: NotFoundComponent}
 
-  # TODO handler errors, timeouts
+  # TODO handle errors, timeouts
   Modules.init_modules(module_names).finally ->
     React.renderComponent routesComponent, target
   .done()
