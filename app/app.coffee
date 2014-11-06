@@ -226,6 +226,7 @@ exports.init_app = (target, options={}) ->
   # TODO handler errors, timeouts
   Modules.init_modules(module_names).finally ->
     React.renderComponent routesComponent, target
+  .done()
 
 exports.raw_cell_url = (value) ->
   # TODO don't require appComponent
