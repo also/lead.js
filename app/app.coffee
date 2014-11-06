@@ -1,6 +1,8 @@
 URI = require 'URIjs'
 _ = require 'underscore'
+Q = require 'q'
 React = require 'react'
+Bacon = require 'bacon.model'
 {Route, Routes} = Router = require 'react-router'
 Notebook = require './notebook'
 Builtins = require './builtins'
@@ -13,6 +15,7 @@ Modules = require './modules'
 Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
+Server = require './server'
 
 require './http'
 Modules.register 'dsl', require './dsl'
@@ -47,12 +50,45 @@ NotFoundComponent = React.createClass
   render: ->
     React.DOM.div {}, "Not Found"
 
+modalModel = new Bacon.Model []
+
+exports.pushModal = (modal) ->
+  window.setTimeout ->
+    modalModel.modify (v) ->
+       v.concat(modal)
+  , 0
+  modal
+
+exports.removeModal = (modal) ->
+  window.setTimeout ->
+    modalModel.modify (v) ->
+      _.without v, modal
+  , 0
+
+exports.ModalComponent = React.createClass
+  render: ->
+    modal = @props.modal
+    React.DOM.div {},
+      if @props.title
+        React.DOM.div {className: 'modal-title'}, @props.title
+      React.DOM.div {className: 'modal-content'},
+        @props.children
+      if @props.footer
+        React.DOM.div {className: 'modal-footer'}, @props.footer
+
 AppComponent = React.createClass
   displayName: 'AppComponent'
+  getInitialState: ->
+    modal: null
   mixins: [Router.Navigation]
+  componentWillMount: ->
+    modalModel.onValue (modals) =>
+      @setState {modal: modals[modals.length-1]}
   render: ->
     # TODO don't do this :(
     appComponent = @
+
+    modal = @state.modal
     if @props.bodyWrapper
       body = @props.bodyWrapper null, @props.activeRouteHandler()
     else
@@ -65,6 +101,10 @@ AppComponent = React.createClass
           Router.Link {to: 'settings'}, React.DOM.i {className: 'fa fa-cog'}
       React.DOM.div {className: 'body'},
         body
+      if modal
+        React.DOM.div {className: 'modal-bg'},
+          React.DOM.div {className: 'modal-fg'},
+            modal.handler _.extend {dismiss: -> exports.removeModal(modal)}, modal.props
 
 HelpPathComponent = React.createClass
   displayName: 'HelpPathComponent'
@@ -184,6 +224,14 @@ exports.init_app = (target, options={}) ->
   catch e
     console.error 'failed loading user settings', e
 
+  window.addEventListener 'storage', (e) =>
+    if e.key == 'lead_user_settings'
+      console.log 'updating user settings'
+      try
+        Settings.user_settings.set JSON.parse(e.newValue)
+      catch e
+        console.error 'failed updating user settings', e
+
   Settings.user_settings.changes.onValue ->
     localStorage.setItem 'lead_user_settings', JSON.stringify Settings.user_settings.get()
 
@@ -219,6 +267,7 @@ exports.init_app = (target, options={}) ->
       Route {path: '/builder', handler: BuilderAppComponent}
       Route {path: '/help', name: 'help-index', handler: HelpComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent, addHandlerKey: true}
+      Route {path: '/github/oauth', handler: GitHub.GitHubOAuthComponent, addHandlerKey: true}
       Route {name: 'settings', handler: SettingsComponent}
       extraRoutes...
       Router.NotFoundRoute {handler: NotFoundComponent}

@@ -47,7 +47,7 @@ pre
   color: white
   padding: 10px
   width: 100%
-  z-index: 10000000
+  z-index: 1000
   display: flex
   box-sizing: border-box
 
@@ -63,6 +63,35 @@ pre
   a
     text-decoration: none
     color: #fff
+
+.modal-bg
+  background: rgba(0,0,0,.6)
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  height: 100%
+  z-index: 10000
+  .modal-fg
+    background: #fff
+    width: -webkit-min-content
+    margin-left: auto
+    margin-right: auto
+    position: relative
+    top: 50%
+    transform: translateY(-50%)
+    .modal-title
+      background-color: #333
+      color: white
+      font-weight: bold
+      padding: 10px
+    .modal-content
+      padding: 10px
+      min-width: 600px
+      min-height: 150px
+    .modal-footer
+      padding: 10px
 
 .help, .settings
   padding: 20px 10%

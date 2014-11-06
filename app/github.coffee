@@ -16,12 +16,14 @@ moment = require 'moment'
 React = require 'react'
 Bacon = require 'bacon.model'
 modules = require './modules'
-http = require './http'
+Http = require './http'
 global_settings = require './settings'
 Context = require './context'
 Builtins = require './builtins'
+App = require './app'
 
 Notebook = require './notebook'
+Server = require './server'
 
 modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settings}) ->
   settings.set 'githubs', 'github.com', 'api_base_url', 'https://api.github.com'
@@ -45,7 +47,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         _.extend {domain: name}, site
 
     get_repo_contents: (url) ->
-      http.get(url)
+      Http.get(url)
       .then (response) ->
         file =
           content: atob response.content.replace /\n/g, ''
@@ -73,11 +75,11 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
 
     save_gist: (gist, options={}) ->
       site = github.get_site options.github
-      http.post github.to_api_url(site, '/gists'), gist
+      Http.post github.to_api_url(site, '/gists'), gist
 
     update_gist: (id, gist, options={}) ->
       site = github.get_site options.github
-      http.patch github.to_api_url(site, "/gists/#{id}"), gist
+      Http.patch github.to_api_url(site, "/gists/#{id}"), gist
 
     to_api_url: (site, path, params={}) ->
       result = URI("#{site.api_base_url}#{path}").setQuery(params)
@@ -100,21 +102,67 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         else
           URI gist
 
+    GitHubOAuthComponent: React.createClass
+      getInitialState: ->
+        promise = Http.post(Server.url('github/oauth/token'), @props.query)
+        promise.finally => @setState finished: true
+        promise.then (v) ->
+          if v.access_token?
+            global_settings.user_settings.set 'github', 'githubs', github.default(), 'access_token', v.access_token
+
+        {promise}
+      render: ->
+        promiseState = @state.promise.inspect()
+        if promiseState.state = 'fulfilled'
+          footer = React.DOM.div {},
+            React.DOM.button {onClick: -> window.close()}, 'OK'
+
+        React.DOM.div {className: 'modal-bg'},
+          React.DOM.div {className: 'modal-fg'},
+            App.ModalComponent {footer, title: 'GitHub Authentication'},
+              if @state.finished
+                if promiseState.state = 'fulfilled'
+                  if promiseState.value.access_token?
+                    React.DOM.div {},
+                      'You have successfully authorized lead to use GitHub'
+                  else
+                    if promiseState.value.error_description?
+                      promiseState.value.error_description
+                    else
+                      'Unknown error'
+                else
+                  'Unknown error'
+              else
+                React.DOM.div {}, 'Authenticating with GitHub...'
+
   component_fn 'load', 'Loads a file from GitHub', (ctx, path, options={}) ->
     url = github.to_repo_url path
-    deferred = Q.defer()
-    promise = deferred.promise.then ->
+    promise = ensureAuth(ctx, {url}).then ->
       github.get_repo_contents url
     .fail (response) ->
       Q.reject response.statusText
     .then (file) ->
       Notebook.handle_file ctx, file, options
 
-    EnsureAccessComponent {url, on_access: deferred.resolve},
+    React.DOM.div {},
       Context.AsyncComponent {promise},
         Builtins.ComponentAndError {promise},
           "Loading file #{path}"
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
+
+  ensureAuth = (ctx, props) ->
+    if @props?.url
+      site = github.get_site_from_url(@props.url)
+    else
+      site = github.get_site github.default()
+
+    if site.requires_access_token and not site.access_token?
+      deferred = Q.defer()
+      modal = App.pushModal handler: EnsureAccessComponent, props: _.extend {deferred, site}, props
+      deferred.promise.finally -> App.removeModal(modal)
+      deferred.promise
+    else
+      Q.resolve()
 
   AccessTokenForm = React.createClass
     displayName: 'AccessTokenForm'
@@ -135,65 +183,60 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
   EnsureAccessComponent = React.createClass
     displayName: 'EnsureAccessComponent'
     mixins: [Context.ContextAwareMixin]
-    getDefaultProps: ->
-      on_access: ->
     getInitialState: ->
       # FIXME #175 props can change
-      if @props.url?
-        site = github.get_site_from_url @props.url
-      else if @props.site?
-        site = @props.site
-      else
-        site = github.get_site github.default()
-
-      if (site.requires_access_token or @props.require_access_token) and not site.access_token?
-        tokens = new Bacon.Bus
-        user_details = tokens.flatMapLatest (access_token) =>
-          @setState token_status: 'validating'
-          Bacon.combineTemplate
-            user: Bacon.fromPromise http.get github.to_api_url(site, '/user').setQuery {access_token}
-            access_token: access_token
-          .changes()
-        user_details.onValue ({user, access_token}) =>
+      site = @props.site
+      tokens = new Bacon.Bus
+      unsubscribe = tokens.plug(settings.toProperty('githubs', site.domain, 'access_token').filter(_.identity))
+      user_details = tokens.flatMapLatest (access_token) =>
+        @setState token_status: 'validating'
+        Bacon.combineTemplate
+          user: Bacon.fromPromise Http.get github.to_api_url(site, '/user').setQuery {access_token}
+          access_token: access_token
+        .changes()
+      # TODO unsubscribe
+      user_details.onValue ({user, access_token}) =>
+        if global_settings.user_settings.get('github', 'githubs', site.domain, 'access_token') != access_token
           global_settings.user_settings.set 'github', 'githubs', site.domain, 'access_token', access_token
-          @props.on_access()
-          @setState user: user, token_status: 'valid'
-        user_details.onError =>
-          @setState token_status: 'invalid'
+        @props.deferred.resolve()
+        @setState user: user, token_status: 'valid'
+      user_details.onError =>
+        @setState token_status: 'invalid'
 
-        token_status: 'needed'
-        user: null
-        tokens: tokens
-        site: site
-      else
-        @props.on_access()
-
-        token_status: 'skip'
+      token_status: 'needed'
+      user: null
+      tokens: tokens
+      site: site
+      unsubscribe: unsubscribe
+    cancel: ->
+      @props.deferred.reject()
+    componentWillUnmount: ->
+      @state.unsubscribe?()
     render: ->
       if @state.token_status == 'skip'
-        React.DOM.div null, @props.children
+        # whoops, shouldn't have even rendered?
+        null
       else
         message = switch @state.token_status
           when 'needed' then React.DOM.strong null, 'You need to set a GitHub access token'
           when 'validating' then React.DOM.strong null, 'Validating your token'
           when 'valid' then React.DOM.strong null, 'Logged in as ', @state.user.name
           when 'invalid' then React.DOM.strong null, "That access token didn't work. Try again?"
-        React.DOM.div null,
-          React.DOM.p null, message
-          if @state.token_status == 'valid'
-            @props.children
-          else
-            AccessTokenForm
-              site: @state.site,
-              require_access_token: @props.require_access_token
-              handle_token: (t) => @state.tokens.push t
+
+        footer = React.DOM.button {onClick: @cancel}, 'OK'
+        App.ModalComponent {footer, title: 'GitHub Authentication'},
+          React.DOM.a {href: Server.url('github/oauth/authorize'), target: '_blank'}, 'Log in to GitHub'
+          # AccessTokenForm
+          #   site: @state.site,
+          #   handle_token: (t) => @state.tokens.push t
+          # React.DOM.p null, message
+
 
   component_cmd 'gist', 'Loads a script from a gist', (ctx, gist, options={}) ->
     url = github.to_gist_url gist
 
-    deferred = Q.defer()
-    gist_promise = deferred.promise.then ->
-      http.get url
+    gist_promise = ensureAuth(ctx, {url}).then ->
+      Http.get github.to_gist_url(gist)
     .fail (response) ->
       Q.reject response.statusText
     promise = gist_promise
@@ -201,7 +244,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
       for name, file of response.files
         Notebook.handle_file ctx, file, options
 
-    EnsureAccessComponent {url, on_access: deferred.resolve},
+    React.DOM.div {},
       Context.AsyncComponent {promise},
         Builtins.ComponentAndError {promise},
           "Loading gist #{gist}"
@@ -250,8 +293,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         'notebook.lnb':
           content: JSON.stringify notebook, undefined, 2
 
-    deferred = Q.defer()
-    promise = deferred.promise.then ->
+    promise = ensureAuth(ctx).then ->
       if id?
         github.update_gist id, gist
       else
@@ -261,7 +303,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
     .then (response) ->
       gist: response
 
-    EnsureAccessComponent {on_access: deferred.resolve},
+    React.DOM.div {},
       Context.AsyncComponent {promise},
         Builtins.ComponentAndError {promise},
           "Saving gist"
