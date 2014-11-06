@@ -76,10 +76,14 @@ exports.ModalComponent = React.createClass
       if @props.footer
         React.DOM.div {className: 'modal-footer'}, @props.footer
 
+initializationPromise = null
 AppComponent = React.createClass
   displayName: 'AppComponent'
   getInitialState: ->
+    initializationPromise.finally =>
+      @setState initializationState: initializationPromise.inspect()
     modal: null
+    initializationState: initializationPromise.inspect()
   mixins: [Router.Navigation]
   componentWillMount: ->
     modalModel.onValue (modals) =>
@@ -89,10 +93,13 @@ AppComponent = React.createClass
     appComponent = @
 
     modal = @state.modal
-    if @props.bodyWrapper
-      body = @props.bodyWrapper null, @props.activeRouteHandler()
+    # TODO warn on initialization failure
+    if @state.initializationState.state == 'pending'
+      body = null
     else
       body = @props.activeRouteHandler()
+    if @props.bodyWrapper
+      body = @props.bodyWrapper null, body
     React.DOM.div {className: 'lead'},
       React.DOM.div {className: 'nav-bar'},
         Router.Link {to: 'notebook', className: 'title'}, 'lead'
@@ -273,9 +280,10 @@ exports.init_app = (target, options={}) ->
       Router.NotFoundRoute {handler: NotFoundComponent}
 
   # TODO handle errors, timeouts
-  Modules.init_modules(module_names).finally ->
-    React.renderComponent routesComponent, target
-  .done()
+  initializationPromise = Modules.init_modules(module_names)
+
+  React.renderComponent routesComponent, target
+  initializationPromise.done()
 
 exports.raw_cell_url = (value) ->
   # TODO don't require appComponent
