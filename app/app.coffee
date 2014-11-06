@@ -220,7 +220,7 @@ reset_user_settings = (settings) ->
 exports.init_app = (target, options={}) ->
   # TODO warn
   try
-    Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings')
+    Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings') ? {}
   catch e
     console.error 'failed loading user settings', e
 
@@ -228,7 +228,7 @@ exports.init_app = (target, options={}) ->
     if e.key == 'lead_user_settings'
       console.log 'updating user settings'
       try
-        Settings.user_settings.set JSON.parse(e.newValue)
+        Settings.user_settings.set JSON.parse(e.newValue) ? {}
       catch e
         console.error 'failed updating user settings', e
 
