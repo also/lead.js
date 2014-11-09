@@ -32,13 +32,13 @@ _.extend exports,
       fn name, wrapped, wrapped
 
     fn = optional_doc_fn (name, f, cmd_f) ->
-      result =
+      context_fns[name] =
         module_name: module_name
         fn: f
         cmd_fn: cmd_f
         name: name
 
-      context_fns[name] = result
+       return
 
     # TODO does this belong here?
     component_fn = optional_doc_fn (name, f) ->
