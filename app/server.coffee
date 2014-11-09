@@ -42,7 +42,7 @@ ServerErrorComponent = React.createClass
           Builtins.ObjectBrowserComponent {object: @props.error, showProto: false}
 
 
-server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
+server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
   functions_promise = null
   function_names = null
   server_option_names = null
@@ -443,6 +443,4 @@ server = modules.create 'server', ({fn, component_fn, cmd, component_cmd, settin
     if error instanceof ServerError
       ServerErrorComponent {error: error.error}
 
-server.suggest_strings = server.complete
-
-module.exports = server
+exports.suggest_strings = exports.complete

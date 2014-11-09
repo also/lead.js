@@ -10,8 +10,6 @@ _.extend exports,
   register: (moduleName, module) ->
     registeredModules[moduleName] = module
   export: (exports, module_name, definition_fn) ->
-    _.extend exports, module.exports.create module_name, definition_fn
-  create: (module_name, definition_fn) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
 
@@ -51,11 +49,11 @@ _.extend exports,
       wrapped.raw_fn = f
       cmd name, wrapped
 
-    mod = {doc, cmd, fn, component_cmd, component_fn, context_fns, settings: module_settings}
-    if definition_fn?
-      mod = _.extend {context_fns, settings}, definition_fn mod
+    helpers = {doc, cmd, fn, component_cmd, component_fn, settings: module_settings}
+    mod = _.extend {context_fns}, definition_fn helpers
 
-    registeredModules[module_name] = mod
+    _.extend exports, mod
+    registeredModules[module_name] = exports
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
