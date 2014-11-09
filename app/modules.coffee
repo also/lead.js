@@ -1,8 +1,7 @@
 Q = require 'q'
-Documentation = require './documentation'
 _ = require 'underscore'
 settings = require './settings'
-Context = require './context'
+Context = null
 
 registeredModules = {}
 
@@ -12,11 +11,12 @@ _.extend exports,
   export: (exports, module_name, definition_fn) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
+    docs = []
 
-    Documentation.register_documentation module_name, index: true
+    docs.push {key: module_name, doc: index: true}
 
     doc = (name, summary, complete) ->
-      Documentation.register_documentation [module_name, name], {summary, complete}
+      docs.push {key: [module_name, name], doc: {summary, complete}}
 
     optional_doc_fn = (f) ->
       (args...) ->
@@ -50,7 +50,7 @@ _.extend exports,
       cmd name, wrapped
 
     helpers = {doc, cmd, fn, component_cmd, component_fn, settings: module_settings}
-    mod = _.extend {context_fns}, definition_fn helpers
+    mod = _.extend {context_fns, docs}, definition_fn(helpers)
 
     _.extend exports, mod
     registeredModules[module_name] = exports
@@ -65,11 +65,20 @@ _.extend exports,
     _.object module_names, _.map module_names, module.exports.get_module
 
   init_modules: (module_names) ->
+    Documentation = require './documentation'
+    Context = require './context'
+
     promises = _.map module_names, (name) ->
       mod = module.exports.get_module name
+
       if mod.init?
-        Q(mod.init()).then -> mod
+        promise = Q(mod.init()).then -> mod
       else
-        Q(mod)
+        promise = Q(mod)
+      promise.then (mod) ->
+        if mod.docs?
+          _.each mod.docs, ({key, doc}) ->
+            Documentation.register_documentation key, doc
+
     Q.all(promises).then (modules) ->
       _.object module_names, modules

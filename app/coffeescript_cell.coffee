@@ -52,4 +52,4 @@ create_fn = (string) ->
      # this isn't a context fn, so it's value will be displayed
      Context.IGNORE
 
-module.exports = {recompile, get_fn, create_fn}
+_.extend exports, {recompile, get_fn, create_fn}

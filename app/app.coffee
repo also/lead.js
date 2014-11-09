@@ -18,10 +18,12 @@ Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 Server = require './server'
 
-require './http'
+Modules.register 'http', require './http'
 Modules.register 'dsl', require './dsl'
 Modules.register 'settings', Settings
 Modules.register 'context', Context
+Modules.register 'builtins', Builtins
+Modules.register 'notebook', Notebook
 require './compat'
 require './graphing'
 require './input'

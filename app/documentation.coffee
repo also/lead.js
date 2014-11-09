@@ -173,4 +173,4 @@ Documentation.register_documentation 'module_list', complete: (ctx, doc) ->
   module_docs = _.sortBy _.map(_.keys(ctx.modules), (name) -> {name, doc: {summary: ''}}), 'name'
   Documentation.DocumentationIndexComponent entries: module_docs, ctx: ctx
 
-module.exports = Documentation
+_.extend exports, Documentation
