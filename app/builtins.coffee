@@ -9,6 +9,7 @@ http = require './http'
 Documentation = require './documentation'
 Components = require './components'
 Context = require './context'
+ContextComponents = require './contextComponents'
 App = require './app'
 {ObjectBrowserComponent} = require './object_browser'
 
@@ -157,7 +158,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   ErrorComponent = React.createClass
     displayName: 'ErrorComponent'
-    mixins: [Context.ContextAwareMixin]
+    mixins: [ContextComponents.ContextAwareMixin]
     render: ->
       errorRenderers = Context.collect_extension_points(@state.ctx, 'renderError')
       message = null

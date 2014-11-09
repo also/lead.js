@@ -2,7 +2,7 @@ CodeMirror = require 'codemirror'
 _ = require 'underscore'
 React = require 'react/addons'
 Bacon = require 'bacon.model'
-Context = require './context'
+ContextComponents = require './contextComponents'
 
 format_code = (code, language, target) ->
   target = target.get(0) if target.get?
@@ -17,7 +17,7 @@ format_code = (code, language, target) ->
 
 ExampleComponent = React.createClass
   displayName: 'ExampleComponent'
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   getDefaultProps: -> language: 'coffeescript'
   render: ->
     React.DOM.div {className: 'example'},

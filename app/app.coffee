@@ -9,6 +9,7 @@ Builtins = require './builtins'
 Settings = require './settings'
 GitHub = require './github'
 Context = require './context'
+ContextComponents = require './contextComponents'
 Builder = require './builder'
 Documentation = require './documentation'
 Modules = require './modules'
@@ -130,7 +131,7 @@ HelpPathComponent = React.createClass
 
 HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   render: ->
     resolved_key = Documentation.get_key @state.ctx, @props.doc_key
     if resolved_key

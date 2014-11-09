@@ -7,6 +7,7 @@ Editor = require './editor'
 Context = require './context'
 CoffeeScriptCell = require './coffeescript_cell'
 Components = require './components'
+ContextComponents = require './contextComponents'
 
 remove_target = (targets, target) ->
   targets.modify (targets) ->
@@ -100,7 +101,7 @@ exports.BuilderComponent = React.createClass
         Components.ToggleComponent {title: 'Targets'},
           TargetsEditorComponent targets: @state.targets
         Graphing.GraphComponent model: @state.model
-        Context.ComponentContextComponent ctx: @state.ctx,
+        ContextComponents.ComponentContextComponent ctx: @state.ctx,
           Editor.EditorComponent {run: @run, ref: 'editor'}
           Context.ContextOutputComponent {}
         React.DOM.span {className: 'run-button', onClick: => @run()},

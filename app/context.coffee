@@ -9,40 +9,7 @@ Q = require  'q'
 printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require 'react/addons'
-
-# CAREFUL ABOUT PUTTING MORE IMPORTS HERE! OTHER MODULES DEPEND ON THE COMPONENTS BELOW
-
-contexts_by_root_node_id = {}
-
-find_ancestor_contexts = (component_instance) ->
-  result = []
-  _.each React.__internals.InstanceHandles.traverseAncestors component_instance._rootNodeID, (id) ->
-    context = contexts_by_root_node_id[id]
-    if context
-      result.unshift context
-  result
-
-ContextRegisteringMixin =
-  componentWillMount: ->
-    contexts_by_root_node_id[@_rootNodeID] = @props.ctx
-  componentWillUnmount: ->
-    delete contexts_by_root_node_id[@_rootNodeID]
-
-ContextAwareMixin =
-  getInitialState: ->
-    # TODO update later in lifecycle
-    ctx: find_ancestor_contexts(@)[0]
-
-ComponentContextComponent = React.createClass
-  displayName: 'ComponentContextComponent'
-  mixins: [ContextRegisteringMixin]
-  render: -> React.DOM.div null, @props.children
-
-_.extend exports, {
-  ComponentContextComponent,
-  ContextAwareMixin
-}
-
+ContextComponents = require './contextComponents'
 Components = require './components'
 Builtins = require './builtins'
 Modules = require './modules'
@@ -165,7 +132,7 @@ find_in_scope = (ctx, name) ->
 
 AsyncComponent = React.createClass
   displayName: 'AsyncComponent'
-  mixins: [ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   componentWillMount: ->
     register_promise @state.ctx, @props.promise
   componentWillUnmount: ->
@@ -176,7 +143,7 @@ AsyncComponent = React.createClass
 
 ContextComponent = React.createClass
   displayName: 'ContextComponent'
-  mixins: [ContextRegisteringMixin]
+  mixins: [ContextComponents.ContextRegisteringMixin]
   propTypes:
     ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
   render: ->
@@ -196,7 +163,7 @@ ContextLayoutComponent = React.createClass
 
 ContextOutputComponent = React.createClass
   displayName: 'ContextOutputComponent'
-  mixins: [ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   render: -> ContextLayoutComponent ctx: @state.ctx
 
 
@@ -209,7 +176,7 @@ TopLevelContextComponent = React.createClass
   get_ctx: ->
     @state.ctx
   render: ->
-    ComponentContextComponent {children: @props.children, ctx: @state.ctx}
+    ContextComponents.ComponentContextComponent {children: @props.children, ctx: @state.ctx}
 
 
 # the base context contains the loaded modules, and the list of modules to import into every context

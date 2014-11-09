@@ -2,6 +2,7 @@ Marked = require 'marked'
 React = require 'react'
 Components = require './components'
 Context = require './context'
+ContextComponents = require './contextComponents'
 URI = require 'URIjs'
 _ = require 'underscore'
 CoffeeScriptCell = require './coffeescript_cell'
@@ -30,7 +31,7 @@ MarkdownComponent = React.createClass
 
 InlineExampleComponent = React.createClass
   displayName: 'InlineExampleComponent'
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   render: ->
     example_component = Components.SourceComponent value: @props.value, language: 'coffeescript'
 
@@ -47,7 +48,7 @@ InlineExampleComponent = React.createClass
 
 LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   getInitialState: ->
     # FIXME #175 props can change
     image_urls = @props.image_urls ? {}

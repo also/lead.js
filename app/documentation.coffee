@@ -3,6 +3,7 @@ Router = require 'react-router'
 _ = require 'underscore'
 Markdown = require './markdown'
 Context = require './context'
+ContextComponents = require './contextComponents'
 
 docs = {}
 
@@ -29,7 +30,7 @@ resolve_key = (ctx, o) ->
 
 DocumentationLinkComponent = React.createClass
   displayName: 'DocumentationLinkComponent'
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   show_help: ->
     Documentation.navigate @state.ctx, @props.key
   render: ->

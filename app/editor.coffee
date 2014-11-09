@@ -8,6 +8,7 @@ require 'codemirror/mode/coffeescript/coffeescript'
 require 'codemirror/addon/hint/show-hint'
 
 Context = require './context'
+ContextComponents = require './contextComponents'
 Notebook = require './notebook'
 
 user_notebook_keymap = null
@@ -290,7 +291,7 @@ EditorComponent = React.createClass
   propTypes:
     run: React.PropTypes.func.isRequired
     initial_value: React.PropTypes.string
-  mixins: [Context.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin]
   getInitialState: ->
     editor: create_editor 'context'
   run: ->

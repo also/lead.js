@@ -19,6 +19,7 @@ modules = require './modules'
 Http = require './http'
 global_settings = require './settings'
 Context = require './context'
+ContextComponents = require './contextComponents'
 Builtins = require './builtins'
 App = require './app'
 
@@ -182,7 +183,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
 
   EnsureAccessComponent = React.createClass
     displayName: 'EnsureAccessComponent'
-    mixins: [Context.ContextAwareMixin]
+    mixins: [ContextComponents.ContextAwareMixin]
     getInitialState: ->
       # FIXME #175 props can change
       site = @props.site
