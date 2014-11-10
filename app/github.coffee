@@ -218,10 +218,18 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         when 'valid' then React.DOM.strong null, 'Logged in as ', @state.user.name
         when 'invalid' then React.DOM.strong null, "That access token didn't work. Try again?"
 
+      # TODO check if the server supports github oauth
+      try
+        url = Server.url('github/oauth/authorize')
+      catch
+        # no base_url
+        url = null
+
       footer = React.DOM.button {onClick: @cancel}, 'Cancel'
       App.ModalComponent {footer, title: 'GitHub Authentication'},
-        React.DOM.div {style: marginBottom: '1em'},
-          React.DOM.a {href: Server.url('github/oauth/authorize'), target: '_blank'}, 'Log in to GitHub'
+        if url?
+          React.DOM.div {style: marginBottom: '1em'},
+            React.DOM.a {href: url, target: '_blank'}, 'Log in to GitHub'
         Components.ToggleComponent {title: 'Advanced'},
           AccessTokenForm
             handle_token: (t) => @state.tokens.push t
