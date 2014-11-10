@@ -39,7 +39,12 @@ create_fn = (string) ->
       return Context.scoped_eval ctx, source, _.reject global_vars, (name) -> name.indexOf('_LEAD_COFFEESCRIPT_FREE_VARIABLE_') == 0
     catch e
       if e instanceof SyntaxError
-        Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        # TODO some errors hav loc instead of location: "Syntax Error: Unexpected character '…' (1:0)"
+        if e.location?
+          details = " at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
+        else
+          details = ""
+        Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message}#{details}"
       else
         _.logError('Exception in CoffeeScript cell', e)
         errorInfo = _.errorInfo(e)
