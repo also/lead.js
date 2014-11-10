@@ -218,6 +218,15 @@ SingleCoffeeScriptCellNotebookComponent = React.createClass
       Notebook.run first_cell
     }
 
+# TODO style, copy
+InitializationFailureModal = React.createClass
+  render: ->
+    footer = React.DOM.button {onClick: @props.dismiss}, 'OK'
+    exports.ModalComponent {title: 'Lead Failed to Start Properly', footer},
+      React.DOM.p {},
+        "An error occurred while starting lead. More details may be available in the browser's console. Some features might not be available. Try reloading this page."
+      React.DOM.p {style: marginTop: '1em'}, "Message: ", @props.error
+
 BuilderAppComponent = React.createClass
   displayName: 'BuilderAppComponent'
   render: ->
@@ -300,9 +309,11 @@ exports.init_app = (target, options={}) ->
 
   # TODO handle errors, timeouts
   initializationPromise = Modules.init_modules(module_names)
+  initializationPromise.fail (e) ->
+    console.error 'Failure initializing modules', e
+    exports.pushModal handler: InitializationFailureModal, props: error: e
 
   React.renderComponent routesComponent, target
-  initializationPromise.done()
 
 
 encodeNotebookValue = (value) ->
