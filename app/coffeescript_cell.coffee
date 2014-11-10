@@ -4,8 +4,7 @@ Context = require './context'
 Builtins = require './builtins'
 React = require 'react'
 Components = require './components'
-printStackTrace = require 'stacktrace-js'
-_ = require 'underscore'
+_ = require './core'
 Javascript = require './javascript'
 
 if process.browser
@@ -42,11 +41,15 @@ create_fn = (string) ->
       if e instanceof SyntaxError
         Context.add_component ctx, Builtins.ErrorComponent message: "Syntax Error: #{e.message} at #{e.location.first_line + 1}:#{e.location.first_column + 1}"
       else
-        console.error e.stack
-        trace = printStackTrace({e})
+        _.logError('Exception in CoffeeScript cell', e)
+        errorInfo = _.errorInfo(e)
+        title = React.DOM.pre {}, errorInfo.message
         Context.add_component ctx, React.DOM.div {className: 'error'},
-          Components.ToggleComponent {title: React.DOM.pre {}, trace[0]},
-            React.DOM.pre {}, trace[1..].join('\n')
+          if errorInfo.trace
+            Components.ToggleComponent {title},
+              React.DOM.pre {}, errorInfo.trace.join('\n')
+          else
+            title
           Components.ToggleComponent {title: 'Compiled JavaScript'},
             Components.SourceComponent language: 'javascript', value: compiled
      # this isn't a context fn, so it's value will be displayed

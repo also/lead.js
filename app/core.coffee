@@ -1,6 +1,31 @@
 underscore = require 'underscore'
 
-underscore.extend module.exports, underscore,
+underscore.extend exports, underscore,
+  logError: (message..., error) ->
+    if error?.stack?.indexOf(error.message) == 0
+      e = error.stack
+    else
+      e = error
+    console.error(message..., e)
+
+  errorInfo: (error) ->
+    if !error? or underscore.isString(error)
+      message = 'Error: ' + error
+    else
+      try
+        message = '' + error
+      catch
+        message = 'Unknown Error'
+    if error instanceof Error and error.stack
+      if error.stack.indexOf(message + '\n') == 0
+        stack = error.stack[message.length + 1...]
+      else
+        stack = error.stack
+      trace = stack.split('\n')
+    else
+      trace = null
+    {error, message, trace}
+
   intersperse: (array, v) ->
     result = array[...1]
     underscore.each array[1...], (e) ->

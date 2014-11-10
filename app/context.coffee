@@ -6,7 +6,6 @@ fns: imported_context_fns, bound to the scope.ctx
 
 _ = require 'underscore'
 Q = require  'q'
-printStackTrace = require 'stacktrace-js'
 Bacon = require 'bacon.model'
 React = require 'react/addons'
 ContextComponents = require './contextComponents'
