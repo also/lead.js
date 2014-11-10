@@ -191,7 +191,7 @@ GistNotebookComponent = React.createClass
   mixins: [AppAwareMixin]
   render: ->
     {imports, module_names} = @context.app
-    gist = @props.params.gist
+    gist = @props.params.splat
     Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
         GitHub.context_fns.gist.fn ctx, gist, run: true
@@ -289,7 +289,7 @@ exports.init_app = (target, options={}) ->
           this.transitionTo 'notebook'
       Route {name: 'notebook', handler: NewNotebookComponent}
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent, addHandlerKey: true}
-      Route {path: '/notebook/gist/:gist', name: 'gist_notebook', handler: GistNotebookComponent, addHandlerKey: true}
+      Route {path: '/notebook/gist/*', name: 'gist_notebook', handler: GistNotebookComponent, addHandlerKey: true}
       Route {path: '/builder', handler: BuilderAppComponent}
       Route {path: '/help', name: 'help-index', handler: HelpComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent, addHandlerKey: true}
