@@ -156,8 +156,14 @@ ContextLayoutComponent = React.createClass
     ctx: (c) -> throw new Error("context required") unless is_run_context c['ctx']
   get_observable: (props) -> props.ctx.component_list.model
   render: ->
+    children = _.map @state.value, ({key, component}) ->
+      if _.isFunction(component)
+        c = component()
+      else
+        c = component
+      React.addons.cloneWithProps c, {key}
     ctx = @props.ctx
-    ctx.layout _.extend {children: @state.value}, ctx.layout_props
+    ctx.layout _.extend {children}, ctx.layout_props
 
 
 ContextOutputComponent = React.createClass
@@ -227,9 +233,9 @@ component_list = ->
 
   model: model
   add_component: (c) ->
-    unless c.props.key?
-      c = React.addons.cloneWithProps c, key: componentId++
-    components.push c
+    components.push
+      component: c
+      key: componentId++
     model.set components.slice()
   empty: ->
     components = []
@@ -331,7 +337,7 @@ create_run_context = (extra_contexts) ->
 create_nested_context = (parent, overrides) ->
   new_context = _.extend Object.create(parent), {layout: Components.SimpleLayoutComponent}, overrides
   new_context.component_list = component_list()
-  new_context.component = ContextComponent ctx: new_context
+  new_context.component = -> ContextComponent ctx: new_context
 
   new_context
 

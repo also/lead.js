@@ -92,12 +92,12 @@ NotebookComponent = React.createClass
     # FIXME #175 props can change
     notebook = create_notebook @props
     @props.init? notebook
-    document: notebook.component
+    notebook: notebook
   shouldComponentUpdate: ->
     # never changes, handled by document
     false
   render: ->
-    @state.document
+    DocumentComponent {cells_model: @state.notebook.cells_model}
 
 create_notebook = (opts) ->
   $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -278,7 +278,7 @@ OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: (props) -> props.cell.component_model
-  render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value
+  render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value?()
   componentDidMount: ->
     @props.cell.dom_node = @getDOMNode()
 
@@ -325,7 +325,8 @@ run_with_context = (ctx, fn) ->
   output_cell.done = no_longer_pending.take(1).map -> output_cell
   Context.run_in_context ctx, fn
 
-  output_cell.component_model.set ctx.component
+  # TODO Bacon calls the function passed to set
+  output_cell.component_model.set -> ctx.component
 
 create_bare_output_cell_and_context = (notebook) ->
   output_cell = create_output_cell notebook
