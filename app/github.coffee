@@ -21,6 +21,7 @@ Http = require './http'
 global_settings = require './settings'
 Context = require './context'
 ContextComponents = require './contextComponents'
+Components = require './components'
 Builtins = require './builtins'
 App = require './app'
 
@@ -173,14 +174,10 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
       React.DOM.div null,
         React.DOM.p null,
           # TODO use a friendlier url the the api base url
-          "Please set a GitHub access token for #{@props.site.api_base_url}: "
+          'Access Token: '
           React.DOM.input ref: 'input'
+          ' '
           React.DOM.button {onClick: @handle_set}, 'Set'
-        React.DOM.p {className: 'tip'},
-          'lead.js requires an access token to use the GitHub API. You can create a '
-          React.DOM.a {href: 'https://github.com/blog/1509-personal-api-tokens', target: '_blank'}, 'personal access token'
-          # TODO just link to the settings
-          ' in the "Personal access tokens" section of your GitHub account "Applications" settings.'
 
   EnsureAccessComponent = React.createClass
     displayName: 'EnsureAccessComponent'
@@ -215,23 +212,20 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
     componentWillUnmount: ->
       @state.unsubscribe?()
     render: ->
-      if @state.token_status == 'skip'
-        # whoops, shouldn't have even rendered?
-        null
-      else
-        message = switch @state.token_status
-          when 'needed' then React.DOM.strong null, 'You need to set a GitHub access token'
-          when 'validating' then React.DOM.strong null, 'Validating your token'
-          when 'valid' then React.DOM.strong null, 'Logged in as ', @state.user.name
-          when 'invalid' then React.DOM.strong null, "That access token didn't work. Try again?"
+      message = switch @state.token_status
+        when 'needed' then React.DOM.strong null, ''
+        when 'validating' then React.DOM.strong null, 'Validating your token'
+        when 'valid' then React.DOM.strong null, 'Logged in as ', @state.user.name
+        when 'invalid' then React.DOM.strong null, "That access token didn't work. Try again?"
 
-        footer = React.DOM.button {onClick: @cancel}, 'OK'
-        App.ModalComponent {footer, title: 'GitHub Authentication'},
+      footer = React.DOM.button {onClick: @cancel}, 'Cancel'
+      App.ModalComponent {footer, title: 'GitHub Authentication'},
+        React.DOM.div {style: marginBottom: '1em'},
           React.DOM.a {href: Server.url('github/oauth/authorize'), target: '_blank'}, 'Log in to GitHub'
-          # AccessTokenForm
-          #   site: @state.site,
-          #   handle_token: (t) => @state.tokens.push t
-          # React.DOM.p null, message
+        Components.ToggleComponent {title: 'Advanced'},
+          AccessTokenForm
+            handle_token: (t) => @state.tokens.push t
+          React.DOM.p null, message
 
 
   component_cmd 'gist', 'Loads a script from a gist', (ctx, gist, options={}) ->
