@@ -63,7 +63,4 @@
 
 ## Error
 
-    try
-      throw new Error 'nope'
-    catch e
-      error e
+    require('builtins').ErrorComponent {message: new Error 'nope'}
