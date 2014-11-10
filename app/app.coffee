@@ -31,8 +31,6 @@ require './opentsdb'
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
-appComponent = null
-
 NotFoundComponent = React.createClass
   displayName: 'NotFoundComponent'
   render: ->
@@ -86,7 +84,7 @@ AppComponent = React.createClass
       @setState {modal: modals[modals.length-1]}
   render: ->
     # TODO don't do this :(
-    appComponent = @
+    @props.app.appComponent = @
 
     modal = @state.modal
     # TODO warn on initialization failure
@@ -148,11 +146,12 @@ HelpComponent = React.createClass
     {imports, module_names} = @context.app
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
-      Context.TopLevelContextComponent {imports, module_names, context: {run: @run, docs_navigate: @navigate}},
+      Context.TopLevelContextComponent {imports, module_names, context: {app: @context.app, run: @run, docs_navigate: @navigate}},
         HelpWrapperComponent {doc_key: @props.params.key}
 
 SettingsComponent = React.createClass
   displayName: 'SettingsComponent'
+  mixins: [AppAwareMixin]
   save_settings: (value) ->
     fn = CoffeeScriptCell.create_fn value ? @refs.editor.get_value()
     ctx = @refs.ctx.get_ctx()
@@ -167,7 +166,7 @@ SettingsComponent = React.createClass
     React.DOM.div {className: 'settings output'},
       Components.ToggleComponent {title: 'Default Settings'},
         Builtins.ObjectComponent object: Settings.get_without_overrides()
-      Context.TopLevelContextComponent {ref: 'ctx'},
+      Context.TopLevelContextComponent {ref: 'ctx', context: {app: @context.app}},
         Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
         Context.ContextOutputComponent {}
       React.DOM.span {className: 'run-button', onClick: => @save_settings()},
@@ -181,9 +180,9 @@ NewNotebookComponent = React.createClass
     {imports, module_names} = @context.app
     intro_command = Settings.get 'app', 'intro_command'
     if intro_command? and intro_command != ''
-      SingleCoffeeScriptCellNotebookComponent {app: @context.app, value: intro_command}
+      SingleCoffeeScriptCellNotebookComponent {value: intro_command}
     else
-      Notebook.NotebookComponent {imports, module_names, init: (nb) ->
+      Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (nb) ->
         Notebook.focus_cell Notebook.add_input_cell nb
       }
 
@@ -193,7 +192,7 @@ GistNotebookComponent = React.createClass
   render: ->
     {imports, module_names} = @context.app
     gist = @props.params.gist
-    Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
         GitHub.context_fns.gist.fn ctx, gist, run: true
         Context.IGNORE
@@ -213,7 +212,7 @@ SingleCoffeeScriptCellNotebookComponent = React.createClass
   render: ->
     value = @props.value
     {imports, module_names} = @context.app
-    Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
       first_cell = Notebook.add_input_cell notebook
       Notebook.set_cell_value first_cell, value
       Notebook.run first_cell
@@ -305,9 +304,9 @@ exports.init_app = (target, options={}) ->
   React.renderComponent routesComponent, target
   initializationPromise.done()
 
-exports.raw_cell_url = (value) ->
+exports.raw_cell_url = (ctx, value) ->
   # TODO don't require appComponent
-  URI(appComponent.makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
+  URI(ctx.app.appComponent.makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
 
 exports.SingleCoffeeScriptCellNotebookComponent = SingleCoffeeScriptCellNotebookComponent
 

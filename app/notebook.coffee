@@ -113,6 +113,7 @@ create_notebook = (opts) ->
   document = DocumentComponent {cells_model}
   # FIXME add file picker
   notebook =
+    context: opts.context
     cells: []
     cells_model: cells_model
     input_number: 1
@@ -306,7 +307,7 @@ run = (input_cell) ->
   input_cell.changes.push input_cell
 
   # TODO cell type
-  run_context = Context.create_run_context [input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
+  run_context = Context.create_run_context [input_cell.notebook.context, input_cell.context, {input_cell, output_cell}, create_notebook_run_context input_cell]
   fn = CoffeeScriptCell.get_fn run_context
   run_with_context run_context, fn
   input_cell.notebook.cell_run.push input_cell
@@ -328,7 +329,7 @@ run_with_context = (ctx, fn) ->
 
 create_bare_output_cell_and_context = (notebook) ->
   output_cell = create_output_cell notebook
-  run_context = Context.create_run_context [create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
+  run_context = Context.create_run_context [notebook.context, create_input_context(notebook), {output_cell}, create_notebook_run_context(output_cell)]
   run_context
 
 run_without_input_cell = (notebook, position, fn) ->

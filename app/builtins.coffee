@@ -306,7 +306,7 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
 
   component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
     code ?= ctx.previously_run()
-    uri = App.raw_cell_url code
+    uri = App.raw_cell_url ctx, code
     React.DOM.a {href: uri}, uri
 
   component_fn 'promise_status', 'Displays the status of a promise', (ctx, promise, start_time=new Date) ->
