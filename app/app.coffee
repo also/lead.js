@@ -29,21 +29,6 @@ require './graphing'
 require './input'
 require './opentsdb'
 
-module_names = ['http', 'dsl', 'graphing', 'settings', 'input', 'notebook']
-
-imports = [
-  'builtins.*'
-  'server.*'
-  'github.*'
-  'graphing.*',
-  'compat.*',
-  'opentsdb.tsd'
-]
-
-imports.push (Settings.get('app', 'imports') or [])...
-module_names.push _.map(imports, (i) -> i.split('.')[0])...
-module_names.push (Settings.get('app', 'module_names') or [])...
-
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
 appComponent = null
@@ -68,6 +53,10 @@ exports.removeModal = (modal) ->
       _.without v, modal
   , 0
 
+AppAwareMixin =
+  contextTypes:
+    app: React.PropTypes.object
+
 exports.ModalComponent = React.createClass
   render: ->
     modal = @props.modal
@@ -82,6 +71,10 @@ exports.ModalComponent = React.createClass
 initializationPromise = null
 AppComponent = React.createClass
   displayName: 'AppComponent'
+  childContextTypes:
+    app: React.PropTypes.object
+  getChildContext: ->
+    app: @props.app
   getInitialState: ->
     initializationPromise.finally =>
       @setState initializationState: initializationPromise.inspect()
@@ -146,12 +139,13 @@ HelpWrapperComponent = React.createClass
 
 HelpComponent = React.createClass
   displayName: 'HelpComponent'
-  mixins: [Router.Navigation]
+  mixins: [Router.Navigation, AppAwareMixin]
   run: (value) ->
     @transitionTo 'raw_notebook', splat: btoa value
   navigate: (key) ->
     @transitionTo 'help', {key}
   render: ->
+    {imports, module_names} = @context.app
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
       Context.TopLevelContextComponent {imports, module_names, context: {run: @run, docs_navigate: @navigate}},
@@ -182,10 +176,12 @@ SettingsComponent = React.createClass
 
 NewNotebookComponent = React.createClass
   displayName: 'NewNotebookComponent'
+  mixins: [AppAwareMixin]
   render: ->
+    {imports, module_names} = @context.app
     intro_command = Settings.get 'app', 'intro_command'
     if intro_command? and intro_command != ''
-      SingleCoffeeScriptCellNotebookComponent {value: intro_command}
+      SingleCoffeeScriptCellNotebookComponent {app: @context.app, value: intro_command}
     else
       Notebook.NotebookComponent {imports, module_names, init: (nb) ->
         Notebook.focus_cell Notebook.add_input_cell nb
@@ -193,7 +189,9 @@ NewNotebookComponent = React.createClass
 
 GistNotebookComponent = React.createClass
   displayName: 'GistNotebookComponent'
+  mixins: [AppAwareMixin]
   render: ->
+    {imports, module_names} = @context.app
     gist = @props.params.gist
     Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
@@ -211,8 +209,10 @@ Base64EncodedNotebookCellComponent = React.createClass
 
 SingleCoffeeScriptCellNotebookComponent = React.createClass
   displayName: 'SingleCoffeeScriptCellNotebookComponent'
+  mixins: [AppAwareMixin]
   render: ->
     value = @props.value
+    {imports, module_names} = @context.app
     Notebook.NotebookComponent {imports, module_names, init: (notebook) ->
       first_cell = Notebook.add_input_cell notebook
       Notebook.set_cell_value first_cell, value
@@ -233,6 +233,21 @@ exports.init_app = (target, options={}) ->
     Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings') ? {}
   catch e
     console.error 'failed loading user settings', e
+
+  module_names = ['http', 'dsl', 'graphing', 'settings', 'input', 'notebook']
+
+  imports = [
+    'builtins.*'
+    'server.*'
+    'github.*'
+    'graphing.*',
+    'compat.*',
+    'opentsdb.tsd'
+  ]
+
+  imports.push (Settings.get('app', 'imports') or [])...
+  module_names.push _.map(imports, (i) -> i.split('.')[0])...
+  module_names.push (Settings.get('app', 'module_names') or [])...
 
   window.addEventListener 'storage', (e) =>
     if e.key == 'lead_user_settings'
@@ -263,8 +278,10 @@ exports.init_app = (target, options={}) ->
       mixins: [Router.Navigation]
       render: -> fn.call(@); null
 
+  app = {imports, module_names}
+
   routesComponent = Routes null,
-    Route {handler: AppComponent, bodyWrapper},
+    Route {handler: AppComponent, bodyWrapper, app},
       Route path: '/', name: 'default', handler: null_route ->
         queryKeys = Object.keys(@props.query)
         if queryKeys.length == 1 and @props.query[queryKeys[0]].length == 0
