@@ -12,6 +12,7 @@
 URI = require 'URIjs'
 _ = require 'underscore'
 Q = require 'q'
+Router = require 'react-router'
 moment = require 'moment'
 React = require 'react'
 Bacon = require 'bacon.model'
@@ -276,10 +277,11 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         React.DOM.span {className: 'datetime'}, "Saved #{moment(@props.gist.updated_at).fromNow()}"
 
   NotebookGistLinkComponent = React.createClass
+    mixins: [Router.Navigation]
     render: ->
       lead_uri = URI window.location.href
       lead_uri.query null
-      lead_uri.fragment "/#{@props.gist.html_url}"
+      lead_uri.fragment @makeHref 'gist_notebook', splat: @props.gist.html_url
       React.DOM.div {}, [
         GistLinkComponent gist: @props.gist
         # TODO should this be target=_blank
@@ -304,13 +306,14 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
     .then (response) ->
       gist: response
 
-    React.DOM.div {},
-      Context.AsyncComponent {promise},
-        Builtins.ComponentAndError {promise},
-          "Saving gist"
-          Builtins.PromiseResolvedComponent
-            constructor: NotebookGistLinkComponent
-            promise: promise
-      Builtins.PromiseStatusComponent {promise, start_time: new Date}
+    ->
+      React.DOM.div {},
+        Context.AsyncComponent {promise},
+          Builtins.ComponentAndError {promise},
+            "Saving gist"
+            Builtins.PromiseResolvedComponent
+              constructor: NotebookGistLinkComponent
+              promise: promise
+        Builtins.PromiseStatusComponent {promise, start_time: new Date}
 
   github
