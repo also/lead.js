@@ -139,7 +139,7 @@ HelpComponent = React.createClass
   displayName: 'HelpComponent'
   mixins: [Router.Navigation, AppAwareMixin]
   run: (value) ->
-    @transitionTo 'raw_notebook', splat: btoa value
+    @transitionTo 'raw_notebook', splat: encodeNotebookValue(value)
   navigate: (key) ->
     @transitionTo 'help', {key}
   render: ->
@@ -203,7 +203,7 @@ GistNotebookComponent = React.createClass
 Base64EncodedNotebookCellComponent = React.createClass
   displayName: 'Base64EncodedNotebookCellComponent'
   render: ->
-    value = atob @props.params.splat
+    value = unescape(decodeURIComponent(atob(@props.params.splat)))
     SingleCoffeeScriptCellNotebookComponent {value}
 
 SingleCoffeeScriptCellNotebookComponent = React.createClass
@@ -304,9 +304,14 @@ exports.init_app = (target, options={}) ->
   React.renderComponent routesComponent, target
   initializationPromise.done()
 
+
+encodeNotebookValue = (value) ->
+  btoa(encodeURIComponent(escape(value)))
+
 exports.raw_cell_url = (ctx, value) ->
   # TODO don't require appComponent
-  URI(ctx.app.appComponent.makeHref 'raw_notebook', splat: btoa value).absoluteTo(location.href).toString()
+  encoded = encodeNotebookValue(value)
+  URI(ctx.app.appComponent.makeHref 'raw_notebook', splat: encoded).absoluteTo(location.href).toString()
 
 exports.SingleCoffeeScriptCellNotebookComponent = SingleCoffeeScriptCellNotebookComponent
 
