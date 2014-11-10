@@ -428,6 +428,9 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
     {server: server_params, client: client_params}
 
+  hasFeature: (ctx, feature) ->
+    _.contains settings.get('features') or [], feature
+
   LeadDataSource: class
     constructor: (load) ->
       @load = load
