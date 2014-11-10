@@ -147,12 +147,13 @@ export_notebook = (notebook, current_cell) ->
     value: Editor.get_value cell.editor
 
 import_notebook = (notebook, cell, imported, options) ->
-  for imported_cell in imported.cells
+  cells = _.map imported.cells, (imported_cell) ->
     if imported_cell.type is 'input'
       cell = add_input_cell notebook, after: cell
       set_cell_value cell, imported_cell.value
-      if options.run
-        run cell
+      cell
+  if options.run
+    _.each cells, run
   notebook
 
 update_view = (notebook) ->
