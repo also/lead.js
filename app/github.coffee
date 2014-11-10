@@ -141,9 +141,9 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
   component_fn 'load', 'Loads a file from GitHub', (ctx, path, options={}) ->
     url = github.to_repo_url path
     promise = ensureAuth(ctx, {url}).then ->
-      github.get_repo_contents url
-    .fail (response) ->
-      Q.reject response.statusText
+      github.get_repo_contents(url)
+      .fail (response) ->
+        Q.reject response.statusText
     .then (file) ->
       Notebook.handle_file ctx, file, options
 
@@ -208,7 +208,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
       site: site
       unsubscribe: unsubscribe
     cancel: ->
-      @props.deferred.reject()
+      @props.deferred.reject('GitHub Authentication Cancelled')
     componentWillUnmount: ->
       @state.unsubscribe?()
     render: ->
@@ -240,9 +240,9 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
     url = github.to_gist_url gist
 
     gist_promise = ensureAuth(ctx, {url}).then ->
-      Http.get github.to_gist_url(gist)
-    .fail (response) ->
-      Q.reject response.statusText
+      Http.get(github.to_gist_url(gist))
+      .fail (response) ->
+        Q.reject response.statusText
     promise = gist_promise
     .then (response) ->
       for name, file of response.files
