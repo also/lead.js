@@ -4,6 +4,8 @@ CoffeeScriptCell = require '../app/coffeescript_cell'
 React = require 'react'
 $ = require 'jquery'
 
+require('../app/modules').init_modules([])
+
 eval_coffeescript_in_context = (run_context, string) ->
   Context.run_in_context run_context, CoffeeScriptCell.create_fn string
 
