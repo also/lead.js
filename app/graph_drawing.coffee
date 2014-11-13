@@ -3,6 +3,7 @@ d3 = require 'd3'
 _ = require 'underscore'
 moment = require 'moment'
 Bacon = require 'bacon.model'
+Q = require 'q'
 
 clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
@@ -115,8 +116,9 @@ create = (container) ->
   svg = d3.select(container).append('svg')
     .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
 
+  # TODO font
   g = svg
-    .append("g")
+    .append("g").style({'font-family': '"Helvetica Neue"'})
 
   xAxisG = g.append('g')
     .attr('class', 'x axis')
@@ -145,6 +147,27 @@ create = (container) ->
   destroy = ->
     _.each(destroyFunctions, (f) -> f())
     destroyFunctions = []
+
+  exportImage = ->
+    deferred = Q.defer()
+    canvas = document.createElement('canvas')
+    rect = svg.node().getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = rect.height
+    ctx = canvas.getContext('2d')
+    svgString = new XMLSerializer().serializeToString(svg.node())
+    svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'})
+    url = URL.createObjectURL(svgBlob)
+    img = new Image
+    img.src = url
+    img.onload = ->
+      ctx.drawImage(img, 0, 0)
+      dataUrl = canvas.toDataURL()
+      deferred.resolve(dataUrl)
+    img.onerror = (e) ->
+      deferred.reject(e)
+    deferred.promise.finally ->
+      URL.revokeObjectURL(url)
 
   draw = (data, params) ->
     destroy()
@@ -497,6 +520,6 @@ create = (container) ->
 
     legend_target.exit().remove()
 
-  {draw, destroy}
+  {draw, exportImage, destroy}
 
 module.exports = {create}
