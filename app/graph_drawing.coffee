@@ -62,7 +62,15 @@ default_params =
   areaOffset: 'zero'
   drawNullAsZero: false
   simplify: 0.5
+  axisLineColor: '#ccc'
+  axisTextColor: '#aaa'
+  crosshairLineColor: '#ddd'
+  crosshairTextColor: '#aaa'
+  crosshairValueTextColor: '#aaa'
+  brushColor: '#efefef'
   #lineWidth: 1
+
+fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
 
 create = (container) ->
   x = d3.time.scale()
@@ -132,7 +140,11 @@ create = (container) ->
 
   draw = (data, params) ->
     destroy()
-    params = _.extend {}, default_params, params
+    if params?.fgcolor
+      computedParams = _.object _.map fgColorParams, (k) -> [k, params.fgcolor]
+    else
+      computedParams = {}
+    params = _.extend {}, default_params, computedParams, params
     width = params.width
     height = params.height
 
@@ -318,8 +330,12 @@ create = (container) ->
 
     yXaxisG.call(y_axis)
 
+    g.selectAll('.axis path, .axis line').attr('stroke', params.axisLineColor)
+    g.selectAll('.axis text').attr('fill', params.axisTextColor)
+
     vertical_crosshair
       .attr('y2', height)
+      .attr('stroke', params.crosshairLineColor)
 
     brushed = ->
       brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
@@ -345,7 +361,7 @@ create = (container) ->
     brushG.selectAll("rect")
       .attr("y", 0)
       .attr("height", height)
-      .attr('fill', '#efefef')
+      .attr('fill', params.brushColor)
 
     positionCrosshair = (x, time) ->
       currentCrosshairTime = time
@@ -356,6 +372,7 @@ create = (container) ->
       crosshair_time
         .text(moment(time).format('lll'))
         .attr('x', x)
+        .attr('fill', params.crosshairTextColor)
 
       target_values = _.map targets, (t) ->
         i = t.bisector.left t.values, time, 1
@@ -369,6 +386,7 @@ create = (container) ->
       legend.selectAll('.crosshair-value')
         .data(target_values)
         .text((d) -> d?.value)
+        .style(color: params.crosshairValueTextColor)
 
     mouse_position.onValue (p) ->
       positionCrosshair p.x, p.time
