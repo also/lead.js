@@ -78,49 +78,49 @@ create = (container) ->
   mouse_moves = new Bacon.Bus
 
   area = d3.svg.area()
-  .x((d) -> d.x)
-  .y0((d) -> y d.y0 ? 0)
-  .y1((d) -> y d.value + (d.y0 ? 0))
-  .defined((d) -> d.value?)
+    .x((d) -> d.x)
+    .y0((d) -> y d.y0 ? 0)
+    .y1((d) -> y d.value + (d.y0 ? 0))
+    .defined((d) -> d.value?)
 
   line = d3.svg.line()
-  .x((d) -> d.x)
-  .y((d) -> y d.value)
-  .defined((d) -> d.value?)
+    .x((d) -> d.x)
+    .y((d) -> y d.value)
+    .defined((d) -> d.value?)
 
   stack = d3.layout.stack()
-  .values((d) -> d.values)
-  .x((d) -> d.time)
-  .y((d) -> d.value)
-  .out((d, y0, y) ->
-    d.y0 = y0
-    d.value = y)
+    .values((d) -> d.values)
+    .x((d) -> d.time)
+    .y((d) -> d.value)
+    .out((d, y0, y) ->
+      d.y0 = y0
+      d.value = y)
 
   svg = d3.select(container).append('svg')
-  .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
+    .on('mousemove', (d, i) -> mouse_moves.push d3.mouse g.node())
 
   g = svg
-  .append("g")
+    .append("g")
 
   xAxisG = g.append('g')
-  .attr('class', 'x axis')
+    .attr('class', 'x axis')
 
   yXaxisG = g.append('g')
-  .attr('class', 'y axis')
+    .attr('class', 'y axis')
 
   vertical_crosshair = g.append('line')
-  .attr('class', 'crosshair')
-  .attr('y1', 0)
+    .attr('class', 'crosshair')
+    .attr('y1', 0)
 
   crosshair_time = g.append('text')
-  .attr('class', 'crosshair-time')
-  .attr('y', -6)
+    .attr('class', 'crosshair-time')
+    .attr('y', -6)
 
   brushG = g.append("g")
-  .attr("class", "x brush")
+    .attr("class", "x brush")
 
   legend = d3.select(container).append('ul')
-  .attr('class', 'legend')
+    .attr('class', 'legend')
 
   currentCrosshairTime = null
   allNames = []
@@ -194,8 +194,8 @@ create = (container) ->
         circles.attr('r', 4)
       selection.classed 'hovered', true
     unhovers = hover_selections.merge(mouse_out)
-    .withStateMachine([], (previous, event) -> [[event], previous])
-    .filter (e) -> e.selection?
+      .withStateMachine([], (previous, event) -> [[event], previous])
+      .filter (e) -> e.selection?
     unhovers.onValue ({selection, index}) ->
       selection.classed 'hovered', false
       if type == 'line'
@@ -304,22 +304,22 @@ create = (container) ->
       target.scatterValues = filter_scatter_values values
 
     svg
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .style('background-color', params.bgcolor)
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .style('background-color', params.bgcolor)
 
     g
-    .attr("transform", "translate(#{margin.left},#{margin.top})")
+      .attr("transform", "translate(#{margin.left},#{margin.top})")
 
     xAxisG
-    .attr('class', 'x axis')
-    .attr('transform', "translate(0, #{height})")
-    .call(x_axis)
+      .attr('class', 'x axis')
+      .attr('transform', "translate(0, #{height})")
+      .call(x_axis)
 
     yXaxisG.call(y_axis)
 
     vertical_crosshair
-    .attr('y2', height)
+      .attr('y2', height)
 
     brushed = ->
       brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
@@ -327,10 +327,10 @@ create = (container) ->
     brushend = -> brushBus.push setNotBrushing
 
     brush = d3.svg.brush()
-    .x(x)
-    .on("brush", brushed)
-    .on('brushstart', brushstart)
-    .on('brushend', brushend)
+      .x(x)
+      .on("brush", brushed)
+      .on('brushstart', brushstart)
+      .on('brushend', brushend)
 
     brushG.call(brush)
 
@@ -343,19 +343,19 @@ create = (container) ->
       brush brushG
 
     brushG.selectAll("rect")
-    .attr("y", 0)
-    .attr("height", height)
-    .attr('fill', '#efefef')
+      .attr("y", 0)
+      .attr("height", height)
+      .attr('fill', '#efefef')
 
     positionCrosshair = (x, time) ->
       currentCrosshairTime = time
       vertical_crosshair
-      .attr('x1', x)
-      .attr('x2', x)
+        .attr('x1', x)
+        .attr('x2', x)
 
       crosshair_time
-      .text(moment(time).format('lll'))
-      .attr('x', x)
+        .text(moment(time).format('lll'))
+        .attr('x', x)
 
       target_values = _.map targets, (t) ->
         i = t.bisector.left t.values, time, 1
@@ -367,8 +367,8 @@ create = (container) ->
           d0
 
       legend.selectAll('.crosshair-value')
-      .data(target_values)
-      .text((d) -> d?.value)
+        .data(target_values)
+        .text((d) -> d?.value)
 
     mouse_position.onValue (p) ->
       positionCrosshair p.x, p.time
@@ -390,10 +390,10 @@ create = (container) ->
       boundedPositionCrosshair(time)
 
     target = g.selectAll('.target')
-    .data(targets)
+      .data(targets)
     target.enter().append("g")
-    .attr('class', (d, i) -> "target target#{i}")
-    .call(observe_mouse)
+      .attr('class', (d, i) -> "target target#{i}")
+      .call(observe_mouse)
     target.exit().remove()
     target.selectAll('g > *').remove()
 
@@ -405,19 +405,19 @@ create = (container) ->
         lineWidth = params.lineWidth
 
       path = target.append("path")
-      .attr('class', (d) -> d.lineMode)
-      .attr('stroke', (d, i) -> d.color)
-      .style('stroke-width', lineWidth)
-      .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
-      .attr('d', (d, i) -> d.lineFn(d.lineValues))
+        .attr('class', (d) -> d.lineMode)
+        .attr('stroke', (d, i) -> d.color)
+        .style('stroke-width', lineWidth)
+        .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
+        .attr('d', (d, i) -> d.lineFn(d.lineValues))
       if hover
         path
-        .style('stroke-opacity', 0)
-        .style('fill-opacity', 0)
+          .style('stroke-opacity', 0)
+          .style('fill-opacity', 0)
       else
         path
-        .style('stroke-opacity', line_opacity)
-        .style('fill-opacity', area_opacity)
+          .style('stroke-opacity', line_opacity)
+          .style('fill-opacity', area_opacity)
 
     add_circles = (target, hover) ->
       if hover
@@ -446,25 +446,25 @@ create = (container) ->
       add_circles target, true
 
     legend_target = legend.selectAll('li')
-    .data(targets)
+      .data(targets)
 
     legendTargetEnter = legend_target.enter().append('li')
-    .attr('class', (d, i) -> "target#{i}")
-    .attr('data-target', (d) -> d.name)
-    .call(observe_mouse)
+      .attr('class', (d, i) -> "target#{i}")
+      .attr('data-target', (d) -> d.name)
+      .call(observe_mouse)
 
     legendTargetEnter.append('span')
-    .attr('class', 'color')
+      .attr('class', 'color')
     legendTargetEnter.append('span')
-    .attr('class', 'name')
+      .attr('class', 'name')
     legendTargetEnter.append('span')
-    .attr('class', 'crosshair-value')
+      .attr('class', 'crosshair-value')
 
     legend_target.select('span.color')
-    .style('color', (d, i) -> d.color)
+      .style('color', (d, i) -> d.color)
 
     legend_target.select('span.name')
-    .text((d) -> d.name)
+      .text((d) -> d.name)
 
     legend_target.exit().remove()
 
