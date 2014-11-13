@@ -64,14 +64,21 @@ default_params =
   simplify: 0.5
   axisLineColor: '#ccc'
   axisTextColor: '#aaa'
+  axisTextSize: '10px'
   crosshairLineColor: '#ddd'
   crosshairTextColor: '#aaa'
+  crosshairTextSize: '10px'
   crosshairValueTextColor: '#aaa'
   brushColor: '#efefef'
   valueFormat: d3.format(',.4g')
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
+
+pathStyles =
+  line:
+    fill: 'none'
+    'stroke-linecap': 'square'
 
 create = (container) ->
   x = d3.time.scale()
@@ -122,7 +129,7 @@ create = (container) ->
     .attr('y1', 0)
 
   crosshair_time = g.append('text')
-    .attr('class', 'crosshair-time')
+    .style('text-anchor', 'middle')
     .attr('y', -6)
 
   brushG = g.append("g")
@@ -331,8 +338,9 @@ create = (container) ->
 
     yXaxisG.call(y_axis)
 
-    g.selectAll('.axis path, .axis line').attr('stroke', params.axisLineColor)
-    g.selectAll('.axis text').attr('fill', params.axisTextColor)
+    axes = g.selectAll('.axis')
+    axes.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
+    axes.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
 
     vertical_crosshair
       .attr('y2', height)
@@ -374,6 +382,7 @@ create = (container) ->
         .text(moment(time).format('lll'))
         .attr('x', x)
         .attr('fill', params.crosshairTextColor)
+        .style('font-size': params.crosshairTextSize)
 
       target_values = _.map targets, (t) ->
         i = t.bisector.left t.values, time, 1
@@ -429,6 +438,7 @@ create = (container) ->
         .style('stroke-width', lineWidth)
         .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
         .attr('d', (d, i) -> d.lineFn(d.lineValues))
+        .each((d) -> d3.select(@).style(pathStyles[d.lineMode]))
       if hover
         path
           .style('stroke-opacity', 0)
