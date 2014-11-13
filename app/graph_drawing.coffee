@@ -68,6 +68,7 @@ default_params =
   crosshairTextColor: '#aaa'
   crosshairValueTextColor: '#aaa'
   brushColor: '#efefef'
+  valueFormat: d3.format(',.4g')
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
@@ -385,7 +386,7 @@ create = (container) ->
 
       legend.selectAll('.crosshair-value')
         .data(target_values)
-        .text((d) -> d?.value)
+        .text((d) -> params.valueFormat(d?.value))
         .style(color: params.crosshairValueTextColor)
 
     mouse_position.onValue (p) ->
