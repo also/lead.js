@@ -44,7 +44,7 @@ InlineExampleComponent = React.createClass
         fn ctx
     React.DOM.div {className: 'inline-example'},
       React.DOM.div {className: 'example'}, example_component
-      React.DOM.div {className: 'output'}, nested_context.component
+      React.DOM.div {className: 'output'}, nested_context.component()
 
 LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'
