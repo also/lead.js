@@ -155,7 +155,6 @@ data = [
 options width: 400, height: 200
 graph data, interpolate: 'basis'
 graph data, interpolate: 'cardinal'
-graph data, interpolate: 'basis'
 graph data, interpolate: 'step-before'
 graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
 md 'see http://bl.ocks.org/mbostock/3310323'
