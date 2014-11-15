@@ -72,6 +72,7 @@ defaultParams =
   crosshairValueTextColor: '#aaa'
   brushColor: '#efefef'
   valueFormat: d3.format(',.4g')
+  hideAxes: false
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
@@ -355,16 +356,17 @@ create = (container) ->
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
 
-    xAxisG
-      .attr('class', 'x axis')
-      .attr('transform', "translate(0, #{height})")
-      .call(xAxis)
+    if !params.hideAxes
+      xAxisG
+        .attr('class', 'x axis')
+        .attr('transform', "translate(0, #{height})")
+        .call(xAxis)
 
-    yXaxisG.call(yAxis)
+      yXaxisG.call(yAxis)
 
-    axes = g.selectAll('.axis')
-    axes.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
-    axes.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
+      axes = g.selectAll('.axis')
+      axes.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
+      axes.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
 
     verticalCrosshair
       .attr('y2', height)
