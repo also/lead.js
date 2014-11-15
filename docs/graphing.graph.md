@@ -143,6 +143,8 @@ graph data, areaMode: 'stacked', areaOffset: 'expand'
 
 ## `interpolate`
 
+See https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate or https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-area_interpolate.
+
 ```
 now = moment().unix()
 data = [
