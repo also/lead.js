@@ -162,6 +162,7 @@ create = (container) ->
     img.src = url
     img.onload = ->
       ctx.drawImage(img, 0, 0)
+      # would like to return a blob, but https://code.google.com/p/chromium/issues/detail?id=67587
       dataUrl = canvas.toDataURL()
       deferred.resolve(dataUrl)
     img.onerror = (e) ->
