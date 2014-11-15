@@ -137,7 +137,8 @@ create = (container) ->
   brushG = g.append("g")
     .attr("class", "x brush")
 
-  legend = d3.select(container).append('ul')
+  legendWrapper = svg.append('foreignObject')
+  legend = legend = legendWrapper.append('xhtml:ul')
     .attr('class', 'legend')
 
   currentCrosshairTime = null
@@ -346,11 +347,6 @@ create = (container) ->
       target.lineValues = expandLineValues values
       target.scatterValues = filterScatterValues values
 
-    svg
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .style('background-color', params.bgcolor)
-
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
 
@@ -519,6 +515,17 @@ create = (container) ->
       .text((d) -> d.name)
 
     legendTarget.exit().remove()
+
+    legendWrapper
+      .attr('width', width + margin.left + margin.right)
+      .attr('y', height + margin.top + margin.bottom)
+
+    legendHeight = legend.node().offsetHeight
+    legendWrapper.attr('height', legendHeight)
+    svg
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom + legendHeight)
+      .style('background-color', params.bgcolor)
 
   {draw, exportImage, destroy}
 
