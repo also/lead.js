@@ -82,6 +82,8 @@ defaultParams =
   hideLegend: false
   hideXAxis: false
   hideYAxis: false
+  title: null
+  titleTextSize: '12px'
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
@@ -125,6 +127,9 @@ create = (container) ->
 
   svg = d3.select(container).append('svg')
     .on('mousemove', (d, i) -> mouseMoves.push d3.mouse g.node())
+
+  title = svg.append('text')
+    .style('text-anchor', 'middle')
 
   # TODO font
   g = svg
@@ -204,6 +209,9 @@ create = (container) ->
     type = params.type
 
     margin = top: 20, right: 80, bottom: 30, left: 80
+    if params.title
+      margin.top += 30
+
 
     width -= margin.left + margin.right
     height -= margin.top + margin.bottom
@@ -365,6 +373,13 @@ create = (container) ->
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
 
+    title
+      .attr('x', margin.left + width / 2)
+      .attr('y', 10)
+      .attr('dy', params.titleTextSize)
+      .text(params.title)
+      .style('font-size': params.titleTextSize, 'font-weight': 'bold')
+    invisibility(title, !params.title?)
 
     xAxisG
       .attr('transform', "translate(0, #{height})")
