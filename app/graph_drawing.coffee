@@ -128,7 +128,7 @@ create = (container) ->
 
   svg = d3.select(container)
     .append('svg')
-    .style({'font-family': '"Helvetica Neue"'})
+    .style({'font-family': '"Helvetica Neue"', cursor: 'default'})
     .on('mousemove', (d, i) -> mouseMoves.push d3.mouse g.node())
 
   title = svg.append('text')
