@@ -145,6 +145,7 @@ create = (container) ->
 
   verticalCrosshair = g.append('line')
     .attr('class', 'crosshair')
+    .style('shape-rendering': 'crispEdges')
     .attr('y1', 0)
 
   crosshairTime = g.append('text')
