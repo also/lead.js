@@ -84,9 +84,10 @@ defaultParams =
   hideYAxis: false
   title: null
   titleTextSize: '12px'
+  titleTextColor: '#333'
   #lineWidth: 1
 
-fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
+fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor', 'titleTextColor']
 
 pathStyles =
   line:
@@ -380,6 +381,7 @@ create = (container) ->
       .attr('x', margin.left + width / 2)
       .attr('y', 10)
       .attr('dy', params.titleTextSize)
+      .attr('fill', params.titleTextColor)
       .text(params.title)
       .style('font-size': params.titleTextSize, 'font-weight': 'bold')
     invisibility(title, !params.title?)
