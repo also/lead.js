@@ -74,6 +74,8 @@ defaultParams =
   valueFormat: d3.format(',.4g')
   hideAxes: false
   hideLegend: false
+  hideXAxis: false
+  hideYAxis: false
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
@@ -125,7 +127,7 @@ create = (container) ->
   xAxisG = g.append('g')
     .attr('class', 'x axis')
 
-  yXaxisG = g.append('g')
+  yAxisG = g.append('g')
     .attr('class', 'y axis')
 
   verticalCrosshair = g.append('line')
@@ -357,17 +359,25 @@ create = (container) ->
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
 
-    if !params.hideAxes
-      xAxisG
-        .attr('class', 'x axis')
-        .attr('transform', "translate(0, #{height})")
-        .call(xAxis)
 
-      yXaxisG.call(yAxis)
+    xAxisG
+      .attr('transform', "translate(0, #{height})")
+      .call(xAxis)
+    if params.hideXAxis or params.hideAxes
+      xAxisG.attr('visibility', 'hidden')
+    else
+      xAxisG.attr('visibility', 'visible')
 
-      axes = g.selectAll('.axis')
-      axes.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
-      axes.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
+    yAxisG.call(yAxis)
+    if params.hideYAxis or params.hideAxes
+      yAxisG.attr('visibility', 'hidden')
+    else
+      yAxisG.attr('visibility', 'visible')
+
+    axes = g.selectAll('.axis')
+
+    axes.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
+    axes.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
 
     verticalCrosshair
       .attr('y2', height)
