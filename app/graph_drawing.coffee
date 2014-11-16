@@ -50,6 +50,12 @@ simplifyPoints = (minDistance, values) ->
 
   result
 
+invisibility = (sel, invisible) ->
+  if invisible
+    sel.attr('visibility', 'hidden')
+  else
+    sel.attr('visibility', 'visible')
+
 defaultParams =
   width: 800
   height: 400
@@ -363,16 +369,10 @@ create = (container) ->
     xAxisG
       .attr('transform', "translate(0, #{height})")
       .call(xAxis)
-    if params.hideXAxis or params.hideAxes
-      xAxisG.attr('visibility', 'hidden')
-    else
-      xAxisG.attr('visibility', 'visible')
+    invisibility(xAxisG, params.hideXAxis or params.hideAxes)
 
     yAxisG.call(yAxis)
-    if params.hideYAxis or params.hideAxes
-      yAxisG.attr('visibility', 'hidden')
-    else
-      yAxisG.attr('visibility', 'visible')
+    invisibility(yAxisG, params.hideYAxis or params.hideAxes)
 
     axes = g.selectAll('.axis')
 
