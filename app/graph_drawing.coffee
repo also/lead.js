@@ -244,11 +244,9 @@ create = (container) ->
       newState
     selected.onValue (s) ->
       legend.selectAll('li')
-      .data(s)
-      .classed 'deselected', (d) -> !d
+        .classed 'deselected', (d, i) -> !s[i]
       g.selectAll('.target')
-      .data(s)
-      .classed 'deselected', (d) -> !d
+        .classed 'deselected', (d, i) -> !s[i]
 
     hoverSelections = mouseOver.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
     hoverSelections.onValue ({selection, index}) ->
