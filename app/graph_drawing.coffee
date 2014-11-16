@@ -541,7 +541,6 @@ create = (container) ->
 
     legendTargetEnter = legendTarget.enter().append('li')
       .attr('class', (d, i) -> "target#{i}")
-      .attr('data-target', (d) -> d.name)
       .call(observeMouse)
 
     legendTargetEnter.append('span')
