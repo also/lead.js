@@ -125,7 +125,9 @@ create = (container) ->
       d.y0 = y0
       d.value = y)
 
-  svg = d3.select(container).append('svg')
+  svg = d3.select(container)
+    .append('svg')
+    .style({'font-family': '"Helvetica Neue"'})
     .on('mousemove', (d, i) -> mouseMoves.push d3.mouse g.node())
 
   title = svg.append('text')
@@ -133,7 +135,7 @@ create = (container) ->
 
   # TODO font
   g = svg
-    .append("g").style({'font-family': '"Helvetica Neue"'})
+    .append("g")
 
   xAxisG = g.append('g')
     .attr('class', 'x axis')
