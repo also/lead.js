@@ -73,6 +73,7 @@ defaultParams =
   brushColor: '#efefef'
   valueFormat: d3.format(',.4g')
   hideAxes: false
+  hideLegend: false
   #lineWidth: 1
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor']
@@ -499,6 +500,11 @@ create = (container) ->
     else if type is 'scatter'
       addCircles target, false
       addCircles target, true
+
+    if params.hideLegend
+      legend.style(display: 'none')
+    else
+      legend.style(display: 'block')
 
     legendTarget = legend.selectAll('li')
       .data(targets)
