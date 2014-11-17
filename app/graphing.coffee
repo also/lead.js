@@ -11,6 +11,13 @@ Server = require './server'
 GraphDrawing = require './graph_drawing'
 Context = require './context'
 Builtins = require './builtins'
+App = require './app'
+
+ExportModal = React.createClass
+  render: ->
+    footer = React.DOM.button {onClick: @props.dismiss}, 'OK'
+    App.ModalComponent {footer},
+      React.DOM.img {src: @props.url, style: {border: '1px solid #aaa'}}
 
 Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   brushParams = (brush) ->
@@ -173,8 +180,17 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
 
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
+    export: ->
+      @state.graph.exportImage().then (url) ->
+        App.pushModal handler: ExportModal, props: {url}
     render: ->
-      React.DOM.div {className: 'graph'}
+      React.DOM.div {className: 'graph', style: {position: 'relative'}},
+        React.DOM.span {className: 'fa-stack', title: 'Export', style: {position: 'absolute', top: '5px', right: '5px', cursor: 'pointer'}},
+          React.DOM.i {className: 'fa fa-square fa-stack-2x', style: {color: '#fff'}}
+          React.DOM.i
+            onClick: @export
+            className: 'fa fa-share-square-o fa-stack-1x'
+            style: {color: '#ccc'}
     componentWillReceiveProps: (nextProps) ->
       @state.unsubscribe()
       @subscribe(nextProps.model, @state.graph)
