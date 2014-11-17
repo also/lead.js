@@ -85,9 +85,12 @@ defaultParams =
   title: null
   titleTextSize: '12px'
   titleTextColor: '#333'
+  legendTextColor: '#333'
+  legendText: (d) -> d.name
+  deselectedOpacity: 0.5
   #lineWidth: 1
 
-fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor', 'titleTextColor']
+fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor', 'titleTextColor', 'legendTextColor']
 
 pathStyles =
   line:
@@ -156,8 +159,8 @@ create = (container) ->
   brushG = g.append("g")
     .attr("class", "x brush")
 
-  legend = d3.select(container).append('ul')
-    .attr('class', 'legend')
+  legendG = g.append("g")
+    .attr("class", "legend")
 
   currentCrosshairTime = null
   allNames = []
@@ -199,6 +202,8 @@ create = (container) ->
     width = params.width
     height = params.height
 
+    legendRowHeight = 18
+
     cursorModel = params.cursor ? new Bacon.Model
     brushModel = params.brush ? new Bacon.Model brushing: false
 
@@ -212,7 +217,7 @@ create = (container) ->
 
     type = params.type
 
-    margin = top: 20, right: 80, bottom: 30, left: 80
+    margin = top: 20, right: 80, bottom: 10, left: 80
     if params.title
       margin.top += 30
 
@@ -242,11 +247,6 @@ create = (container) ->
       newState = _.clone state
       newState[i] = !newState[i]
       newState
-    selected.onValue (s) ->
-      legend.selectAll('li')
-        .classed 'deselected', (d, i) -> !s[i]
-      g.selectAll('.target')
-        .classed 'deselected', (d, i) -> !s[i]
 
     hoverSelections = mouseOver.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
     hoverSelections.onValue ({selection, index}) ->
@@ -256,12 +256,12 @@ create = (container) ->
       else
         circles = selection.select('.circles').selectAll('circle')
         circles.attr('r', 4)
-      selection.classed 'hovered', true
+      highlightLegend(index)
     unhovers = hoverSelections.merge(mouseOut)
       .withStateMachine([], (previous, event) -> [[event], previous])
       .filter (e) -> e.selection?
     unhovers.onValue ({selection, index}) ->
-      selection.classed 'hovered', false
+      highlightLegend(null)
       if type == 'line'
         path = selection.select('path')
         path.style('stroke-width', params.lineWidth)
@@ -367,11 +367,6 @@ create = (container) ->
       target.lineValues = expandLineValues values
       target.scatterValues = filterScatterValues values
 
-    svg
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .style('background-color', params.bgcolor)
-
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
 
@@ -448,10 +443,10 @@ create = (container) ->
         else if d0
           d0
 
-      legend.selectAll('.crosshair-value')
+      legendG.selectAll('.crosshair-value')
         .data(targetValues)
         .text((d) -> params.valueFormat(d?.value))
-        .style(color: params.crosshairValueTextColor)
+
 
     mousePosition.onValue (p) ->
       positionCrosshair p.x, p.time
@@ -492,6 +487,7 @@ create = (container) ->
         .attr('stroke', (d, i) -> d.color)
         .style('stroke-width', lineWidth)
         .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
+        # TODO don't call lineFn for both visible and hover paths
         .attr('d', (d, i) -> d.lineFn(d.lineValues))
         .each((d) -> d3.select(@).style(pathStyles[d.lineMode]))
       if hover
@@ -529,32 +525,75 @@ create = (container) ->
       addCircles target, false
       addCircles target, true
 
-    if params.hideLegend
-      legend.style(display: 'none')
-    else
-      legend.style(display: 'block')
+    invisibility(legendG, params.hideLegend)
+    legendFontSize = '11px'
+    legendG.attr('transform', "translate(0,#{height + 30})")
 
-    legendTarget = legend.selectAll('li')
-      .data(targets)
-
-    legendTargetEnter = legendTarget.enter().append('li')
-      .attr('class', (d, i) -> "target#{i}")
+    legendGTarget = legendG.selectAll('g').data(targets)
+    legendGTarget.enter()
+      .append('g')
+      .attr('transform', (d, i) -> "translate(0,#{i * legendRowHeight})")
       .call(observeMouse)
+      .each (d, i) ->
+        item = d3.select(@)
 
-    legendTargetEnter.append('span')
-      .attr('class', 'color')
-    legendTargetEnter.append('span')
-      .attr('class', 'name')
-    legendTargetEnter.append('span')
-      .attr('class', 'crosshair-value')
+        item.append('rect')
+          .attr('x', 4)
+          .attr('y', 4)
+          .attr('width', '6px')
+          .attr('height', '6px')
+        text = item.append('text')
+          .attr('x', 16)
+          .attr('dy', legendFontSize)
+          .style('font-size', legendFontSize)
+        text.append('tspan').attr('class', 'legend-name')
+        text.append('tspan').style('white-space': 'pre').text('   ')
+        text.append('tspan').attr('class', 'crosshair-value')
 
-    legendTarget.select('span.color')
-      .style('color', (d, i) -> d.color)
+    legendGTarget.select('.legend-name')
+      .text(params.legendText)
+      .attr('title', (d) -> d.name)
+      .attr('fill', params.legendTextColor)
+    legendGTarget.select('.crosshair-value')
+      .attr('fill', params.crosshairValueTextColor)
+    legendGTarget.select('rect')
+      .attr('fill', (d, i) -> d.color)
 
-    legendTarget.select('span.name')
-      .text((d) -> d.name)
+    legendGTarget.exit().remove()
 
-    legendTarget.exit().remove()
+    if !params.hideLegend
+      svgHeight = height + margin.top + margin.bottom + targets.length * legendRowHeight + 30
+    else
+      svgHeight = height + margin.top + margin.bottom + 30
+    svg
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', svgHeight)
+      .style('background-color', params.bgcolor)
+
+    highlightLegend = (highlightIndex) ->
+      legendGTarget.selectAll('rect').each (d, i, j) ->
+        rect = d3.select(this)
+        if j == highlightIndex
+          rect
+            .attr('x', 2)
+            .attr('y', 2)
+            .attr('width', 10)
+            .attr('height', 10)
+        else
+          rect
+            .attr('x', 4)
+            .attr('y', 4)
+            .attr('width', '6px')
+            .attr('height', '6px')
+
+    selectLegend = (selections) ->
+      legendGTarget.attr 'opacity', (d, i) ->
+        if selections[i] then 1 else 0.5
+
+    selected.onValue (s) ->
+      selectLegend(s)
+      g.selectAll('.target').attr 'opacity', (d, i) ->
+        if s[i] then 1 else params.deselectedOpacity
 
   {draw, exportImage, destroy}
 
