@@ -203,7 +203,7 @@ GistNotebookComponent = React.createClass
 Base64EncodedNotebookCellComponent = React.createClass
   displayName: 'Base64EncodedNotebookCellComponent'
   render: ->
-    value = unescape(decodeURIComponent(atob(@props.params.splat)))
+    value = decodeURIComponent(escape(atob(@props.params.splat)))
     SingleCoffeeScriptCellNotebookComponent {value}
 
 SingleCoffeeScriptCellNotebookComponent = React.createClass
@@ -317,7 +317,7 @@ exports.init_app = (target, options={}) ->
 
 
 encodeNotebookValue = (value) ->
-  btoa(encodeURIComponent(escape(value)))
+  btoa(unescape(encodeURIComponent(value)))
 
 exports.raw_cell_url = (ctx, value) ->
   # TODO don't require appComponent
