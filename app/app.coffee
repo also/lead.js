@@ -277,7 +277,11 @@ exports.init_app = (target, options={}) ->
 
   if location.search isnt ''
     uri = URI location.href
-    uri.hash("#{uri.hash()}?#{encodeURIComponent(uri.query())}")
+    if uri.hash() == ''
+      query = encodeURIComponent(uri.query())
+    else
+      query = uri.query()
+    uri.hash("#{uri.hash()}?#{query}")
     uri.query(null)
     window.history.replaceState null, document.title, uri.toString()
 
