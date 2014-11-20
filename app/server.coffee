@@ -329,18 +329,21 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     if settings.get('type') == 'lead'
       if response.exceptions.length > 0
         return Q.reject new ServerError(response.exceptions)
-      _.map _.flatten(_.values(response.results)), ({name, start, step, values}) ->
+      _.map _.flatten(_.values(response.results)), ({name, start, step, values, options}) ->
         if step?
           target: name
           datapoints: _.map values, (v, i) ->
             [start + step * i, v]
+          options: options
         else
           target: name
           datapoints: values
+          options: options
     else
-      _.map response, ({target, datapoints}) ->
+      _.map response, ({target, datapoints, options}) ->
         target: target
         datapoints: _.map datapoints, ([v, ts]) -> [ts, v]
+        options: options
 
   # returns a promise
   get_data: (params) ->
