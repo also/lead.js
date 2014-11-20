@@ -250,24 +250,29 @@ create = (container) ->
 
     hoverSelections = mouseOver.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
     hoverSelections.onValue ({selection, index}) ->
-      if type == 'line'
-        path = selection.select('path')
-        path.style('stroke-width', (params.lineWidth ? 0) + 3)
-      else
-        circles = selection.select('.circles').selectAll('circle')
-        circles.attr('r', 4)
+      path = selection.select('path')
+      path.style('stroke-width', (params.lineWidth ? 0) + 3)
+
+      lines = selection.select('.infiniteLines').selectAll('line')
+      lines.style('stroke-width', (params.lineWidth ? 0) + 3)
+
+      circles = selection.select('.circles').selectAll('circle')
+      circles.attr('r', 4)
       highlightLegend(index)
+
     unhovers = hoverSelections.merge(mouseOut)
       .withStateMachine([], (previous, event) -> [[event], previous])
       .filter (e) -> e.selection?
+
     unhovers.onValue ({selection, index}) ->
       highlightLegend(null)
-      if type == 'line'
-        path = selection.select('path')
-        path.style('stroke-width', params.lineWidth)
-      else
-        circles = selection.select('.circles').selectAll('circle')
-        circles.attr('r', 2)
+      path = selection.select('path')
+      path.style('stroke-width', params.lineWidth)
+      lines = selection.select('.infiniteLines').selectAll('line')
+      lines.style('stroke-width', params.lineWidth)
+      circles = selection.select('.circles').selectAll('circle')
+      circles.attr('r', 2)
+
 
     mousePosition = mouseMoves.map (pos) ->
       xConstrained = Math.max 0, Math.min(pos[0], width)
@@ -320,13 +325,16 @@ create = (container) ->
     valueMin = null
     valueMax = null
     targets = for s, targetIndex in data
+      options = s.options ? {}
+      drawAsInfinite = options.drawAsInfinite ? false
       values = for datapoint, i in s.datapoints
         value = get_value datapoint, i, targetIndex
         timestamp = get_timestamp datapoint, i, targetIndex
         time = new Date(timestamp * 1000)
         value = transformValue value
-        valueMin = Math.min value, valueMin ? value if value?
-        valueMax = Math.max value, valueMax
+        unless drawAsInfinite
+          valueMin = Math.min value, valueMin ? value if value?
+          valueMax = Math.max value, valueMax
         {value, time: time, x: x(time), original: datapoint}
       bisector = d3.bisector (d) -> d.time
       lineMode =
@@ -342,7 +350,7 @@ create = (container) ->
         area
       name = s.target
       targetColor = colorsByName[name]
-      {values, bisector, name, lineMode, lineFn, color: targetColor}
+      {values, bisector, name, lineMode, lineFn, color: targetColor, drawAsInfinite}
 
     if params.areaMode is 'stacked'
       stack targets
@@ -507,23 +515,56 @@ create = (container) ->
         radius = 2
         opacity = 1
       target.append('g').attr('class', 'circles')
-      .each (d) ->
-        circleColor = d.color
-        d3.select(this).selectAll('circle')
-        .data((d) -> d.scatterValues)
-        .enter().append("circle")
-        .attr('cx', (d) -> d.x)
-        .attr('cy', (d) -> y d.value)
-        .attr('fill', circleColor)
-        .attr('r', radius)
-        .style('fill-opacity', opacity)
+        .each (d) ->
+          circleColor = d.color
+          d3.select(this).selectAll('circle')
+          .data((d) -> d.scatterValues)
+          .enter().append("circle")
+            .attr('cx', (d) -> d.x)
+            .attr('cy', (d) -> y d.value)
+            .attr('fill', circleColor)
+            .attr('r', radius)
+            .style('fill-opacity', opacity)
 
-    if type is 'line'
-      addPath target, false
-      addPath target, true
-    else if type is 'scatter'
-      addCircles target, false
-      addCircles target, true
+    addInfiniteLines = (target, hover) ->
+      if hover
+        lineWidth = (params.lineWidth ? 0) + 10
+      else
+        lineWidth = params.lineWidth
+      target.append('g').attr('class', 'infiniteLines')
+      .each (d) ->
+        lineColor = d.color
+        d3.select(this)
+          .selectAll('line')
+          .data((d) -> d.scatterValues)
+          .enter().append('line').each (d) ->
+            if d.value
+              line = d3.select(@)
+                .attr('x1', d.x)
+                .attr('x2', d.x)
+                .attr('y1', 0)
+                .attr('y2', height)
+                .attr('stroke', lineColor)
+                .style('stroke-width', lineWidth)
+              if hover
+                line
+                  .style('stroke-opacity', 0)
+              else
+                line
+                  .style('stroke-opacity', lineOpacity)
+
+    addTarget = (target, hover) ->
+      target.each ->
+        sel = d3.select(@)
+        if sel.datum().drawAsInfinite
+          addInfiniteLines(sel, hover)
+        else if type is 'line'
+          addPath(sel, hover)
+        else
+          addCircles(sel, hover)
+
+    addTarget(target, false)
+    addTarget(target, true)
 
     invisibility(legendG, params.hideLegend)
     legendFontSize = '11px'
