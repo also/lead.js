@@ -539,7 +539,7 @@ create = (container) ->
           .data((d) -> d.scatterValues)
           .enter().append('line').each (d) ->
             if d.value
-              line = d3.select(@)
+              l = d3.select(@)
                 .attr('x1', d.x)
                 .attr('x2', d.x)
                 .attr('y1', 0)
@@ -547,10 +547,10 @@ create = (container) ->
                 .attr('stroke', lineColor)
                 .style('stroke-width', lineWidth)
               if hover
-                line
+                l
                   .style('stroke-opacity', 0)
               else
-                line
+                l
                   .style('stroke-opacity', lineOpacity)
 
     addTarget = (target, hover) ->
