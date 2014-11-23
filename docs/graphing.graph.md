@@ -66,10 +66,10 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, areaMode: 'none'
-graph data, areaMode: 'first'
-graph data, areaMode: 'all'
-graph data, areaMode: 'stacked'
+graph data, areaMode: 'none', title: 'none'
+graph data, areaMode: 'first', title: 'first'
+graph data, areaMode: 'all', title: 'all'
+graph data, areaMode: 'stacked', title: 'stacked'
 ```
 
 ## `bindToBrush`
@@ -103,8 +103,8 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, type: 'line'
-graph data, type: 'scatter'
+graph data, type: 'line', title: 'line'
+graph data, type: 'scatter', 'title': 'scatter'
 ```
 
 ## `lineWidth`
@@ -117,9 +117,9 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, lineWidth: 0.3
-graph data, lineWidth: 3
-graph data, lineWidth: 30
+graph data, lineWidth: 0.3, title: '0.3'
+graph data, lineWidth: 3, title: '3'
+graph data, lineWidth: 30, title: '30'
 ```
 
 ## `areaOffset`
@@ -136,9 +136,9 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, areaMode: 'stacked', areaOffset: 'wiggle'
-graph data, areaMode: 'stacked', areaOffset: 'silhouette'
-graph data, areaMode: 'stacked', areaOffset: 'expand'
+graph data, areaMode: 'stacked', areaOffset: 'wiggle', title: 'wiggle'
+graph data, areaMode: 'stacked', areaOffset: 'silhouette', title: 'silhouette'
+graph data, areaMode: 'stacked', areaOffset: 'expand', title: 'expand'
 ```
 
 ## `interpolate`
@@ -153,10 +153,10 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, interpolate: 'basis'
-graph data, interpolate: 'cardinal'
-graph data, interpolate: 'step-before'
-graph data, interpolate: (points) -> points.join 'A 1,1 0 0 1 '
+graph data, interpolate: 'basis', title: 'basis'
+graph data, interpolate: 'cardinal', title: 'cardinal'
+graph data, interpolate: 'step-before', title: 'step-before'
+graph data, title: 'arcs', interpolate: (points) -> points.join 'A 1,1 0 0 1 ',
 md 'see http://bl.ocks.org/mbostock/3310323'
 ```
 
@@ -170,8 +170,8 @@ data = [
 ]
 
 options width: 400, height: 200
-graph data, drawNullAsZero: true
-graph data, drawNullAsZero: false
+graph data, drawNullAsZero: true, title: 'true'
+graph data, drawNullAsZero: false, title: 'false'
 ```
 
 ## `d3_colors`
