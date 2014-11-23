@@ -98,6 +98,8 @@ pathStyles =
     'stroke-linecap': 'square'
 
 create = (container) ->
+  width = null
+  height = null
   x = d3.time.scale()
   y = d3.scale.linear()
   xAxis = d3.svg.axis().scale(x).orient('bottom')
@@ -132,7 +134,11 @@ create = (container) ->
   svg = d3.select(container)
     .append('svg')
     .style({'font-family': '"Helvetica Neue"', cursor: 'default'})
-    .on('mousemove', (d, i) -> mouseMoves.push d3.mouse g.node())
+    .on('mousemove', (d, i) ->
+      pos = d3.mouse(g.node())
+      if pos[1] >= 0 and pos[1] <= height
+        mouseMoves.push pos
+    )
 
   title = svg.append('text')
     .style('text-anchor', 'middle')
