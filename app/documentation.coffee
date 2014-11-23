@@ -37,10 +37,12 @@ DocumentationLinkComponent = React.createClass
     React.DOM.span {className: 'run-link', onClick: @show_help}, @props.children
 
 DocumentationIndexComponent = React.createClass
+  displayName: 'DocumentationIndexComponent'
   render: ->
     React.DOM.table {}, _.map @props.entries, (e) =>
-      React.DOM.tr {},
-        React.DOM.td {}, DocumentationLinkComponent {key: e.key ? e.name}, React.DOM.code null, e.name
+      key = e.key ? e.name
+      React.DOM.tr {key},
+        React.DOM.td {}, DocumentationLinkComponent {key}, React.DOM.code null, e.name
         React.DOM.td {}, Documentation.summary @props.ctx, e.doc
 
 DocumentationItemComponent = React.createClass

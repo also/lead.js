@@ -115,8 +115,8 @@ HelpPathComponent = React.createClass
 
     React.DOM.div {className: 'help-path'},
       Documentation.DocumentationLinkComponent {key: 'main'}, 'help'
-      _.map paths, ({path, segment}) ->
-        React.DOM.span null, ' ',
+      _.map paths, ({path, segment}, i) ->
+        React.DOM.span {key: i}, ' ',
           React.DOM.i({className: 'fa fa-caret-right'}),
           ' ',
           Documentation.DocumentationLinkComponent {key: path},
