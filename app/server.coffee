@@ -178,14 +178,14 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
   FindResultsComponent = React.createClass
     render: ->
       query_parts = @props.query.split '.'
-      React.DOM.ul {className: 'find-results'}, _.map @props.results, (node) =>
+      React.DOM.ul {className: 'find-results'}, _.map @props.results, (node, i) =>
         text = node.path
         text += '.*' unless node.is_leaf
         node_parts = text.split '.'
-        React.DOM.li {className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (segment, i) ->
+        React.DOM.li {key: i, className: 'cm-string', onClick: => @props.on_click node}, _.map node_parts, (segment, i) ->
           s = segment
           s = '.' + s unless i == 0
-          React.DOM.span {className: if segment == query_parts[i] then 'light' else null}, s
+          React.DOM.span {key: i, className: if segment == query_parts[i] then 'light' else null}, s
 
   fn 'find', 'Finds metrics', (ctx, query) ->
     promise = server.find(query)
