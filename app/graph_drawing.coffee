@@ -88,7 +88,17 @@ defaultParams =
   legendTextColor: '#333'
   legendText: (d) -> d.name
   deselectedOpacity: 0.5
-  #lineWidth: 1
+  lineWidth: 1
+  drawAsInfinite: false
+
+seriesParams = [
+  'lineWidth'
+  'get_value'
+  'get_timestamp'
+  'drawNullAsZero'
+  'drawAsInfinite'
+  'type'
+]
 
 fgColorParams = ['axisLineColor', 'axisTextColor', 'crosshairLineColor', 'crosshairTextColor', 'titleTextColor', 'legendTextColor']
 
@@ -221,8 +231,6 @@ create = (container) ->
     externalCursorChanges = cursorModel.addSource cursorBus
     externalBrushChanges = brushModel.apply brushBus
 
-    type = params.type
-
     margin = top: 20, right: 80, bottom: 10, left: 80
     if params.title
       margin.top += 30
@@ -233,9 +241,6 @@ create = (container) ->
 
     x.range([0, width])
     y.range([height, 0])
-
-    get_value = params.get_value
-    get_timestamp = params.get_timestamp
 
     color.range params.d3_colors
     # ensure that colors are stable even if targets change position in the list
@@ -256,14 +261,19 @@ create = (container) ->
 
     hoverSelections = mouseOver.map ({index}) -> {index, selection: d3.select(container).selectAll ".target#{index}"}
     hoverSelections.onValue ({selection, index}) ->
-      path = selection.select('path')
-      path.style('stroke-width', (params.lineWidth ? 0) + 3)
+      selection.each (d) ->
+        targetSelection = d3.select(this)
 
-      lines = selection.select('.infiniteLines').selectAll('line')
-      lines.style('stroke-width', (params.lineWidth ? 0) + 3)
+        targetSelection.select('path')
+          .style('stroke-width', (d) -> d.lineWidth + 3)
 
-      circles = selection.select('.circles').selectAll('circle')
-      circles.attr('r', 4)
+        targetSelection.select('.infiniteLines').each (d) ->
+          d3.select(this).selectAll('line')
+            .style('stroke-width', d.lineWidth + 3)
+
+        targetSelection.select('.circles').selectAll('circle')
+          .attr('r', 4)
+
       highlightLegend(index)
 
     unhovers = hoverSelections.merge(mouseOut)
@@ -272,12 +282,19 @@ create = (container) ->
 
     unhovers.onValue ({selection, index}) ->
       highlightLegend(null)
-      path = selection.select('path')
-      path.style('stroke-width', params.lineWidth)
-      lines = selection.select('.infiniteLines').selectAll('line')
-      lines.style('stroke-width', params.lineWidth)
-      circles = selection.select('.circles').selectAll('circle')
-      circles.attr('r', 2)
+
+      selection.each (d) ->
+        targetSelection = d3.select(this)
+
+        targetSelection.select('path')
+          .style('stroke-width', (d) -> d.lineWidth)
+
+        targetSelection.select('.infiniteLines').each (d) ->
+          d3.select(this).selectAll('line')
+            .style('stroke-width', d.lineWidth)
+
+        targetSelection.select('.circles').selectAll('circle')
+          .attr('r', 2)
 
 
     mousePosition = mouseMoves.map (pos) ->
@@ -287,61 +304,43 @@ create = (container) ->
       x: xConstrained
       y: pos[1]
 
-    timeMin = null
-    timeMax = null
-    _.each data, ({datapoints}, j) ->
-      if datapoints.length > 0
-        _.each [0, datapoints.length - 1], (i) ->
-          datapoint = datapoints[i]
-          value = get_value datapoint, i, j
-          timestamp = get_timestamp datapoint, i, j
-          timeMin = Math.min timestamp, timeMin ? timestamp
-          timeMax = Math.max timestamp, timeMax
-
-    timeMin = new Date(timeMin * 1000)
-    timeMax = new Date(timeMax * 1000)
-    x.domain [params.xMin ? timeMin, params.xMax ? timeMax]
-
     stack.offset(params.areaOffset)
 
-    if type is 'line'
-      areaOpacity = params.areaAlpha
-      lineOpacity = 1.0
+    areaOpacity = params.areaAlpha
+    lineOpacity = 1.0
 
-      if params.interpolate?
-        line.interpolate params.interpolate
-        area.interpolate params.interpolate
+    if params.interpolate?
+      line.interpolate params.interpolate
+      area.interpolate params.interpolate
 
     if params.simplify
       simplify = _.partial simplifyPoints, params.simplify
     else
       simplify = _.identity
 
-    if params.drawNullAsZero
-      transformValue = (v) -> v ? 0
-      filterScatterValues = simplify
-      expandLineValues = simplify
-    else
-      # TODO this won't work well with stack
-      transformValue = (v) -> v
-      filterScatterValues = (values) ->
-        simplify _.filter values, (d) -> d.value?
-      expandLineValues = _.compose expandIsolatedValuesToLineSegments, simplify
-
     valueMin = null
     valueMax = null
+
+    timeMin = null
+    timeMax = null
+
     targets = for s, targetIndex in data
-      options = s.options ? {}
-      drawAsInfinite = options.drawAsInfinite ? false
+      options = _.extend {}, params, s.options
+      {drawAsInfinite, get_value, get_timestamp, drawNullAsZero} = options
+      if params.drawNullAsZero
+        transformValue = (v) -> v ? 0
+      else
+        transformValue = (v) -> v
       values = for datapoint, i in s.datapoints
-        value = get_value datapoint, i, targetIndex
-        timestamp = get_timestamp datapoint, i, targetIndex
+        value = transformValue(get_value(datapoint, i, targetIndex))
+        timestamp = get_timestamp(datapoint, i, targetIndex)
+        timeMin = Math.min(timestamp, timeMin ? timestamp)
+        timeMax = Math.max(timestamp, timeMax)
         time = new Date(timestamp * 1000)
-        value = transformValue value
         unless drawAsInfinite
           valueMin = Math.min value, valueMin ? value if value?
           valueMax = Math.max value, valueMax
-        {value, time: time, x: x(time), original: datapoint}
+        {value, time: time, original: datapoint}
       bisector = d3.bisector (d) -> d.time
       lineMode =
         if params.areaMode is 'all' or params.areaMode is 'stacked'
@@ -355,8 +354,13 @@ create = (container) ->
       else
         area
       name = s.target
-      targetColor = colorsByName[name]
-      {values, bisector, name, lineMode, lineFn, color: targetColor, drawAsInfinite}
+      targetColor = options.color ? colorsByName[name]
+      _.extend options, {values, bisector, name, lineMode, lineFn, color: targetColor}
+
+
+    timeMin = new Date(timeMin * 1000)
+    timeMax = new Date(timeMax * 1000)
+    x.domain [params.xMin ? timeMin, params.xMax ? timeMax]
 
     if params.areaMode is 'stacked'
       stack targets
@@ -374,10 +378,20 @@ create = (container) ->
     y.domain [params.yMin ? valueMin, params.yMax ? valueMax]
 
     _.each targets, (target) ->
-      {values} = target
+      {values, drawNullAsZero} = target
       _.each values, (v) ->
         if v.value?
           v.y = y v.value
+        v.x = x(v.time)
+
+      if drawNullAsZero
+        filterScatterValues = simplify
+        expandLineValues = simplify
+      else
+        # TODO this won't work well with stack
+        filterScatterValues = (values) ->
+          simplify _.filter values, (d) -> d.value?
+        expandLineValues = _.compose expandIsolatedValuesToLineSegments, simplify
       target.lineValues = expandLineValues values
       target.scatterValues = filterScatterValues values
 
@@ -492,14 +506,15 @@ create = (container) ->
 
     addPath = (target, hover) ->
       if hover
-        lineWidth = (params.lineWidth ? 0) + 10
+        extraWidth = 10
+        c = ''
       else
-        lineWidth = params.lineWidth
+        extraWidth = 0
 
       path = target.append("path")
         .attr('class', (d) -> d.lineMode)
         .attr('stroke', (d, i) -> d.color)
-        .style('stroke-width', lineWidth)
+        .style('stroke-width', (d) -> d.lineWidth + extraWidth)
         .attr('fill', (d, i) -> if d.lineMode is 'area' then d.color)
         # TODO don't call lineFn for both visible and hover paths
         .attr('d', (d, i) -> d.lineFn(d.lineValues))
@@ -520,6 +535,7 @@ create = (container) ->
       else
         radius = 2
         opacity = 1
+
       target.append('g').attr('class', 'circles')
         .each (d) ->
           circleColor = d.color
@@ -534,12 +550,14 @@ create = (container) ->
 
     addInfiniteLines = (target, hover) ->
       if hover
-        lineWidth = (params.lineWidth ? 0) + 10
+        extraWidth = 10
       else
-        lineWidth = params.lineWidth
+        extraWidth = 0
+
       target.append('g').attr('class', 'infiniteLines')
       .each (d) ->
         lineColor = d.color
+        lineWidth = d.lineWidth + extraWidth
         d3.select(this)
           .selectAll('line')
           .data((d) -> d.scatterValues)
@@ -562,7 +580,8 @@ create = (container) ->
     addTarget = (target, hover) ->
       target.each ->
         sel = d3.select(@)
-        if sel.datum().drawAsInfinite
+        {drawAsInfinite, type} = sel.datum()
+        if drawAsInfinite
           addInfiniteLines(sel, hover)
         else if type is 'line'
           addPath(sel, hover)
