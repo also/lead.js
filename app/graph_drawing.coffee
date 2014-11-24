@@ -583,9 +583,9 @@ create = (container) ->
                   .style('stroke-opacity', lineOpacity)
 
     addTarget = (target, hover) ->
-      target.each ->
+      target.each (d) ->
         sel = d3.select(@)
-        {drawAsInfinite, type} = sel.datum()
+        {drawAsInfinite, type} = d
         if drawAsInfinite
           addInfiniteLines(sel, hover)
         else if type is 'line'
