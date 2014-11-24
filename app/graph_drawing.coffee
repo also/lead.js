@@ -90,9 +90,11 @@ defaultParams =
   deselectedOpacity: 0.5
   lineWidth: 1
   drawAsInfinite: false
+  radius: 2
 
 seriesParams = [
   'lineWidth'
+  'radius'
   'get_value'
   'get_timestamp'
   'drawNullAsZero'
@@ -271,8 +273,9 @@ create = (container) ->
           d3.select(this).selectAll('line')
             .style('stroke-width', d.lineWidth + 3)
 
-        targetSelection.select('.circles').selectAll('circle')
-          .attr('r', 4)
+        targetSelection.select('.circles').each (d) ->
+          d3.select(this).selectAll('circle')
+            .attr('r', d.radius + 3)
 
       highlightLegend(index)
 
@@ -293,8 +296,9 @@ create = (container) ->
           d3.select(this).selectAll('line')
             .style('stroke-width', d.lineWidth)
 
-        targetSelection.select('.circles').selectAll('circle')
-          .attr('r', 2)
+        targetSelection.select('.circles').each (d) ->
+          d3.select(this).selectAll('circle')
+            .attr('r', d.radius)
 
 
     mousePosition = mouseMoves.map (pos) ->
@@ -530,15 +534,16 @@ create = (container) ->
 
     addCircles = (target, hover) ->
       if hover
-        radius = 5
+        extraRadius = 3
         opacity = 0
       else
-        radius = 2
+        extraRadius = 0
         opacity = 1
 
       target.append('g').attr('class', 'circles')
         .each (d) ->
           circleColor = d.color
+          radius = d.radius + extraRadius
           d3.select(this).selectAll('circle')
           .data((d) -> d.scatterValues)
           .enter().append("circle")
