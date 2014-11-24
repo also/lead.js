@@ -479,6 +479,12 @@ create = (container) ->
         .data(targetValues)
         .text((d) -> params.valueFormat(d?.value))
 
+      g.selectAll('.target .crosshair-value')
+        .data(targetValues)
+        .attr('cx', (d) -> d.x)
+        .attr('cy', (d) -> d.y)
+        .style('visibility', (d) -> if d.value? then 'visible' else 'hidden')
+
 
     mousePosition.onValue (p) ->
       positionCrosshair p.x, p.time
@@ -560,27 +566,27 @@ create = (container) ->
         extraWidth = 0
 
       target.append('g').attr('class', 'infiniteLines')
-      .each (d) ->
-        lineColor = d.color
-        lineWidth = d.lineWidth + extraWidth
-        d3.select(this)
-          .selectAll('line')
-          .data((d) -> d.scatterValues)
-          .enter().append('line').each (d) ->
-            if d.value
-              l = d3.select(@)
-                .attr('x1', d.x)
-                .attr('x2', d.x)
-                .attr('y1', 0)
-                .attr('y2', height)
-                .attr('stroke', lineColor)
-                .style('stroke-width', lineWidth)
-              if hover
-                l
-                  .style('stroke-opacity', 0)
-              else
-                l
-                  .style('stroke-opacity', lineOpacity)
+        .each (d) ->
+          lineColor = d.color
+          lineWidth = d.lineWidth + extraWidth
+          d3.select(this)
+            .selectAll('line')
+            .data((d) -> d.scatterValues)
+            .enter().append('line').each (d) ->
+              if d.value
+                l = d3.select(@)
+                  .attr('x1', d.x)
+                  .attr('x2', d.x)
+                  .attr('y1', 0)
+                  .attr('y2', height)
+                  .attr('stroke', lineColor)
+                  .style('stroke-width', lineWidth)
+                if hover
+                  l
+                    .style('stroke-opacity', 0)
+                else
+                  l
+                    .style('stroke-opacity', lineOpacity)
 
     addTarget = (target, hover) ->
       target.each (d) ->
@@ -592,6 +598,18 @@ create = (container) ->
           addPath(sel, hover)
         else
           addCircles(sel, hover)
+
+        unless hover
+          if type == 'scatter'
+            radius = d.radius + 3
+          else
+            radius = 4
+          sel.append('circle').attr('class', 'crosshair-value')
+            .style('visibility', 'hidden')
+            .attr('fill', d.color)
+            .attr('stroke', params.bgcolor)
+            .attr('stroke-width', 2)
+            .attr('r', radius)
 
     addTarget(target, false)
     addTarget(target, true)
