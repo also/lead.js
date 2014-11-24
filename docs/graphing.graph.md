@@ -202,7 +202,7 @@ graph targets[...9], d3_colors: Colors.brewer.Set1[3]
 
 ## `bgcolor`
 
-## `get_value` and `get_timestamp`
+## `getValue` and `getTimestamp`
 
 ```
 now = moment().unix()
@@ -213,6 +213,6 @@ data = [
 
 options width: 400, height: 200
 graph data,
-  get_value: (v, i) -> v
-  get_timestamp: (v, i) -> now + i * 60
+  getValue: (v, i) -> v
+  getTimestamp: (v, i) -> now + i * 60
 ```

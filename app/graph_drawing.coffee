@@ -60,8 +60,8 @@ defaultParams =
   width: 800
   height: 400
   type: 'line'
-  get_value: (dp) -> dp[1]
-  get_timestamp: (dp) -> dp[0]
+  getValue: (dp) -> dp[1]
+  getTimestamp: (dp) -> dp[0]
   d3_colors: colors.d3.category10
   areaAlpha: 1.0
   bgcolor: '#fff'
@@ -95,8 +95,8 @@ defaultParams =
 seriesParams = [
   'lineWidth'
   'radius'
-  'get_value'
-  'get_timestamp'
+  'getValue'
+  'getTimestamp'
   'drawNullAsZero'
   'drawAsInfinite'
   'type'
@@ -330,14 +330,14 @@ create = (container) ->
 
     targets = for s, targetIndex in data
       options = _.extend {}, params, s.options
-      {drawAsInfinite, get_value, get_timestamp, drawNullAsZero} = options
+      {drawAsInfinite, getValue, getTimestamp, drawNullAsZero} = options
       if params.drawNullAsZero
         transformValue = (v) -> v ? 0
       else
         transformValue = (v) -> v
       values = for datapoint, i in s.datapoints
-        value = transformValue(get_value(datapoint, i, targetIndex))
-        timestamp = get_timestamp(datapoint, i, targetIndex)
+        value = transformValue(getValue(datapoint, i, targetIndex))
+        timestamp = getTimestamp(datapoint, i, targetIndex)
         timeMin = Math.min(timestamp, timeMin ? timestamp)
         timeMax = Math.max(timestamp, timeMax)
         time = new Date(timestamp * 1000)

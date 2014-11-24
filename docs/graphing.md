@@ -66,8 +66,8 @@ The `graph` function supports several options. Most of the option names and valu
 
 `d3_colors`: Default: `colors.d3.category10`
 
-`get_value`: Function `(datapoint) -> value`.
+`getValue`: Function `(datapoint) -> value`.
 
-`get_timestamp`: Function `(datapoint) -> timestamp`.
+`getTimestamp`: Function `(datapoint) -> timestamp`.
 
 `interpolate`: See https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate or https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-area_interpolate.
