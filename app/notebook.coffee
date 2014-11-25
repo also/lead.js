@@ -58,29 +58,63 @@ identity = (cell) -> true
 InputOutputComponent = React.createClass
   displayName: 'InputOutputComponent'
   mixins: [React.addons.PureRenderMixin]
+
+  getInitialState: ->
+    outputHeight: 0
+
   render: ->
+    if @props.useMinHeight
+      minHeight = @state.outputHeight
+    else
+      minHeight = 0
+
+    if @props.input_cell
+      input = @props.input_cell.component cell: @props.input_cell, key: @props.input_cell.key, minHeight: minHeight
+    else
+      input = React.DOM.div {className: 'placeholder cell'}
+
+    if @props.output_cell
+      output = @props.output_cell.component cell: @props.output_cell, key: @props.output_cell.key, ref: 'output'
+    else
+      output = React.DOM.div {className: 'placeholder cell'}
     React.DOM.div {className: 'io'},
-      @props.input_cell?.component cell: @props.input_cell, key: @props.input_cell.key
-      @props.output_cell?.component cell: @props.output_cell, key: @props.output_cell.key
+      input
+      output
+
+  onAnimationFrame: ->
+    @_animationFrame = requestAnimationFrame(@onAnimationFrame)
+    newHeight = @refs.output?.getOutputHeight() ? 0
+    if newHeight != @state.outputHeight
+      @setState outputHeight: newHeight
+
+  componentDidMount: ->
+    @onAnimationFrame()
+
+  componentWillUnmount: ->
+    cancelAnimationFrame(@_animationFrame)
 
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
   mixins: [Components.ObservableMixin]
   get_observable: (props) -> props.notebook.model
   render: ->
+    layout = @state.value.settings?.layout ? 'repl'
+    useMinHeight = layout == 'two-column'
+
     props = null
     ios = []
     _.each @state.value.cells, (cell) ->
       if cell.type == 'input'
-        props = input_cell: cell, key: cell.key
+        props = {input_cell: cell, key: cell.key, useMinHeight}
         ios.push props
       else
         if !props? or props.input_cell.output_cell != cell
-          ios.push output_cell: cell, key: cell.key
+          ios.push {output_cell: cell, key: cell.key, useMinHeight}
         else
           props.output_cell = cell
         props = null
-    React.DOM.div {className: 'notebook'}, _.map ios, InputOutputComponent
+
+    React.DOM.div {className: "notebook #{layout}-style"}, _.map ios, InputOutputComponent
 
 NotebookComponent = React.createClass
   displayName: 'NotebookComponent'
@@ -223,17 +257,27 @@ InputCellComponent = React.createClass
   displayName: 'InputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: (props) -> props.cell.changes
+
   render: ->
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
-      React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, React.DOM.i {className: 'fa fa-link'}),
-      React.DOM.div({className: 'code', ref: 'code'})
+      React.DOM.div({className: 'code', ref: 'code'}),
+      React.DOM.div {className: 'input-menu'},
+        React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, React.DOM.i {className: 'fa fa-link'})
+
+  updateHeight: (minHeight) ->
+    Editor.setMinHeight(@props.cell.editor, minHeight)
 
   componentDidMount: ->
     editor = @props.cell.editor
-    @refs.code.getDOMNode().appendChild editor.display.wrapper
+    @refs.code.getDOMNode().appendChild(editor.display.wrapper)
     editor.refresh()
+    @updateHeight(@props.minHeight)
+
+  componentWillUpdate: (newProps) ->
+    @updateHeight(newProps.minHeight)
 
   permalink_link_clicked: -> generate_permalink @props.cell
+
 
 generate_permalink = (cell) ->
   run_without_input_cell cell.notebook, after: cell.output_cell ? cell, (ctx) ->
@@ -279,7 +323,15 @@ OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
   get_observable: (props) -> props.cell.component_model
-  render: -> React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number}, @state.value?()
+
+  getOutputHeight: ->
+    @refs.output.getDOMNode().clientHeight
+
+  render: ->
+    React.DOM.div {className: 'output-cell-wrapper'},
+      React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number, ref: 'output'},
+        @state.value?()
+
   componentDidMount: ->
     @props.cell.dom_node = @getDOMNode()
 

@@ -49,6 +49,10 @@ set_value = (cm, value) ->
   cm.setValue value
   cm.setCursor(line: cm.lineCount() - 1)
 
+setMinHeight = (cm, minHeight) ->
+  cm.display.scroller.style.minHeight = minHeight + 'px'
+  cm.refresh()
+
 get_value = (cm) ->
   cm.getValue()
 
@@ -310,4 +314,4 @@ EditorComponent = React.createClass
     React.DOM.div {className: 'code'}
 
 
-_.extend exports, {commands, as_event_stream, add_error_mark, create_editor, set_value, get_value, EditorComponent}
+_.extend exports, {commands, as_event_stream, add_error_mark, create_editor, set_value, get_value, setMinHeight, EditorComponent}
