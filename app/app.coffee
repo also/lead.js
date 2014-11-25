@@ -200,6 +200,20 @@ GistNotebookComponent = React.createClass
       Notebook.focus_cell Notebook.add_input_cell notebook
     }
 
+GitHubNotebookComponent = React.createClass
+  displayName: 'GitHubNotebookComponent'
+  mixins: [AppAwareMixin]
+  render: ->
+    {imports, module_names} = @context.app
+    file = @props.params.splat
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
+      Notebook.run_without_input_cell notebook, null, (ctx) ->
+        GitHub.context_fns.load.fn ctx, file, run: true
+        Context.IGNORE
+
+      Notebook.focus_cell Notebook.add_input_cell notebook
+    }
+
 Base64EncodedNotebookCellComponent = React.createClass
   displayName: 'Base64EncodedNotebookCellComponent'
   render: ->
@@ -303,6 +317,7 @@ exports.init_app = (target, options={}) ->
       Route {name: 'notebook', handler: NewNotebookComponent}
       Route {path: '/notebook/raw/*', name: 'raw_notebook', handler: Base64EncodedNotebookCellComponent, addHandlerKey: true}
       Route {path: '/notebook/gist/*', name: 'gist_notebook', handler: GistNotebookComponent, addHandlerKey: true}
+      Route {path: '/notebook/github/*', name: 'github_notebook', handler: GitHubNotebookComponent, addHandlerKey: true}
       Route {path: '/builder', handler: BuilderAppComponent}
       Route {path: '/help', name: 'help-index', handler: HelpComponent}
       Route {path: '/help/:key', name: 'help', handler: HelpComponent, addHandlerKey: true}
