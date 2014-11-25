@@ -147,6 +147,7 @@ Documentation =
 Documentation.register_file 'quickstart'
 Documentation.register_file 'style'
 Documentation.register_file 'main'
+Documentation.register_file 'introduction'
 
 Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) ->
   fn_docs = _.map ctx.imported_context_fns, (fn, name) ->

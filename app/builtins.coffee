@@ -191,27 +191,6 @@ FlowComponent = React.createClass
 
 _.extend exports, {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObjectBrowserComponent, ObservableComponent, PromiseComponent}
 
-exports.init = ->
-  Documentation.register_documentation 'introduction', complete: """
-  # Welcome to lead.js
-
-  Press <kbd>Shift</kbd><kbd>Enter</kbd> to execute the CoffeeScript in the console. Try running
-
-  <!-- noinline -->
-  ```
-  browser '*'
-  ```
-
-  Look at
-
-  <!-- noinline -->
-  ```
-  help 'server.functions'
-  ```
-
-  to see what you can do with Graphite.
-  """
-
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
   component_cmd 'help', 'Shows this help', (ctx, o) ->
     if arguments.length > 1
