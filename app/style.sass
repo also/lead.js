@@ -110,15 +110,6 @@ pre
     margin-bottom: 20px
     position: relative
 
-.input.cell, .output.cell
-  &[data-cell-number]::before
-    position: absolute
-    right: 100%
-    padding: 8px 12px
-    font-family: $monospace
-    line-height: 1.6em
-    color: #ddd
-
 .input.cell
   .permalink
     position: absolute
@@ -128,9 +119,6 @@ pre
     text-decoration: underline
     cursor: pointer
 
-  &[data-cell-number]::before
-    // content: 'In[' attr(data-cell-number) ']'
-
 .io .output.cell, .inline-example .output
   border-left: 3px solid #f0f0f0
 
@@ -138,16 +126,6 @@ pre
   padding: 0 0 0 16px
 
 .output.cell
-  &[data-cell-number]::before
-    // content: 'Out[' attr(data-cell-number) ']'
-
-  .close::before
-    content: '×'
-    position: absolute
-    right: 10px
-    font-weight: bold
-    color: #ddd
-
   padding: 0 16px
   min-height: 1em
 
