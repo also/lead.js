@@ -146,20 +146,7 @@ Documentation =
 
 Documentation.register_file 'quickstart'
 Documentation.register_file 'style'
-Documentation.register_documentation 'main', complete: '''
-# lead.js Documentation
-
-* [Quick Start](help:quickstart)
-* [lead.js Functions](help:imported_context_fns)
-* [Server Functions](help:server.functions)
-
-## Top Functions
-
-* [`graph`](help:graphing.graph)
-* [`q`](help:server.q)
-* [`save_gist`](help:github.save_gist)
-* [`tsd`](help:opentsdb.tsd)
-'''
+Documentation.register_file 'main'
 
 Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) ->
   fn_docs = _.map ctx.imported_context_fns, (fn, name) ->
