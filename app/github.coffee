@@ -139,8 +139,9 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
                 React.DOM.div {}, 'Authenticating with GitHub...'
 
   component_fn 'load', 'Loads a file from GitHub', (ctx, path, options={}) ->
-    url = github.to_repo_url path
+    url = github.to_repo_url(path)
     promise = ensureAuth(ctx, {url}).then ->
+      url = github.to_repo_url(path)
       github.get_repo_contents(url)
       .fail (response) ->
         Q.reject response.statusText
