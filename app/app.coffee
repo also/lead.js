@@ -76,6 +76,7 @@ AppComponent = React.createClass
   getInitialState: ->
     initializationPromise.finally =>
       @setState initializationState: initializationPromise.inspect()
+    .done()
     modal: null
     initializationState: initializationPromise.inspect()
   mixins: [Router.Navigation]
