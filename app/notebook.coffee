@@ -1,4 +1,3 @@
-$ = require 'jquery'
 _ = require 'underscore'
 URI = require 'URIjs'
 Bacon = require 'bacon.model'
@@ -134,18 +133,9 @@ NotebookComponent = React.createClass
     DocumentComponent {notebook: @state.notebook}
 
 create_notebook = (opts) ->
-  $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
-  $file_picker.on 'change', (e) ->
-    for file in e.target.files
-      load_file notebook.opening_run_context, file
-
-    notebook.opening_run_context = null
-    # reset the file picker so change is triggered again
-    $file_picker.val ''
-
   cells_model = Bacon.Model([])
   model = Bacon.Model.combine(cells: cells_model, settings: Settings.toModel('notebook'))
-  # FIXME add file picker
+
   notebook =
     model: model
     context: opts.context
@@ -153,7 +143,6 @@ create_notebook = (opts) ->
     cells_model: cells_model
     input_number: 1
     output_number: 1
-    $file_picker: $file_picker
     cell_run: new Bacon.Bus
     cell_focused: new Bacon.Bus
 
@@ -418,8 +407,12 @@ create_notebook_run_context = (cell) ->
     Editor.get_value get_input_cell_by_number(notebook, number)?.editor
 
 open_file_picker = (run_context) ->
-  run_context.notebook.opening_run_context = run_context
-  run_context.notebook.$file_picker.trigger 'click'
+  inputElt = document.createElement('input')
+  inputElt.type = 'file'
+  inputElt.onchange = (e) ->
+    for file in e.target.files
+      load_file run_context, file
+  inputElt.dispatchEvent(new Event('click'))
 
 handle_file = (ctx, file, options={}) ->
   if file.type.indexOf('image') < 0
