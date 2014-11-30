@@ -1,5 +1,5 @@
 _ = require 'underscore'
-$ = require 'jquery'
+URI = require 'URIjs'
 Q = require 'q'
 Html = require './html'
 modules = require './modules'
@@ -52,13 +52,13 @@ opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
     "#{title}: #{message}"
 
   data_url: ({time_series, start, end, aggregation, group}) ->
-    base_url = settings.get 'base_url'
+    base_url = settings.get('base_url')
     if not base_url?
-      throw new Error 'OpenTSDB base_url not set'
+      throw new Error('OpenTSDB base_url not set')
     start ?= '1d-ago'
-    m = _.map time_series, opentsdb.to_metric_string
+    m = _.map(time_series, opentsdb.to_metric_string)
     params = {start, end, m, ascii: true}
-    "#{base_url}/q?#{$.param params, true}"
+    new URI("#{base_url}/q").setQuery(params).toString()
 
   tsd: (params) ->
     http.get(opentsdb.data_url(params), dataType: 'text')
