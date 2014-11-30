@@ -12,6 +12,7 @@ Markdown = require './markdown'
 Builtins = require './builtins'
 Documentation = require './documentation'
 Components = require './components'
+Settings = require './settings'
 
 modules.export exports, 'notebook', ({component_fn, fn, cmd, component_cmd}) ->
   component_cmd 'save', 'Saves the current notebook to a file', (ctx) ->
@@ -65,11 +66,11 @@ InputOutputComponent = React.createClass
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
   mixins: [Components.ObservableMixin]
-  get_observable: (props) -> props.cells_model
+  get_observable: (props) -> props.notebook.model
   render: ->
     props = null
     ios = []
-    _.each @state.value, (cell) ->
+    _.each @state.value.cells, (cell) ->
       if cell.type == 'input'
         props = input_cell: cell, key: cell.key
         ios.push props
@@ -79,7 +80,6 @@ DocumentComponent = React.createClass
         else
           props.output_cell = cell
         props = null
-
     React.DOM.div {className: 'notebook'}, _.map ios, InputOutputComponent
 
 NotebookComponent = React.createClass
@@ -97,7 +97,7 @@ NotebookComponent = React.createClass
     # never changes, handled by document
     false
   render: ->
-    DocumentComponent {cells_model: @state.notebook.cells_model}
+    DocumentComponent {notebook: @state.notebook}
 
 create_notebook = (opts) ->
   $file_picker = $ '<input type="file" id="file" class="file_picker"/>'
@@ -110,8 +110,10 @@ create_notebook = (opts) ->
     $file_picker.val ''
 
   cells_model = Bacon.Model([])
+  model = Bacon.Model.combine(cells: cells_model, settings: Settings.toModel('notebook'))
   # FIXME add file picker
   notebook =
+    model: model
     context: opts.context
     cells: []
     cells_model: cells_model

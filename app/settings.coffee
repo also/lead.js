@@ -77,7 +77,6 @@ create = (overrides=get:->) ->
       model.addSource(@toProperty(keys...))
       model
 
-
   settings = with_prefix()
   # TODO is this necessary? i just want a normal EventStream that isn't pluggable or pushable
   settings.changes = changeBus.map _.identity
