@@ -110,7 +110,6 @@ create_notebook = (opts) ->
     $file_picker.val ''
 
   cells_model = Bacon.Model([])
-  document = DocumentComponent {cells_model}
   # FIXME add file picker
   notebook =
     context: opts.context
@@ -118,7 +117,6 @@ create_notebook = (opts) ->
     cells_model: cells_model
     input_number: 1
     output_number: 1
-    component: document
     $file_picker: $file_picker
     cell_run: new Bacon.Bus
     cell_focused: new Bacon.Bus
