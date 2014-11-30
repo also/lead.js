@@ -59,7 +59,7 @@ TreeNodeComponent = React.createClass
         @props.create_node _.extend {}, @props, {node: child}
       child = React.DOM.ul null, _.sortBy child_nodes, (node) -> node.props.name
     else if state == 'failed'
-      child = @props.create_error_node props
+      child = @props.create_error_node(@props)
     else
       child = null
     if @props.node.is_leaf
