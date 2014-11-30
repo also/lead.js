@@ -24,9 +24,11 @@ body
   height: 100%
 .body
   box-sizing: border-box
-  padding: calc(1em + 20px) 0 0 0
-  height: 100%
-  position: relative
+  top: calc(1em + 20px)
+  height: calc(100% - (1em + 20px))
+  width: 100%
+  position: absolute
+  overflow: scroll
 
 em
   font-style: italic

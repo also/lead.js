@@ -158,7 +158,8 @@ create_notebook = (opts) ->
     cell_focused: new Bacon.Bus
 
   unless is_nodejs?
-    scrolls = $(window).asEventStream 'scroll'
+    bodyElt = document.querySelector('.body')
+    scrolls = Bacon.fromEventTarget(bodyElt, 'scroll')
     # FIXME if anything else subscribes to output_cell.done, scroll_to never gets any events
     scroll_to = notebook.cell_run.flatMapLatest (input_cell) ->
       # TODO without the delay, this can happen before there is a dom node.
@@ -167,8 +168,10 @@ create_notebook = (opts) ->
       # FIXME busted with webpack/possible Bacon update
       input_cell.output_cell.done.delay(0).takeUntil scrolls
     scroll_to.onValue (output_cell) ->
-      # FIXME
-      $('html, body').scrollTop $(output_cell.dom_node).offset().top
+      # TODO this assumes that .body is the only thing that scrolls
+      bodyTop = bodyElt.getBoundingClientRect().top
+      bodyScroll = bodyElt.scrollTop
+      bodyElt.scrollTop = output_cell.dom_node.getBoundingClientRect().top - bodyTop + bodyScroll
 
   base_context = Context.create_base_context(opts)
   notebook.base_context = base_context
