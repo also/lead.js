@@ -69,7 +69,7 @@ create = (overrides=get:->) ->
     toProperty: (keys...) ->
       current = @get keys...
       k = prefix.concat keys
-      changeBus.filter((changedKey) -> keysOverlap(k, changedKey)).map(=> @get keys...).skipDuplicates(_.isEqual).toProperty(current)
+      changeBus.filter((changedKey) -> keysOverlap(k, changedKey)).map(=> _.clone(@get(keys...))).skipDuplicates(_.isEqual).toProperty(current)
 
     toModel: (keys...) ->
       current = @get(keys...)
