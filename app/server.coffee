@@ -1,5 +1,4 @@
 _ = require 'underscore'
-$ = require 'jquery'
 Bacon = require 'bacon.model'
 Q = require 'q'
 URI = require 'URIjs'
@@ -122,10 +121,11 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     componentDidMount: ->
       ctx = @props.ctx
       # TODO
-      $docs = $(@refs.docs.getDOMNode()).append @props.docs
-      $docs.find('a').on 'click', (e) ->
+      div = @refs.docs.getDOMNode()
+      div.insertAdjacentHTML('beforeend', @props.docs)
+      _.each div.querySelectorAll('a'), (a) -> a.onclick = (e) ->
         e.preventDefault()
-        href = $(this).attr 'href'
+        href = a.getAttribute('href')
         if href[0] is '#'
           ctx.run "help 'server.parameters.#{decodeURI href[1..]}'"
 
@@ -261,23 +261,24 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     false
 
   url: (path, params) ->
-    base_url = settings.get 'base_url'
-    if not base_url?
-      throw new Error 'Server base_url not set'
+    baseUrl = settings.get('base_url')
+    if not baseUrl?
+      throw new Error('Server base_url not set')
 
+    uri = new URI("#{baseUrl}/#{path}")
     if params?
       if params.start? or params.end?
-        params = _.clone params
+        params = _.clone(params)
         if params.start?
           params.from = params.start
           delete params.start
         if params.end?
           params.until = params.end
           delete params.end
-      query_string = $.param params, true
-      "#{base_url}/#{path}?#{query_string}"
-    else
-      "#{base_url}/#{path}"
+
+      uri.setQuery(params)
+
+    uri.toString()
 
   render_url: (params) -> server.url 'render', params
 
