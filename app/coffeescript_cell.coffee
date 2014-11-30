@@ -33,7 +33,7 @@ create_fn = (string) ->
   (ctx) ->
     try
       locals = Object.keys ctx.repl_vars
-      compiled = CoffeeScript.compile(string, bare: true, locals: locals) + "\n//@ sourceURL=console-coffeescript-#{fnNumber++}.js"
+      compiled = CoffeeScript.compile(string, bare: true, locals: locals) + "\n//\# sourceURL=console-coffeescript-#{fnNumber++}.js"
 
       {global_vars, source} = Javascript.mangle compiled
       return Context.scoped_eval ctx, source, _.reject global_vars, (name) -> name.indexOf('_LEAD_COFFEESCRIPT_FREE_VARIABLE_') == 0
