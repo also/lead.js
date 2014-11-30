@@ -71,6 +71,12 @@ create = (overrides=get:->) ->
       k = prefix.concat keys
       changeBus.filter((changedKey) -> keysOverlap(k, changedKey)).map(=> @get keys...).skipDuplicates(_.isEqual).toProperty(current)
 
+    toModel: (keys...) ->
+      current = @get(keys...)
+      model = new Bacon.Model(current)
+      model.addSource(@toProperty(keys...))
+      model
+
 
   settings = with_prefix()
   # TODO is this necessary? i just want a normal EventStream that isn't pluggable or pushable
