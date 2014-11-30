@@ -11,7 +11,7 @@ init = ->
     fn 'get', 'Gets a setting', (ctx, keys...) ->
       Context.value global_settings.get keys...
 
-keys_overlap = (a, b) ->
+keysOverlap = (a, b) ->
   if a.length < b.length
     shorter = a
     longer = b
@@ -22,8 +22,8 @@ keys_overlap = (a, b) ->
 
 create = (overrides=get:->) ->
   data = {}
-  change_bus = new Bacon.Bus
-  change_bus.plug overrides.changes if overrides.changes?
+  changeBus = new Bacon.Bus
+  changeBus.plug overrides.changes if overrides.changes?
 
   get = (d, keys) ->
     return d if keys.length is 0
@@ -60,7 +60,7 @@ create = (overrides=get:->) ->
     set: (keys..., value) ->
       k = prefix.concat keys
       set data, value, k
-      change_bus.push k
+      changeBus.push k
       @
 
     default: (keys..., value) ->
@@ -69,12 +69,12 @@ create = (overrides=get:->) ->
     toProperty: (keys...) ->
       current = @get keys...
       k = prefix.concat keys
-      change_bus.filter((changed_k) -> keys_overlap k, changed_k).map(=> @get keys...).toProperty current
+      changeBus.filter((changedKey) -> keysOverlap(k, changedKey)).map(=> @get keys...).skipDuplicates(_.isEqual).toProperty(current)
 
 
   settings = with_prefix()
   # TODO is this necessary? i just want a normal EventStream that isn't pluggable or pushable
-  settings.changes = change_bus.map _.identity
+  settings.changes = changeBus.map _.identity
   settings.with_prefix = with_prefix
   settings
 
