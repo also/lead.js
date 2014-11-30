@@ -8,6 +8,7 @@ $error-bg: #fee
 
 @import "./style/editor"
 @import "./style/builder"
+@import "./style/notebook"
 
 html, body
   height: 100%
@@ -102,68 +103,6 @@ pre
     color: #555
     .run-link
       color: #333
-
-.notebook
-  &.repl-style
-    padding: 20px 10%
-
-    .cell
-      margin-bottom: 20px
-      position: relative
-
-    .input.cell
-      border: 1px solid #ddd
-      background: #fff
-
-      .input-menu
-        position: absolute
-        left: calc(100% + .5em)
-        top: .5em
-        color: #ccc
-        text-decoration: underline
-        cursor: pointer
-
-    .output.cell
-      padding: 0 16px
-      min-height: 1em
-
-  &.two-column-style
-    display: table
-    border-collapse: collapse
-    empty-cells: show
-    width: 100%
-
-    .io
-      display: table-row
-
-    .input.cell, .output-cell-wrapper, .placeholder.cell
-      display: table-cell
-      vertical-align: top
-      position: relative
-      border-bottom: 1px solid #eee
-      border-top: 1px solid #eee
-
-    .input.cell
-      min-width: 600px
-      width: 40%
-      border-right: 1px solid #eee
-      background: white
-
-      .input-menu
-        position: absolute
-        top: 0
-        right: 0
-        padding: 5px
-        color: #ddd
-        text-decoration: underline
-        cursor: pointer
-        z-index: 10
-
-    .output.cell
-      min-width: 600px
-      padding: 5px 16px
-      line-height: 1.4em
-      min-height: 1em
 
 .io .output.cell, .inline-example .output
   border-left: 3px solid #f0f0f0
