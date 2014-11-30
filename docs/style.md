@@ -27,8 +27,7 @@
     Builtins = require 'builtins'
     Q = require 'q'
     Context = require 'context'
-    Context.add_component ctx, Builtins.ComponentAndError {promise: Q.reject 'nope'}, 'Component Goes Here'
-    ignore
+    Builtins.ComponentAndError {promise: Q.reject 'nope'}, 'Component Goes Here'
 
 ## Grid
 
