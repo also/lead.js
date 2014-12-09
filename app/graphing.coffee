@@ -17,7 +17,8 @@ ExportModal = React.createClass
   render: ->
     footer = React.DOM.button {onClick: @props.dismiss}, 'OK'
     App.ModalComponent {footer},
-      React.DOM.img {src: @props.url, style: {border: '1px solid #aaa'}}
+      React.DOM.img {src: @props.urls.png, style: {border: '1px solid #aaa'}}
+      React.DOM.a {href: @props.urls.svg}, 'SVG'
 
 Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   doc 'shareCursor', 'Use the same cursor on multiple graphs',
@@ -184,8 +185,8 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
     export: ->
-      @state.graph.exportImage().then (url) ->
-        App.pushModal handler: ExportModal, props: {url}
+      @state.graph.exportImage().then (urls) ->
+        App.pushModal handler: ExportModal, props: {urls}
     render: ->
       React.DOM.div {className: 'graph', style: {position: 'relative'}},
         React.DOM.span {className: 'fa-stack', title: 'Export', style: {position: 'absolute', top: '5px', right: '5px', cursor: 'pointer'}},

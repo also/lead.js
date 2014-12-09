@@ -204,11 +204,11 @@ create = (container) ->
       ctx.drawImage(img, 0, 0)
       # would like to return a blob, but https://code.google.com/p/chromium/issues/detail?id=67587
       dataUrl = canvas.toDataURL()
-      deferred.resolve(dataUrl)
+      deferred.resolve({png: dataUrl, svg: url})
     img.onerror = (e) ->
       deferred.reject(e)
     deferred.promise.finally ->
-      URL.revokeObjectURL(url)
+      #URL.revokeObjectURL(url)
 
   draw = (data, params) ->
     destroy()
