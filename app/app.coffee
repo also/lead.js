@@ -83,6 +83,16 @@ AppComponent = React.createClass
   componentWillMount: ->
     modalModel.onValue (modals) =>
       @setState {modal: modals[modals.length-1]}
+
+  toggleFullscreen: ->
+    if document.fullscreenElement ? document.mozFullScreenElement ? document.webkitFullscreenElement
+      f = document.exitFullscreen ? document.mozCancelFullScreen ? document.webkitExitFullscreen
+      f.call(document)
+    else
+      n = document.documentElement
+      f = n.requestFullscreen ? n.mozRequestFullScreen ? n.webkitRequestFullscreen
+      f?.call(n)
+
   render: ->
     # TODO don't do this :(
     @props.app.appComponent = @
@@ -101,6 +111,7 @@ AppComponent = React.createClass
         React.DOM.div {className: 'menu'},
           Router.Link {to: 'help-index'}, React.DOM.i {className: 'fa fa-question-circle'}
           Router.Link {to: 'settings'}, React.DOM.i {className: 'fa fa-cog'}
+          React.DOM.i {className: 'fa fa-expand', onClick: @toggleFullscreen}
       React.DOM.div {className: 'body'},
         body
       if modal
