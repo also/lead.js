@@ -51,7 +51,7 @@ exports.removeModal = (modal) ->
       _.without v, modal
   , 0
 
-AppAwareMixin =
+exports.AppAwareMixin = AppAwareMixin =
   contextTypes:
     app: React.PropTypes.object
 
