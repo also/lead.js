@@ -91,6 +91,8 @@ defaultParams =
   lineWidth: 1
   drawAsInfinite: false
   radius: 2
+  fixedHeight: false
+  legendMaxHeight: null
 
 seriesParams = [
   'lineWidth'
@@ -240,6 +242,27 @@ create = (container) ->
 
     width -= margin.left + margin.right
     height -= margin.top + margin.bottom
+
+    legendCropped = false
+    legendRowCount = data.length
+
+    if !params.hideLegend
+      if params.legendMaxHeight? and data.length * legendRowHeight > params.legendMaxHeight
+        legendCropped = true
+        legendRowCount = Math.floor(params.legendMaxHeight / legendRowHeight)
+      legendHeight = legendRowCount * legendRowHeight
+    else
+      legendHeight = 0
+
+    if params.fixedHeight
+      height -= legendHeight
+
+    svgHeight = height + margin.top + margin.bottom + 30 + legendHeight
+
+    svg
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', svgHeight)
+      .style('background-color', params.bgcolor)
 
     x.range([0, width])
     y.range([height, 0])
@@ -618,7 +641,7 @@ create = (container) ->
     legendFontSize = '11px'
     legendG.attr('transform', "translate(0,#{height + 30})")
 
-    legendGTarget = legendG.selectAll('g').data(targets)
+    legendGTarget = legendG.selectAll('g').data(targets[...legendRowCount])
     legendGTarget.enter()
       .append('g')
       .attr('transform', (d, i) -> "translate(0,#{i * legendRowHeight})")
@@ -649,15 +672,6 @@ create = (container) ->
       .attr('fill', (d, i) -> d.color)
 
     legendGTarget.exit().remove()
-
-    if !params.hideLegend
-      svgHeight = height + margin.top + margin.bottom + targets.length * legendRowHeight + 30
-    else
-      svgHeight = height + margin.top + margin.bottom + 30
-    svg
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', svgHeight)
-      .style('background-color', params.bgcolor)
 
     highlightLegend = (highlightIndex) ->
       legendGTarget.selectAll('rect').each (d, i, j) ->
