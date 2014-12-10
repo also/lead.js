@@ -207,7 +207,10 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     Context.value {promise, clicks, component}
 
   fn 'get_data', 'Fetches metric data', (ctx, args...) ->
-    Context.value server.get_data args_to_server_params ctx, args
+    Context.value server.get_data(args_to_server_params ctx, args)
+
+  fn 'execute', 'Executes a DSL expression on the server', (ctx, args...) ->
+    Context.value server.execute(args_to_server_params ctx, args)
 
   init: ->
     if settings.get('type') == 'lead'
@@ -350,14 +353,19 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
         options: options
 
   # returns a promise
+  # deprecated
   get_data: (params) ->
+    server.execute(params).then(server.transform_response)
+
+  execute: (params) ->
     params.format = 'json'
     if settings.get('type') == 'lead'
       promise = http.post(server.url('execute'), params)
     else
       promise = http.get server.render_url(params)
 
-    promise.then server.transform_response, (response) -> Q.reject new ServerError(server.parse_error_response response)
+    promise.fail (response) ->
+      Q.reject new ServerError(server.parse_error_response response)
 
   # returns a promise
   complete: (query) ->
