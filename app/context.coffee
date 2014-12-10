@@ -320,6 +320,8 @@ register_promise = (ctx, promise) ->
 create_run_context = (extra_contexts) ->
   run_context_prototype = _.extend {}, extra_contexts..., context_run_context_prototype
   result = create_nested_context run_context_prototype
+  if result.mainLayout?
+    result.layout = result.mainLayout
 
   asyncs = new Bacon.Bus
   changes = new Bacon.Bus
