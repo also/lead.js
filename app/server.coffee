@@ -212,6 +212,9 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
   fn 'execute', 'Executes a DSL expression on the server', (ctx, args...) ->
     Context.value server.execute(args_to_server_params ctx, args)
 
+  fn 'batch', 'Executes a batch of DSL expressions with a promise for each', (ctx) ->
+    Context.value(server.batch(ctx.options()))
+
   init: ->
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until']
@@ -366,6 +369,30 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
     promise.fail (response) ->
       Q.reject new ServerError(server.parse_error_response response)
+
+  batch: (default_options) ->
+    items = []
+
+    add: (target) ->
+      deferred = Q.defer()
+      items.push {deferred, target}
+      deferred.promise
+
+    execute: (params) ->
+      targets = _.pluck(items, 'target')
+
+      args = [targets]
+      if arguments.length == 1
+        args.push(params)
+
+      server.execute(server.args_to_params({args, default_options}).server)
+      .fail (e) ->
+        _.each items, ({deferred}) ->
+          deferred.reject(e)
+      .then (result) ->
+        _.each result.results, (targetResult, i) ->
+          items[i].deferred.resolve(targetResult.result)
+        result
 
   # returns a promise
   complete: (query) ->
