@@ -327,7 +327,7 @@ create_run_context = (extra_contexts) ->
   changes = new Bacon.Bus
   changes.plug result.component_list.model
 
-  _.extend result,
+  _.defaults result,
     current_options: {}
     changes: changes
     asyncs: asyncs
