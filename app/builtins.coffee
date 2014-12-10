@@ -187,9 +187,9 @@ GridComponent = React.createClass
 FlowComponent = React.createClass
   displayName: 'FlowComponent'
   render: ->
-    React.DOM.div {style: {display: 'flex', flexWrap: 'wrap'}}, @props.children
+    React.DOM.div {style: {display: 'flex', flexWrap: 'wrap'}, className: 'flex-layout'}, @props.children
 
-_.extend exports, {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObjectBrowserComponent, ObservableComponent, PromiseComponent}
+_.extend exports, {help_component, ExampleComponent, PromiseStatusComponent, ComponentAndError, PromiseResolvedComponent, ErrorComponent, ObjectComponent, ObjectBrowserComponent, ObservableComponent, PromiseComponent, FlowComponent}
 
 modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}) ->
   component_cmd 'help', 'Shows this help', (ctx, o) ->
