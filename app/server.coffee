@@ -215,6 +215,9 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
   fn 'batch', 'Executes a batch of DSL expressions with a promise for each', (ctx) ->
     Context.value(server.batch(ctx.options()))
 
+  fn 'executeOne', 'Executes a single DSL expression and returns a promise', (ctx, target, params) ->
+    Context.value(server.executeOne(target, params, ctx.options()))
+
   init: ->
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until']
@@ -369,6 +372,12 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
     promise.fail (response) ->
       Q.reject new ServerError(server.parse_error_response response)
+
+  executeOne: (target, params={}, default_options) ->
+    request = server.batch(default_options)
+    result = request.add(target)
+    request.execute(params)
+    result
 
   batch: (default_options) ->
     items = []
