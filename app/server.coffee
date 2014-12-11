@@ -386,13 +386,16 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
         args.push(params)
 
       server.execute(server.args_to_params({args, default_options}).server)
-      .fail (e) ->
-        _.each items, ({deferred}) ->
-          deferred.reject(e)
       .then (result) ->
+        if result.exceptions.length > 0
+          return Q.reject new ServerError(result.exceptions)
+
         _.each result.results, (targetResult, i) ->
           items[i].deferred.resolve(targetResult.result)
         result
+      .fail (e) ->
+        _.each items, ({deferred}) ->
+          deferred.reject(e)
 
   # returns a promise
   complete: (query) ->
