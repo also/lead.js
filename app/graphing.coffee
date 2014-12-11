@@ -163,9 +163,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     data = Bacon.fromPromise(promise)
     Context.AsyncComponent {promise},
       React.DOM.div {style: {width: '-webkit-min-content'}},
-        Builtins.ComponentAndError {promise},
-          Graphing.create_component(data, params)
-        Builtins.PromiseStatusComponent {promise, start_time: new Date}
+        Graphing.create_component(data, params)
 
   createDataComponent = (data, params) ->
     # TODO async, error
@@ -175,10 +173,12 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   create_component: (data, params) ->
     params = paramsToProperty params
     stream = Bacon.combineTemplate {data, params}
-    model = Bacon.Model()
-    model.addSource stream
-    # TODO seems like the combined stream doesn't error?
-    # TODO error handling
+    model = Bacon.Model({data: null, params: null, error: null})
+    # TODO can these be combined?
+    model.apply data.map (newData) -> ({params}) -> {params, data: newData, error: null}
+    model.apply data.mapError (newError) -> ({params}) -> {params, data: null, error: newError}
+    model.lens('params').addSource(params)
+
     Graphing.GraphComponent {model}
 
   GraphComponent: React.createClass
@@ -187,24 +187,30 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
       @state.graph.exportImage().then (url) ->
         App.pushModal handler: ExportModal, props: {url}
     render: ->
-      React.DOM.div {className: 'graph', style: {position: 'relative'}},
-        React.DOM.span {className: 'fa-stack', title: 'Export', style: {position: 'absolute', top: '5px', right: '5px', cursor: 'pointer'}},
-          React.DOM.i {className: 'fa fa-square fa-stack-2x', style: {color: '#fff'}}
-          React.DOM.i
-            onClick: @export
-            className: 'fa fa-share-square-o fa-stack-1x'
-            style: {color: '#ccc'}
+      React.DOM.div {},
+        React.DOM.div {className: 'graph', ref: 'graph', style: {position: 'relative'}},
+          if @state.error
+            React.DOM.i {className: 'fa fa-exclamation-triangle', style: {position: 'absolute', fontSize: '30px', top: '50%', transform: 'translate(-50%,-50%)', left: '50%'}}
+          React.DOM.span {className: 'fa-stack', title: 'Export', style: {position: 'absolute', top: '5px', right: '5px', cursor: 'pointer'}},
+            React.DOM.i {className: 'fa fa-square fa-stack-2x', style: {color: '#fff'}}
+            React.DOM.i
+              onClick: @export
+              className: 'fa fa-share-square-o fa-stack-1x'
+              style: {color: '#ccc'}
+        if @state.error
+          Builtins.ErrorComponent {message: @state.error}
     componentWillReceiveProps: (nextProps) ->
       @state.unsubscribe()
       @subscribe(nextProps.model, @state.graph)
+    getInitialState: -> {}
     componentDidMount: ->
-      node = @getDOMNode()
+      node = @refs.graph.getDOMNode()
       graph = GraphDrawing.create(node)
       @subscribe(@props.model, graph)
       @setState {graph}
     subscribe: (model, graph) ->
-      @setState unsubscribe: model.onValue ({data, params}) =>
-        return unless data?
+      @setState unsubscribe: model.onValue ({data, params, error}) =>
+        @setState {error}
         graph.draw(data, params)
     componentWillUnmount: ->
       if @state

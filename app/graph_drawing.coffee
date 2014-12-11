@@ -210,6 +210,13 @@ create = (container) ->
       URL.revokeObjectURL(url)
 
   draw = (data, params) ->
+    noData = !data?
+    if noData
+      data = []
+      g.style('opacity', 0)
+    else
+      g.style('opacity', 1)
+
     destroy()
 
     mouseOver = new Bacon.Bus
