@@ -192,13 +192,18 @@ ObservableMixin =
       @init(nextProps)
   init: (props) ->
     value = null
+    error = null
     observable = @get_observable?(props) ? props.observable
     @setState
       observable: observable
       # there might already be a value, so the onValue callback can be called before init returns
-      unsubscribe: observable.onValue (v) =>
-        @setState value: v
-        value = v
+      unsubscribe: observable.subscribe (event) =>
+        if event.isError()
+          error = event.error
+          @setState {error}
+        else if event.hasValue()
+          value = event.value()
+          @setState {value, error: null}
       value: value
   componentWillUnmount: ->
     @state.unsubscribe()
