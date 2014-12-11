@@ -121,9 +121,6 @@ create = (container) ->
 
   color = d3.scale.ordinal()
 
-  mouseOver = new Bacon.Bus
-  mouseOut = new Bacon.Bus
-  clicks = new Bacon.Bus
   mouseMoves = new Bacon.Bus
 
   area = d3.svg.area()
@@ -214,6 +211,11 @@ create = (container) ->
 
   draw = (data, params) ->
     destroy()
+
+    mouseOver = new Bacon.Bus
+    mouseOut = new Bacon.Bus
+    clicks = new Bacon.Bus
+
     if params?.fgcolor
       computedParams = _.object _.map fgColorParams, (k) -> [k, params.fgcolor]
     else
@@ -509,7 +511,7 @@ create = (container) ->
         .style('visibility', (d) -> if d.value? then 'visible' else 'hidden')
 
 
-    mousePosition.onValue (p) ->
+    destroyFunctions.push mousePosition.onValue (p) ->
       positionCrosshair p.x, p.time
       cursorBus.push p.time
 
