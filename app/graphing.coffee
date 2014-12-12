@@ -213,7 +213,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         @setState {error}
         graph.draw(data, params)
     componentWillUnmount: ->
-      if @state
+      if @state.graph?
         @state.graph.destroy()
         @state.unsubscribe()
 
