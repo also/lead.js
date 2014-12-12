@@ -398,7 +398,7 @@ create = (container) ->
     timeMax = new Date(timeMax * 1000)
     x.domain [params.xMin ? timeMin, params.xMax ? timeMax]
 
-    if params.areaMode is 'stacked'
+    if params.areaMode is 'stacked' and targets.length > 0
       stack targets
       valueMin = null
       valueMax = null
