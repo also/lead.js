@@ -115,6 +115,10 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     Documentation.load_file 'graphing.graph'
 
   component_fn 'graph', (ctx, args...) ->
+    model = Graphing.createModel(ctx, args...)
+    Graphing.GraphComponent {model}
+
+  createModel: (ctx, args...) ->
     if Q.isPromise args[0]
       promise = args[0]
       params = _.extend {}, ctx.options(), args[1]
@@ -155,31 +159,15 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         promise = source.load(params)
 
     if promise
-      createPromiseComponent(promise, params)
-    else
-      createDataComponent(data, params)
+      data = Bacon.fromPromise(promise)
 
-  createPromiseComponent = (promise, params) ->
-    data = Bacon.fromPromise(promise)
-    Context.AsyncComponent {promise},
-      React.DOM.div {style: {width: '-webkit-min-content'}},
-        Graphing.create_component(data, params)
-
-  createDataComponent = (data, params) ->
-    # TODO async, error
-    React.DOM.div {style: {width: '-webkit-min-content'}},
-      Graphing.create_component(data, params)
-
-  create_component: (data, params) ->
-    params = paramsToProperty params
-    stream = Bacon.combineTemplate {data, params}
+    params = paramsToProperty(params)
     model = Bacon.Model({data: null, params: null, error: null})
     # TODO can these be combined?
     model.apply data.map (newData) -> ({params}) -> {params, data: newData, error: null}
     model.apply data.mapError (newError) -> ({params}) -> {params, data: null, error: newError}
     model.lens('params').addSource(params)
-
-    Graphing.GraphComponent {model}
+    model
 
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
