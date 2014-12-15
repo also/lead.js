@@ -165,7 +165,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     model = Bacon.Model({data: null, params: null, error: null})
     # TODO can these be combined?
     model.apply data.map (newData) -> ({params}) -> {params, data: newData, error: null}
-    model.apply data.mapError (newError) -> ({params}) -> {params, data: null, error: newError}
+    model.apply data.errors().mapError (newError) -> ({params}) -> {params, data: null, error: newError}
     model.lens('params').addSource(params)
     model
 
