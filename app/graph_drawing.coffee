@@ -93,6 +93,8 @@ defaultParams =
   radius: 2
   fixedHeight: false
   legendMaxHeight: null
+  xAxisTicks: 10
+  yAxisTicks: 10
 
 seriesParams = [
   'lineWidth'
@@ -430,6 +432,9 @@ create = (container) ->
         expandLineValues = _.compose expandIsolatedValuesToLineSegments, simplify
       target.lineValues = expandLineValues values
       target.scatterValues = filterScatterValues values
+
+    xAxis.ticks(params.xAxisTicks)
+    yAxis.ticks(params.yAxisTicks)
 
     g
       .attr("transform", "translate(#{margin.left},#{margin.top})")
