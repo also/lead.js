@@ -92,12 +92,12 @@ collect_context_vars = (context) ->
     vars = module.context_vars
     if _.isFunction vars
       vars = vars.call context
-    [name, vars]
+    [name, vars ? {}]
 
   _.object _.filter _.map(context.modules, module_vars), ([n, f]) -> f
 
 collect_context_fns = (context) ->
-  _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns]), ([n, f]) -> f
+  _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns ? {}]), ([n, f]) -> f
 
 is_run_context = (o) ->
   o?.component_list?
@@ -196,7 +196,12 @@ importInto = (obj, target, path) ->
   if lastSegment = '*'
     wildcard = true
     segments.pop()
-  value = _.reduce segments, ((result, key) -> result[key]), obj
+  try
+    value = _.reduce segments, ((result, key) -> result[key]), obj
+  catch
+    value = null
+  unless value?
+    throw new Error("can't import #{path}")
   if wildcard
     _.extend target, value
   else
