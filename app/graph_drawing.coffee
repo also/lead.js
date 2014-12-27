@@ -113,6 +113,13 @@ pathStyles =
     fill: 'none'
     'stroke-linecap': 'square'
 
+computeParams = (params) ->
+  if params?.fgcolor
+    computedParams = _.object _.map fgColorParams, (k) -> [k, params.fgcolor]
+  else
+    computedParams = {}
+  _.extend {}, defaultParams, computedParams, params
+
 create = (container) ->
   width = null
   height = null
@@ -225,11 +232,7 @@ create = (container) ->
     mouseOut = new Bacon.Bus
     clicks = new Bacon.Bus
 
-    if params?.fgcolor
-      computedParams = _.object _.map fgColorParams, (k) -> [k, params.fgcolor]
-    else
-      computedParams = {}
-    params = _.extend {}, defaultParams, computedParams, params
+    params = computeParams(params)
     width = params.width
     height = params.height
 
