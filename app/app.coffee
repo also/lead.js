@@ -18,17 +18,6 @@ Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 Server = require './server'
 
-Modules.register 'http', require './http'
-Modules.register 'dsl', require './dsl'
-Modules.register 'settings', Settings
-Modules.register 'context', Context
-Modules.register 'builtins', Builtins
-Modules.register 'notebook', Notebook
-require './compat'
-require './graphing'
-require './input'
-require './opentsdb'
-
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
 NotFoundComponent = React.createClass
@@ -268,7 +257,21 @@ exports.init_app = (target, options={}) ->
   catch e
     console.error 'failed loading user settings', e
 
-  module_names = ['http', 'dsl', 'graphing', 'settings', 'input', 'notebook']
+  modules =
+    http: require('./http')
+    dsl: require('./dsl')
+    compat: require('./compat')
+    graphing: require('./graphing')
+    input: require('./input')
+    opentsdb: require('./opentsdb')
+    settings: Settings
+    context: Context
+    builtins: Builtins
+    notebook: Notebook
+    server: Server
+    github: GitHub
+
+  _.extend(modules, options.modules)
 
   imports = [
     'builtins.*'
@@ -280,9 +283,6 @@ exports.init_app = (target, options={}) ->
   ]
 
   imports.push (Settings.get('app', 'imports') or [])...
-  module_names.push _.map(imports, (i) -> i.split('.')[0])...
-  module_names.push (Settings.get('app', 'module_names') or [])...
-  modules = Modules.get_modules(module_names)
 
   window.addEventListener 'storage', (e) =>
     if e.key == 'lead_user_settings'

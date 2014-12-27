@@ -3,11 +3,7 @@ _ = require 'underscore'
 settings = require './settings'
 Context = null
 
-registeredModules = {}
-
 _.extend exports,
-  register: (moduleName, module) ->
-    registeredModules[moduleName] = module
   export: (exports, module_name, definition_fn) ->
     module_settings = settings.with_prefix module_name
     context_fns = {}
@@ -53,16 +49,9 @@ _.extend exports,
     mod = _.extend {context_fns, docs}, definition_fn(helpers)
 
     _.extend exports, mod
-    registeredModules[module_name] = exports
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
-
-  get_module: (module_name) ->
-    registeredModules[module_name]
-
-  get_modules: (module_names) ->
-    _.object module_names, _.map module_names, module.exports.get_module
 
   init_modules: (modules) ->
     Documentation = require './documentation'
