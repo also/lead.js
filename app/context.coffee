@@ -354,21 +354,6 @@ create_standalone_context = ({imports, module_names, modules, context}={}) ->
   create_run_context [context ? {}, create_context base_context]
 
 
-make_prop_var = (ctx, name) ->
-  if ctx.prop_vars[name]?
-    return ctx.prop_vars[name]
-
-  current_value = ctx.repl_vars[name]
-  delete ctx.repl_vars[name]
-  model = new Bacon.Model current_value
-  ctx.prop_vars[name] = model
-  Object.defineProperty ctx.repl_vars, name,
-    enumerable: true
-    get: -> model.get()
-    set: (v) -> model.set(v)
-  model
-
-
 scoped_eval = (ctx, string, var_names=[]) ->
   if _.isFunction string
     string = "(#{string}).apply(this);"
@@ -423,6 +408,5 @@ _.extend exports, {
   TopLevelContextComponent,
   ContextComponent,
   ContextOutputComponent,
-  make_prop_var,
   IGNORE: ignore
 }

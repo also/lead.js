@@ -280,9 +280,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       _.extend ctx.current_options, options
     Context.value ctx.current_options
 
-  fn 'dynamic', 'Returns a Bacon.Model bound to a global variable', (ctx, name) ->
-    Context.value Context.make_prop_var ctx, name
-
   component_cmd 'permalink', 'Create a link to the code in the input cell above', (ctx, code) ->
     code ?= ctx.previously_run()
     uri = App.raw_cell_url ctx, code
