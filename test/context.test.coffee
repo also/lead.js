@@ -1,6 +1,7 @@
 expect = require 'expect.js'
 Context = require '../app/context'
 CoffeeScriptCell = require '../app/coffeescript_cell'
+Builtins = require '../app/builtins'
 React = require 'react'
 $ = require 'jquery'
 
@@ -62,9 +63,7 @@ describe 'contexts', ->
       complete_callback = ->
       ctx = null
       result = null
-      base_context = Context.create_base_context(imports: ['builtins.*'])
-      base_context.modules.test_module = test_module
-      base_context.imports.push 'test_module.*'
+      base_context = Context.create_base_context(imports: ['builtins.*', 'test_module.*'], modules: {test_module, builtins: Builtins})
       ctx = Context.create_context base_context
 
     it 'can run javascript strings', ->

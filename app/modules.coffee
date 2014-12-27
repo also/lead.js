@@ -64,13 +64,11 @@ _.extend exports,
   get_modules: (module_names) ->
     _.object module_names, _.map module_names, module.exports.get_module
 
-  init_modules: (module_names) ->
+  init_modules: (modules) ->
     Documentation = require './documentation'
     Context = require './context'
 
-    promises = _.map module_names, (name) ->
-      mod = module.exports.get_module name
-
+    promises = _.map modules, (mod, name) ->
       if mod.init?
         promise = Q(mod.init()).then -> mod
       else
@@ -80,5 +78,4 @@ _.extend exports,
           _.each mod.docs, ({key, doc}) ->
             Documentation.register_documentation key, doc
 
-    Q.all(promises).then (modules) ->
-      _.object module_names, modules
+    Q.all(promises).then -> modules

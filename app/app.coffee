@@ -155,10 +155,10 @@ HelpComponent = React.createClass
   navigate: (key) ->
     @transitionTo 'help', {key}
   render: ->
-    {imports, module_names} = @context.app
+    {imports, modules} = @context.app
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
-      Context.TopLevelContextComponent {imports, module_names, context: {app: @context.app, run: @run, docs_navigate: @navigate}},
+      Context.TopLevelContextComponent {imports, modules, context: {app: @context.app, run: @run, docs_navigate: @navigate}},
         HelpWrapperComponent {doc_key: @props.params.key}
 
 SettingsComponent = React.createClass
@@ -189,12 +189,12 @@ NewNotebookComponent = React.createClass
   displayName: 'NewNotebookComponent'
   mixins: [AppAwareMixin]
   render: ->
-    {imports, module_names} = @context.app
+    {imports, modules} = @context.app
     intro_command = Settings.get 'app', 'intro_command'
     if intro_command? and intro_command != ''
       SingleCoffeeScriptCellNotebookComponent {value: intro_command}
     else
-      Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (nb) ->
+      Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (nb) ->
         Notebook.focus_cell Notebook.add_input_cell nb
       }
 
@@ -202,9 +202,9 @@ GistNotebookComponent = React.createClass
   displayName: 'GistNotebookComponent'
   mixins: [AppAwareMixin]
   render: ->
-    {imports, module_names} = @context.app
+    {imports, modules} = @context.app
     gist = @props.params.splat
-    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
         GitHub.context_fns.gist.fn ctx, gist, run: true
         Context.IGNORE
@@ -216,9 +216,9 @@ GitHubNotebookComponent = React.createClass
   displayName: 'GitHubNotebookComponent'
   mixins: [AppAwareMixin]
   render: ->
-    {imports, module_names} = @context.app
+    {imports, modules} = @context.app
     file = @props.params.splat
-    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
         GitHub.context_fns.load.fn ctx, file, run: true
         Context.IGNORE
@@ -237,8 +237,8 @@ SingleCoffeeScriptCellNotebookComponent = React.createClass
   mixins: [AppAwareMixin]
   render: ->
     value = @props.value
-    {imports, module_names} = @context.app
-    Notebook.NotebookComponent {context: {app: @context.app}, imports, module_names, init: (notebook) ->
+    {imports, modules} = @context.app
+    Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (notebook) ->
       first_cell = Notebook.add_input_cell notebook
       Notebook.set_cell_value first_cell, value
       Notebook.run first_cell
@@ -282,6 +282,7 @@ exports.init_app = (target, options={}) ->
   imports.push (Settings.get('app', 'imports') or [])...
   module_names.push _.map(imports, (i) -> i.split('.')[0])...
   module_names.push (Settings.get('app', 'module_names') or [])...
+  modules = Modules.get_modules(module_names)
 
   window.addEventListener 'storage', (e) =>
     if e.key == 'lead_user_settings'
@@ -316,7 +317,7 @@ exports.init_app = (target, options={}) ->
       mixins: [Router.Navigation]
       render: -> fn.call(@); null
 
-  app = {imports, module_names}
+  app = {imports, modules}
 
   routesComponent = Routes null,
     Route {handler: AppComponent, bodyWrapper, app},
@@ -339,7 +340,7 @@ exports.init_app = (target, options={}) ->
       Router.NotFoundRoute {handler: NotFoundComponent}
 
   # TODO handle errors, timeouts
-  initializationPromise = Modules.init_modules(module_names)
+  initializationPromise = Modules.init_modules(modules)
   initializationPromise.fail (e) ->
     console.error 'Failure initializing modules', e
     exports.pushModal handler: InitializationFailureModal, props: error: e

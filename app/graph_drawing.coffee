@@ -9,6 +9,7 @@ clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
 setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
 
+# [1 2 null 3 null 4 5] -> [1 2 null 3 3 null 4 5]
 expandIsolatedValuesToLineSegments = (values) ->
   result = []
   segmentLength = 0

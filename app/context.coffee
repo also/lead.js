@@ -185,8 +185,8 @@ TopLevelContextComponent = React.createClass
 
 
 # the base context contains the loaded modules, and the list of modules to import into every context
-create_base_context = ({module_names, imports}={}) ->
-  modules = Modules.get_modules(_.union _.map(imports, (i) -> i.split('.')[0]) or [], module_names or [], ['context'])
+create_base_context = ({modules, module_names, imports}={}) ->
+  modules = _.extend({context: exports}, modules)
   # TODO find a better home for repl vars
   {modules, imports, repl_vars: {}, prop_vars: {}}
 
@@ -349,8 +349,8 @@ create_nested_context = (parent, overrides) ->
   new_context
 
 
-create_standalone_context = ({imports, module_names, context}={}) ->
-  base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names})
+create_standalone_context = ({imports, module_names, modules, context}={}) ->
+  base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names, modules})
   create_run_context [context ? {}, create_context base_context]
 
 

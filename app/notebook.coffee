@@ -118,8 +118,8 @@ DocumentComponent = React.createClass
 NotebookComponent = React.createClass
   displayName: 'NotebookComponent'
   propTypes:
-    imports: React.PropTypes.arrayOf(React.PropTypes.string)
-    module_names: React.PropTypes.arrayOf(React.PropTypes.string)
+    imports: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
+    modules: React.PropTypes.object.isRequired
     init: React.PropTypes.func
   getInitialState: ->
     # FIXME #175 props can change
