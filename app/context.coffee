@@ -192,7 +192,7 @@ create_base_context = ({modules, module_names, imports}={}) ->
 importInto = (obj, target, path) ->
   segments = path.split('.')
   lastSegment = segments[segments.length - 1]
-  if lastSegment = '*'
+  if lastSegment == '*'
     wildcard = true
     segments.pop()
   try
