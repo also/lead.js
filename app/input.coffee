@@ -68,4 +68,4 @@ input = modules.export exports, 'input', ({fn}) ->
         property = Bacon.combineTemplate property
       property.onValue (v) ->
         Context.remove_all_components ctx
-        Context.apply_to ctx, fn, [v]
+        Context.callUserFunctionInCtx(ctx, fn, [v])

@@ -257,16 +257,6 @@ nested_item = (ctx, fn, args...) ->
   call_in_ctx nested_context, fn, args
 
 
-# used by
-# * apply_to
-#   * grid and flow layouts (for evaled functions)
-#   * nested_item
-#   * capture_context
-#     * keeping_context
-#   * Input.live
-#   * Markdown.InlineExampleComponent
-# * in_running_context
-#
 splice_ctx = (ctx, target_ctx, fn, args=[]) ->
   previous_context = target_ctx.scope.ctx
   target_ctx.scope.ctx = ctx
@@ -277,13 +267,13 @@ splice_ctx = (ctx, target_ctx, fn, args=[]) ->
     target_ctx.scope.ctx = previous_context
 
 
-apply_to = (ctx, fn, args) ->
-  fn = fn._lead_unbound_fn ? fn
-  call_in_ctx ctx, (ctx) -> fn.apply ctx, args
-
-
 call_in_ctx = (ctx, fn, args) ->
   splice_ctx ctx, ctx, fn, args
+
+
+callUserFunctionInCtx = (ctx, fn, args) ->
+  fn = fn._lead_unbound_fn ? fn
+  splice_ctx(ctx, ctx, -> fn(args...))
 
 
 # returns a function that calls its argument in the current context
@@ -357,12 +347,11 @@ scoped_eval = (ctx, string, var_names=[]) ->
     string = "(#{string}).apply(this);"
   _.each var_names, (name) ->
     ctx.repl_vars[name] ?= undefined
-  (->
-    `with (ctx.scope) { with (ctx.repl_vars) {
-      return eval(string);
-    }}`
-    return # this return is just to trick the coffeescript compiler, which doesn't see the return in backticks above
-  ).call(ctx)
+
+  `with (ctx.scope) { with (ctx.repl_vars) {
+    return eval(string);
+  }}`
+  return # this return is just to trick the coffeescript compiler, which doesn't see the return in backticks above
 
 
 eval_in_context = (run_context, string) ->
@@ -391,7 +380,7 @@ _.extend exports, {
   in_running_context,
   keeping_context,
   register_promise,
-  apply_to,
+  callUserFunctionInCtx,
   value,
   scoped_eval,
   add_component,

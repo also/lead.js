@@ -36,13 +36,10 @@ InlineExampleComponent = React.createClass
     example_component = Components.SourceComponent value: @props.value, language: 'coffeescript'
 
     # TODO should use new context
-    # TODO current_options is a Context internal
     nested_context = Context.create_nested_context(@state.ctx, current_options: _.clone(@state.ctx.options()))
-    value = @props.value
-    fn = CoffeeScriptCell.create_fn value
-    Context.apply_to nested_context, ->
-      Context.run_in_context @, (ctx) ->
-        fn ctx
+    fn = CoffeeScriptCell.create_fn(@props.value)
+    Context.run_in_context(nested_context, fn)
+
     React.DOM.div {className: 'inline-example'},
       React.DOM.div {className: 'example'}, example_component
       React.DOM.div {className: 'output'}, nested_context.component()
