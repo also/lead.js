@@ -41,7 +41,7 @@ ServerErrorComponent = React.createClass
           Builtins.ObjectBrowserComponent {object: @props.error, showProto: false}
 
 
-server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cmd, settings, doc}) ->
+server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cmd, contextExport, settings, doc}) ->
   functions_promise = null
   function_names = null
   server_option_names = null
@@ -163,7 +163,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
 
   component_fn 'browser', 'Browse metrics using a wildcard query', (ctx, query) ->
-    finder = server.context_fns.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
+    finder = server.contextExports.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
     finder.clicks.onValue (node) =>
       if node.is_leaf
         ctx.run "q(#{JSON.stringify node.path})"
@@ -235,7 +235,8 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
       server_option_names = Object.keys(docs.parameter_docs)
       server_option_names.push 'start', 'end'
       initDocs()
-      function_names
+
+    contextExport(dsl.define_functions({}, function_names))
 
   MetricTreeComponent: React.createClass
     render: ->
@@ -260,9 +261,6 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
           React.DOM.div null,
             React.DOM.i {className: 'fa fa-exclamation-triangle'}
             ' Error loading metric names'
-
-  context_vars: ->
-    dsl.define_functions {}, function_names
 
   is_pattern: (s) ->
     for c in '*?[{'

@@ -196,7 +196,7 @@ GistNotebookComponent = React.createClass
     gist = @props.params.splat
     Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
-        GitHub.context_fns.gist.fn ctx, gist, run: true
+        GitHub.contextExports.gist.fn(ctx, gist, run: true)
         Context.IGNORE
 
       Notebook.focus_cell Notebook.add_input_cell notebook
@@ -210,7 +210,7 @@ GitHubNotebookComponent = React.createClass
     file = @props.params.splat
     Notebook.NotebookComponent {context: {app: @context.app}, imports, modules, init: (notebook) ->
       Notebook.run_without_input_cell notebook, null, (ctx) ->
-        GitHub.context_fns.load.fn ctx, file, run: true
+        GitHub.contextExports.load.fn(ctx, file, run: true)
         Context.IGNORE
 
       Notebook.focus_cell Notebook.add_input_cell notebook

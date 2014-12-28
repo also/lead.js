@@ -89,7 +89,7 @@ collectContextExports = (context) ->
       vars = module.context_vars.call(context)
     else
       vars = module.context_vars
-    [name, _.extend(new LeadNamespace(), module.context_fns, vars)])
+    [name, _.extend(new LeadNamespace(), module.contextExports, vars)])
 
 is_run_context = (o) ->
   o?.component_list?
@@ -348,7 +348,7 @@ create_nested_context = (parent, overrides) ->
 
 
 create_standalone_context = ({imports, modules, context}={}) ->
-  base_context = create_base_context({imports: ['builtins'].concat(imports or []), modules})
+  base_context = create_base_context({imports: ['builtins.*'].concat(imports or []), modules})
   create_run_context [context ? {}, create_context base_context]
 
 

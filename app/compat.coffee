@@ -10,10 +10,10 @@ modules = require './modules'
 
 requireables = {q: Q, _: _, moment, colors, d3}
 
-modules.export exports, 'compat', ({doc, fn} ) ->
+modules.export exports, 'compat', ({doc, fn, contextExport} ) ->
   fn 'require', (ctx, moduleName) ->
     Context.value(requireables[moduleName] ? ctx.modules[moduleName])
 
-  context_vars:
+  contextExport
     moment: moment
     CodeMirror: CodeMirror

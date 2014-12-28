@@ -35,7 +35,7 @@ A lead.js module provides a set of functionality. It is implemented as a CommonJ
 The `modules` module provides helpers to define commands, functions, and to access settings.
 
 ```coffeescript
-{fn, cmd, context_fns, settings} = modules.create 'github'
+{fn, cmd, context_fn, settings} = modules.create 'github'
 settings.set 'default', 'github.com'
 ```
 
@@ -46,5 +46,4 @@ The `settings` object returned by `modules.create` will use the `github` prefix 
 A module can provide functionality through an *extension point*. An extension point is an attribute of the module that will be used by other modules. A context will look at all loaded modules and collect the attributes.
 
 Notable extension points include
- * `context_fns`
- * `context_vars`
+ * `contextExports`

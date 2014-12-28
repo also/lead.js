@@ -273,7 +273,7 @@ InputCellComponent = React.createClass
 
 generate_permalink = (cell) ->
   run_without_input_cell cell.notebook, after: cell.output_cell ? cell, (ctx) ->
-    Builtins.context_fns.permalink.fn ctx
+    Builtins.contextExports.permalink.fn(ctx)
     Context.IGNORE
 
 create_input_cell = (notebook) ->
@@ -431,11 +431,11 @@ handle_file = (ctx, file, options={}) ->
       try
         imported = JSON.parse file.content
       catch e
-        Builtins.context_fns.error.fn ctx, "File #{file.filename} isn't a lead.js notebook:\n#{e}"
+        Builtins.contextExports.error.fn(ctx, "File #{file.filename} isn't a lead.js notebook:\n#{e}")
         return
       version = imported.lead_js_version
       unless version?
-        Builtins.context_fns.error.fn ctx "File #{file.filename} isn't a lead.js notebook"
+        Builtins.contextExports.error.fn(ctx "File #{file.filename} isn't a lead.js notebook")
         return
       import_notebook ctx.notebook, ctx.output_cell, imported, options
 
@@ -478,7 +478,7 @@ _.extend exports, {
 
   save: (cell) ->
     run_without_input_cell cell.notebook, before: cell, (ctx) ->
-      exports.context_fns.save.fn ctx
+      exports.contextExports.save.fn(ctx)
       Context.IGNORE
 
   context_help: (cell, token) ->

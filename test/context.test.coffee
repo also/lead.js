@@ -52,7 +52,7 @@ describe 'contexts', ->
       complete_callback = ->
         later fn, done
     test_module =
-      context_fns:
+      contextExports:
         test_function: fn: -> Context.value 'test value'
         complete: fn: -> complete_callback()
     result = null

@@ -1,12 +1,12 @@
 Q = require 'q'
 _ = require 'underscore'
-settings = require './settings'
+Settings = require './settings'
 Context = null
 
 _.extend exports,
   export: (exports, module_name, definition_fn) ->
-    module_settings = settings.with_prefix module_name
-    context_fns = {}
+    settings = Settings.with_prefix module_name
+    contextExports = {}
     docs = []
 
     docs.push {key: module_name, doc: index: true}
@@ -26,7 +26,7 @@ _.extend exports,
       fn name, wrapped, wrapped
 
     fn = optional_doc_fn (name, f, cmd_f) ->
-      context_fns[name] =
+      contextExports[name] =
         module_name: module_name
         fn: f
         cmd_fn: cmd_f
@@ -45,10 +45,16 @@ _.extend exports,
       wrapped.raw_fn = f
       cmd name, wrapped
 
-    helpers = {doc, cmd, fn, component_cmd, component_fn, settings: module_settings}
-    mod = _.extend {context_fns, docs}, definition_fn(helpers)
+    contextExport = ->
+      if arguments.length == 1
+        _.extend(contextExports, arguments[0])
+      else
+        [k, v] = arguments
+        contextExports[k] = v
 
-    _.extend exports, mod
+    helpers = {doc, cmd, fn, component_cmd, component_fn, contextExport, settings}
+
+    _.extend exports, {contextExports, docs}, definition_fn(helpers)
 
   collect_extension_points: (modules, ep) ->
     _.flatten _.compact _.pluck modules, ep
