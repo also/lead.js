@@ -163,11 +163,12 @@ SettingsComponent = React.createClass
       reset_user_settings user_settings
   render: ->
     initial_value = JSON.stringify Settings.user_settings.get_without_overrides(), null, '  '
+    {imports, modules} = @context.app
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'settings output'},
       Components.ToggleComponent {title: 'Default Settings'},
         Builtins.ObjectComponent object: Settings.get_without_overrides()
-      Context.TopLevelContextComponent {ref: 'ctx', context: {app: @context.app}},
+      Context.TopLevelContextComponent {ref: 'ctx', imports, modules, context: {app: @context.app}},
         Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
         Context.ContextOutputComponent {}
       React.DOM.span {className: 'run-button', onClick: => @save_settings()},
