@@ -149,9 +149,10 @@ Documentation.register_file 'style'
 Documentation.register_file 'main'
 Documentation.register_file 'introduction'
 
-Documentation.register_documentation 'imported_context_fns', complete: (ctx, doc) ->
-  fn_docs = _.map ctx.imported_context_fns, (fn, name) ->
-    if fn?
+Documentation.register_documentation 'imported', complete: (ctx, doc) ->
+  fn_docs = _.map ctx.imported, (fn, name) ->
+    # TODO don't access context internals
+    if fn?.module_name? and fn.name?
       key = [fn.module_name, fn.name]
       doc = Documentation.get_documentation key
       if doc?

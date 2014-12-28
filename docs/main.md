@@ -1,7 +1,7 @@
 # lead.js Documentation
 
 * [Quick Start](help:quickstart)
-* [lead.js Functions](help:imported_context_fns)
+* [lead.js Functions](help:imported)
 * [Server Functions](help:server.functions)
 
 ## Top Functions

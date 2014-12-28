@@ -1,9 +1,3 @@
-###
-context_fns: context functions collected from all modules. unbound
-imported_context_fns: context_fns + the fns from all modules listed in imports
-fns: imported_context_fns, bound to the scope.ctx
-###
-
 _ = require 'underscore'
 Q = require  'q'
 Bacon = require 'bacon.model'
@@ -87,42 +81,47 @@ resolve_documentation_key = (ctx, o) ->
 collect_extension_points = (context, extension_point) ->
   Modules.collect_extension_points context.modules, extension_point
 
-collect_context_vars = (context) ->
-  module_vars = (module, name) ->
-    vars = module.context_vars
-    if _.isFunction vars
-      vars = vars.call context
-    [name, vars ? {}]
+class LeadNamespace
 
-  _.object _.filter _.map(context.modules, module_vars), ([n, f]) -> f
-
-collect_context_fns = (context) ->
-  _.object _.filter _.map(context.modules, (module, name) -> [name, module.context_fns ? {}]), ([n, f]) -> f
+collectContextExports = (context) ->
+  _.object _.map(context.modules, (module, name) ->
+    if _.isFunction(module.context_vars)
+      vars = module.context_vars.call(context)
+    else
+      vars = module.context_vars
+    [name, _.extend(new LeadNamespace(), module.context_fns, vars)])
 
 is_run_context = (o) ->
   o?.component_list?
 
-bind_fn_to_context = (ctx, fn) ->
+bindFnToContext = (ctx, fn) ->
   (args...) ->
     args.unshift ctx
     fn.apply ctx, args
 
-bind_context_fns = (target, scope, fns, name_prefix='') ->
+# define a getter for every context function that binds to the current scope on access.
+# copy everything else.
+lazilyBindContextFns = (target, scope, fns, name_prefix='') ->
   for k, o of fns
     do (k, o) ->
-      if _.isFunction o.fn
+      if o? and _.isFunction(o.fn)
         name = "#{name_prefix}#{k}"
-        wrapped_fn = ->
+
+        # ignore return values except for special {_lead_context_fn_value}
+        wrappedFn = ->
           o.fn.apply(null, arguments)?._lead_context_fn_value ? ignore
 
         bind = ->
-          bound = bind_fn_to_context scope.ctx, wrapped_fn
+          bound = bindFnToContext(scope.ctx, wrappedFn)
           bound._lead_context_fn = o
           bound._lead_context_name = name
           bound
-        Object.defineProperty target, k, get: bind, enumerable: true
+
+        Object.defineProperty(target, k, get: bind, enumerable: true)
+      else if o instanceof LeadNamespace
+        target[k] = lazilyBindContextFns({_lead_context_name: k}, scope, o, k + '.')
       else
-        target[k] = bind_context_fns {_lead_context_name: k}, scope, o, k + '.'
+        target[k] = o
 
   target
 
@@ -210,26 +209,21 @@ importInto = (obj, target, path) ->
 # the XXX context contains all the context functions and vars. basically, everything needed to support
 # an editor
 create_context = (base) ->
-  context_fns = collect_context_fns base
-  imported_context_fns = _.clone context_fns
-  _.each base.imports, _.partial importInto, context_fns, imported_context_fns
+  contextExports = collectContextExports(base)
+  imported = _.clone(contextExports)
+
+  _.each(base.imports, _.partial(importInto, contextExports, imported))
 
   scope =
     _capture_context: (fn) ->
       restoring_context = capture_context(scope.ctx)
       (args...) ->
-        restoring_context => fn.apply @, args
+        restoring_context => fn.apply(@, args)
 
-  bind_context_fns scope, scope, imported_context_fns
-
-  vars = collect_context_vars base
-  imported_vars = {}
-  _.each base.imports, _.partial importInto, vars, imported_vars
-  _.extend scope, imported_vars
+  lazilyBindContextFns(scope, scope, imported)
 
   context = _.extend {}, base,
-    imported_context_fns: imported_context_fns
-    imported_vars: imported_vars
+    imported: imported
     scope: scope
 
 # FIXME figure out a real check for a react component
@@ -353,8 +347,8 @@ create_nested_context = (parent, overrides) ->
   new_context
 
 
-create_standalone_context = ({imports, module_names, modules, context}={}) ->
-  base_context = create_base_context({imports: ['builtins'].concat(imports or []), module_names, modules})
+create_standalone_context = ({imports, modules, context}={}) ->
+  base_context = create_base_context({imports: ['builtins'].concat(imports or []), modules})
   create_run_context [context ? {}, create_context base_context]
 
 

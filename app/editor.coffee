@@ -158,17 +158,12 @@ suggest = (cm, showHints, options) ->
     sub_s = full_s[...cur.ch-token.start]
     next_token = token_after cm, token, cur.line
 
-    # TODO shouldn't reference inported_context_fns
-    imported_context_fns = follow_path cm.ctx.imported_context_fns, path
-    imported_vars = follow_path cm.ctx.imported_vars, path
+    # TODO shouldn't reference imported
+    imported = follow_path cm.ctx.imported, path
 
     collect_suggestions = (s) ->
       list = []
-      for k, v of imported_context_fns
-        # don't suggest the attributes of the fn object
-        if k.indexOf(s) is 0
-          list.push prefix + k
-      for k of imported_vars
+      for k, v of imported
         if k.indexOf(s) is 0
           list.push prefix + k
 
