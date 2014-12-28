@@ -294,7 +294,7 @@ keeping_context = (ctx, fn) ->
   ->
     restoring_context fn, arguments
 
-
+# TODO only used by test
 in_running_context = (ctx, fn, args) ->
   throw new Error 'no active running context. did you call an async function without keeping the context?' unless running_context_binding?
   splice_ctx running_context_binding, ctx, fn, args

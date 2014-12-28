@@ -42,7 +42,6 @@ ServerErrorComponent = React.createClass
 
 
 server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cmd, contextExport, settings, doc}) ->
-  functions_promise = null
   function_names = null
   server_option_names = null
 
@@ -222,21 +221,21 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until']
       unless function_names
-        functions_promise = http.get(server.url 'functions')
+        http.get(server.url 'functions')
         .fail ->
           function_names = []
           initDocs()
           Q.reject('failed to load functions from lead server')
         .then (functions) ->
           function_names = _.filter Object.keys(functions), (f) -> f.indexOf('-') == -1
+          contextExport(dsl.define_functions({}, function_names))
           initDocs()
     else
       function_names = graphite_function_names
+      contextExport(dsl.define_functions({}, function_names))
       server_option_names = Object.keys(docs.parameter_docs)
       server_option_names.push 'start', 'end'
       initDocs()
-
-    contextExport(dsl.define_functions({}, function_names))
 
   MetricTreeComponent: React.createClass
     render: ->
