@@ -28,7 +28,7 @@ exports.mangle = (src) ->
     # TODO handle function definitions
     if f.type == 'FunctionExpression'
       param_names = _.pluck(f.params, 'name').join ', '
-      update f, "(function(unbound) {var f = _capture_context(ctx, unbound);var bound = function(#{param_names}) {return f.apply(this, arguments);};bound._lead_unbound_fn = unbound;return bound;})(#{source(f)})"
+      update f, "(function(unbound) {var f = _capture_context(unbound);var bound = function(#{param_names}) {return f.apply(this, arguments);};bound._lead_unbound_fn = unbound;return bound;})(#{source(f)})"
 
   global_vars: Object.keys global_scope.vars
   source: chunks.join ''

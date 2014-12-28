@@ -214,7 +214,12 @@ create_context = (base) ->
   imported_context_fns = _.clone context_fns
   _.each base.imports, _.partial importInto, context_fns, imported_context_fns
 
-  scope = {}
+  scope =
+    _capture_context: (fn) ->
+      restoring_context = capture_context(scope.ctx)
+      (args...) ->
+        restoring_context => fn.apply @, args
+
   bind_context_fns scope, scope, imported_context_fns
 
   vars = collect_context_vars base
@@ -360,15 +365,11 @@ scoped_eval = (ctx, string, var_names=[]) ->
   _.each var_names, (name) ->
     ctx.repl_vars[name] ?= undefined
   (->
-    `with (ctx.scope) { with (ctx.repl_vars) {`
-    _capture_context = (ctx, fn) ->
-      restoring_context = capture_context ctx
-      (args...) ->
-        restoring_context => fn.apply @, args
-
-    return eval string
-    `}}`
-  ).call ctx
+    `with (ctx.scope) { with (ctx.repl_vars) {
+      return eval(string);
+    }}`
+    return # this return is just to trick the coffeescript compiler, which doesn't see the return in backticks above
+  ).call(ctx)
 
 
 eval_in_context = (run_context, string) ->
