@@ -228,7 +228,6 @@ create_context = (base) ->
   _.extend scope, imported_vars
 
   context = _.extend {}, base,
-    context_fns: context_fns
     imported_context_fns: imported_context_fns
     imported_vars: imported_vars
     scope: scope
