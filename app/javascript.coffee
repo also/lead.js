@@ -27,8 +27,12 @@ exports.mangle = (src) ->
   _.each functions, (f) ->
     # TODO handle function definitions
     if f.type == 'FunctionExpression'
-      param_names = _.pluck(f.params, 'name').join ', '
-      update f, "(function(unbound) {var f = _capture_context(unbound);var bound = function(#{param_names}) {return f.apply(this, arguments);};bound._lead_unbound_fn = unbound;return bound;})(#{source(f)})"
+      paramNames = _.pluck(f.params, 'name')
+      generatedFunctionName = '_f'
+      i = 1
+      while _.contains(paramNames, generatedFunctionName)
+        generatedFunctionName = "_f#{i++}"
+      update(f, "(function(unbound) {var #{generatedFunctionName} = _capture_context(unbound);var bound = function(#{paramNames.join(', ')}) {return #{generatedFunctionName}.apply(this, arguments);};bound._lead_unbound_fn = unbound;return bound;})(#{source(f)})")
 
   global_vars: Object.keys global_scope.vars
   source: chunks.join ''
