@@ -130,14 +130,7 @@ follow_path = (o, path) ->
 suggest = (cm, showHints, options) ->
   cur = cm.getCursor()
   token = cm.getTokenAt(cur)
-  if token.type is null
-    # TODO why only vars here?
-    list = (k for k of cm.ctx.imported_vars)
-    showHints
-      list: list
-      from: CodeMirror.Pos cur.line, token.end
-      to: CodeMirror.Pos cur.line, token.end
-  else if token.type is 'string'
+  if token.type is 'string'
     open = token.string[0]
     string = token.string[1..]
     close = string[string.length - 1]
