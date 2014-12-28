@@ -297,7 +297,7 @@ capture_context = (ctx) ->
     finally
       running_context_binding = previous_running_context_binding
 
-
+# TODO only used by test
 # wraps a function so that it is called in the current context
 keeping_context = (ctx, fn) ->
   restoring_context = capture_context ctx
@@ -372,7 +372,7 @@ run_in_context = (run_context, fn) ->
   try
     previous_running_context_binding = running_context_binding
     running_context_binding = run_context
-    result = fn run_context
+    result = call_in_ctx(run_context, fn)
     display_object run_context, result
   finally
     running_context_binding = previous_running_context_binding
