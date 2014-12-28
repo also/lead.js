@@ -68,23 +68,23 @@ describe 'contexts', ->
 
     it 'can run javascript strings', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]
-      Context.eval_in_context run_context, 'this.set_test_result(1 + 1);'
+      Context.eval_in_context run_context, 'ctx.set_test_result(1 + 1);'
       expect(result).to.be 2
 
     it 'can run coffeescript strings', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]
-      eval_coffeescript_in_context run_context, '@set_test_result 1 + 1'
+      eval_coffeescript_in_context run_context, 'ctx.set_test_result 1 + 1'
       expect(result).to.be 2
 
     it 'can eval functions', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]
       Context.eval_in_context run_context, ->
-        @set_test_result test_module.test_function()
+        ctx.set_test_result test_module.test_function()
       expect(result).to.be 'test value'
 
     it 'can run custom module functions', ->
       run_context = Context.create_run_context [ctx, {set_test_result}]
-      Context.eval_in_context run_context, 'this.set_test_result(test_module.test_function())'
+      Context.eval_in_context run_context, 'ctx.set_test_result(test_module.test_function())'
       expect(result).to.be 'test value'
 
     it 'can use other contexts', ->
@@ -93,7 +93,7 @@ describe 'contexts', ->
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
           ctx.value_in_context_a = 'a'
-      eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+      eval_coffeescript_in_context context_b, "ctx.value_in_context_b = ctx.context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
 
@@ -104,7 +104,7 @@ describe 'contexts', ->
         ctx.function_in_context_a = ->
           Context.in_running_context ctx, (ctx) ->
             ctx.value_in_context_a = 'a'
-      eval_coffeescript_in_context context_b, "@value_in_context_b = @context_a.function_in_context_a()"
+      eval_coffeescript_in_context context_b, "ctx.value_in_context_b = ctx.context_a.function_in_context_a()"
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
@@ -121,7 +121,7 @@ describe 'contexts', ->
         async = (ctx) ->
           ctx.value_in_context_b = ctx.context_a.function_in_context_a()
           complete()
-        setTimeout Context.keeping_context(@, async), 0
+        setTimeout Context.keeping_context(ctx, async), 0
       on_complete done, ->
         expect(context_a.value_in_context_a).to.be undefined
         expect(context_b.value_in_context_a).to.be 'a'
@@ -137,7 +137,7 @@ describe 'contexts', ->
           Context.in_running_context ctx, (ctx) ->
             ctx.value_in_context_a = 'a'
       Context.eval_in_context context_b, ->
-        @value_in_context_b = @context_a.function_in_context_a()
+        ctx.value_in_context_b = ctx.context_a.function_in_context_a()
       expect(context_a.value_in_context_a).to.be(undefined)
       expect(context_b.value_in_context_a).to.be 'a'
       expect(context_b.value_in_context_b).to.be 'a'
@@ -147,7 +147,7 @@ describe 'contexts', ->
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
-        Context.nested_item @, ->
+        Context.nested_item ctx, ->
           text 'b'
       $el = render context_a
       expect($el.text()).to.be 'ab'
@@ -157,7 +157,7 @@ describe 'contexts', ->
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
-        setTimeout Context.keeping_context @, ->
+        setTimeout Context.keeping_context ctx, ->
           text 'c'
           complete()
         , 0
@@ -170,7 +170,7 @@ describe 'contexts', ->
       context_a = Context.create_run_context [ctx, {set_test_result}]
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
-        Context.nested_item @, (ctx) ->
+        Context.nested_item ctx, (ctx) ->
           setTimeout Context.keeping_context ctx, ->
             text 'a'
             complete()
