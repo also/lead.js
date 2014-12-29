@@ -381,7 +381,7 @@ create = (container) ->
         time = new Date(timestamp * 1000)
         unless drawAsInfinite
           valueMin = Math.min value, valueMin ? value if value?
-          valueMax = Math.max value, valueMax
+          valueMax = Math.max value, valueMax ? value if value?
         {value, time: time, original: datapoint}
       bisector = d3.bisector (d) -> d.time
       lineMode =
