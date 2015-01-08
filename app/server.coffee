@@ -219,7 +219,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
   init: ->
     if settings.get('type') == 'lead'
-      server_option_names = ['start', 'from', 'end', 'until']
+      server_option_names = ['start', 'from', 'end', 'until', 'let']
       unless function_names
         http.get(server.url 'functions')
         .fail ->
@@ -472,10 +472,18 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
       delete server_options.util
 
     server_params = {}
-    target = _.map targets, (target) -> dsl.to_target_string target, server_params
-    _.extend server_params, server_options, target: target
+    target = _.map targets, (target) -> dsl.to_target_string(target, server_params)
 
-    client_params = _.extend {}, default_options, options, target: target
+    if server_options.let?
+      lets = _.clone(server_options.let)
+      _.each lets, (v, k) ->
+        lets[k] = dsl.to_target_string(v, server_params)
+    else
+      lets = {}
+
+    _.extend server_params, server_options, target: target, let: lets
+
+    client_params = _.extend {}, default_options, options, target: target, let: lets
 
     {server: server_params, client: client_params}
 
