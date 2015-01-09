@@ -58,7 +58,9 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
         value = function_name: n, summary: d.signature, complete: build_function_doc
       else
         value = summary: '(undocumented)'
-      Documentation.register_documentation ['server', 'functions', n], value
+      key = ['server', 'functions', n]
+      unless Documentation.get_documentation(key)
+        Documentation.register_documentation(key, value)
 
     _.each _.sortBy(server_option_names, _.identity), (n) ->
       d = docs.parameter_docs[n]
