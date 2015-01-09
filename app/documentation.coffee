@@ -139,6 +139,9 @@ Documentation =
           value: content
           image_urls: images
 
+  registerLeadMarkdown: (key, {images, content}) ->
+    Documentation.register_documentation(key, complete: Markdown.LeadMarkdownComponent(value: content, image_urls: images))
+
   register_file: (name, key) ->
     Documentation.register_documentation key ? name, complete: Documentation.load_file name
 
