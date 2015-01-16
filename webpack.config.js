@@ -16,7 +16,7 @@ module.exports = {
     filename: "lead-[name].js"
   },
   resolve: {
-    extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee'],
+    extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee', '.cjsx'],
     alias: {
       // bacon.model references 'baconjs' in commonjs and 'bacon' in amd
       'bacon': 'baconjs',
@@ -26,6 +26,7 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
+      {test: /\.cjsx$/, loader: 'coffee-loader!' + __dirname + '/lib/coffee-react-transform-loader.coffee'},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
