@@ -144,8 +144,7 @@ graph data, radius: 30, title: '30'
 ## `drawAsInfinite`
 
 ```
-options drawAsInfinite: true
-graph data, radius: 1, title: 'drawAsInfinite'
+graph data, drawAsInfinite: true, title: 'drawAsInfinite'
 ```
 
 See the [`drawAsInfinite`](help:server.functions.drawAsInfinite) server function.
