@@ -57,6 +57,16 @@ invisibility = (sel, invisible) ->
   else
     sel.attr('visibility', 'visible')
 
+commaInt = d3.format(',.f')
+commaDec = d3.format(',.3f')
+
+valueFormat = (n) ->
+  if n % 1 == 0
+    commaInt(n)
+  else
+    commaDec(n)
+
+
 defaultParams =
   width: 800
   height: 400
@@ -78,7 +88,7 @@ defaultParams =
   crosshairTextSize: '10px'
   crosshairValueTextColor: '#aaa'
   brushColor: '#efefef'
-  valueFormat: d3.format(',.4g')
+  valueFormat: valueFormat
   hideAxes: false
   hideLegend: false
   hideXAxis: false
