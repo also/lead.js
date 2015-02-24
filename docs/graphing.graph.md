@@ -55,6 +55,16 @@ data = [
 graph data
 ```
 
+<!-- code-prefix -->
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+options width: 400, height: 200
+```
+
 # Options
 
 ## `title`
@@ -64,13 +74,6 @@ Sets the title displayed at the top of the graph.
 ## [`areaMode`](help:server.parameters.areaMode)
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, areaMode: 'none', title: 'none'
 graph data, areaMode: 'first', title: 'first'
 graph data, areaMode: 'all', title: 'all'
@@ -101,13 +104,6 @@ Set the width and height of the plot area. The legend is outside this area.
 If set to `false` (the default), the graph will expand to fit the height of the legend. If set to `true`, the graph area will shrink to fit the legend.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 grid 2, ->
   graph data, fixedHeight: false, title: 'fixedHeight: false'
   graph data, fixedHeight: true, title: 'fixedHeight: true'
@@ -124,13 +120,6 @@ grid 2, ->
 The type of graph to generate. `"line"` (the default) and `"scatter"` are supported.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, type: 'line', title: 'line'
 graph data, type: 'scatter', 'title': 'scatter'
 ```
@@ -138,13 +127,6 @@ graph data, type: 'scatter', 'title': 'scatter'
 ## `lineWidth`
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, lineWidth: 0.3, title: '0.3'
 graph data, lineWidth: 3, title: '3'
 graph data, lineWidth: 30, title: '30'
@@ -153,13 +135,7 @@ graph data, lineWidth: 30, title: '30'
 ## `radius`
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200, type: 'scatter'
+options type: 'scatter'
 graph data, radius: 1, title: '1'
 graph data, radius: 3, title: '3'
 graph data, radius: 30, title: '30'
@@ -168,13 +144,7 @@ graph data, radius: 30, title: '30'
 ## `drawAsInfinite`
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200, drawAsInfinite: true
+options drawAsInfinite: true
 graph data, radius: 1, title: 'drawAsInfinite'
 ```
 
@@ -187,13 +157,6 @@ This is used as the argument to the d3 [`offset` function](https://github.com/mb
 and can be used to create "streamgraphs" or graphs that are normalized to fill the plot area.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, areaMode: 'stacked', areaOffset: 'wiggle', title: 'wiggle'
 graph data, areaMode: 'stacked', areaOffset: 'silhouette', title: 'silhouette'
 graph data, areaMode: 'stacked', areaOffset: 'expand', title: 'expand'
@@ -204,13 +167,6 @@ graph data, areaMode: 'stacked', areaOffset: 'expand', title: 'expand'
 See https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate or https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-area_interpolate.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, interpolate: 'basis', title: 'basis'
 graph data, interpolate: 'cardinal', title: 'cardinal'
 graph data, interpolate: 'step-before', title: 'step-before'
@@ -220,6 +176,7 @@ md 'see http://bl.ocks.org/mbostock/3310323'
 
 ## `drawNullAsZero`
 
+<!-- skip-code-prefix -->
 ```
 now = moment().unix()
 data = [
@@ -240,6 +197,7 @@ are available in the `colors` module as, e.g., `d3.category20c` or `brewer.Purpl
 
 The default is `d3.category10`.
 
+<!-- skip-code-prefix -->
 ```
 Colors = require 'colors'
 now = moment().unix()
@@ -263,13 +221,6 @@ graph targets[...9], d3_colors: Colors.brewer.Set1[3]
 The background color of the graph.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, title: 'bgcolor', bgcolor: '#eee'
 ```
 
@@ -278,13 +229,6 @@ graph data, title: 'bgcolor', bgcolor: '#eee'
 Sets the color of all foreground elements.
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, title: 'fgcolor', fgcolor: '#00ebba'
 ```
 
@@ -294,6 +238,7 @@ The color of individual foreground elements can be set using `axisLineColor`, `a
 
 Functions called on each entry in `datapoints` to get the value and timestamp. Both functions take the arguments `datapoint, index`. The default functions assume each data point is an array of `[timestamp, value]`.
 
+<!-- skip-code-prefix -->
 ```
 now = moment().unix()
 data = [
@@ -310,13 +255,6 @@ graph data,
 ## `hideAxes`, `hideXAxis`, and `hideYAxis`
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, title: 'hideAxes', hideAxes: true
 graph data, title: 'hideXAxis', hideXAxis: true
 graph data, title: 'hideYAxis', hideYAxis: true
@@ -325,13 +263,6 @@ graph data, title: 'hideYAxis', hideYAxis: true
 ## `hideLegend`
 
 ```
-now = moment().unix()
-data = [
-  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
-  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
-]
-
-options width: 400, height: 200
 graph data, title: 'hideLegend', hideLegend: true
 ```
 

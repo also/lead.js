@@ -33,7 +33,7 @@ InlineExampleComponent = React.createClass
   displayName: 'InlineExampleComponent'
   mixins: [ContextComponents.ContextAwareMixin]
   render: ->
-    example_component = Components.SourceComponent value: @props.value, language: 'coffeescript'
+    example_component = Components.SourceComponent displayValue: @props.displayValue, value: @props.value, language: 'coffeescript'
 
     # TODO should use new context
     nested_context = Context.create_nested_context(@state.ctx, current_options: _.clone(@state.ctx.options()))
@@ -57,13 +57,20 @@ LeadMarkdownComponent = React.createClass
     tokens = Marked.Lexer.lex @props.value, Marked.defaults
     current_tokens = []
     components = []
+    codePrefix = null
+    nextCodeOptions = {}
+
     _.each tokens, (t, i) ->
       if t.type != 'code'
         if t.type == 'paragraph'
           if t.text == '<!-- norun -->'
-            tokens[i + 1]?.norun = true
+            nextCodeOptions.norun = true
           else if t.text == '<!-- noinline -->'
-            tokens[i + 1]?.noinline = true
+            nextCodeOptions.noinline = true
+          else if t.text == '<!-- code-prefix -->'
+            nextCodeOptions.codePrefix = true
+          else if t.text == '<!-- skip-code-prefix -->'
+            nextCodeOptions.skipCodePrefix = true
           else
             current_tokens.push t
         else
@@ -74,12 +81,21 @@ LeadMarkdownComponent = React.createClass
           components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
           current_tokens = []
         value = t.text.trim()
-        if t.norun
-          components.push Components.SourceComponent {value, language: 'coffeescript'}
-        else if t.noinline
-          components.push Components.ExampleComponent {value, run: true}
+        if codePrefix? and !nextCodeOptions.skipCodePrefix
+          script = codePrefix + '\n' + value
         else
-          components.push InlineExampleComponent {value}
+          script = value
+        if nextCodeOptions.norun
+          components.push Components.SourceComponent {displayValue: value, value: script, language: 'coffeescript'}
+        else if nextCodeOptions.noinline
+          components.push Components.ExampleComponent {displayValue: value, value: script, run: true}
+        else if nextCodeOptions.codePrefix
+          codePrefix = value
+        else
+          components.push InlineExampleComponent {displayValue: value, value: script}
+
+        nextCodeOptions = {}
+
     if current_tokens.length > 0
       current_tokens.links = tokens.links
       components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts

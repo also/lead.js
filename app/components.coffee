@@ -33,7 +33,7 @@ ExampleComponent = React.createClass
 
 SourceComponent = React.createClass
   displayName: 'SourceComponent'
-  renderCode: -> format_code @props.value, @props.language, @getDOMNode()
+  renderCode: -> format_code @props.displayValue ? @props.value, @props.language, @getDOMNode()
   render: -> React.DOM.pre()
   componentDidMount: -> @renderCode()
   componentDidUpdate: -> @renderCode()
