@@ -37,7 +37,8 @@ The format for graph data is an array of time series:
 [
   {
     "target": "target name",
-    "datapoints": [[value, timestamp], [value, timestamp], ...]
+    "datapoints": [[value, timestamp], [value, timestamp], ...],
+    "options": {"color": "#ff0000"}
   }, ...
 ]
 ```
@@ -55,6 +56,10 @@ graph data
 ```
 
 # Options
+
+## `title`
+
+Sets the title displayed at the top of the graph.
 
 ## [`areaMode`](help:server.parameters.areaMode)
 
@@ -91,6 +96,29 @@ The cursor to display on the graph. A single cursor instance can be shared acros
 ## `width` and `height`
 Set the width and height of the plot area. The legend is outside this area.
 
+## `fixedHeight`
+
+If set to `false` (the default), the graph will expand to fit the height of the legend. If set to `true`, the graph area will shrink to fit the legend.
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200
+grid 2, ->
+  graph data, fixedHeight: false, title: 'fixedHeight: false'
+  graph data, fixedHeight: true, title: 'fixedHeight: true'
+```
+
+## `legendMaxHeight`
+
+## `xAxisTicks`
+
+## `yAxisTicks`
+
 ## `type`
 
 The type of graph to generate. `"line"` (the default) and `"scatter"` are supported.
@@ -121,6 +149,36 @@ graph data, lineWidth: 0.3, title: '0.3'
 graph data, lineWidth: 3, title: '3'
 graph data, lineWidth: 30, title: '30'
 ```
+
+## `radius`
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200, type: 'scatter'
+graph data, radius: 1, title: '1'
+graph data, radius: 3, title: '3'
+graph data, radius: 30, title: '30'
+```
+
+## `drawAsInfinite`
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200, drawAsInfinite: true
+graph data, radius: 1, title: 'drawAsInfinite'
+```
+
+See the [`drawAsInfinite`](help:server.functions.drawAsInfinite) server function.
 
 ## `areaOffset`
 
@@ -202,7 +260,39 @@ graph targets[...9], d3_colors: Colors.brewer.Set1[3]
 
 ## `bgcolor`
 
+The background color of the graph.
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200
+graph data, title: 'bgcolor', bgcolor: '#eee'
+```
+
+## `fgcolor`
+
+Sets the color of all foreground elements.
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200
+graph data, title: 'fgcolor', fgcolor: '#00ebba'
+```
+
+The color of individual foreground elements can be set using `axisLineColor`, `axisTextColor`, `crosshairLineColor`, `crosshairTextColor`, `crosshairValueTextColor`, `brushColor`, `titleTextColor`, or `legendTextColor`.
+
 ## `getValue` and `getTimestamp`
+
+Functions called on each entry in `datapoints` to get the value and timestamp. Both functions take the arguments `datapoint, index`. The default functions assume each data point is an array of `[timestamp, value]`.
 
 ```
 now = moment().unix()
@@ -216,3 +306,37 @@ graph data,
   getValue: (v, i) -> v
   getTimestamp: (v, i) -> now + i * 60
 ```
+
+## `hideAxes`, `hideXAxis`, and `hideYAxis`
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200
+graph data, title: 'hideAxes', hideAxes: true
+graph data, title: 'hideXAxis', hideXAxis: true
+graph data, title: 'hideYAxis', hideYAxis: true
+```
+
+## `hideLegend`
+
+```
+now = moment().unix()
+data = [
+  {target: 'target 1', datapoints: [[now, 1], [now + 60, 2], [now + 120, 3]]}
+  {target: 'target 2', datapoints: [[now, 0], [now + 60, 3], [now + 120, 1]]}
+]
+
+options width: 400, height: 200
+graph data, title: 'hideLegend', hideLegend: true
+```
+
+## `areaAlpha`
+
+## `refreshInterval`
+
+The interval, in seconds, between loads of the graph data. When unset (the default), the data will not be reloaded. This only applies to calls to `graph` where the data can be reloaded.
