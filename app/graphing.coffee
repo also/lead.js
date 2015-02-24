@@ -8,7 +8,7 @@ React = require 'react/addons'
 modules = require './modules'
 Documentation = require './documentation'
 Server = require './server'
-GraphDrawing = require './graph_drawing'
+GraphDrawing = require './graphDrawing'
 Context = require './context'
 Builtins = require './builtins'
 App = require './app'
@@ -179,7 +179,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
     export: ->
-      @state.graph.exportImage().then (url) ->
+      @refs.graph.exportImage().then (url) ->
         App.pushModal handler: ExportModal, props: {url}
     render: ->
       React.DOM.div {},
@@ -192,25 +192,20 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
               onClick: @export
               className: 'fa fa-share-square-o fa-stack-1x'
               style: {color: '#ccc'}
+          GraphDrawing.GraphComponent {params: @state.params, data: @state.data, ref: 'graph'}
         if @state.error
           Builtins.ErrorComponent {message: @state.error}
     componentWillReceiveProps: (nextProps) ->
-      @state.unsubscribe()
+      @_unsubscribe()
       @subscribe(nextProps.model, @state.graph)
     getInitialState: -> {}
     componentDidMount: ->
-      node = @refs.graph.getDOMNode()
-      graph = GraphDrawing.create(node)
-      @subscribe(@props.model, graph)
-      @setState {graph}
-    subscribe: (model, graph) ->
-      @setState unsubscribe: model.onValue ({data, params, error}) =>
-        @setState {error}
-        graph.draw(data, params)
+      @subscribe(@props.model)
+    subscribe: (model) ->
+      @_unsubscribe = model.onValue ({data, params, error}) =>
+        @setState {error, data, params}
     componentWillUnmount: ->
-      if @state.graph?
-        @state.graph.destroy()
-        @state.unsubscribe()
+      @_unsubscribe()
 
   DirectGraphComponent: React.createClass
     displayName: 'DirectGraphComponent'
