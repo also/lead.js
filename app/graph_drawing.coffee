@@ -74,7 +74,10 @@ defaultParams =
   getValue: (dp) -> dp[1]
   getTimestamp: (dp) -> dp[0]
   d3_colors: colors.d3.category10
-  areaAlpha: 1.0
+  areaAlpha: null
+  lineAlpha: null
+  pointAlpha: null
+  alpha: 1.0
   bgcolor: '#fff'
   areaMode: 'none'
   areaOffset: 'zero'
@@ -358,9 +361,6 @@ create = (container) ->
 
     stack.offset(params.areaOffset)
 
-    areaOpacity = params.areaAlpha
-    lineOpacity = 1.0
-
     if params.interpolate?
       line.interpolate params.interpolate
       area.interpolate params.interpolate
@@ -407,7 +407,10 @@ create = (container) ->
         area
       name = s.target
       targetColor = options.color ? colorsByName[name]
-      _.extend options, {values, bisector, name, lineMode, lineFn, color: targetColor}
+      areaAlpha = options.areaAlpha ? options.alpha
+      lineAlpha = options.lineAlpha ? options.alpha
+      pointAlpha = options.pointAlpha ? options.alpha
+      _.extend options, {values, bisector, name, lineMode, lineFn, color: targetColor, areaAlpha, lineAlpha, pointAlpha}
 
 
     timeMin = new Date(timeMin * 1000)
@@ -586,19 +589,18 @@ create = (container) ->
           .style('fill-opacity', 0)
       else
         path
-          .style('stroke-opacity', lineOpacity)
-          .style('fill-opacity', areaOpacity)
+          .style('stroke-opacity', (d) -> d.lineAlpha)
+          .style('fill-opacity', (d) -> d.areaAlpha)
 
     addCircles = (target, hover) ->
-      if hover
-        extraRadius = 3
-        opacity = 0
-      else
-        extraRadius = 0
-        opacity = 1
-
       target.append('g').attr('class', 'circles')
         .each (d) ->
+          if hover
+            extraRadius = 3
+            opacity = 0
+          else
+            extraRadius = 0
+            opacity = d.pointAlpha
           circleColor = d.color
           radius = d.radius + extraRadius
           d3.select(this).selectAll('circle')
@@ -637,7 +639,7 @@ create = (container) ->
                     .style('stroke-opacity', 0)
                 else
                   l
-                    .style('stroke-opacity', lineOpacity)
+                    .style('stroke-opacity', d.lineAlpha)
 
     addTarget = (target, hover) ->
       target.each (d) ->

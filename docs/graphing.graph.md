@@ -335,7 +335,7 @@ options width: 400, height: 200
 graph data, title: 'hideLegend', hideLegend: true
 ```
 
-## `areaAlpha`
+## `areaAlpha`, `pointAlpha`, `lineAlpha`, and `alpha`
 
 ## `refreshInterval`
 
