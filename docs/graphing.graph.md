@@ -270,3 +270,21 @@ graph data, title: 'hideLegend', hideLegend: true
 ## `refreshInterval`
 
 The interval, in seconds, between loads of the graph data. When unset (the default), the data will not be reloaded. This only applies to calls to `graph` where the data can be reloaded.
+
+```
+Server = require 'server'
+
+source = new Server.LeadDataSource (params) ->
+  now = moment().unix()
+
+  randomPoint = (i) -> [now + (60 * i), Math.random() * 5]
+
+  randomSeries = -> (randomPoint(i) for i in [0...3])
+
+  [
+    {target: 'target 1', datapoints: randomSeries()}
+    {target: 'target 2', datapoints: randomSeries()}
+  ]
+
+graph source, refreshInterval: 1, title: 'refreshInterval: 1'
+```
