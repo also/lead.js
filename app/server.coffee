@@ -494,7 +494,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
   LeadDataSource: class
     constructor: (load) ->
-      @load = load
+      @load = -> Q(load(arguments...))
 
   resolve_documentation_key: (ctx, o) ->
     return null unless o?
