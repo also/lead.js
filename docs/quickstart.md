@@ -43,7 +43,7 @@ Inside a string, this will suggest metric names. Elsewhere, it will suggest avai
 
 ## Sharing Your Work
 
-Next to any input cell, there's a "link" link. Clicking it will generate a link that runs the command in the cell. For our `randomWalkFunction` graph, the link would look like http://example.com/lead/?Z3JhcGggJ3JhbmRvbVdhbGtGdW5jdGlvbigiaGVsbG8td29ybGQiKSc%3D. You can sare this link with anyone who has access to your lead.js.
+Next to any input cell, there's a "link" link. Clicking it will generate a link that runs the command in the cell. For our `randomWalkFunction` graph, the link would look like http://example.com/lead/?Z3JhcGggJ3JhbmRvbVdhbGtGdW5jdGlvbigiaGVsbG8td29ybGQiKSc%3D. You can share this link with anyone who has access to your lead.js.
 
 ## Key Bindings
 
