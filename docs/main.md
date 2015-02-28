@@ -9,4 +9,3 @@
 * [`graph`](help:graphing.graph)
 * [`q`](help:server.q)
 * [`save_gist`](help:github.save_gist)
-* [`tsd`](help:opentsdb.tsd)
