@@ -184,16 +184,16 @@ ToggleComponent = React.createClass
 ObservableMixin =
   #get_observable: (props) -> props.observable
   componentWillMount: ->
-    @init(@props)
-  componentWillReceiveProps: (nextProps) ->
-    observable = @get_observable?(nextProps) ? @props.observable
+    @init(@props, @context)
+  componentWillReceiveProps: (nextProps, nextContext) ->
+    observable = @get_observable?(nextProps, nextContext) ? @props.observable
     if @state.observable != observable
       @state.unsubscribe()
-      @init(nextProps)
-  init: (props) ->
+      @init(nextProps, nextContext)
+  init: (props, context) ->
     value = null
     error = null
-    observable = @get_observable?(props) ? props.observable
+    observable = @get_observable?(props, context) ? props.observable
     @setState
       observable: observable
       # there might already be a value, so the onValue callback can be called before init returns
