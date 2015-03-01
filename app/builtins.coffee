@@ -181,8 +181,8 @@ GridComponent = React.createClass
       if i % cols == 0
         row = []
         rows.push row
-      row.push React.DOM.div {style: {flex: 1}}, component
-    React.DOM.div null, _.map rows, (row) -> React.DOM.div {style: {display: 'flex'}}, row
+      row.push React.DOM.div {style: {flex: 1}, key: i}, component
+    React.DOM.div null, _.map rows, (row, i) -> React.DOM.div {key: i, style: {display: 'flex'}}, row
 
 FlowComponent = React.createClass
   displayName: 'FlowComponent'
