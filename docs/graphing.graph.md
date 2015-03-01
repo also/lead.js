@@ -138,13 +138,13 @@ graph data, lineWidth: 30, title: '30'
 options type: 'scatter'
 graph data, radius: 1, title: '1'
 graph data, radius: 3, title: '3'
-graph data, radius: 30, title: '30'
+graph data, radius: 10, title: '10'
 ```
 
 ## `drawAsInfinite`
 
 ```
-graph data, drawAsInfinite: true, title: 'drawAsInfinite'
+graph data[0...1], drawAsInfinite: true, title: 'drawAsInfinite'
 ```
 
 See the [`drawAsInfinite`](help:server.functions.drawAsInfinite) server function.
@@ -169,9 +169,9 @@ See https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate or http
 graph data, interpolate: 'basis', title: 'basis'
 graph data, interpolate: 'cardinal', title: 'cardinal'
 graph data, interpolate: 'step-before', title: 'step-before'
-graph data, title: 'arcs', interpolate: (points) -> points.join 'A 1,1 0 0 1 ',
-md 'see http://bl.ocks.org/mbostock/3310323'
 ```
+
+See http://bl.ocks.org/mbostock/3310323 for a more interesting example.
 
 ## `drawNullAsZero`
 
