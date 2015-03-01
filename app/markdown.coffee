@@ -1,5 +1,5 @@
 Marked = require 'marked'
-React = require 'react'
+React = require 'react/addons'
 Components = require './components'
 Context = require './context'
 ContextComponents = require './contextComponents'
@@ -31,7 +31,7 @@ MarkdownComponent = React.createClass
 
 InlineExampleComponent = React.createClass
   displayName: 'InlineExampleComponent'
-  mixins: [ContextComponents.ContextAwareMixin]
+  mixins: [ContextComponents.ContextAwareMixin, React.addons.PureRenderMixin]
   render: ->
     exampleComponent = Components.SourceComponent displayValue: @props.displayValue, value: @props.value, language: 'coffeescript'
 
