@@ -9,6 +9,13 @@ Q = require 'q'
 React = require('react')
 Components = require('./components')
 
+# jump through some hoops to add clip-path since SVGDOMPropertyConfig is useless
+MUST_USE_ATTRIBUTE = require('react/lib/DOMProperty').MUST_USE_ATTRIBUTE
+require('react/lib/ReactInjection').DOMProperty.injectDOMPropertyConfig
+  Properties: clipPath: MUST_USE_ATTRIBUTE
+  DOMAttributeNames: clipPath: 'clip-path'
+
+
 clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
 setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
@@ -162,6 +169,9 @@ AxisComponent = React.createClass
 
 
 LineComponent = React.createClass
+  contextTypes:
+    clipPath: React.PropTypes.string.isRequired
+
   propTypes:
     target: React.PropTypes.object.isRequired
     hover: React.PropTypes.bool
@@ -169,6 +179,7 @@ LineComponent = React.createClass
 
   render: ->
     d = @props.target
+    {clipPath} = @context
 
     if @props.hover
       extraWidth = 10
@@ -183,7 +194,8 @@ LineComponent = React.createClass
     <path stroke={d.color}
           style={style}
           fill={if d.lineMode is 'area' then d.color}
-          d={d.lineFn(d.lineValues)}/>
+          d={d.lineFn(d.lineValues)}
+          clipPath={clipPath}/>
 
 
 ScatterComponent = React.createClass
@@ -594,10 +606,12 @@ GraphComponent = React.createClass
     yScale: React.PropTypes.func
     cursorPosition: React.PropTypes.object
     targetState: React.PropTypes.object
+    clipPath: React.PropTypes.string
 
   getChildContext: ->
     context = _.pick(@state, Object.keys(@constructor.childContextTypes))
     context.targetState = @targetState
+    context.clipPath = "url(#clipper)"
     context
 
   exportImage: ->
@@ -657,12 +671,20 @@ GraphComponent = React.createClass
       unless params.hideLegend
         legend = <LegendComponent targets={targets} mouseHandler={@}/>
 
+      # react doesn't support clipPath :(
+      clipper = """
+      <clipPath id="clipper">
+          <rect width="#{sizes.width}" height="#{sizes.height}"/>
+      </clipPath>"""
+
       svg =
         <svg width={sizes.svgWidth} height={sizes.svgHeight}
           ref='svg'
           style={{'font-family': '"Helvetica Neue"', cursor: 'default', 'background-color': params.bgcolor}}
           onMouseMove={@onMouseMove}>
           {title}
+          <g dangerouslySetInnerHTML={__html: clipper}/>
+
           <g transform={"translate(#{sizes.margin.left},#{sizes.margin.top})"} ref="chartArea">
             {xAxis}
             {yAxis}
