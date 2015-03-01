@@ -33,16 +33,24 @@ InlineExampleComponent = React.createClass
   displayName: 'InlineExampleComponent'
   mixins: [ContextComponents.ContextAwareMixin]
   render: ->
-    example_component = Components.SourceComponent displayValue: @props.displayValue, value: @props.value, language: 'coffeescript'
+    exampleComponent = Components.SourceComponent displayValue: @props.displayValue, value: @props.value, language: 'coffeescript'
 
     # TODO should use new context
-    nested_context = Context.create_nested_context(@state.ctx, current_options: _.clone(@state.ctx.options()))
+    nestedContext = Context.create_nested_context(@state.ctx, current_options: _.clone(@state.ctx.options()))
     fn = CoffeeScriptCell.create_fn(@props.value)
-    Context.run_in_context(nested_context, fn)
+    Context.run_in_context(nestedContext, fn)
 
     React.DOM.div {className: 'inline-example'},
-      React.DOM.div {className: 'example'}, example_component
-      React.DOM.div {className: 'output'}, nested_context.component()
+      React.DOM.div {className: 'example'},
+        exampleComponent
+        React.DOM.span {className: 'run-button', onClick: @onClick},
+          React.DOM.i {className: 'fa fa-play-circle'}
+          ' Edit this example'
+      React.DOM.div {className: 'output'}, nestedContext.component()
+
+  onClick: ->
+    # TODO set code instead of running
+    @state.ctx.run @props.value
 
 LeadMarkdownComponent = React.createClass
   displayName: 'LeadMarkdownComponent'
