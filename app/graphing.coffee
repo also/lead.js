@@ -91,11 +91,12 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
       else
         new Bacon.Model model
 
-  paramsToProperty = (params) ->
+  # wrap params that are could be models so they aren't interpreted as streams by combineTemplate
+  wrapParams = (params) ->
     if params.cursor? or params.brush?
       params = _.extend params, cursor: wrapModel(params.cursor), brush: wrapModel(params.brush)
 
-    Bacon.combineTemplate params
+    params
 
   serverDataSource = (serverParams) ->
     new Server.LeadDataSource (params) ->
@@ -139,21 +140,23 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         source = serverDataSource(all_params.server)
 
       paramModifiers = []
+
       if params.bindToBrush == true
         params.brush ?= new Bacon.Model
         paramModifiers.push(brushParams(params, params.brush))
       else if params.bindToBrush instanceof Bacon.Observable
         params.brush ?= params.bindToBrush
         paramModifiers.push(brushParams(params, params.bindToBrush))
+
       if params.refreshInterval?
         paramModifiers.push(Bacon.interval(params.refreshInterval * 1000, {}).map(-> refreshTime: +new Date))
 
       if paramModifiers.length > 0
-        paramsModel = new Bacon.Model(params)
-        _.each paramModifiers, (observable) ->
-          paramsModel.apply(observable.map(paramModifier))
+        # create a single stream of all param modifiers
+        paramModifierStream = Bacon.mergeAll(paramModifiers).map(paramModifier)
+        paramsProp = paramModifierStream.scan params, (v, f) -> f(v)
 
-        data = paramsModel.flatMapLatest (params) ->
+        data = paramsProp.flatMapLatest (params) ->
           Bacon.fromPromise(source.load(params))
       else
         promise = source.load(params)
@@ -161,13 +164,17 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
     if promise
       data = Bacon.fromPromise(promise)
 
-    params = paramsToProperty(params)
-    model = Bacon.Model({data: null, params: null, error: null})
-    # TODO can these be combined?
-    model.apply data.map (newData) -> ({params}) -> {params, data: newData, error: null}
-    model.apply data.errors().mapError (newError) -> ({params}) -> {params, data: null, error: newError}
-    model.lens('params').addSource(params)
-    model
+    # create a stream where every event will be {data} or {error}
+    dataOrError = data.withHandler (e) ->
+      if e.isError()
+        @push(new Bacon.Next({error: e.error}))
+      else
+        @push(e.fmap((data) -> {data}))
+
+    Bacon.combineTemplate
+      data: dataOrError.map(({data}) -> data)
+      error: dataOrError.map(({error}) -> error)
+      params: wrapParams(params)
 
   GraphComponent: React.createClass
     displayName: 'GraphComponent'
