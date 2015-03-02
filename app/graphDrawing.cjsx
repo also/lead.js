@@ -199,6 +199,9 @@ LineComponent = React.createClass
 
 
 ScatterComponent = React.createClass
+  contextTypes:
+    yScale: React.PropTypes.func.isRequired
+
   propTypes:
     target: React.PropTypes.object.isRequired
     hover: React.PropTypes.bool
@@ -206,6 +209,8 @@ ScatterComponent = React.createClass
 
   render: ->
     d = @props.target
+    {yScale} = @context
+    [max, min] = yScale.range()
 
     if @props.hover
       extraRadius = 3
@@ -219,12 +224,15 @@ ScatterComponent = React.createClass
     radius = d.radius + extraRadius
 
     circles = _.map d.scatterValues, (v, i) ->
-      <circle key={i}
-              cx={v.x}
-              cy={v.y}
-              fill={circleColor}
-              r={radius}
-              style={'fill-opacity': d.pointAlpha}/>
+      if v.y < min or v.y > max
+        null
+      else
+        <circle key={i}
+                cx={v.x}
+                cy={v.y}
+                fill={circleColor}
+                r={radius}
+                style={'fill-opacity': d.pointAlpha}/>
 
     <g>{circles}</g>
 
@@ -269,16 +277,19 @@ InfiniteLinesComponent = React.createClass
 
 
 CrosshairValuePointComponent = React.createClass
+  mixins: [CursorPositionMixin]
+
   propTypes:
     target: React.PropTypes.object.isRequired
 
-  mixins: [CursorPositionMixin]
   contextTypes:
     params: React.PropTypes.object.isRequired
+    yScale: React.PropTypes.func.isRequired
 
   render: ->
-    {params} = @context
+    {params, yScale} = @context
     {target} = @props
+    [max, min] = yScale.range()
 
     if target.type == 'scatter'
       radius = target.radius + 3
@@ -287,15 +298,18 @@ CrosshairValuePointComponent = React.createClass
 
     if @state.value
       d = @state.value.targetValues[target.index]
-      visibility = if d.value? then 'visible' else 'hidden'
+      if d.y < min or d.y > max
+        null
+      else
+        visibility = if d.value? then 'visible' else 'hidden'
 
-      <circle
-        fill={target.color}
-        stroke={params.bgcolor}
-        style={{'stroke-width': 2, visibility}}
-        cx={d.x}
-        cy={d.y}
-        r={radius}/>
+        <circle
+          fill={target.color}
+          stroke={params.bgcolor}
+          style={{'stroke-width': 2, visibility}}
+          cx={d.x}
+          cy={d.y}
+          r={radius}/>
     else
       null
 
