@@ -69,21 +69,19 @@ LeadMarkdownComponent = React.createClass
     nextCodeOptions = {}
 
     _.each tokens, (t, i) ->
-      if t.type != 'code'
-        if t.type == 'paragraph'
-          if t.text == '<!-- norun -->'
-            nextCodeOptions.norun = true
-          else if t.text == '<!-- noinline -->'
-            nextCodeOptions.noinline = true
-          else if t.text == '<!-- code-prefix -->'
-            nextCodeOptions.codePrefix = true
-          else if t.text == '<!-- skip-code-prefix -->'
-            nextCodeOptions.skipCodePrefix = true
-          else
-            current_tokens.push t
+      if t.type == 'html'
+        trimmed = t.text.trim()
+        if trimmed == '<!-- norun -->'
+          nextCodeOptions.norun = true
+        else if trimmed == '<!-- noinline -->'
+          nextCodeOptions.noinline = true
+        else if trimmed == '<!-- code-prefix -->'
+          nextCodeOptions.codePrefix = true
+        else if trimmed == '<!-- skip-code-prefix -->'
+          nextCodeOptions.skipCodePrefix = true
         else
-          current_tokens.push t
-      else
+          current_tokens.push(t)
+      else if t.type == 'code'
         if current_tokens.length > 0
           current_tokens.links = tokens.links
           components.push UserHtmlComponent html: Marked.Parser.parse current_tokens, opts
@@ -103,6 +101,9 @@ LeadMarkdownComponent = React.createClass
           components.push InlineExampleComponent {displayValue: value, value: script}
 
         nextCodeOptions = {}
+
+      else
+        current_tokens.push(t)
 
     if current_tokens.length > 0
       current_tokens.links = tokens.links
