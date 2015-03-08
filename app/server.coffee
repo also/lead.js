@@ -15,6 +15,7 @@ Html = require './html'
 Documentation = require './documentation'
 Context = require './context'
 Components = require './components'
+Tree = require './tree'
 
 class ServerError
   constructor: (@error) ->
@@ -241,7 +242,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
   MetricTreeComponent: React.createClass
     render: ->
-      Components.TreeComponent
+      Tree.TreeComponent
         root: @props.root ? '',
         load: @props.leaf_clicked ? (path) =>
           ctx.run "q(#{JSON.stringify path})"
@@ -257,7 +258,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
           else
             parts = props.node.path.split '.'
             name = parts[parts.length - 1]
-          Components.TreeNodeComponent _.extend({}, props, {name}), name
+          Tree.TreeNodeComponent _.extend({}, props, {name}), name
         create_error_node: (props) ->
           React.DOM.div null,
             React.DOM.i {className: 'fa fa-exclamation-triangle'}
