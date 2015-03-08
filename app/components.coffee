@@ -182,18 +182,18 @@ ToggleComponent = React.createClass
               @props.children
 
 ObservableMixin =
-  #get_observable: (props) -> props.observable
+  #getObservable: (props) -> props.observable
   componentWillMount: ->
     @init(@props, @context)
   componentWillReceiveProps: (nextProps, nextContext) ->
-    observable = @get_observable?(nextProps, nextContext) ? @props.observable
+    observable = @getObservable?(nextProps, nextContext) ? @props.observable
     if @state.observable != observable
       @state.unsubscribe()
       @init(nextProps, nextContext)
   init: (props, context) ->
     value = null
     error = null
-    observable = @get_observable?(props, context) ? props.observable
+    observable = @getObservable?(props, context) ? props.observable
     @setState
       observable: observable
       # there might already be a value, so the onValue callback can be called before init returns
@@ -223,7 +223,7 @@ SimpleLayoutComponent = React.createClass
 PropsModelComponent = React.createClass
   displayName: 'PropsModelComponent'
   mixins: [ObservableMixin]
-  get_observable: -> @props.child_props
+  getObservable: -> @props.child_props
   render: -> @props.constructor @state.value
 
 module.exports = {

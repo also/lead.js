@@ -95,7 +95,7 @@ InputOutputComponent = React.createClass
 DocumentComponent = React.createClass
   displayName: 'DocumentComponent'
   mixins: [Components.ObservableMixin]
-  get_observable: (props) -> props.notebook.model
+  getObservable: (props) -> props.notebook.model
   render: ->
     layout = @state.value.settings?.layout ? 'repl'
     useMinHeight = layout == 'two-column'
@@ -248,7 +248,7 @@ add_input_cell = (notebook, opts={}) ->
 InputCellComponent = React.createClass
   displayName: 'InputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  get_observable: (props) -> props.cell.changes
+  getObservable: (props) -> props.cell.changes
 
   render: ->
     React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
@@ -314,7 +314,7 @@ focus_cell = (cell) ->
 OutputCellComponent = React.createClass
   displayName: 'OutputCellComponent'
   mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  get_observable: (props) -> props.cell.component_model
+  getObservable: (props) -> props.cell.component_model
 
   getOutputHeight: ->
     @refs.output.getDOMNode().clientHeight

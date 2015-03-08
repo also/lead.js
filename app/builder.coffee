@@ -16,7 +16,7 @@ remove_target = (targets, target) ->
 TargetsEditorComponent = React.createClass
   displayName: 'TargetsEditorComponent'
   mixins: [Components.ObservableMixin]
-  get_observable: (props) -> props.targets
+  getObservable: (props) -> props.targets
   remove_target: (target) ->
     remove_target @props.targets, target
   render: ->

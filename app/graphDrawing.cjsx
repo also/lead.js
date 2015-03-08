@@ -140,7 +140,7 @@ CursorPositionMixin = _.extend {}, Components.ObservableMixin,
   contextTypes:
     cursorPosition: React.PropTypes.object.isRequired
 
-  get_observable: (props, context) -> context.cursorPosition
+  getObservable: (props, context) -> context.cursorPosition
 
 AxisComponent = React.createClass
   propTypes:
@@ -325,7 +325,7 @@ TargetComponent = React.createClass
     params: React.PropTypes.object.isRequired
     targetState: React.PropTypes.object.isRequired
 
-  get_observable: (props, context) -> context.targetState
+  getObservable: (props, context) -> context.targetState
 
   render: ->
     {params} = @context
@@ -494,7 +494,7 @@ LegendComponent = React.createClass
     params: React.PropTypes.object.isRequired
     targetState: React.PropTypes.object.isRequired
 
-  get_observable: -> @context.targetState
+  getObservable: -> @context.targetState
 
   render: ->
     {sizes, params} = @context
