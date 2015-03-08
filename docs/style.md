@@ -35,6 +35,12 @@
       _.each [1..13], (i) ->
         html "<div style='background: #eee; margin: .3em; text-align: center; padding: .5em'>#{i}</div>"
 
+## ObjectBrowserComponent
+
+    object = string: 'string', number: 1, boolean: true, array: [1..5]
+    object.object = object
+    dir object
+
 # Output
 ## Text
 
