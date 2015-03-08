@@ -1,7 +1,14 @@
+React = require 'react'
+
+# TODO this needs to be exported early. move elsewhere.
+exports.AppAwareMixin = AppAwareMixin =
+  contextTypes:
+    app: React.PropTypes.object
+
+
 URI = require 'URIjs'
 _ = require 'underscore'
 Q = require 'q'
-React = require 'react'
 Bacon = require 'bacon.model'
 {Route, Routes} = Router = require 'react-router'
 Notebook = require './notebook'
@@ -39,10 +46,6 @@ exports.removeModal = (modal) ->
     modalModel.modify (v) ->
       _.without v, modal
   , 0
-
-exports.AppAwareMixin = AppAwareMixin =
-  contextTypes:
-    app: React.PropTypes.object
 
 exports.ModalComponent = React.createClass
   render: ->

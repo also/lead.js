@@ -8,6 +8,7 @@ Context = require './context'
 CoffeeScriptCell = require './coffeescript_cell'
 Components = require './components'
 ContextComponents = require './contextComponents'
+App = require('./app')
 
 remove_target = (targets, target) ->
   targets.modify (targets) ->
@@ -56,6 +57,8 @@ TargetEditorComponent = React.createClass
 
 exports.BuilderComponent = React.createClass
   displayName: 'BuilderComponent'
+  mixins: [App.AppAwareMixin]
+
   getInitialState: ->
     leaf_clicks = new Bacon.Bus()
     targets = Bacon.Model([])
@@ -75,7 +78,7 @@ exports.BuilderComponent = React.createClass
     data = Bacon.Model()
     data.addSource render_results
 
-    ctx: Context.create_standalone_context {imports: ['server']}
+    ctx: Context.create_standalone_context {imports: ['server'], modules: @context.app.modules}
     model: Bacon.Model.combine {data, params}
     leaf_clicks: leaf_clicks
     params: params
