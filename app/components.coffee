@@ -161,7 +161,7 @@ TreeComponent = React.createClass
 ToggleComponent = React.createClass
   displayName: 'ToggleComponent'
   getInitialState: ->
-    open: @props.initially_open or false
+    open: @props.initiallyOpen or false
   toggle: (e) ->
     e.stopPropagation()
     @setState open: !@state.open
