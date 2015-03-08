@@ -185,7 +185,7 @@ TopLevelContextComponent = React.createClass
 
 # the base context contains the loaded modules, and the list of modules to import into every context
 create_base_context = ({modules, imports}={}) ->
-  modules = _.extend({context: exports}, modules)
+  modules = _.extend({context: exports, builtins: Builtins}, modules)
   # TODO find a better home for repl vars
   {modules, imports, repl_vars: {}, prop_vars: {}}
 
