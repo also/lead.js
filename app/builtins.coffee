@@ -10,7 +10,7 @@ Components = require './components'
 Context = require './context'
 ContextComponents = require './contextComponents'
 App = require './app'
-{ObjectBrowserComponent} = require './object_browser'
+{ObjectBrowserComponent} = require './objectBrowser'
 
 ExampleComponent = Components.ExampleComponent
 
