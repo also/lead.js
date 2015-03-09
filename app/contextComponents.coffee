@@ -22,6 +22,8 @@ ContextAwareMixin =
     # TODO update later in lifecycle
     ctx: find_ancestor_contexts(@)[0]
 
+  ctx: -> @state.ctx
+
 ComponentContextComponent = React.createClass
   displayName: 'ComponentContextComponent'
   mixins: [ContextRegisteringMixin]
