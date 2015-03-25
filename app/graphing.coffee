@@ -143,10 +143,10 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
 
       if params.bindToBrush == true
         params.brush ?= new Bacon.Model
-        paramModifiers.push(brushParams(params, params.brush))
+        paramModifiers.push(brushParams(params, params.brush).changes())
       else if params.bindToBrush instanceof Bacon.Observable
         params.brush ?= params.bindToBrush
-        paramModifiers.push(brushParams(params, params.bindToBrush))
+        paramModifiers.push(brushParams(params, params.bindToBrush).changes())
 
       if params.refreshInterval?
         paramModifiers.push(Bacon.interval(params.refreshInterval * 1000, {}).map(-> refreshTime: +new Date))
