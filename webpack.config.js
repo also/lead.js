@@ -27,6 +27,7 @@ module.exports = {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
       {test: /\.cjsx$/, loader: 'coffee-loader!' + __dirname + '/lib/coffee-react-transform-loader.coffee'},
+      {test: /\.jsx?$/, exclude: /(node_modules|lib)/, loader: 'babel-loader?optional=runtime&optional=reactCompat'},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},

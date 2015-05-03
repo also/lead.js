@@ -22,7 +22,8 @@
     "jsdom": "~0.8.4",
     "react-router": "^0.9.4",
     "acorn": "^0.6.0",
-    "font-awesome": "4.2.0"
+    "font-awesome": "4.2.0",
+    "babel-runtime": "^5.2.6"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -50,6 +51,7 @@
     "sass-loader": "^0.2.0",
     "file-loader": "^0.6.1",
     "coffee-react-transform": "^1.0.4",
-    "grunt-coffee-react": "^1.0.3"
+    "grunt-coffee-react": "^1.0.3",
+    "babel-loader": "^5.0.0"
   }
 }
