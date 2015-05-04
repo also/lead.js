@@ -48,6 +48,7 @@ module.exports = {
   integrate: function (directory) {
     var result = _.clone(module.exports);
     result.resolve.root = [__dirname + '/node_modules', directory + '/node_modules'];
+    result.resolve.alias['lead.js'] = __dirname + '/app';
     result.resolveLoader = {root: result.resolve.root};
     return result;
   }
