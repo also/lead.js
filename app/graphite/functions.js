@@ -1,4 +1,4 @@
-module.exports = [
+export default [
  'currentBelow',
  'multiplySeries',
  'asPercent',
@@ -91,4 +91,4 @@ module.exports = [
  'areaBetween',
  'alias',
  'hitcount',
- 'useSeriesAbove']
+ 'useSeriesAbove'];
