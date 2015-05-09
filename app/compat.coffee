@@ -17,3 +17,4 @@ modules.export exports, 'compat', ({doc, fn, contextExport} ) ->
   contextExport
     moment: moment
     CodeMirror: CodeMirror
+    _: _
