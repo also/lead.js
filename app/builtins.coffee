@@ -49,7 +49,10 @@ ObjectComponent = React.createClass
       s = JSON.stringify(@props.object, null, '  ')
     catch
       s = null
-    s ||= new String @props.object
+    try
+      s ||= new String @props.object
+    catch
+      s = "\"(object can't be converted to a string)\""
     Components.SourceComponent value: s, language: 'json'
 
 
