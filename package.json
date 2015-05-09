@@ -23,7 +23,8 @@
     "react-router": "^0.9.4",
     "acorn": "^0.6.0",
     "font-awesome": "4.2.0",
-    "babel-runtime": "^5.2.6"
+    "babel-runtime": "^5.2.6",
+    "object.assign": "^1.1.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",

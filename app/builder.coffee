@@ -98,7 +98,7 @@ exports.BuilderComponent = React.createClass
       React.DOM.div {className: 'output tree'},
         Server.MetricTreeComponent
           root: @props.root
-          leaf_clicked: (path) =>
+          leafClicked: (path) =>
             @state.leaf_clicks.push path
       React.DOM.div {className: 'output main'},
         Components.ToggleComponent {title: 'Targets'},

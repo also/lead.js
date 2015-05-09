@@ -15,6 +15,7 @@ Html = require './html'
 Documentation = require './documentation'
 Context = require './context'
 Components = require './components'
+ContextComponents = require('./contextComponents')
 Tree = require './tree'
 
 class ServerError
@@ -220,6 +221,22 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
   fn 'executeOne', 'Executes a single DSL expression and returns a promise', (ctx, target, params) ->
     Context.value(server.executeOne(target, params, ctx.options()))
 
+  MetricTreeNodeComponent = React.createClass
+    render: ->
+      if @props.node.path == ''
+        name = 'All Metrics'
+      else
+        name = @props.node.name
+      Tree.TreeNodeComponent @props, name
+
+
+  MetricTreeErrorComponent = React.createClass
+    render: ->
+      React.DOM.div null,
+        React.DOM.i {className: 'fa fa-exclamation-triangle'}
+        ' Error loading metric names'
+
+
   init: ->
     if settings.get('type') == 'lead'
       server_option_names = ['start', 'from', 'end', 'until', 'let']
@@ -241,28 +258,30 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
       initDocs()
 
   MetricTreeComponent: React.createClass
+    mixins: [ContextComponents.ContextAwareMixin]
+
     render: ->
+      if @props.root
+        root = {path: @props.root, isLeaf: false, name: @props.root}
+      else
+        root = {path: '', isLeaf: false, name: 'root'}
+
       Tree.TreeComponent
-        root: @props.root ? '',
-        load: @props.leaf_clicked ? (path) =>
-          ctx.run "q(#{JSON.stringify path})"
-        load_children: (path) ->
+        root: root
+        leafClicked: @props.leafClicked ? (path) =>
+          @ctx().run "q(#{JSON.stringify path})"
+        loadChildren: (path) ->
           if path == ''
             subpath = '*'
           else
             subpath = "#{path}.*"
-          server.find(subpath).get 'result'
-        create_node: (props) ->
-          if props.node.path == ''
-            name = 'All Metrics'
-          else
-            parts = props.node.path.split '.'
-            name = parts[parts.length - 1]
-          Tree.TreeNodeComponent _.extend({}, props, {name}), name
-        create_error_node: (props) ->
-          React.DOM.div null,
-            React.DOM.i {className: 'fa fa-exclamation-triangle'}
-            ' Error loading metric names'
+          server.find(subpath).then ({result}) ->
+            _.map result, ({path, is_leaf}) ->
+              parts = path.split '.'
+              name = parts[parts.length - 1]
+              {path, isLeaf: is_leaf, name}
+        nodeClass: MetricTreeNodeComponent
+        errorNodeClass: MetricTreeErrorComponent
 
   is_pattern: (s) ->
     for c in '*?[{'

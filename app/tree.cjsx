@@ -3,34 +3,41 @@ _ = require 'underscore'
 
 NodePropType = React.PropTypes.shape({
   path: React.PropTypes.string.isRequired
-  is_leaf: React.PropTypes.bool.isRequired
+  name: React.PropTypes.string.isRequired
+  isLeaf: React.PropTypes.bool.isRequired
 })
 
 TreeNodeComponent = React.createClass
-  propTypes:
-    node: NodePropType.isRequired
+  contextTypes:
+    nodeClass: React.PropTypes.func.isRequired
+    errorNodeClass: React.PropTypes.func.isRequired
     tree_state: React.PropTypes.object.isRequired
     value: React.PropTypes.func.isRequired
-    create_node: React.PropTypes.func.isRequired
-    create_error_node: React.PropTypes.func.isRequired
+    toggle: React.PropTypes.func.isRequired
+    leafClicked: React.PropTypes.func.isRequired
+
+  propTypes:
+    node: NodePropType.isRequired
 
   render: ->
     {node, children} = @props
+    {nodeClass, errorNodeClass} = @context
     {path} = node
-    state = @props.tree_state[path]
+    state = @context.tree_state[path]
 
     if state == 'open'
-      child_nodes = _.map @props.value(path), (child) =>
-        @props.create_node _.extend {}, @props, {node: child}
+      sortedNodes = _.sortBy @context.value(path), (child) -> child.name
+      child_nodes = _.map sortedNodes, (child) =>
+        <nodeClass node={child}/>
 
-      child = <ul>{_.sortBy child_nodes, (node) -> node.props.name}</ul>
+      child = <ul>{child_nodes}</ul>
 
     else if state == 'failed'
-      child = @props.create_error_node(@props)
+      child = <errorNodeClass {... @props}/>
     else
       child = null
 
-    if node.is_leaf
+    if node.isLeaf
       toggle = 'fa fa-fw'
     else if state == 'open' or state == 'failed'
       toggle = 'fa fa-fw fa-caret-down'
@@ -49,20 +56,28 @@ TreeNodeComponent = React.createClass
 
   handle_click: ->
     path = @props.node.path
-    state = @props.tree_state[path]
-    if @props.node.is_leaf
-      @props.load(path)
+    state = @context.tree_state[path]
+    if @props.node.isLeaf
+      @context.leafClicked(path)
     else
-      @props.toggle(path)
+      @context.toggle(path)
 
 
 TreeComponent = React.createClass
   propTypes:
-    root: React.PropTypes.string.isRequired
-    load: React.PropTypes.func.isRequired
-    load_children: React.PropTypes.func.isRequired
-    create_node: React.PropTypes.func.isRequired
-    create_error_node: React.PropTypes.func.isRequired
+    root: NodePropType
+    leafClicked: React.PropTypes.func.isRequired
+    loadChildren: React.PropTypes.func.isRequired
+    nodeClass: React.PropTypes.func.isRequired
+    errorNodeClass: React.PropTypes.func.isRequired
+
+  childContextTypes:
+    nodeClass: React.PropTypes.func.isRequired
+    errorNodeClass: React.PropTypes.func.isRequired
+    tree_state: React.PropTypes.object.isRequired
+    value: React.PropTypes.func.isRequired
+    toggle: React.PropTypes.func.isRequired
+    leafClicked: React.PropTypes.func.isRequired
 
   getDefaultProps: ->
     root: ''
@@ -92,7 +107,7 @@ TreeComponent = React.createClass
       tree_state[path] = 'opening'
 
       if !state or state.isRejected()
-        promise = @props.load_children path
+        promise = @props.loadChildren path
         cache[path] = promise
         promise.then (result) =>
           return unless @state.cache[path] == promise
@@ -119,18 +134,16 @@ TreeComponent = React.createClass
   componentWillMount: ->
     @open @props.root
 
-  render: ->
-    child = @props.create_node {
-      value: @value
-      tree_state: @state.tree_state
-      node: {path: @props.root, is_leaf: false}
-      toggle: @toggle
-      load: @props.load
-      create_node: @props.create_node
-      create_error_node: @props.create_error_node
-    }, name
+  getChildContext: ->
+    tree_state: @state.tree_state
+    nodeClass: @props.nodeClass
+    errorNodeClass: @props.errorNodeClass
+    value: @value
+    toggle: @toggle
+    leafClicked: @props.leafClicked
 
-    <ul className="simple-tree">{child}</ul>
+  render: ->
+    <ul className="simple-tree"><@props.nodeClass node={@props.root}/></ul>
 
 
 module.exports = {TreeNodeComponent, TreeComponent}

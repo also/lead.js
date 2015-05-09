@@ -1,3 +1,5 @@
+require('object.assign').shim()
+
 React = require 'react'
 
 # TODO this needs to be exported early. move elsewhere.

@@ -37,9 +37,12 @@
 
 ## ObjectBrowserComponent
 
-    object = string: 'string', number: 1, boolean: true, array: [1..5]
+    array = [1..5]
+    Class = ->
+    object = string: 'string', number: 1, boolean: true, array: array, date: new Date, null: null, undefined: undefined, class: new Class
     object.object = object
     dir object
+    dir array
 
 # Output
 ## Text
