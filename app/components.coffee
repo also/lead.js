@@ -63,28 +63,37 @@ ToggleComponent = React.createClass
               @props.children
 
 ObservableMixin =
-  #getObservable: (props) -> props.observable
+  #getObservable: (props, context) -> props.observable
+  _getObservable: (props, context) ->
+    @getObservable?(props, context) ? props.observable
   componentWillMount: ->
-    @init(@props, @context)
+    @init(@_getObservable(@props, @context))
   componentWillReceiveProps: (nextProps, nextContext) ->
-    observable = @getObservable?(nextProps, nextContext) ? @props.observable
+    observable = @_getObservable?(nextProps, nextContext)
     if @state.observable != observable
-      @state.unsubscribe()
-      @init(nextProps, nextContext)
-  init: (props, context) ->
+      @init(observable)
+  init: (observable) ->
+    @state?.unsubscribe?()
     value = null
     error = null
-    observable = @getObservable?(props, context) ? props.observable
     @setState
       observable: observable
       # there might already be a value, so the onValue callback can be called before init returns
       unsubscribe: observable.subscribe (event) =>
         if event.isError()
           error = event.error
-          @setState {error}
+          try
+            @setState {error}
+          catch e
+            # TODO what's the right way to handle this?
+            console.error(e)
         else if event.hasValue()
           value = event.value()
-          @setState {value, error: null}
+          try
+            @setState {value, error: null}
+          catch e
+            # TODO what's the right way to handle this?
+            console.error(e)
       value: value
   componentWillUnmount: ->
     @state.unsubscribe()
