@@ -4,7 +4,7 @@ import React from 'react/addons';
 
 import {ContextAwareMixin, ContextRegisteringMixin, ComponentContextComponent} from './contextComponents';
 import {ObservableMixin, SimpleLayoutComponent} from './components';
-import Builtins from './builtins';
+import * as Builtins from './builtins';
 import Modules from './modules';
 
 import {addComponent, removeAllComponents, componentList} from './componentList';
