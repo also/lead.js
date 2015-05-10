@@ -55,6 +55,9 @@ class LeadNamespace {}
 
 const collectContextExports = function(context) {
   return _.object(_.map(context.modules, function(module, name) {
+    if (!module) {
+      throw new Error('Module ' + name + ' is invalid');
+    }
     const vars = _.isFunction(module.context_vars) ?
       module.context_vars.call(context) :
       module.context_vars;
