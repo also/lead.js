@@ -8,7 +8,7 @@ import Builtins from './builtins';
 import Modules from './modules';
 
 import {addComponent, removeAllComponents, componentList} from './componentList';
-import {scopedEval, ignore} from '!babel?blacklist=strict&optional=runtime!./contextEval';
+import {scopedEval} from '!babel?blacklist=strict&optional=runtime!./contextEval';
 import displayObject from './displayObject';
 
 export {scopedEval as scoped_eval};
@@ -17,12 +17,22 @@ export {removeAllComponents as remove_all_components};
 
 export const IGNORE = Symbol('ignore');
 
+const CONTEXT_FN_VALUE = Symbol('context function value');
+
 let runningContextBinding = null;
 
 export const value = function(v) {
   return {
-    _lead_context_fn_value: v
+    [CONTEXT_FN_VALUE]: v
   };
+};
+
+export const isValue = function(v) {
+  return v && Object.hasOwnProperty(v, CONTEXT_FN_VALUE);
+};
+
+export const unwrapValue = function(v) {
+  return v[CONTEXT_FN_VALUE];
 };
 
 export const collect_extension_points = function(context, extensionPoint) {
@@ -53,7 +63,7 @@ const collectContextExports = function(context) {
   }));
 };
 
-export const is_run_context = function(o) {
+const isRunContext = function(o) {
   return (o != null ? o.componentList : void 0) != null;
 };
 
@@ -73,8 +83,8 @@ const lazilyBindContextFns = function(target, scope, fns, namePrefix='') {
 
       const wrappedFn = function() {
         const wrappedResult = o.fn.apply(null, arguments);
-        // ignore return values except for special {_lead_context_fn_value}
-        return wrappedResult && wrappedResult._lead_context_fn_value != null ? wrappedResult._lead_context_fn_value : ignore;
+        // ignore return values except for special {CONTEXT_FN_VALUE}
+        return isValue(wrappedResult) ? unwrapValue(wrappedResult) : IGNORE;
       };
 
       const bind = function() {
@@ -145,7 +155,7 @@ export const ContextComponent = React.createClass({
 
   propTypes: {
     ctx(c) {
-      if (!is_run_context(c.ctx)) {
+      if (!isRunContext(c.ctx)) {
         throw new Error('context required');
       }
     }
@@ -163,7 +173,7 @@ const ContextLayoutComponent = React.createClass({
 
   propTypes: {
     ctx(c) {
-      if (!is_run_context(c.ctx)) {
+      if (!isRunContext(c.ctx)) {
         throw new Error('context required');
       }
     }

@@ -166,7 +166,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
 
 
   component_fn 'browser', 'Browse metrics using a wildcard query', (ctx, query) ->
-    finder = server.contextExports.find.fn(ctx, query)._lead_context_fn_value # FIXME ew
+    finder = Context.unwrapValue(server.contextExports.find.fn(ctx, query)) # FIXME ew
     finder.clicks.onValue (node) =>
       if node.is_leaf
         ctx.run "q(#{JSON.stringify node.path})"
