@@ -52,7 +52,10 @@ _.extend exports,
         [k, v] = arguments
         contextExports[k] = v
 
-    helpers = {doc, cmd, fn, component_cmd, component_fn, contextExport, settings}
+    componentCmd = component_cmd
+    componentFn = component_fn
+
+    helpers = {doc, cmd, fn, component_cmd, component_fn, componentCmd, componentFn, contextExport, settings}
 
     _.extend exports, {contextExports, docs}, definition_fn(helpers)
 

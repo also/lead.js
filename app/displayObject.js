@@ -3,7 +3,7 @@ import _ from 'underscore';
 import Bacon from 'bacon.model';
 import React from 'react/addons';
 
-import Builtins from './builtins';
+import * as Builtins from './builtins';
 import {addComponent} from './componentList';
 import {IGNORE, collect_extension_points} from './context';
 

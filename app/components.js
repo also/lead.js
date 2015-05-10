@@ -1,4 +1,5 @@
 import CodeMirror from 'codemirror';
+import 'codemirror/addon/runmode/runmode';
 import React from 'react/addons';
 
 import {ContextAwareMixin} from './contextComponents';
