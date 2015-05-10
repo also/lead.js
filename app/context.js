@@ -3,7 +3,8 @@ import Bacon from 'bacon.model';
 import React from 'react/addons';
 
 import ContextComponents from './contextComponents';
-import Components from './components';
+//import Components from './components';
+import {ObservableMixin, SimpleLayoutComponent} from './components';
 import Builtins from './builtins';
 import Modules from './modules';
 
@@ -169,7 +170,7 @@ export const ContextComponent = React.createClass({
 const ContextLayoutComponent = React.createClass({
   displayName: 'ContextLayoutComponent',
 
-  mixins: [Components.ObservableMixin],
+  mixins: [ObservableMixin],
 
   propTypes: {
     ctx(c) {
@@ -287,7 +288,7 @@ const context_run_context_prototype = {
 
 export const create_nested_context = function(parent, overrides) {
   const newContext = _.extend(Object.create(parent), {
-    layout: Components.SimpleLayoutComponent
+    layout: SimpleLayoutComponent
   }, overrides);
 
   newContext.componentList = componentList();
