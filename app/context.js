@@ -28,7 +28,7 @@ export const value = function(v) {
 };
 
 export const isValue = function(v) {
-  return v && Object.hasOwnProperty(v, CONTEXT_FN_VALUE);
+  return v && v.hasOwnProperty(CONTEXT_FN_VALUE);
 };
 
 export const unwrapValue = function(v) {
