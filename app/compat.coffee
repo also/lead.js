@@ -18,3 +18,4 @@ modules.export exports, 'compat', ({doc, fn, contextExport} ) ->
     moment: moment
     CodeMirror: CodeMirror
     _: _
+    ignore: Context.IGNORE
