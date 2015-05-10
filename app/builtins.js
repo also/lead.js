@@ -366,7 +366,7 @@ modules.export(exports, 'builtins', function({doc, fn, componentFn, componentCmd
     return <PromiseStatusComponent promise={promise} start_time={startTime}/>;
   });
 
-  fn('grid', 'Generates a grid with a number of columns', (ctx, cols, wrappedFn) => {
+  componentFn('grid', 'Generates a grid with a number of columns', (ctx, cols, wrappedFn) => {
     const nestedContext = Context.create_nested_context(ctx, {
       layout: GridComponent,
       layout_props: {
@@ -374,16 +374,18 @@ modules.export(exports, 'builtins', function({doc, fn, componentFn, componentCmd
       }
     });
 
-    Context.add_component(ctx, nestedContext.component);
-    return Context.callUserFunctionInCtx(nestedContext, wrappedFn);
+    Context.callUserFunctionInCtx(nestedContext, wrappedFn);
+
+    return nestedContext.component;
   });
 
-  fn('flow', 'Flows components next to each other', (ctx, wrappedFn) => {
+  componentFn('flow', 'Flows components next to each other', (ctx, wrappedFn) => {
     const nestedContext = Context.create_nested_context(ctx, {
       layout: FlowComponent
     });
 
-    Context.add_component(ctx, nestedContext.component);
-    return Context.callUserFunctionInCtx(nestedContext, wrappedFn);
+    Context.callUserFunctionInCtx(nestedContext, wrappedFn);
+
+    return nestedContext.component;
   });
 });
