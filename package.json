@@ -56,6 +56,7 @@
     "babel-loader": "^5.0.0",
     "babel-eslint": "^3.1.1",
     "eslint": "^0.21.0",
-    "eslint-plugin-react": "^2.2.0"
+    "eslint-plugin-react": "^2.2.0",
+    "grunt-babel": "^5.0.0"
   }
 }

@@ -8,7 +8,7 @@ import Builtins from './builtins';
 import Modules from './modules';
 
 import {addComponent, removeAllComponents, componentList} from './componentList';
-import {scopedEval} from '!babel?blacklist=strict&optional=runtime!./contextEval';
+import {scopedEval} from './contextEval';
 import displayObject from './displayObject';
 
 export {scopedEval as scoped_eval};

@@ -76,6 +76,19 @@ module.exports = (grunt) ->
           ext: '.js'
           extDot: 'last'
         ]
+    babel:
+      options:
+        blacklist: ['strict']
+        optional: ['runtime', 'reactCompat']
+      source:
+        files: [
+          expand: true
+          cwd: 'app'
+          src: ['**/*.js']
+          dest: 'build/node/app'
+          ext: '.js'
+          extDot: 'last'
+        ]
     connect:
       server: {}
 
@@ -85,9 +98,10 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-webpack'
   grunt.loadNpmTasks 'grunt-contrib-compress'
+  grunt.loadNpmTasks 'grunt-babel'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask 'node', ['coffee', 'cjsx', 'copy:javascript']
+  grunt.registerTask 'node', ['coffee', 'cjsx', 'babel', 'copy:javascript']
   grunt.registerTask 'web', ['webpack', 'css', 'copy:static']
   grunt.registerTask 'default', ['web', 'node']
   grunt.registerTask 'dist', ['copy:dist-node', 'copy:dist-web']
