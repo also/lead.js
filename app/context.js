@@ -2,8 +2,7 @@ import _ from 'underscore';
 import Bacon from 'bacon.model';
 import React from 'react/addons';
 
-import ContextComponents from './contextComponents';
-//import Components from './components';
+import {ContextAwareMixin, ContextRegisteringMixin, ComponentContextComponent} from './contextComponents';
 import {ObservableMixin, SimpleLayoutComponent} from './components';
 import Builtins from './builtins';
 import Modules from './modules';
@@ -134,7 +133,7 @@ const registerPromise = function(ctx, promise) {
 export const AsyncComponent = React.createClass({
   displayName: 'AsyncComponent',
 
-  mixins: [ContextComponents.ContextAwareMixin],
+  mixins: [ContextAwareMixin],
 
   componentWillMount() {
     registerPromise(this.state.ctx, this.props.promise);
@@ -152,7 +151,7 @@ export const AsyncComponent = React.createClass({
 export const ContextComponent = React.createClass({
   displayName: 'ContextComponent',
 
-  mixins: [ContextComponents.ContextRegisteringMixin],
+  mixins: [ContextRegisteringMixin],
 
   propTypes: {
     ctx(c) {
@@ -210,7 +209,7 @@ const ContextLayoutComponent = React.createClass({
 export const ContextOutputComponent = React.createClass({
   displayName: 'ContextOutputComponent',
 
-  mixins: [ContextComponents.ContextAwareMixin],
+  mixins: [ContextAwareMixin],
 
   render() {
     return <ContextLayoutComponent ctx={this.state.ctx}/>;
@@ -231,7 +230,7 @@ export const TopLevelContextComponent = React.createClass({
   },
 
   render() {
-    return <ContextComponents.ComponentContextComponent children={this.props.children} ctx={this.state.ctx}/>;
+    return <ComponentContextComponent children={this.props.children} ctx={this.state.ctx}/>;
   }
 });
 

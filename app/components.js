@@ -1,7 +1,7 @@
 import CodeMirror from 'codemirror';
 import React from 'react/addons';
 
-import ContextComponents from './contextComponents';
+import {ContextAwareMixin} from './contextComponents';
 
 const formatCode = function(code, language, target) {
   if (CodeMirror.runMode != null) {
@@ -25,7 +25,7 @@ const formatCode = function(code, language, target) {
 export const ExampleComponent = React.createClass({
   displayName: 'ExampleComponent',
 
-  mixins: [ContextComponents.ContextAwareMixin],
+  mixins: [ContextAwareMixin],
 
   getDefaultProps() {
     return {
