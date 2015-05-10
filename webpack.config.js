@@ -27,12 +27,12 @@ module.exports = {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
       {test: /\.cjsx$/, loader: 'coffee-loader!' + __dirname + '/lib/coffee-react-transform-loader.coffee'},
-      {test: /\.jsx?$/, exclude: /(node_modules|lib)/, loader: 'babel-loader?optional=runtime&optional=reactCompat'},
+      {test: /\.jsx?$/, exclude: /(node_modules|lib)/, loader: 'babel', query: {optional: ['runtime', 'reactCompat']}},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
       {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
-      { test: /font-awesome\/fonts\/.+\.(ttf|woff|eot|svg)$/, loader: "file-loader?name=fonts/[name]-[hash].[ext]" },
+      { test: /font-awesome\/fonts\/.+\.(ttf|woff|eot|svg)$/, loader: "file-loader?name=fonts/[name]-[hash].[ext]" }
     ],
     // TODO coffeescript has a weird require browser
     noParse: /coffee-script.js$/
