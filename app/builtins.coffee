@@ -27,21 +27,6 @@ help_component = (ctx, o) ->
       return React.DOM.pre null, "Documentation not found."
 
 
-KeySequenceComponent = React.createClass
-  displayName: 'KeySequenceComponent'
-  render: -> React.DOM.span {}, _.map @props.keys, (k) -> React.DOM.kbd {}, k
-
-KeyBindingComponent = React.createClass
-  displayName: 'KeyBindingComponent'
-  render: ->
-    React.DOM.table {}, _.map @props.keys, (command, key) =>
-      React.DOM.tr {}, [
-        React.DOM.th {}, KeySequenceComponent keys: key.split('-')
-        React.DOM.td {}, React.DOM.strong {}, command.name
-        React.DOM.td {}, command.doc
-      ]
-
-
 ObjectComponent = React.createClass
   displayName: 'ObjectComponent'
   render: ->
@@ -200,21 +185,6 @@ modules.export exports, 'builtins', ({doc, fn, cmd, component_fn, component_cmd}
       help_component ctx, o
     else
       help_component ctx
-
-  component_cmd 'keys', 'Displays the editor key bindings', (ctx) ->
-    all_keys = {}
-    # TODO some commands are functions instead of names
-    build_map = (map) ->
-      for key, command of map
-        fn = CodeMirror.commands[command]
-        unless key == 'fallthrough' or all_keys[key]? or not fn?
-          all_keys[key] = name: command, doc: fn.doc
-      fallthroughs = map.fallthrough
-      if fallthroughs?
-        build_map CodeMirror.keyMap[name] for name in fallthroughs
-    build_map CodeMirror.keyMap.notebook
-
-    KeyBindingComponent keys: all_keys, commands: CodeMirror.commands
 
   doc 'object',
     'Displays an object as JSON'
