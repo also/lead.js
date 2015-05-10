@@ -26,6 +26,7 @@ Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 Server = require './server'
+SettingsComponent = require './settingsComponent';
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
@@ -155,31 +156,6 @@ HelpComponent = React.createClass
       Context.TopLevelContextComponent {imports, modules, context: {app: @context.app, run: @run, docs_navigate: @navigate}},
         HelpWrapperComponent {doc_key: @props.params.key}
 
-SettingsComponent = React.createClass
-  displayName: 'SettingsComponent'
-  mixins: [AppAwareMixin]
-  save_settings: (value) ->
-    fn = CoffeeScriptCell.create_fn value ? @refs.editor.get_value()
-    ctx = @refs.ctx.get_ctx()
-    Context.remove_all_components ctx
-    user_settings = fn ctx
-    # TODO Context.IGNORE can indicate an error. handle this better
-    if user_settings != Context.IGNORE and _.isObject user_settings
-      reset_user_settings user_settings
-  render: ->
-    initial_value = JSON.stringify Settings.user_settings.get_without_overrides(), null, '  '
-    {imports, modules} = @context.app
-    # TODO don't lie about class. fix the stylesheet to apply
-    React.DOM.div {className: 'settings output'},
-      Components.ToggleComponent {title: 'Default Settings'},
-        Builtins.ObjectComponent object: Settings.get_without_overrides()
-      Context.TopLevelContextComponent {ref: 'ctx', imports, modules, context: {app: @context.app}},
-        Editor.EditorComponent {run: @save_settings, ref: 'editor', key: 'settings_editor', initial_value}
-        Context.ContextOutputComponent {}
-      React.DOM.span {className: 'run-button', onClick: => @save_settings()},
-        React.DOM.i {className: 'fa fa-floppy-o'}
-        ' Save User Settings'
-
 NewNotebookComponent = React.createClass
   displayName: 'NewNotebookComponent'
   mixins: [AppAwareMixin]
@@ -252,9 +228,6 @@ BuilderAppComponent = React.createClass
   displayName: 'BuilderAppComponent'
   render: ->
     Builder.BuilderComponent {root: @props.query.root}
-
-reset_user_settings = (settings) ->
-  Settings.user_settings.set settings
 
 exports.init_app = (target, options={}) ->
   # TODO warn
