@@ -81,7 +81,7 @@ export const summary = function(ctx, doc) {
   if (_.isFunction(doc.summary)) {
     return doc.summary(ctx, doc);
   } else if (_.isString(doc.summary)) {
-    return React.DOM.p({}, doc.summary);
+    return <p>{doc.summary}</p>;
   } else {
     return doc.summary;
   }
@@ -91,9 +91,7 @@ export const complete = function(ctx, doc) {
   if (_.isFunction(doc.complete)) {
     return doc.complete(ctx, doc);
   } else if (_.isString(doc.complete)) {
-    return Markdown.LeadMarkdownComponent({
-      value: doc.complete
-    });
+    return <Markdown.LeadMarkdownComponent value={doc.complete}/>;
   } else if (doc.index) {
     return index(ctx, doc.key);
   } else {
@@ -153,20 +151,14 @@ export const loadFile = function(name) {
   if (process.browser) {
     return function() {
       const {images, content} = require("../lib/markdown-loader.coffee!../docs/" + name + ".md");
-      return Markdown.LeadMarkdownComponent({
-        value: content,
-        image_urls: images
-      });
+      return <Markdown.LeadMarkdownComponent value={content} image_urls={images}/>;
     };
   }
 };
 
 export const registerLeadMarkdown = function(key, {images, content}) {
   return register(key, {
-    complete: Markdown.LeadMarkdownComponent({
-      value: content,
-      image_urls: images
-    })
+    complete: <Markdown.LeadMarkdownComponent value={content} image_urls={images}/>
   });
 };
 
