@@ -13,6 +13,7 @@ Components = require('./components')
 BrushComponent = require('./graph/brushComponent')
 LegendComponent = require('./graph/legendComponent')
 CursorPositionMixin = require('./graph/cursorPositionMixin')
+AxisComponent = require('./graph/axisComponent')
 
 # jump through some hoops to add clip-path since SVGDOMPropertyConfig is useless
 MUST_USE_ATTRIBUTE = require('react/lib/DOMProperty').MUST_USE_ATTRIBUTE
@@ -98,31 +99,6 @@ computeParams = (params) ->
   else
     computedParams = {}
   _.extend {}, defaultParams, computedParams, params
-
-AxisComponent = React.createClass
-  propTypes:
-    axis: React.PropTypes.func.isRequired
-
-  contextTypes:
-    params: React.PropTypes.object.isRequired
-
-  render: ->
-    <g/>
-
-  componentDidMount: ->
-    @drawAxis()
-
-  componentDidUpdate: ->
-    @drawAxis()
-
-  drawAxis: ->
-    {params} = @context
-    # FIXME empty dom node
-    sel = d3.select(@getDOMNode())
-    sel.call(@props.axis)
-
-    sel.selectAll('path, line').attr('stroke', params.axisLineColor).attr({'fill': 'none', 'shape-rendering': 'crispEdges'})
-    sel.selectAll('text').attr('fill', params.axisTextColor).style('font-size', params.axisTextSize)
 
 
 LineComponent = React.createClass
