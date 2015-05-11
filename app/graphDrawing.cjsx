@@ -14,6 +14,7 @@ BrushComponent = require('./graph/brushComponent')
 LegendComponent = require('./graph/legendComponent')
 CursorPositionMixin = require('./graph/cursorPositionMixin')
 AxisComponent = require('./graph/axisComponent')
+CrosshairComponent = require('./graph/crosshairComponent')
 
 # jump through some hoops to add clip-path since SVGDOMPropertyConfig is useless
 MUST_USE_ATTRIBUTE = require('react/lib/DOMProperty').MUST_USE_ATTRIBUTE
@@ -294,28 +295,6 @@ TargetComponent = React.createClass
         {dataComponent}
         <CrosshairValuePointComponent target={d}/>
       </g>
-
-
-CrosshairComponent = React.createClass
-  mixins: [CursorPositionMixin]
-
-  contextTypes:
-    params: React.PropTypes.object.isRequired
-    sizes: React.PropTypes.object.isRequired
-
-  render: ->
-    if @state.value
-      {params, sizes} = @context
-      {height} = sizes
-
-      {x, time} = @state.value
-
-      <g>
-        <line style={{'shape-rendering': 'crispEdges'}} x1={x} x2={x} y1={0} y2={height} stroke={params.crosshairLineColor}/>
-        <text x={x} y="-6" fill={params.crosshairTextColor} style={{'text-anchor': 'middle', 'font-size': params.crosshairTextSize}}>{moment(time).format('lll')}</text>
-      </g>
-    else
-      null
 
 
 GraphComponent = React.createClass
