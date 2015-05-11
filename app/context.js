@@ -40,7 +40,7 @@ export const collect_extension_points = function(context, extensionPoint) {
 };
 
 // extension point
-export const resolve_documentation_key = function(ctx, o) {
+export const resolveDocumentationKey = function(ctx, o) {
   if (o && o._lead_context_name) {
     if (o._lead_context_fn) {
       const fn = o._lead_context_fn;

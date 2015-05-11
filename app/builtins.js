@@ -15,10 +15,10 @@ const {ExampleComponent} = Components;
 export {ExampleComponent as ExampleComponent, ObjectBrowserComponent as ObjectBrowserComponent};
 
 export const help_component = function(ctx, o) {
-  const key = Documentation.get_key(ctx, o);
+  const key = Documentation.getKey(ctx, o);
 
   if (key != null) {
-    const doc = Documentation.get_documentation(key);
+    const doc = Documentation.getDocumentation(key);
 
     return <Documentation.DocumentationItemComponent {...{ctx, doc}}/>;
   } else {

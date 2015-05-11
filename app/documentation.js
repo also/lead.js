@@ -23,16 +23,16 @@ const normalizeKey = function(key) {
   }
 };
 
-export const get_documentation = function(key) {
+export const getDocumentation = function(key) {
   return getParent(normalizeKey(key))._lead_doc;
 };
 
 const resolveKey = function(ctx, o) {
-  const resolvers = Context.collect_extension_points(ctx, 'resolve_documentation_key');
+  const resolvers = Context.collect_extension_points(ctx, 'resolveDocumentationKey');
   let result = null;
   _.find(resolvers, (resolver) => {
     const key = resolver(ctx, o);
-    if (key && get_documentation(key)) {
+    if (key && getDocumentation(key)) {
       result = key;
       return true;
     }
@@ -41,7 +41,7 @@ const resolveKey = function(ctx, o) {
   return result;
 };
 
-export const key_to_string = function(key) {
+export const keyToString = function(key) {
   if (_.isArray(key)) {
     return key.join('.');
   } else {
@@ -50,15 +50,15 @@ export const key_to_string = function(key) {
 };
 
 export const navigate = function(ctx, key) {
-  key = key_to_string(key);
-  if (ctx.docs_navigate != null) {
-    return ctx.docs_navigate(key);
+  key = keyToString(key);
+  if (ctx.docsNavigate != null) {
+    return ctx.docsNavigate(key);
   } else {
     return ctx.run("help '" + key + "'");
   }
 };
 
-export const register_documentation = function(key, doc) {
+export const register = function(key, doc) {
   key = normalizeKey(key);
   doc = _.extend({
     key: key
@@ -109,21 +109,21 @@ export const index = function(ctx, key) {
     return {
       name: k,
       key: entryKey,
-      doc: get_documentation(entryKey)
+      doc: getDocumentation(entryKey)
     };
   });
 
   return <DocumentationIndexComponent {...{ctx, entries}}/>;
 };
 
-export const get_key = function(ctx, o) {
+export const getKey = function(ctx, o) {
   if (o == null) {
     return ['main'];
   }
 
   let key;
   if (_.isString(o)) {
-    const doc = get_documentation(o);
+    const doc = getDocumentation(o);
     if (doc != null) {
       return o;
     } else {
@@ -142,14 +142,14 @@ export const get_key = function(ctx, o) {
     return null;
   }
 
-  if (get_documentation(key)) {
+  if (getDocumentation(key)) {
     return key;
   } else {
     return null;
   }
 };
 
-export const load_file = function(name) {
+export const loadFile = function(name) {
   if (process.browser) {
     return function() {
       const {images, content} = require("../lib/markdown-loader.coffee!../docs/" + name + ".md");
@@ -162,7 +162,7 @@ export const load_file = function(name) {
 };
 
 export const registerLeadMarkdown = function(key, {images, content}) {
-  return register_documentation(key, {
+  return register(key, {
     complete: Markdown.LeadMarkdownComponent({
       value: content,
       image_urls: images
@@ -170,13 +170,13 @@ export const registerLeadMarkdown = function(key, {images, content}) {
   });
 };
 
-export const register_file = function(name, key) {
-  return register_documentation(key != null ? key : name, {
-    complete: load_file(name)
+const registerFile = function(name, key) {
+  return register(key != null ? key : name, {
+    complete: loadFile(name)
   });
 };
 
-export {normalizeKey as key_to_path};
+export {normalizeKey as keyToPath};
 
 export const DocumentationLinkComponent = React.createClass({
   displayName: 'DocumentationLinkComponent',
@@ -225,18 +225,18 @@ export const DocumentationItemComponent = React.createClass({
   }
 });
 
-register_file('quickstart');
-register_file('style');
-register_file('main');
-register_file('introduction');
+registerFile('quickstart');
+registerFile('style');
+registerFile('main');
+registerFile('introduction');
 
-register_documentation('imported', {
+register('imported', {
   complete(ctx, doc) {
     const fnDocs = Object.keys(ctx.imported).map((name) => {
       const fn = ctx.imported[name];
       if (fn && fn.module_name != null && fn.name != null) {
         const key = [fn.module_name, fn.name];
-        doc = get_documentation(key);
+        doc = getDocumentation(key);
         if (doc != null) {
           return {name, doc, key};
         }
@@ -249,7 +249,7 @@ register_documentation('imported', {
   }
 });
 
-register_documentation('module_list', {
+register('module_list', {
   complete(ctx) {
     const entries = _.sortBy(_.map(_.keys(ctx.modules), (name) => {
       return {

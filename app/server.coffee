@@ -61,8 +61,8 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
       else
         value = summary: '(undocumented)'
       key = ['server', 'functions', n]
-      unless Documentation.get_documentation(key)
-        Documentation.register_documentation(key, value)
+      unless Documentation.getDocumentation(key)
+        Documentation.register(key, value)
 
     _.each _.sortBy(server_option_names, _.identity), (n) ->
       d = docs.parameter_docs[n]
@@ -70,10 +70,10 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
         value = parameter_name: n, summary: 'A server parameter', complete: build_parameter_doc
       else
         value = summary: '(undocumented)'
-      Documentation.register_documentation ['server', 'parameters', n], value
+      Documentation.register ['server', 'parameters', n], value
 
-  Documentation.register_documentation ['server', 'functions'], index: true
-  Documentation.register_documentation ['server', 'parameters'], index: true
+  Documentation.register ['server', 'functions'], index: true
+  Documentation.register ['server', 'parameters'], index: true
 
   args_to_server_params = (context, args) ->
     server.args_to_params({args, default_options: context.options()}).server
@@ -516,7 +516,7 @@ server = modules.export exports, 'server', ({fn, component_fn, cmd, component_cm
     constructor: (load) ->
       @load = -> Q(load(arguments...))
 
-  resolve_documentation_key: (ctx, o) ->
+  resolveDocumentationKey: (ctx, o) ->
     return null unless o?
     if _.isFunction(o) and dsl.is_dsl_node o
       return ['server', 'functions', o.fn_name]

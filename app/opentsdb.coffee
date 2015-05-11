@@ -9,7 +9,7 @@ Documentation = require './documentation'
 Server = require './server'
 
 opentsdb = modules.export exports, 'opentsdb', ({fn, cmd, settings, doc}) ->
-  doc 'tsd', 'Fetches time series data from OpenTSDB', Documentation.load_file 'opentsdb'
+  doc 'tsd', 'Fetches time series data from OpenTSDB', Documentation.loadFile 'opentsdb'
   fn 'tsd', (ctx, params) ->
     Context.value new Server.LeadDataSource (loadParams) -> opentsdb.tsd _.extend {}, params, loadParams
 

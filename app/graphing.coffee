@@ -113,7 +113,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
 
   doc 'graph',
     'Loads and graphs time-series data'
-    Documentation.load_file 'graphing.graph'
+    Documentation.loadFile 'graphing.graph'
 
   component_fn 'graph', (ctx, args...) ->
     model = Graphing.createModel(ctx, args...)

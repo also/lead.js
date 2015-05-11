@@ -74,6 +74,6 @@ _.extend exports,
       promise.then (mod) ->
         if mod.docs?
           _.each mod.docs, ({key, doc}) ->
-            Documentation.register_documentation key, doc
+            Documentation.register key, doc
 
     Q.all(promises).then -> modules

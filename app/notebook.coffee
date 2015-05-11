@@ -482,10 +482,10 @@ _.extend exports, {
       Context.IGNORE
 
   context_help: (cell, token) ->
-    key = Documentation.get_key cell.context, token
+    key = Documentation.getKey cell.context, token
     run_without_input_cell cell.notebook, before: cell, (ctx) ->
       if key?
-        Context.add_component ctx, Builtins.help_component ctx, Documentation.key_to_string key
+        Context.add_component ctx, Builtins.help_component ctx, Documentation.keyToString key
       Context.IGNORE
 
   move_focus: (cell, offset) ->

@@ -117,7 +117,7 @@ AppComponent = React.createClass
 HelpPathComponent = React.createClass
   displayName: 'HelpPathComponent'
   render: ->
-    path = Documentation.key_to_path @props.doc_key
+    path = Documentation.keyToPath @props.doc_key
     paths = _.map [0...path.length], (i) -> {path: path[0..i], segment: path[i]}
 
     React.DOM.div {className: 'help-path'},
@@ -127,15 +127,15 @@ HelpPathComponent = React.createClass
           React.DOM.i({className: 'fa fa-caret-right'}),
           ' ',
           Documentation.DocumentationLinkComponent {key: path},
-            Documentation.key_to_string segment
+            Documentation.keyToString segment
 
 HelpWrapperComponent = React.createClass
   displayName: 'HelpWrapperComponent'
   mixins: [ContextComponents.ContextAwareMixin]
   render: ->
-    resolved_key = Documentation.get_key @state.ctx, @props.doc_key
+    resolved_key = Documentation.getKey @state.ctx, @props.doc_key
     if resolved_key
-      doc = Documentation.get_documentation resolved_key
+      doc = Documentation.getDocumentation resolved_key
       React.DOM.div null,
         HelpPathComponent {doc_key: resolved_key}
         Documentation.DocumentationItemComponent {ctx: @state.ctx, doc}
@@ -153,7 +153,7 @@ HelpComponent = React.createClass
     {imports, modules} = @context.app
     # TODO don't lie about class. fix the stylesheet to apply
     React.DOM.div {className: 'help output'},
-      Context.TopLevelContextComponent {imports, modules, context: {app: @context.app, run: @run, docs_navigate: @navigate}},
+      Context.TopLevelContextComponent {imports, modules, context: {app: @context.app, run: @run, docsNavigate: @navigate}},
         HelpWrapperComponent {doc_key: @props.params.key}
 
 NewNotebookComponent = React.createClass
