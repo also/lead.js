@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import d3 from 'd3';
 
-export const expandIsolatedValuesToLineSegments = function(values) {
+const expandIsolatedValuesToLineSegments = function(values) {
   const result = [];
   let segmentLength = 0;
   let previous = null;
@@ -26,7 +26,7 @@ export const expandIsolatedValuesToLineSegments = function(values) {
   return result;
 };
 
-export const simplifyPoints = function(minDistance, values) {
+const simplifyPoints = function(minDistance, values) {
   const result = [];
   let previous = null;
 
@@ -210,6 +210,7 @@ export const transformData = function(data, params, sizes) {
       filterScatterValues = simplify;
       expandLineValues = simplify;
     } else {
+      // TODO this won't work well with stack
       filterScatterValues = function(values) {
         return simplify(_.filter(values, (d) => d.value != null));
       };

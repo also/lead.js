@@ -8,7 +8,7 @@ React = require 'react/addons'
 modules = require './modules'
 Documentation = require './documentation'
 Server = require './server'
-GraphDrawing = require './graphDrawing'
+GraphComponent = require './graph/graphComponent'
 Context = require './context'
 Builtins = require './builtins'
 App = require './app'
@@ -192,7 +192,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
               onClick: @export
               className: 'fa fa-share-square-o fa-stack-1x'
               style: {color: '#ccc'}
-          GraphDrawing.GraphComponent {params: @state.params, data: @state.data, ref: 'graph'}
+          GraphComponent {params: @state.params, data: @state.data, ref: 'graph'}
         if @state.error
           Builtins.ErrorComponent {message: @state.error}
     componentWillReceiveProps: (nextProps) ->
@@ -206,17 +206,3 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         @setState {error, data, params}
     componentWillUnmount: ->
       @_unsubscribe()
-
-  DirectGraphComponent: React.createClass
-    displayName: 'DirectGraphComponent'
-    mixins: [React.addons.PureRenderMixin]
-    getInitialState: ->
-      graph: null
-    componentDidMount: ->
-      graph = GraphDrawing.create(@getDOMNode())
-      graph.draw(@props.data, @props.params)
-      @setState {graph}
-    componentDidUpdate: ->
-      @state.graph.draw(@props.data, @props.params)
-    render: ->
-      React.DOM.div {className: 'graph'}
