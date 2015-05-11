@@ -9,6 +9,11 @@ Q = require 'q'
 React = require('react')
 Components = require('./components')
 
+{expandIsolatedValuesToLineSegments, simplifyPoints, transformData, computeSizes, targetValueAtTime} = require('./graph/utils')
+BrushComponent = require('./graph/brushComponent')
+LegendComponent = require('./graph/legendComponent')
+CursorPositionMixin = require('./graph/cursorPositionMixin')
+
 # jump through some hoops to add clip-path since SVGDOMPropertyConfig is useless
 MUST_USE_ATTRIBUTE = require('react/lib/DOMProperty').MUST_USE_ATTRIBUTE
 require('react/lib/ReactInjection').DOMProperty.injectDOMPropertyConfig
@@ -19,48 +24,6 @@ require('react/lib/ReactInjection').DOMProperty.injectDOMPropertyConfig
 clearExtent = (v) -> _.extend {}, v, {extent: null}
 setBrushing = (v) -> _.extend {}, v, {brushing: true}
 setNotBrushing = (v) -> _.extend {}, v, {brushing: false}
-
-# [1 2 null 3 null 4 5] -> [1 2 null 3 3 null 4 5]
-expandIsolatedValuesToLineSegments = (values) ->
-  result = []
-  segmentLength = 0
-  previous = null
-  _.each values, (v, i) ->
-    if v.value?
-      segmentLength++
-      previous = v
-    else
-      if segmentLength is 1
-        result.push previous
-      segmentLength = 0
-
-    result.push v
-
-  if segmentLength is 1
-    result.push previous
-  result
-
-simplifyPoints = (minDistance, values) ->
-  previous = null
-  result = []
-
-  _.each values, (v) ->
-    if previous?
-      if previous.y? != v.y? # discontinuity
-        result.push v
-        if v.y?
-          previous = v
-      else if v.y?
-        deltaX = Math.abs v.x - previous.x
-        deltaY = Math.abs v.y - previous.y
-        if Math.sqrt(deltaX * deltaX + deltaY * deltaY) > minDistance
-          previous = v
-          result.push v
-    else
-      previous = v
-      result.push v
-
-  result
 
 commaInt = d3.format(',.f')
 commaDec = d3.format(',.3f')
@@ -135,12 +98,6 @@ computeParams = (params) ->
   else
     computedParams = {}
   _.extend {}, defaultParams, computedParams, params
-
-CursorPositionMixin = _.extend {}, Components.ObservableMixin,
-  contextTypes:
-    cursorPosition: React.PropTypes.object.isRequired
-
-  getObservable: (props, context) -> context.cursorPosition
 
 AxisComponent = React.createClass
   propTypes:
@@ -363,82 +320,6 @@ TargetComponent = React.createClass
       </g>
 
 
-BrushComponent = React.createClass
-  propTypes:
-    brushModel: React.PropTypes.object.isRequired
-
-  contextTypes:
-    xScale: React.PropTypes.func.isRequired
-    sizes: React.PropTypes.object.isRequired
-    params: React.PropTypes.object.isRequired
-
-  createBrush: ->
-    d3.svg.brush()
-      .x(@context.xScale)
-      .on("brush", @onBrush)
-      .on('brushstart', @onBrushStart)
-      .on('brushend', @onBrushEnd)
-
-  onBrush: ->
-    brush = d3.event.target
-    @brushBus.push if brush.empty() then clearExtent else (v) -> _.extend {}, v, {extent: brush.extent()}
-
-  onBrushStart: ->
-    @brushBus.push(setBrushing)
-
-  onBrushEnd: ->
-    @brushBus.push(setNotBrushing)
-
-  setExtent: (context, extent) ->
-    {xScale} = context
-    domain = xScale.domain()
-
-    if extent?
-      @brush.extent([Math.min(Math.max(domain[0], extent[0]), domain[1]), Math.max(Math.min(domain[1], extent[1]), domain[0])])
-    else
-      @brush.clear()
-
-    @selection.call(@brush)
-
-  unsubscribe: ->
-    @brushBus?.end()
-    @brushModelUnsubscribe?()
-
-  update: (props, context) ->
-    {brushModel} = props
-    @selection.selectAll("rect")
-      .attr("y", 0)
-      .attr("height", context.sizes.height)
-      .attr('fill', context.params.brushColor)
-
-    @brush.x(context.xScale)
-
-    @setExtent(context, null)
-
-    @unsubscribe()
-
-    @brushBus = new Bacon.Bus
-
-    externalChanges = brushModel.apply(@brushBus)
-    @brushModelUnsubscribe = externalChanges.onValue ({extent}) =>
-      @setExtent(context, extent)
-
-  render: ->
-    <g/>
-
-  componentDidMount: ->
-    @selection = d3.select(@getDOMNode())
-    @brush = @createBrush()
-    @selection.call(@brush)
-    @update(@props, @context)
-
-  componentWillReceiveProps: (props, context) ->
-    @update(props, context)
-
-  componentWillUnmount: ->
-    @unsubscribe()
-
-
 CrosshairComponent = React.createClass
   mixins: [CursorPositionMixin]
 
@@ -459,71 +340,6 @@ CrosshairComponent = React.createClass
       </g>
     else
       null
-
-
-LegendCrosshairValueComponent = React.createClass
-  mixins: [CursorPositionMixin]
-
-  propTypes:
-    target: React.PropTypes.object.isRequired
-
-  contextTypes:
-    params: React.PropTypes.object.isRequired
-
-  render: ->
-    {params} = @context
-    {target} = @props
-
-    if @state.value
-      text = params.valueFormat(@state.value.targetValues[target.index]?.value)
-    else
-      text = ''
-
-    <tspan fill={params.crosshairValueTextColor}>{text}</tspan>
-
-
-LegendComponent = React.createClass
-  mixins: [Components.ObservableMixin]
-
-  propTypes:
-    targets: React.PropTypes.array.isRequired
-    mouseHandler: React.PropTypes.object.isRequired
-
-  contextTypes:
-    sizes: React.PropTypes.object.isRequired
-    params: React.PropTypes.object.isRequired
-    targetState: React.PropTypes.object.isRequired
-
-  getObservable: -> @context.targetState
-
-  render: ->
-    {sizes, params} = @context
-
-    {targets, mouseHandler} = @props
-
-    legendEntries = _.map targets[...sizes.legendRowCount], (d, i) =>
-      selected = @state.value.selection[d.index]
-      highlighted = @state.value.highlightIndex == d.index
-
-      if highlighted
-        offset = 2
-        size = 10
-      else
-        offset = 4
-        size = 6
-
-      opacity = if selected then 1 else params.deselectedOpacity
-
-      <g key={i} opacity={opacity} transform={"translate(0,#{i * sizes.legendRowHeight})"} onClick={=> mouseHandler.onTargetClick(d)} onMouseOver={=> mouseHandler.onTargetMouseOver(d)} onMouseOut={=> mouseHandler.onTargetMouseOut(d)}>
-        <rect x={offset} y={offset} width={size} height={size} fill={d.color}/>
-        <text x="16" dy="11" style={'font-size': '11px'}>
-          <tspan fill={params.legendTextColor}>{params.legendText(d)}</tspan>
-          <tspan style={'white-space': 'pre'}>   </tspan>
-          <LegendCrosshairValueComponent target={d}/>
-        </text>
-      </g>
-
-    <g transform={"translate(0,#{sizes.height + 30})"}>{legendEntries}</g>
 
 
 GraphComponent = React.createClass
@@ -712,177 +528,5 @@ GraphComponent = React.createClass
       {svg}
     </div>
 
-
-transformData = (data, params, sizes) ->
-  color = d3.scale.ordinal().range(params.d3_colors)
-
-  allNames = []
-  # ensure that colors are stable even if targets change position in the list
-  allNames = _.uniq(allNames.concat(_.pluck(data, 'target')...))
-  colorsByName = {}
-  _.each allNames, (name, i) ->
-    colorsByName[name] = color(i)
-
-  x = d3.time.scale()
-  y = d3.scale.linear()
-
-  x.range([0, sizes.width])
-  y.range([sizes.height, 0])
-
-  area = d3.svg.area()
-    .x((d) -> d.x)
-    .y0((d) -> y d.y0 ? 0)
-    .y1((d) -> y d.value + (d.y0 ? 0))
-    .defined((d) -> d.value?)
-
-  line = d3.svg.line()
-    .x((d) -> d.x)
-    .y((d) -> y d.value)
-    .defined((d) -> d.value?)
-
-  stack = d3.layout.stack()
-    .values((d) -> d.values)
-    .x((d) -> d.time)
-    .y((d) -> d.value)
-    .out((d, y0, y) ->
-      d.y0 = y0
-      d.value = y)
-    .offset(params.areaOffset)
-
-  if params.interpolate?
-    line.interpolate(params.interpolate)
-    area.interpolate(params.interpolate)
-
-  if params.simplify
-    simplify = _.partial(simplifyPoints, params.simplify)
-  else
-    simplify = _.identity
-
-  valueMin = null
-  valueMax = null
-
-  timeMin = null
-  timeMax = null
-
-  targets = for s, targetIndex in data
-    options = _.extend {}, params, s.options
-    {drawAsInfinite, getValue, getTimestamp, drawNullAsZero} = options
-    if params.drawNullAsZero
-      transformValue = (v) -> v ? 0
-    else
-      transformValue = (v) -> v
-    values = for datapoint, i in s.datapoints
-      value = transformValue(getValue(datapoint, i, targetIndex))
-      timestamp = getTimestamp(datapoint, i, targetIndex)
-      timeMin = Math.min(timestamp, timeMin ? timestamp)
-      timeMax = Math.max(timestamp, timeMax)
-      time = new Date(timestamp * 1000)
-      unless drawAsInfinite
-        valueMin = Math.min value, valueMin ? value if value?
-        valueMax = Math.max value, valueMax ? value if value?
-      {value, time: time, original: datapoint}
-    bisector = d3.bisector (d) -> d.time
-    lineMode =
-      if params.areaMode is 'all' or params.areaMode is 'stacked'
-        'area'
-      else if params.areaMode is 'first' and targetIndex is 0
-        'area'
-      else
-        'line'
-    lineFn = if lineMode is 'line'
-      line
-    else
-      area
-    name = s.target
-    targetColor = options.color ? colorsByName[name]
-    areaAlpha = options.areaAlpha ? options.alpha
-    lineAlpha = options.lineAlpha ? options.alpha
-    pointAlpha = options.pointAlpha ? options.alpha
-    _.extend options, {values, bisector, name, lineMode, lineFn, color: targetColor, index: targetIndex}
-
-
-  timeMin = new Date(timeMin * 1000)
-  timeMax = new Date(timeMax * 1000)
-
-  if params.areaMode is 'stacked' and targets.length > 0
-    stack targets
-    valueMin = null
-    valueMax = null
-    for {values} in targets
-      for {value, y0} in values
-        value += y0
-        valueMin = Math.min value, valueMin
-        valueMax = Math.max value, valueMax
-
-  if valueMin == valueMax
-    valueMin = Math.round(valueMin) - 1
-    valueMax = Math.round(valueMax) + 1
-
-  y.domain([params.yMin ? valueMin, params.yMax ? valueMax])
-  x.domain([params.xMin ? timeMin, params.xMax ? timeMax])
-
-  _.each targets, (target) ->
-    {values, drawNullAsZero} = target
-    _.each values, (v) ->
-      if v.value?
-        v.y = y(v.value)
-      v.x = x(v.time)
-
-    if drawNullAsZero
-      filterScatterValues = simplify
-      expandLineValues = simplify
-    else
-      # TODO this won't work well with stack
-      filterScatterValues = (values) ->
-        simplify _.filter values, (d) -> d.value?
-
-      expandLineValues = _.compose expandIsolatedValuesToLineSegments, simplify
-
-    target.lineValues = expandLineValues values
-    target.scatterValues = filterScatterValues values
-
-  {targets, valueMin, valueMax, timeMin, timeMax, xScale: x, yScale: y}
-
-computeSizes = (data, params) ->
-  width = params.width
-  height = params.height
-
-  legendRowHeight = 18
-  margin = top: 20, right: 80, bottom: 10, left: 80
-
-  if params.title
-    margin.top += 30
-
-  width -= margin.left + margin.right
-  height -= margin.top + margin.bottom
-
-  legendCropped = false
-  legendRowCount = data.length
-
-  if !params.hideLegend
-    if params.legendMaxHeight? and data.length * legendRowHeight > params.legendMaxHeight
-      legendCropped = true
-      legendRowCount = Math.floor(params.legendMaxHeight / legendRowHeight)
-    legendHeight = legendRowCount * legendRowHeight
-  else
-    legendHeight = 0
-
-  if params.fixedHeight
-    height -= legendHeight
-
-  svgWidth = width + margin.left + margin.right
-  svgHeight = height + margin.top + margin.bottom + 30 + legendHeight
-
-  {width, height, margin, svgWidth, svgHeight, legendRowCount, legendRowHeight, legendHeight}
-
-
-targetValueAtTime = (target, time) ->
-  i = target.bisector.left target.values, time, 1
-  d0 = target.values[i - 1]
-  d1 = target.values[i]
-  if d0 and d1
-    if time - d0.time > d1.time - time then d1 else d0
-  else if d0
-    d0
 
 module.exports = {GraphComponent}
