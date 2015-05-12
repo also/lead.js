@@ -287,7 +287,7 @@ const GridComponent = React.createClass({
   }
 });
 
-const FlowComponent = React.createClass({
+export const FlowComponent = React.createClass({
   displayName: 'FlowComponent',
 
   render() {
