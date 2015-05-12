@@ -109,6 +109,9 @@ export const ToggleComponent = React.createClass({
   }
 });
 
+const OBSERVABLE_KEY = Symbol('observable');
+const UNSUBSCRIBE_KEY = Symbol('unsubscribe');
+
 export const ObservableMixin = {
   _getObservable(props, context) {
     if (this.getObservable) {
@@ -129,18 +132,18 @@ export const ObservableMixin = {
   componentWillReceiveProps(nextProps, nextContext) {
     const observable = this._getObservable(nextProps, nextContext);
 
-    if (this._observable !== observable) {
+    if (this[OBSERVABLE_KEY] !== observable) {
       return this.init(observable);
     }
   },
 
   init(observable) {
-    if (this._unsubscribe) {
-      this._unsubscribe();
+    if (this[UNSUBSCRIBE_KEY]) {
+      this[UNSUBSCRIBE_KEY]();
     }
 
-    this._observable = observable;
-    this._unsubscribe = observable.subscribe((event) => {
+    this[OBSERVABLE_KEY] = observable;
+    this[UNSUBSCRIBE_KEY] = observable.subscribe((event) => {
       if (event.isError()) {
         try {
           this.setState({
@@ -164,7 +167,7 @@ export const ObservableMixin = {
   },
 
   componentWillUnmount() {
-    return this._unsubscribe();
+    return this[UNSUBSCRIBE_KEY]();
   }
 };
 
