@@ -298,12 +298,8 @@ export const FlowComponent = React.createClass({
 });
 
 modules.export(exports, 'builtins', function({doc, fn, componentFn, componentCmd}) {
-  componentCmd('help', 'Shows this help', (ctx, o) => {
-    if (arguments.length > 1) {
-      return help_component(ctx, o);
-    } else {
-      return help_component(ctx);
-    }
+  componentCmd('help', 'Shows this help', (ctx, ...args) => {
+    return help_component(ctx, ...args);
   });
 
   doc('object', 'Displays an object as JSON', '`object` converts an object to a string using `JSON.stringify` if possible and `new String` otherwise.\nThe result is displayed using syntax highlighting.\n\nFor example:\n\n```\nobject a: 1, b: 2, c: 3\n```');
