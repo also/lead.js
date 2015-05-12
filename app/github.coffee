@@ -105,38 +105,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
         else
           URI gist
 
-    GitHubOAuthComponent: React.createClass
-      getInitialState: ->
-        promise = Http.post(Server.url('github/oauth/token'), @props.query)
-        promise.finally => @setState finished: true
-        promise.then (v) ->
-          if v.access_token?
-            global_settings.user_settings.set 'github', 'githubs', github.default(), 'access_token', v.access_token
-
-        {promise}
-      render: ->
-        promiseState = @state.promise.inspect()
-        if promiseState.state = 'fulfilled'
-          footer = React.DOM.div {},
-            React.DOM.button {onClick: -> window.close()}, 'OK'
-
-        React.DOM.div {className: 'modal-bg'},
-          React.DOM.div {className: 'modal-fg'},
-            App.ModalComponent {footer, title: 'GitHub Authentication'},
-              if @state.finished
-                if promiseState.state = 'fulfilled'
-                  if promiseState.value.access_token?
-                    React.DOM.div {},
-                      'You have successfully authorized lead to use GitHub'
-                  else
-                    if promiseState.value.error_description?
-                      promiseState.value.error_description
-                    else
-                      'Unknown error'
-                else
-                  'Unknown error'
-              else
-                React.DOM.div {}, 'Authenticating with GitHub...'
+    GitHubOAuthComponent: require('./github/oauthComponent')
 
   component_fn 'load', 'Loads a file from GitHub', (ctx, path, options={}) ->
     url = github.to_repo_url(path)
