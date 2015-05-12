@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import * as Server from '../server';
 import * as Http from '../http';

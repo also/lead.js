@@ -24,6 +24,7 @@ ContextComponents = require './contextComponents'
 Components = require './components'
 Builtins = require './builtins'
 App = require './app'
+GistLinkComponent = require('./github/gistLinkComponent')
 
 Notebook = require './notebook'
 Server = require './server'
@@ -233,27 +234,6 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
             constructor: GistLinkComponent
             promise: gist_promise.then (r) -> gist: r
       Builtins.PromiseStatusComponent {promise, start_time: new Date}
-
-  GistLinkComponent = React.createClass
-    render: ->
-      avatar = @props.gist.owner?.avatar_url ? 'https://github.com/images/gravatars/gravatar-user-420.png'
-      username = @props.gist.owner?.login ? 'anonymous'
-      filenames = _.keys @props.gist.files
-      filenames.sort()
-      if filenames[0] == 'gistfile1.txt'
-        title = "gist:#{@props.gist.id}"
-      else
-        title = filenames[0]
-      React.DOM.div {className: 'gist-link'},
-        React.DOM.div {className: 'creator'},
-          React.DOM.img {src: avatar}
-          if @props.gist.user?
-            React.DOM.a {href: @props.gist.user.html_url, target: '_blank'}, username
-          else
-            username
-          ' / '
-          React.DOM.a {href: @props.gist.html_url, target: '_blank'}, title
-        React.DOM.span {className: 'datetime'}, "Saved #{moment(@props.gist.updated_at).fromNow()}"
 
   NotebookGistLinkComponent = React.createClass
     mixins: [Router.Navigation]
