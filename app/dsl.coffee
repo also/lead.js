@@ -65,7 +65,7 @@ dsl.type.i::to_target_string = dsl.type.s::to_target_string
 dsl.type.i::to_js_string = -> @value
 dsl.type.i::toJSON = -> {@type, name: @fn_name}
 
-_.extend(dsl.type.i.prototype, _.pick(Function.prototype, Object.getOwnPropertyNames(Function.prototype)))
+_.extend(dsl.type.i.prototype, _.pick(Function.prototype, ["length", "name", "bind", "toString", "call", "apply"]))
 
 dsl.type.o::to_target_string = ->
   objects = to_string_context.objects ?= []
