@@ -4,6 +4,8 @@ import _ from 'underscore';
 import d3 from 'd3';
 import Q from 'q';
 
+import {ObservableMixin} from '../components';
+
 import {computeParams} from './params';
 import {computeSizes, transformData, targetValueAtTime} from './utils';
 import AxisComponent from './axisComponent';
@@ -11,9 +13,28 @@ import TargetComponent from './targetComponent';
 import LegendComponent from './legendComponent';
 import CrosshairComponent from './crosshairComponent';
 import BrushComponent from './brushComponent';
-
 import {MUST_USE_ATTRIBUTE} from 'react/lib/DOMProperty';
 import {DOMProperty} from 'react/lib/ReactInjection';
+
+
+const Info = React.createClass({
+  mixins: [ObservableMixin],
+
+  contextTypes: {
+    targetState: React.PropTypes.object.isRequired,
+    cursorPosition: React.PropTypes.object.isRequired
+  },
+
+  getObservable(props, context) {
+    return context.targetState.combine(this.context.cursorPosition, ({highlightIndex}, {targetValues}) => ({highlightIndex, value: targetValues[highlightIndex]}));
+  },
+
+  render() {
+    return (
+      <div>{JSON.stringify(this.state)}</div>
+    );
+  }
+});
 
 DOMProperty.injectDOMPropertyConfig({
   Properties: {
@@ -258,11 +279,13 @@ export default React.createClass({
             <BrushComponent brushModel={this.state.brushModel}/>
             <g key="targets">{plots}</g>
             {legend}
+            {params.layer ? params.layer() : null}
           </g>
         </svg>;
 
       return <div className="graph">
         {svg}
+        {params.showInfo ? <Info/> : null}
       </div>;
     } else {
       return null;
