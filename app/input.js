@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import Bacon from 'bacon.model';
 
-import modules from './modules';
+import * as modules from './modules';
 import * as Context from './context';
 import {ObservableMixin} from './components';
 

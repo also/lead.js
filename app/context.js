@@ -5,7 +5,7 @@ import React from 'react/addons';
 import {ContextAwareMixin, ContextRegisteringMixin, ComponentContextComponent} from './contextComponents';
 import {ObservableMixin, SimpleLayoutComponent} from './components';
 import * as Builtins from './builtins';
-import Modules from './modules';
+import * as Modules from './modules';
 
 import {addComponent, removeAllComponents, componentList} from './componentList';
 import {scopedEval} from './contextEval';

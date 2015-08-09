@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 
 import Markdown from './markdown';
-import modules from './modules';
+import * as modules from './modules';
 import * as Documentation from './documentation';
 import * as Components from './components';
 import * as Context from './context';
