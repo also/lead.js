@@ -79,7 +79,7 @@ module.exports = (grunt) ->
     babel:
       options:
         blacklist: ['strict']
-        optional: ['runtime', 'reactCompat']
+        optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']
       source:
         files: [
           expand: true
