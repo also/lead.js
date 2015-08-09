@@ -58,7 +58,7 @@ export default React.createClass({
     this.props.app.appComponent = this;
     const {modal} = this.state;
 
-    const body = this.state.initializationState.state === 'pending' ? null : activeRouteHandler();
+    let body = this.state.initializationState.state === 'pending' ? null : activeRouteHandler();
     if (bodyWrapper) {
       body = bodyWrapper(null, body);
     }
