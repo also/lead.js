@@ -27,7 +27,7 @@ module.exports = {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
       {test: /\.cjsx$/, loader: 'coffee-loader!' + __dirname + '/lib/coffee-react-transform-loader.coffee'},
-      {test: /\.jsx?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'reactCompat']}},
+      {test: /\.jsx?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']}},
       {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime', 'reactCompat']}},
 
       // shims
