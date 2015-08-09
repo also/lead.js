@@ -26,7 +26,9 @@ Editor = require './editor'
 Components = require './components'
 CoffeeScriptCell = require './coffeescript_cell'
 Server = require './server'
-SettingsComponent = require './settingsComponent';
+SettingsComponent = require './settingsComponent'
+Modal = require './modal'
+AppComponent = require './appComponent'
 
 Settings.default 'app', 'intro_command', "help 'introduction'"
 
@@ -35,84 +37,7 @@ NotFoundComponent = React.createClass
   render: ->
     React.DOM.div {}, "Not Found"
 
-modalModel = new Bacon.Model []
-
-exports.pushModal = (modal) ->
-  window.setTimeout ->
-    modalModel.modify (v) ->
-       v.concat(modal)
-  , 0
-  modal
-
-exports.removeModal = (modal) ->
-  window.setTimeout ->
-    modalModel.modify (v) ->
-      _.without v, modal
-  , 0
-
-exports.ModalComponent = React.createClass
-  render: ->
-    modal = @props.modal
-    React.DOM.div {},
-      if @props.title
-        React.DOM.div {className: 'modal-title'}, @props.title
-      React.DOM.div {className: 'modal-content'},
-        @props.children
-      if @props.footer
-        React.DOM.div {className: 'modal-footer'}, @props.footer
-
 initializationPromise = null
-AppComponent = React.createClass
-  displayName: 'AppComponent'
-  childContextTypes:
-    app: React.PropTypes.object
-  getChildContext: ->
-    app: @props.app
-  getInitialState: ->
-    initializationPromise.finally =>
-      @setState initializationState: initializationPromise.inspect()
-    .done()
-    modal: null
-    initializationState: initializationPromise.inspect()
-  mixins: [Router.Navigation]
-  componentWillMount: ->
-    modalModel.onValue (modals) =>
-      @setState {modal: modals[modals.length-1]}
-
-  toggleFullscreen: ->
-    if document.fullscreenElement ? document.mozFullScreenElement ? document.webkitFullscreenElement
-      f = document.exitFullscreen ? document.mozCancelFullScreen ? document.webkitExitFullscreen
-      f.call(document)
-    else
-      n = document.documentElement
-      f = n.requestFullscreen ? n.mozRequestFullScreen ? n.webkitRequestFullscreen
-      f?.call(n)
-
-  render: ->
-    # TODO don't do this :(
-    @props.app.appComponent = @
-
-    modal = @state.modal
-    # TODO warn on initialization failure
-    if @state.initializationState.state == 'pending'
-      body = null
-    else
-      body = @props.activeRouteHandler()
-    if @props.bodyWrapper
-      body = @props.bodyWrapper null, body
-    React.DOM.div {className: 'lead'},
-      React.DOM.div {className: 'nav-bar'},
-        Router.Link {to: 'notebook', className: 'title'}, 'lead'
-        React.DOM.div {className: 'menu'},
-          Router.Link {to: 'help-index'}, React.DOM.i {className: 'fa fa-question-circle'}
-          Router.Link {to: 'settings'}, React.DOM.i {className: 'fa fa-cog'}
-          React.DOM.i {className: 'fa fa-expand', onClick: @toggleFullscreen}
-      React.DOM.div {className: 'body'},
-        body
-      if modal
-        React.DOM.div {className: 'modal-bg'},
-          React.DOM.div {className: 'modal-fg'},
-            modal.handler _.extend {dismiss: -> exports.removeModal(modal)}, modal.props
 
 HelpPathComponent = React.createClass
   displayName: 'HelpPathComponent'
@@ -298,8 +223,14 @@ exports.init_app = (target, options={}) ->
 
   app = {imports, modules}
 
+  # TODO handle errors, timeouts
+  initializationPromise = Modules.init_modules(modules)
+  initializationPromise.fail (e) ->
+    console.error 'Failure initializing modules', e
+    Modal.pushModal handler: InitializationFailureModal, props: error: e
+
   routesComponent = Routes null,
-    Route {handler: AppComponent, bodyWrapper, app},
+    Route {handler: AppComponent, bodyWrapper, app, initializationPromise},
       Route path: '/', name: 'default', handler: null_route ->
         queryKeys = Object.keys(@props.query)
         if queryKeys.length == 1 and @props.query[queryKeys[0]].length == 0
@@ -317,12 +248,6 @@ exports.init_app = (target, options={}) ->
       Route {name: 'settings', handler: SettingsComponent}
       extraRoutes...
       Router.NotFoundRoute {handler: NotFoundComponent}
-
-  # TODO handle errors, timeouts
-  initializationPromise = Modules.init_modules(modules)
-  initializationPromise.fail (e) ->
-    console.error 'Failure initializing modules', e
-    exports.pushModal handler: InitializationFailureModal, props: error: e
 
   React.renderComponent routesComponent, target
 

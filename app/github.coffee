@@ -23,8 +23,8 @@ Context = require './context'
 ContextComponents = require './contextComponents'
 Components = require './components'
 Builtins = require './builtins'
-App = require './app'
 GistLinkComponent = require('./github/gistLinkComponent')
+Modal = require('./modal')
 
 Notebook = require './notebook'
 Server = require './server'
@@ -132,8 +132,8 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
 
     if site.requires_access_token and not site.access_token?
       deferred = Q.defer()
-      modal = App.pushModal handler: EnsureAccessComponent, props: _.extend {deferred, site}, props
-      deferred.promise.finally -> App.removeModal(modal)
+      modal = Modal.pushModal handler: EnsureAccessComponent, props: _.extend {deferred, site}, props
+      deferred.promise.finally -> Modal.removeModal(modal)
       deferred.promise
     else
       Q.resolve()
@@ -203,7 +203,7 @@ modules.export exports, 'github', ({component_fn, component_cmd, fn, cmd, settin
           React.DOM.p null, message
 
       footer = React.DOM.button {onClick: @cancel}, 'Cancel'
-      App.ModalComponent {footer, title: 'GitHub Authentication'},
+      Modal.ModalComponent {footer, title: 'GitHub Authentication'},
         if url?
           React.DOM.div {},
             React.DOM.div {style: marginBottom: '1em'},
