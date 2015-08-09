@@ -13,6 +13,12 @@ Documentation = require './documentation'
 Components = require './components'
 Settings = require './settings'
 
+NotebookComponent = require './notebook/NotebookComponent'
+InputOutputComponent = require './notebook/InputOutputComponent'
+DocumentComponent = require './notebook/DocumentComponent'
+InputCellComponent = require './notebook/InputCellComponent'
+OutputCellComponent = require './notebook/OutputCellComponent'
+
 modules.export exports, 'notebook', ({component_fn, fn, cmd, component_cmd}) ->
   component_cmd 'save', 'Saves the current notebook to a file', (ctx) ->
     link = save ctx.notebook, ctx.input_cell
@@ -53,118 +59,6 @@ is_output = (cell) -> cell.type is 'output'
 is_clean = (cell) -> Editor.get_value(cell.editor) is '' and not cell.used
 visible = (cell) -> cell.visible
 identity = (cell) -> true
-
-InputOutputComponent = React.createClass
-  displayName: 'InputOutputComponent'
-  mixins: [React.addons.PureRenderMixin]
-
-  getInitialState: ->
-    outputHeight: 0
-
-  render: ->
-    if @props.useMinHeight
-      minHeight = @state.outputHeight
-    else
-      minHeight = 0
-
-    if @props.input_cell
-      input = @props.input_cell.component cell: @props.input_cell, key: @props.input_cell.key, minHeight: minHeight
-    else
-      input = React.DOM.div {className: 'placeholder cell'}
-
-    if @props.output_cell
-      output = @props.output_cell.component cell: @props.output_cell, key: @props.output_cell.key, ref: 'output'
-    else
-      output = React.DOM.div {className: 'placeholder cell'}
-    React.DOM.div {className: 'io'},
-      input
-      output
-
-  onAnimationFrame: ->
-    @_animationFrame = requestAnimationFrame(@onAnimationFrame)
-    newHeight = @refs.output?.getOutputHeight() ? 0
-    if newHeight != @state.outputHeight
-      @setState outputHeight: newHeight
-
-  componentDidMount: ->
-    @onAnimationFrame()
-
-  componentWillUnmount: ->
-    cancelAnimationFrame(@_animationFrame)
-
-DocumentComponent = React.createClass
-  displayName: 'DocumentComponent'
-  mixins: [Components.ObservableMixin]
-  getObservable: (props) -> props.notebook.model
-  render: ->
-    layout = @state.value.settings?.layout ? 'repl'
-    useMinHeight = layout == 'two-column'
-
-    props = null
-    ios = []
-    _.each @state.value.cells, (cell) ->
-      if cell.type == 'input'
-        props = {input_cell: cell, key: cell.key, useMinHeight}
-        ios.push props
-      else
-        if !props? or props.input_cell.output_cell != cell
-          ios.push {output_cell: cell, key: cell.key, useMinHeight}
-        else
-          props.output_cell = cell
-        props = null
-
-    React.DOM.div {className: "notebook #{layout}-style"}, _.map ios, InputOutputComponent
-
-NotebookComponent = React.createClass
-  displayName: 'NotebookComponent'
-  propTypes:
-    imports: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
-    modules: React.PropTypes.object.isRequired
-    init: React.PropTypes.func
-  getInitialState: ->
-    # FIXME #175 props can change
-    notebook = create_notebook @props
-    @props.init? notebook
-    notebook: notebook
-  shouldComponentUpdate: ->
-    # never changes, handled by document
-    false
-  render: ->
-    DocumentComponent {notebook: @state.notebook}
-
-create_notebook = (opts) ->
-  cells_model = Bacon.Model([])
-  model = Bacon.Model.combine(cells: cells_model, settings: Settings.toModel('notebook'))
-
-  notebook =
-    model: model
-    context: opts.context
-    cells: []
-    cells_model: cells_model
-    input_number: 1
-    output_number: 1
-    cell_run: new Bacon.Bus
-    cell_focused: new Bacon.Bus
-
-  unless is_nodejs?
-    bodyElt = document.querySelector('.body')
-    scrolls = Bacon.fromEventTarget(bodyElt, 'scroll')
-    # FIXME if anything else subscribes to output_cell.done, scroll_to never gets any events
-    scroll_to = notebook.cell_run.flatMapLatest (input_cell) ->
-      # TODO without the delay, this can happen before there is a dom node.
-      # not sure if the ordering now is guaranteed
-      #
-      # FIXME busted with webpack/possible Bacon update
-      input_cell.output_cell.done.delay(0).takeUntil scrolls
-    scroll_to.onValue (output_cell) ->
-      # TODO this assumes that .body is the only thing that scrolls
-      bodyTop = bodyElt.getBoundingClientRect().top
-      bodyScroll = bodyElt.scrollTop
-      bodyElt.scrollTop = output_cell.dom_node.getBoundingClientRect().top - bodyTop + bodyScroll
-
-  base_context = Context.create_base_context(opts)
-  notebook.base_context = base_context
-  notebook
 
 export_notebook = (notebook, current_cell) ->
   lead_js_version: 0
@@ -245,37 +139,6 @@ add_input_cell = (notebook, opts={}) ->
     insert_cell cell, opts
   cell
 
-InputCellComponent = React.createClass
-  displayName: 'InputCellComponent'
-  mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  getObservable: (props) -> props.cell.changes
-
-  render: ->
-    React.DOM.div {className: 'cell input', 'data-cell-number': @props.cell.number},
-      React.DOM.div({className: 'code', ref: 'code'}),
-      React.DOM.div {className: 'input-menu'},
-        React.DOM.span({className: 'permalink', onClick: @permalink_link_clicked}, React.DOM.i {className: 'fa fa-link'})
-
-  updateHeight: (minHeight) ->
-    Editor.setMinHeight(@props.cell.editor, minHeight)
-
-  componentDidMount: ->
-    editor = @props.cell.editor
-    @refs.code.getDOMNode().appendChild(editor.display.wrapper)
-    editor.refresh()
-    @updateHeight(@props.minHeight)
-
-  componentWillUpdate: (newProps) ->
-    @updateHeight(newProps.minHeight)
-
-  permalink_link_clicked: -> generate_permalink @props.cell
-
-
-generate_permalink = (cell) ->
-  run_without_input_cell cell.notebook, after: cell.output_cell ? cell, (ctx) ->
-    Builtins.contextExports.permalink.fn(ctx)
-    Context.IGNORE
-
 create_input_cell = (notebook) ->
   editor = Editor.create_editor()
   cell =
@@ -310,22 +173,6 @@ focus_cell = (cell) ->
     cell.editor.focus()
     cell.notebook.cell_focused.push cell
   , 0
-
-OutputCellComponent = React.createClass
-  displayName: 'OutputCellComponent'
-  mixins: [Components.ObservableMixin, React.addons.PureRenderMixin]
-  getObservable: (props) -> props.cell.component_model
-
-  getOutputHeight: ->
-    @refs.output.getDOMNode().clientHeight
-
-  render: ->
-    React.DOM.div {className: 'output-cell-wrapper'},
-      React.DOM.div {className: 'cell output', 'data-cell-number': @props.cell.number, ref: 'output'},
-        @state.value?()
-
-  componentDidMount: ->
-    @props.cell.dom_node = @getDOMNode()
 
 create_output_cell = (notebook) ->
   number = notebook.output_number++
