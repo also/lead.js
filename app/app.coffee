@@ -18,10 +18,9 @@ Modules = require './modules'
 Modal = require './modal'
 AppRoutes = require './routes'
 
+Defaults = require './defaultApp'
+
 Settings.default 'app', 'intro_command', "help 'introduction'"
-
-
-initializationPromise = null
 
 # TODO style, copy
 InitializationFailureModal = React.createClass
@@ -30,44 +29,17 @@ InitializationFailureModal = React.createClass
     Modal.ModalComponent {title: 'Lead Failed to Start Properly', footer},
       React.DOM.p {},
         "An error occurred while starting lead. More details may be available in the browser's console. Some features might not be available. Try reloading this page."
-      React.DOM.p {style: marginTop: '1em'}, "Message: ", @props.error
+      React.DOM.p {style: marginTop: '1em'}, "Message: ", @props.error.message || @props.error
 
-exports.init_app = (target, options={}) ->
+bindUserSettingsToLocalStorage = (key) =>
   # TODO warn
   try
-    Settings.user_settings.set JSON.parse(localStorage.getItem 'lead_user_settings') ? {}
+    Settings.user_settings.set JSON.parse(localStorage.getItem key) ? {}
   catch e
     console.error 'failed loading user settings', e
 
-  modules =
-    http: require('./http')
-    dsl: require('./dsl')
-    compat: require('./compat')
-    graphing: require('./graphing')
-    input: require('./input')
-    opentsdb: require('./opentsdb')
-    settings: Settings
-    context: Context
-    builtins: require('./builtins')
-    notebook: require('./notebook')
-    server: require('./server')
-    github: require('./settings')
-
-  _.extend(modules, options.modules)
-
-  imports = [
-    'builtins.*'
-    'server.*'
-    'github.*'
-    'graphing.*',
-    'compat.*',
-    'opentsdb.tsd'
-  ]
-
-  imports.push (Settings.get('app', 'imports') or [])...
-
   window.addEventListener 'storage', (e) =>
-    if e.key == 'lead_user_settings'
+    if e.key == key
       console.log 'updating user settings'
       try
         Settings.user_settings.set JSON.parse(e.newValue) ? {}
@@ -75,11 +47,19 @@ exports.init_app = (target, options={}) ->
         console.error 'failed updating user settings', e
 
   Settings.user_settings.changes.onValue ->
-    localStorage.setItem 'lead_user_settings', JSON.stringify Settings.user_settings.get()
+    localStorage.setItem key, JSON.stringify Settings.user_settings.get()
+
+exports.init_app = (target, options={}) ->
+  bindUserSettingsToLocalStorage('lead_user_settings')
 
   publicUrl = Settings.get 'app', 'publicUrl'
   if publicUrl?
     `__webpack_public_path__ = publicUrl`
+
+  modules = _.extend({}, Defaults.modules, options.modules)
+  imports = Defaults.imports.slice()
+  imports.push (Settings.get('app', 'imports') or [])...
+  app = {imports, modules}
 
   extraRoutes = options.extraRoutes or []
   bodyWrapper = options.bodyWrapper
@@ -94,8 +74,6 @@ exports.init_app = (target, options={}) ->
     uri.query(null)
     window.history.replaceState null, document.title, uri.toString()
 
-  app = {imports, modules}
-
   # TODO handle errors, timeouts
   initializationPromise = Modules.init_modules(modules)
   initializationPromise.fail (e) ->
@@ -103,7 +81,6 @@ exports.init_app = (target, options={}) ->
     Modal.pushModal handler: InitializationFailureModal, props: error: e
 
   React.renderComponent AppRoutes({bodyWrapper, app, initializationPromise, extraRoutes}), target
-
 
 encodeNotebookValue = (value) ->
   btoa(unescape(encodeURIComponent(value)))
