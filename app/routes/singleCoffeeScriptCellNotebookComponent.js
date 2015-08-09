@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {AppAwareMixin} from '../app';
+import AppAwareMixin from '../appAwareMixin';
 import * as Notebook from '../notebook';
 
 

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import SingleCoffeeScriptCellNotebookComponent from './singleCoffeeScriptCellNotebookComponent';
 import * as Settings from '../settings';
-import {AppAwareMixin} from '../app';
+import AppAwareMixin from '../appAwareMixin';
 import * as Notebook from '../notebook';
 
 

@@ -8,7 +8,7 @@ Context = require './context'
 CoffeeScriptCell = require './coffeescript_cell'
 Components = require './components'
 ContextComponents = require './contextComponents'
-App = require('./app')
+AppAwareMixin = require('./appAwareMixin')
 
 remove_target = (targets, target) ->
   targets.modify (targets) ->
@@ -57,7 +57,7 @@ TargetEditorComponent = React.createClass
 
 exports.BuilderComponent = React.createClass
   displayName: 'BuilderComponent'
-  mixins: [App.AppAwareMixin]
+  mixins: [AppAwareMixin]
 
   getInitialState: ->
     leaf_clicks = new Bacon.Bus()

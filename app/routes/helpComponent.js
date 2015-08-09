@@ -3,7 +3,7 @@ import {Navigation} from 'react-router';
 
 import HelpPageComponent from '../helpPageComponent';
 import {TopLevelContextComponent} from '../context';
-import {AppAwareMixin} from '../app';
+import AppAwareMixin from '../appAwareMixin';
 
 
 export default React.createClass({

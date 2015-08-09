@@ -1,5 +1,5 @@
 import * as _ from 'underscore';
-import * as Bacon from 'bacon';
+import * as Bacon from 'bacon.model';
 import * as React from 'react';
 
 // FIXME static global
