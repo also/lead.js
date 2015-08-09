@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 
 import Markdown from './markdown';
-import Context from './context';
+import * as Context from './context';
 import {ContextAwareMixin} from './contextComponents';
 
 const docs = {};
