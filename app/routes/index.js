@@ -1,4 +1,4 @@
-import {Route, Routes, NotFoundRoute} from 'react-router';
+import {Route, Routes, NotFoundRoute, Navigation} from 'react-router';
 import * as React from 'react';
 
 import AppComponent from '../appComponent';
@@ -15,6 +15,8 @@ import BuilderAppComponent from './builderAppComponent';
 
 
 const DefaultRoute = React.createClass({
+  mixins: [Navigation],
+
   render() {
     const queryKeys = Object.keys(this.props.query);
 
