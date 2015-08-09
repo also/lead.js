@@ -6,7 +6,7 @@ import Settings from './settings';
 
 let Context = null;
 
-export function _export(exports, module_name, definition_fn) {
+function _export(exports, module_name, definition_fn) {
   const settings = Settings.with_prefix(module_name);
   const contextExports = {};
   const docs = [];
@@ -25,14 +25,12 @@ export function _export(exports, module_name, definition_fn) {
 
   function optDocFn(f) {
     return (...args) => {
-      let name, summary;
-
       if (_.isString(args[1])) {
-        [name, summary] = args;
+        const [name, summary] = args;
         doc(name, summary);
         args.splice(1, 1);
       }
-      return f.apply(null, args);
+      return f(...args);
     };
   }
 
@@ -50,8 +48,8 @@ export function _export(exports, module_name, definition_fn) {
   });
 
   const component_fn = optDocFn((name, f) => {
-    const wrapped = (ctx) => {
-      return Context.add_component(ctx, f.apply(null, arguments));
+    const wrapped = (ctx, ...args) => {
+      return Context.add_component(ctx, f(ctx, ...args));
     };
 
     wrapped.raw_fn = f;
@@ -59,20 +57,19 @@ export function _export(exports, module_name, definition_fn) {
   });
 
   const component_cmd = optDocFn((name, f) => {
-    const wrapped = function (ctx) {
-      return Context.add_component(ctx, f.apply(null, arguments));
+    const wrapped = function (ctx, ...args) {
+      return Context.add_component(ctx, f(ctx, ...args));
     };
 
     wrapped.raw_fn = f;
     return cmd(name, wrapped);
   });
 
-  function contextExport() {
-    let k, v;
-    if (arguments.length === 1) {
+  function contextExport(...args) {
+    if (args.length === 1) {
       return _.extend(contextExports, arguments[0]);
     } else {
-      [k, v] = arguments;
+      const [k, v] = args;
       contextExports[k] = v;
     }
   }
