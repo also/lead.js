@@ -7,7 +7,7 @@ import * as Documentation from './documentation';
 import * as Components from './components';
 import * as Context from './context';
 import * as ContextComponents from './contextComponents';
-import App from './app';
+import * as App from './app';
 import {ObjectBrowserComponent} from './objectBrowser';
 
 const {ExampleComponent} = Components;

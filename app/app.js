@@ -2,9 +2,8 @@
 
 require('object.assign').shim();
 
-const React = require('react');
-
-import * as URI from 'URIjs';
+import * as React from 'react';
+import URI from 'URIjs';
 import Router from 'react-router';
 import Settings from './settings';
 import * as Modules from './modules';
