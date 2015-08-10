@@ -33,7 +33,7 @@ export default React.createClass({
     sel.selectAll('path, line')
       .attr('stroke', params.axisLineColor)
       .attr({
-        'fill': 'none',
+        fill: 'none',
         'shape-rendering': 'crispEdges'
       });
 

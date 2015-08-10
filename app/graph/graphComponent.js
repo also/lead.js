@@ -88,7 +88,7 @@ export default React.createClass({
           const targetValues = targets.map((t) => targetValueAtTime(t, time));
 
           return {x, time, targetValues};
-      });
+        });
 
       return {
         targets,
