@@ -21,13 +21,11 @@ export const help_component = function(ctx, o) {
     const doc = Documentation.getDocumentation(key);
 
     return <Documentation.DocumentationItemComponent {...{ctx, doc}}/>;
+  } else if (_.isString(o)) {
+    // TODO shouldn't be pre
+    return <pre>Documentation for {o} not found.</pre>;
   } else {
-    if (_.isString(o)) {
-      // TODO shouldn't be pre
-      return <pre>Documentation for {o} not found.</pre>;
-    } else {
-      return <pre>Documentation not found.</pre>;
-    }
+    return <pre>Documentation not found.</pre>;
   }
 };
 

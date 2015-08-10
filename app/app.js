@@ -12,6 +12,7 @@ import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
 import {encodeNotebookValue} from './notebook';
 
+
 Settings.default('app', 'intro_command', `help 'introduction'`);
 
 const InitializationFailureModal = React.createClass({
