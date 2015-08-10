@@ -1,0 +1,25 @@
+parser: babel-eslint
+plugins:
+  - react
+ecmaFeatures:
+  jsx: true
+env:
+  browser: true
+  node: true
+globals:
+  escape: false
+  unescape: false
+rules:
+  strict: 0
+  camelcase: 1
+  no-underscore-dangle: 0
+  quotes: [1, "single", "avoid-escape"]
+  brace-style: 1
+  no-console: 0
+  no-var: 2
+  no-undef: 2
+  react/jsx-no-undef: 2
+  new-cap: 1
+  no-loop-func: 1
+  no-use-before-define: 1
+  no-shadow: 1

@@ -8,6 +8,7 @@ script:
 - grunt
 - grunt connect:server test-phantomjs test-selenium-all-remote
 - grunt test-node
+- eslint .
 env:
   global:
   - secure: h5H8nroJfpEyNVVBka364QbNK4C97bgMvRoPaYosIW//vm15PvflwWD2xCQ1DckjpqLqEQkPxNShiQwB3Kpq90p1uljGIDPPiYwnFEnfwd/3ru3t4VVar8lFmZO3Wse83FQG/nLSofYNBwLjW+qee4BTqUct1fTA2nF1MtwPbPA=

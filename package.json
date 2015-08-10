@@ -54,9 +54,9 @@
     "coffee-react-transform": "^1.0.4",
     "grunt-coffee-react": "^1.0.3",
     "babel-loader": "^5.0.0",
-    "babel-eslint": "^3.1.1",
-    "eslint": "^0.21.0",
-    "eslint-plugin-react": "^2.2.0",
+    "babel-eslint": "^4.0.5",
+    "eslint": "^1.1.0",
+    "eslint-plugin-react": "^3.2.1",
     "grunt-babel": "^5.0.0"
   }
 }
