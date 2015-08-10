@@ -4,6 +4,7 @@ import {Navigation} from 'react-router';
 import HelpPageComponent from '../helpPageComponent';
 import {TopLevelContextComponent} from '../context';
 import AppAwareMixin from '../appAwareMixin';
+import {encodeNotebookValue} from '../notebook';
 
 
 export default React.createClass({

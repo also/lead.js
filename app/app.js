@@ -11,6 +11,7 @@ import * as Modules from './modules';
 import * as Modal from './modal';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
+import {encodeNotebookValue} from './notebook';
 
 Settings.default('app', 'intro_command', `help 'introduction'`);
 
@@ -89,10 +90,6 @@ export function init_app(target, options={}) {
 
   return React.renderComponent(<AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>, target);
 }
-
-const encodeNotebookValue = function (value) {
-  return btoa(unescape(encodeURIComponent(value)));
-};
 
 export function raw_cell_url(ctx, value) {
   const encoded = encodeNotebookValue(value);

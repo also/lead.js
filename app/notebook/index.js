@@ -412,6 +412,10 @@ export function cell_value(cell) {
   return cell.editor.getValue();
 }
 
+export function encodeNotebookValue(value) {
+  return btoa(unescape(encodeURIComponent(value)));
+}
+
 Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   componentCmd('save', 'Saves the current notebook to a file', (ctx) => {
     const link = save(ctx.notebook, ctx.input_cell);
