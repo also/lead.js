@@ -19,6 +19,9 @@ rules:
   no-var: 2
   no-undef: 2
   react/jsx-no-undef: 2
+  react/jsx-boolean-value: 2
+  react/jsx-no-duplicate-props: 2
+  react/jsx-quotes: [1, "single", "avoid-escape"]
   new-cap: 1
   no-loop-func: 1
   no-use-before-define: 1
