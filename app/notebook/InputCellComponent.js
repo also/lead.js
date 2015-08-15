@@ -1,7 +1,7 @@
 import React from 'react/addons';
 
 import {ObservableMixin} from '../components';
-import Editor from '../editor';
+import * as Editor from '../editor';
 import * as Builtins from '../builtins';
 import * as Context from '../context';
 import {run_without_input_cell} from '../notebook';
