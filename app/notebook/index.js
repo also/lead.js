@@ -41,13 +41,13 @@ function identity(cell) {
 function exportNotebook(notebook, currentCell) {
   return {
     lead_js_version: 0,
-    cells: notebook.cells.filter(cell => cell !== currentCell && isInput(cell))
-      .map(cell => ({type: 'input', value: Editor.get_value(cell.editor)}))
+    cells: notebook.cells.filter((cell) => cell !== currentCell && isInput(cell))
+      .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
 
 function importNotebook(notebook, cell, imported, options) {
-  const cells = _.map(imported.cells, importedCell => {
+  const cells = _.map(imported.cells, (importedCell) => {
     if (importedCell.type === 'input') {
       cell = add_input_cell(notebook, {after: cell});
       set_cell_value(cell, importedCell.value);
@@ -76,7 +76,7 @@ export function focus_cell(cell) {
 }
 
 function clearNotebook(notebook) {
-  notebook.cells.forEach(cell => cell.active = false);
+  notebook.cells.forEach((cell) => cell.active = false);
   notebook.cells.length = 0;
   focus_cell(add_input_cell(notebook));
 }
@@ -138,11 +138,11 @@ export function add_input_cell(notebook, opts={}) {
 
   if (opts.reuse) {
     if (opts.after != null) {
-      cell = seek(opts.after, forwards, cell => {
+      cell = seek(opts.after, forwards, (cell) => {
         return isInput(cell) && visible(cell);
       });
     } else if (opts.before != null) {
-      cell = seek(opts.before, backwards, cell => {
+      cell = seek(opts.before, backwards, (cell) => {
         return isInput(cell) && visible(cell);
       });
     }
@@ -230,7 +230,7 @@ function runInputCell(input_cell) {
 function runWithContext(ctx, fn) {
   const {output_cell, pending} = ctx;
   // pending is a property that has the initial value 0 and tracks the number of pending promises
-  const hasPending = pending.map(n => n > 0);
+  const hasPending = pending.map((n) => n > 0);
   // a cell is "done enough" if there were no async tasks,
   // or when the first async task completes
   const noLongerPending = ctx.changes.skipWhile(hasPending);
@@ -321,7 +321,7 @@ export function handle_file(ctx, file, options={}) {
         return runInputCell(cell);
       }
     } else if (extension === 'md') {
-      run_without_input_cell(ctx.notebook, {after: ctx.output_cell}, ctx => {
+      run_without_input_cell(ctx.notebook, {after: ctx.output_cell}, (ctx) => {
         Context.add_component(ctx, <Markdown.MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
         return Context.IGNORE;
       });
@@ -379,7 +379,7 @@ export function run(cell, opts={advance: true}) {
 }
 
 export function save(cell) {
-  run_without_input_cell(cell.notebook, {before: cell}, ctx => {
+  run_without_input_cell(cell.notebook, {before: cell}, (ctx) => {
     exports.contextExports.save.fn(ctx);
     return Context.IGNORE;
   });
@@ -388,7 +388,7 @@ export function save(cell) {
 export function context_help(cell, token) {
   const key = Documentation.getKey(cell.context, token);
 
-  run_without_input_cell(cell.notebook, {before: cell}, ctx => {
+  run_without_input_cell(cell.notebook, {before: cell}, (ctx) => {
     if (key != null) {
       Context.add_component(ctx, Builtins.help_component(ctx, Documentation.keyToString(key)));
     }
@@ -431,7 +431,7 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
     const promise = http.execute_xhr(url, {dataType: 'text', type: 'get'})
     .fail(({statusText}) => {
       throw statusText;
-    }).then(xhr => {
+    }).then((xhr) => {
       handle_file(ctx, {
         filename: URI(url).filename(),
         type: xhr.getResponseHeader('content-type'),

@@ -8,7 +8,7 @@ import * as Settings from '../settings';
 
 import DocumentComponent from './DocumentComponent';
 
-function createNotebook (opts) {
+function createNotebook(opts) {
   const cells_model = Bacon.Model([]);
   const model = Bacon.Model.combine({
     cells: cells_model,

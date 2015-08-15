@@ -56,7 +56,7 @@ export default React.createClass({
       });
 
       this.targetState.set({
-        selection: _.map(targets, function() {
+        selection: _.map(targets, () => {
           return true;
         }),
         highlightIndex: null
@@ -182,13 +182,13 @@ export default React.createClass({
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.src = url;
-    img.onload = function() {
+    img.onload = () => {
       ctx.drawImage(img, 0, 0);
       // would like to return a blob, but https://code.google.com/p/chromium/issues/detail?id=67587
       const dataUrl = canvas.toDataURL();
       return deferred.resolve(dataUrl);
     };
-    img.onerror = function(e) {
+    img.onerror = (e) => {
       return deferred.reject(e);
     };
     return deferred.promise.finally(() => {
@@ -203,7 +203,7 @@ export default React.createClass({
       let title = null;
       if (params.title != null) {
         title = <text
-                  key="title"
+                  key='title'
                   x={sizes.margin.left + sizes.width / 2}
                   y={10}
                   dy={params.titleTextSize}
@@ -213,14 +213,14 @@ export default React.createClass({
 
       let xAxis = null;
       if (!(params.hideXAxis || params.hideAxes)) {
-        xAxis = <g key="xAxis" transform={`translate(0, ${sizes.height})`}>
+        xAxis = <g key='xAxis' transform={`translate(0, ${sizes.height})`}>
           <AxisComponent axis={d3.svg.axis().scale(xScale).orient('bottom').ticks(params.xAxisTicks)}/>
         </g>;
       }
 
       let yAxis = null;
       if (!(params.hideYAxis || params.hideAxes)) {
-        yAxis = <g key="yAxis">
+        yAxis = <g key='yAxis'>
           <AxisComponent axis={d3.svg.axis().scale(yScale).orient('left').ticks(params.yAxisTicks)}/>
         </g>;
       }
@@ -239,7 +239,7 @@ export default React.createClass({
 
       // react doesn't support clipPath :(
       const clipper = `
-      <clipPath id="clipper">
+      <clipPath id='clipper'>
           <rect width="${sizes.width}" height="${sizes.height}"/>
       </clipPath>`;
 
@@ -251,17 +251,17 @@ export default React.createClass({
           {title}
           <g dangerouslySetInnerHTML={{__html: clipper}}/>
 
-          <g transform={`translate(${sizes.margin.left},${sizes.margin.top})`} ref="chartArea">
+          <g transform={`translate(${sizes.margin.left},${sizes.margin.top})`} ref='chartArea'>
             {xAxis}
             {yAxis}
             <CrosshairComponent/>
             <BrushComponent brushModel={this.state.brushModel}/>
-            <g key="targets">{plots}</g>
+            <g key='targets'>{plots}</g>
             {legend}
           </g>
         </svg>;
 
-      return <div className="graph">
+      return <div className='graph'>
         {svg}
       </div>;
     } else {

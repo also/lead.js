@@ -81,19 +81,19 @@ export default React.createClass({
 
     const keyBindings = buildKeyMap();
 
-    return <div className="settings output">
-      <ToggleComponent title="Default Settings">
+    return <div className='settings output'>
+      <ToggleComponent title='Default Settings'>
         <ObjectComponent object={Settings.get_without_overrides()}/>
       </ToggleComponent>
-      <ToggleComponent title="Key Map">
+      <ToggleComponent title='Key Map'>
         <KeyBindingComponent keys={keyBindings} commands={CodeMirror.commands}/>
       </ToggleComponent>
-      <Context.TopLevelContextComponent ref="ctx" {...{imports, modules, context}}>
-        <EditorComponent run={this.saveSettings} ref="editor" key="settings_editor" initial_value={initialValue}/>
+      <Context.TopLevelContextComponent ref='ctx' {...{imports, modules, context}}>
+        <EditorComponent run={this.saveSettings} ref='editor' key='settings_editor' initial_value={initialValue}/>
         <Context.ContextOutputComponent/>
       </Context.TopLevelContextComponent>
-      <span className="run-button" onClick={() => this.saveSettings()}>
-        <i className="fa fa-floppy-o"/>
+      <span className='run-button' onClick={() => this.saveSettings()}>
+        <i className='fa fa-floppy-o'/>
         {' '}
         Save User Settings
       </span>

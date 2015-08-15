@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import d3 from 'd3';
 
-const expandIsolatedValuesToLineSegments = function(values) {
+const expandIsolatedValuesToLineSegments = function (values) {
   const result = [];
   let segmentLength = 0;
   let previous = null;
@@ -26,7 +26,7 @@ const expandIsolatedValuesToLineSegments = function(values) {
   return result;
 };
 
-const simplifyPoints = function(minDistance, values) {
+const simplifyPoints = function (minDistance, values) {
   const result = [];
   let previous = null;
 
@@ -55,13 +55,13 @@ const simplifyPoints = function(minDistance, values) {
   return result;
 };
 
-const nullToZero = function(v) {
+const nullToZero = function (v) {
   return v != null ? v : 0;
 };
 
 const timeBisector = d3.bisector((d) => d.time);
 
-export const transformData = function(data, params, sizes) {
+export const transformData = function (data, params, sizes) {
   const color = d3.scale.ordinal().range(params.d3_colors);
   let allNames = [];
   allNames = _.uniq(allNames.concat.apply(allNames, _.pluck(data, 'target')));
@@ -211,7 +211,7 @@ export const transformData = function(data, params, sizes) {
       expandLineValues = simplify;
     } else {
       // TODO this won't work well with stack
-      filterScatterValues = function(values) {
+      filterScatterValues = function (values) {
         return simplify(_.filter(values, (d) => d.value != null));
       };
       expandLineValues = _.compose(expandIsolatedValuesToLineSegments, simplify);
@@ -231,7 +231,7 @@ export const transformData = function(data, params, sizes) {
   };
 };
 
-export const computeSizes = function(data, params) {
+export const computeSizes = function (data, params) {
   let {width, height} = params;
   const legendRowHeight = 18;
 
@@ -280,7 +280,7 @@ export const computeSizes = function(data, params) {
   };
 };
 
-export const targetValueAtTime = function(target, time) {
+export const targetValueAtTime = function (target, time) {
   const i = target.bisector.left(target.values, time, 1);
   const d0 = target.values[i - 1];
   const d1 = target.values[i];

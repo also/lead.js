@@ -21,26 +21,26 @@ const CONTEXT_FN_VALUE = Symbol('context function value');
 
 let runningContextBinding = null;
 
-export const value = function(v) {
+export const value = function (v) {
   return {
     [CONTEXT_FN_VALUE]: v
   };
 };
 
-export const isValue = function(v) {
+export const isValue = function (v) {
   return v && v.hasOwnProperty(CONTEXT_FN_VALUE);
 };
 
-export const unwrapValue = function(v) {
+export const unwrapValue = function (v) {
   return v[CONTEXT_FN_VALUE];
 };
 
-export const collect_extension_points = function(context, extensionPoint) {
+export const collect_extension_points = function (context, extensionPoint) {
   return Modules.collect_extension_points(context.modules, extensionPoint);
 };
 
 // extension point
-export const resolveDocumentationKey = function(ctx, o) {
+export const resolveDocumentationKey = function (ctx, o) {
   if (o && o._lead_context_name) {
     if (o._lead_context_fn) {
       const fn = o._lead_context_fn;
@@ -53,8 +53,8 @@ export const resolveDocumentationKey = function(ctx, o) {
 
 class LeadNamespace {}
 
-const collectContextExports = function(context) {
-  return _.object(_.map(context.modules, function(module, name) {
+const collectContextExports = function (context) {
+  return _.object(_.map(context.modules, function (module, name) {
     if (!module) {
       throw new Error('Module ' + name + ' is invalid');
     }
@@ -66,12 +66,12 @@ const collectContextExports = function(context) {
   }));
 };
 
-const isRunContext = function(o) {
+const isRunContext = function (o) {
   return (o != null ? o.componentList : void 0) != null;
 };
 
-const bindFnToContext = function(ctx, fn) {
-  return function(...args) {
+const bindFnToContext = function (ctx, fn) {
+  return (...args) => {
     args.unshift(ctx);
     return fn.apply(ctx, args);
   };
@@ -79,18 +79,18 @@ const bindFnToContext = function(ctx, fn) {
 
 // define a getter for every context function that binds to the current scope on access.
 // copy everything else.
-const lazilyBindContextFns = function(target, scope, fns, namePrefix='') {
-  const doBind = function(k, o) {
+const lazilyBindContextFns = function (target, scope, fns, namePrefix='') {
+  const doBind = function (k, o) {
     if ((o != null) && _.isFunction(o.fn)) {
       const name = namePrefix + k;
 
-      const wrappedFn = function() {
+      const wrappedFn = function () {
         const wrappedResult = o.fn.apply(null, arguments);
         // ignore return values except for special {CONTEXT_FN_VALUE}
         return isValue(wrappedResult) ? unwrapValue(wrappedResult) : IGNORE;
       };
 
-      const bind = function() {
+      const bind = function () {
         const bound = bindFnToContext(scope.ctx, wrappedFn);
         bound._lead_context_fn = o;
         bound._lead_context_name = name;
@@ -121,13 +121,13 @@ const lazilyBindContextFns = function(target, scope, fns, namePrefix='') {
   return target;
 };
 
-export const find_in_scope = function(ctx, name) {
+export const find_in_scope = function (ctx, name) {
   return ctx.scope[name];
 };
 
-const registerPromise = function(ctx, promise) {
+const registerPromise = function (ctx, promise) {
   ctx.asyncs.push(1);
-  promise.finally(function() {
+  promise.finally(() => {
     ctx.asyncs.push(-1);
     ctx.changes.push(true);
   });
@@ -189,7 +189,7 @@ const ContextLayoutComponent = React.createClass({
   render() {
     const {ctx} = this.props;
 
-    const children = _.map(this.state.value, function({key, component}) {
+    const children = _.map(this.state.value, ({key, component}) => {
       let c;
 
       if (_.isFunction(component)) {
@@ -238,7 +238,7 @@ export const TopLevelContextComponent = React.createClass({
 });
 
 // the base context contains the loaded modules, and the list of modules to import into every context
-export const create_base_context = function({modules, imports}={}) {
+export const create_base_context = function ({modules, imports}={}) {
   // TODO not really cool to reference exports here
   modules = _.extend({
     context: exports,
@@ -254,7 +254,7 @@ export const create_base_context = function({modules, imports}={}) {
   };
 };
 
-const importInto = function(obj, target, path) {
+const importInto = function (obj, target, path) {
   const segments = path.split('.');
   const lastSegment = segments[segments.length - 1];
   const wildcard = lastSegment === '*';
@@ -288,19 +288,19 @@ const context_run_context_prototype = {
   }
 };
 
-export const create_nested_context = function(parent, overrides) {
+export const create_nested_context = function (parent, overrides) {
   const newContext = _.extend(Object.create(parent), {
     layout: SimpleLayoutComponent
   }, overrides);
 
   newContext.componentList = componentList();
-  newContext.component = function() {
+  newContext.component = function () {
     return <ContextComponent ctx={newContext}/>;
   };
   return newContext;
 };
 
-export const create_run_context = function(extraContexts) {
+export const create_run_context = function (extraContexts) {
   const run_context_prototype = _.extend({}, ...extraContexts, context_run_context_prototype);
   const result = create_nested_context(run_context_prototype);
   if (result.mainLayout != null) {
@@ -321,7 +321,7 @@ export const create_run_context = function(extraContexts) {
   return result;
 };
 
-const spliceCtx = function(ctx, targetCtx, fn, args=[]) {
+const spliceCtx = function (ctx, targetCtx, fn, args=[]) {
   const previousContext = targetCtx.scope.ctx;
   targetCtx.scope.ctx = ctx;
   fn = fn._lead_unbound_fn || fn;
@@ -332,27 +332,27 @@ const spliceCtx = function(ctx, targetCtx, fn, args=[]) {
   }
 };
 
-const callInCtx = function(ctx, fn, args) {
+const callInCtx = function (ctx, fn, args) {
   return spliceCtx(ctx, ctx, fn, args);
 };
 
 // creates a nested context, adds it to the component list, and applies the function to it
-export const nested_item = function(ctx, fn, ...args) {
+export const nested_item = function (ctx, fn, ...args) {
   const nested = create_nested_context(ctx);
   addComponent(ctx, nested.component);
   return callInCtx(nested, fn, args);
 };
 
-export const callUserFunctionInCtx = function(ctx, fn, args=[]) {
+export const callUserFunctionInCtx = function (ctx, fn, args=[]) {
   fn = fn._lead_unbound_fn || fn;
   spliceCtx(ctx, ctx, () => fn(...args));
 };
 
 // returns a function that calls its argument in the current context
-const captureContext = function(ctx) {
+const captureContext = function (ctx) {
   const runningContext = runningContextBinding;
 
-  return function(fn, args) {
+  return (fn, args) => {
     const previousRunningContextBinding = runningContextBinding;
     runningContextBinding = runningContext;
     try {
@@ -365,16 +365,16 @@ const captureContext = function(ctx) {
 
 // TODO only used by test
 // wraps a function so that it is called in the current context
-export const keeping_context = function(ctx, fn) {
+export const keeping_context = function (ctx, fn) {
   const restoringContext = captureContext(ctx);
 
-  return function() {
+  () => {
     return restoringContext(fn, arguments);
   };
 };
 
 // TODO only used by test
-export const in_running_context = function(ctx, fn, args) {
+export const in_running_context = function (ctx, fn, args) {
   if (runningContextBinding == null) {
     throw new Error('no active running context. did you call an async function without keeping the context?');
   }
@@ -383,15 +383,15 @@ export const in_running_context = function(ctx, fn, args) {
 
 // the XXX context contains all the context functions and vars. basically, everything needed to support
 // an editor
-export const create_context = function(base) {
+export const create_context = function (base) {
   const contextExports = collectContextExports(base);
   const imported = _.clone(contextExports);
   _.each(base.imports, _.partial(importInto, contextExports, imported));
 
   const scope = {
-    _capture_context: function(fn) {
+    _capture_context(fn) {
       const restoringContext = captureContext(scope.ctx);
-      return function(...args) {
+      return (...args) => {
         return restoringContext(() => fn.apply(this, args));
       };
     }
@@ -402,7 +402,7 @@ export const create_context = function(base) {
   return _.extend({}, base, {imported, scope});
 };
 
-export const create_standalone_context = function({imports, modules, context}={}) {
+export const create_standalone_context = function ({imports, modules, context}={}) {
   const baseContext = create_base_context({
     imports: ['builtins.*'].concat(imports || []),
     modules: modules
@@ -411,7 +411,7 @@ export const create_standalone_context = function({imports, modules, context}={}
   return create_run_context([context != null ? context : {}, create_context(baseContext)]);
 };
 
-export const run_in_context = function(runContext, fn) {
+export const run_in_context = function (runContext, fn) {
   const previousRunningContextBinding = runningContextBinding;
 
   try {
@@ -423,6 +423,6 @@ export const run_in_context = function(runContext, fn) {
   }
 };
 
-export const eval_in_context = function(runContext, string) {
+export const eval_in_context = function (runContext, string) {
   return run_in_context(runContext, (ctx) => scopedEval(ctx, string));
 };

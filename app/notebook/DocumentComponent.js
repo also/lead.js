@@ -20,7 +20,7 @@ export default React.createClass({
 
     const ios = [];
     let props = null;
-    this.state.value.cells.forEach(cell => {
+    this.state.value.cells.forEach((cell) => {
       if (cell.type === 'input') {
         props = {
           input_cell: cell,
@@ -44,7 +44,7 @@ export default React.createClass({
 
     return (
       <div className={`notebook ${layout}-style`}>
-        {ios.map(io => <InputOutputComponent {...io}/>)}
+        {ios.map((io) => <InputOutputComponent {...io}/>)}
       </div>
     );
   }

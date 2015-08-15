@@ -3,10 +3,12 @@ plugins:
   - react
 ecmaFeatures:
   jsx: true
-  ecmaFeatures: true
+  modules: true
+  experimentalObjectRestSpread: true
 env:
   browser: true
   node: true
+  es6: true
 globals:
   escape: false
   unescape: false

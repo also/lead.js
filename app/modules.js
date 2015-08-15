@@ -108,7 +108,7 @@ export function init_modules(modules) {
 
   Context = require('./context');
 
-  const promises = _.map(modules, mod => {
+  const promises = _.map(modules, (mod) => {
     let promise;
     if (mod.init != null) {
       promise = Q(mod.init()).then(function () {
@@ -118,7 +118,7 @@ export function init_modules(modules) {
       promise = Q(mod);
     }
 
-    return promise.then(mod => {
+    return promise.then((mod) => {
       if (mod.docs != null) {
         return _.each(mod.docs, ({key, doc}) => {
           return Documentation.register(key, doc);

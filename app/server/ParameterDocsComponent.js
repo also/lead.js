@@ -21,7 +21,7 @@ export default React.createClass({
     // TODO
     const div = this.refs.docs.getDOMNode();
     div.insertAdjacentHTML('beforeend', docs);
-    div.querySelectorAll('a').forEach(a => a.onclick = e => {
+    div.querySelectorAll('a').forEach((a) => a.onclick = (e) => {
       e.preventDefault();
       const href = a.getAttribute('href');
       if (href[0] === '#') {

@@ -2,7 +2,7 @@ import {jsdom} from 'jsdom';
 
 function enableGlobalWindow() {
   if (!global.window) {
-    const doc = jsdom("<html><body></body></html>");
+    const doc = jsdom('<html><body></body></html>');
 
     global.window = doc.parentWindow;
     global.document = doc;
@@ -13,7 +13,7 @@ function enableGlobalWindow() {
 }
 
 export function require(m) {
-  return require("./" + m);
+  return require('./' + m);
 }
 
 enableGlobalWindow();

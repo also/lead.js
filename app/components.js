@@ -4,7 +4,7 @@ import React from 'react/addons';
 
 import {ContextAwareMixin} from './contextComponents';
 
-const formatCode = function(code, language, target) {
+const formatCode = function (code, language, target) {
   if (CodeMirror.runMode != null) {
     let opts;
     if (language === 'json') {
@@ -35,10 +35,10 @@ export const ExampleComponent = React.createClass({
   },
 
   render() {
-    return <div className="example">
+    return <div className='example'>
       <SourceComponent {...this.props}/>
-      <span className="run-button" onClick={this.onClick}>
-        <i className="fa fa-play-circle"/>
+      <span className='run-button' onClick={this.onClick}>
+        <i className='fa fa-play-circle'/>
         {' '}
         Run this example
       </span>
@@ -95,14 +95,14 @@ export const ToggleComponent = React.createClass({
     const toggleClass = this.state.open ? 'fa-caret-down' : 'fa-caret-right';
 
     const body = !this.state.open ? null : <div>
-      <i className="fa fa-fw"/>
-      <div className="toggle-body">{this.props.children}</div>
+      <i className='fa fa-fw'/>
+      <div className='toggle-body'>{this.props.children}</div>
     </div>;
 
-    return <div className="toggle-component">
-      <div className="toggle" onClick={this.toggle}>
+    return <div className='toggle-component'>
+      <div className='toggle' onClick={this.toggle}>
         <i className={'fa fa-fw ' + toggleClass}/>
-        <div className="toggle-title">{this.props.title}</div>
+        <div className='toggle-title'>{this.props.title}</div>
         {body}
       </div>
     </div>;
