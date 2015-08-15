@@ -81,14 +81,19 @@ module.exports = (grunt) ->
         blacklist: ['strict']
         optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']
       source:
-        files: [
+        files: [{
           expand: true
           cwd: 'app'
           src: ['**/*.js']
           dest: 'build/node/app'
           ext: '.js'
           extDot: 'last'
-        ]
+        }, {
+          expand: true
+          cwd: 'app/node'
+          src: ['*.js']
+          dest: 'build/node/app'
+        }]
     connect:
       server: {}
 
