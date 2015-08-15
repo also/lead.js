@@ -1,3 +1,4 @@
+extends: eslint:recommended
 plugins:
   - react
 ecmaFeatures:
@@ -45,3 +46,4 @@ rules:
   no-loop-func: 1
   no-use-before-define: 1
   no-shadow: 1
+  no-constant-condition: 1
