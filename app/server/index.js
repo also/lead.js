@@ -4,7 +4,7 @@ import Bacon from 'bacon.model';
 import Q from 'q';
 import URI from 'URIjs';
 
-import dsl from '../dsl';
+import * as dsl from '../dsl';
 import * as Modules from '../modules';
 import GraphiteFunctionNames from '../graphite/functions';
 import http from '../http';
