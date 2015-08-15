@@ -1,4 +1,6 @@
 extends: eslint:recommended
+# https://github.com/eslint/eslint/issues/3271
+parser: babel-eslint
 plugins:
   - react
 ecmaFeatures:

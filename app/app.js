@@ -1,4 +1,5 @@
 /* globals __webpack_public_path__: true */
+/* exported __webpack_public_path__ */
 
 require('object.assign').shim();
 
