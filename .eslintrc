@@ -3,6 +3,7 @@ plugins:
   - react
 ecmaFeatures:
   jsx: true
+  ecmaFeatures: true
 env:
   browser: true
   node: true
