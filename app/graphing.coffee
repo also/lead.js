@@ -100,7 +100,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
 
   serverDataSource = (serverParams) ->
     new Server.LeadDataSource (params) ->
-      Server.get_data _.extend {}, serverParams, params
+      Server.getData _.extend {}, serverParams, params
 
   paramModifier = (newParams) ->
     (currentParams) ->
@@ -135,7 +135,7 @@ Graphing = modules.export exports, 'graphing', ({component_fn, doc, cmd, fn}) ->
         # TODO opentsdb won't like some of these params
         params = _.extend {}, ctx.options(), args[1]
       else
-        all_params = Server.args_to_params {args, default_options: ctx.options()}
+        all_params = Server.args_to_params {args, defaultOptions: ctx.options()}
         params = all_params.client
         source = serverDataSource(all_params.server)
 

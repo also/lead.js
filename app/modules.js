@@ -86,7 +86,9 @@ function _export(exports, module_name, definition_fn) {
     componentCmd: componentCmd,
     componentFn: componentFn,
     contextExport: contextExport,
-    settings: settings
+    settings: settings,
+    contextExports: contextExports,
+    docs: docs
   };
 
   return _.extend(exports, {

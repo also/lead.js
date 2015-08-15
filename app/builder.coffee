@@ -9,6 +9,7 @@ CoffeeScriptCell = require './coffeescript_cell'
 Components = require './components'
 ContextComponents = require './contextComponents'
 AppAwareMixin = require('./appAwareMixin')
+MetricTreeComponent = require('./server/MetricTreeComponent')
 
 remove_target = (targets, target) ->
   targets.modify (targets) ->
@@ -72,7 +73,7 @@ exports.BuilderComponent = React.createClass
         result
     render_results = targets.combine(server_params, (targets, server_params) -> {targets, server_params}).flatMapLatest ({targets, server_params}) ->
       if targets.length > 0
-        Bacon.fromPromise Server.get_data _.defaults {target: targets}, server_params
+        Bacon.fromPromise Server.getData _.defaults {target: targets}, server_params
       else
         Bacon.once []
     data = Bacon.Model()
@@ -96,7 +97,7 @@ exports.BuilderComponent = React.createClass
   render: ->
     React.DOM.div {className: 'builder'},
       React.DOM.div {className: 'output tree'},
-        Server.MetricTreeComponent
+        MetricTreeComponent
           root: @props.root
           leafClicked: (path) =>
             @state.leaf_clicks.push path
