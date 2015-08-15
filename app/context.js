@@ -368,7 +368,7 @@ const captureContext = function (ctx) {
 export const keeping_context = function (ctx, fn) {
   const restoringContext = captureContext(ctx);
 
-  () => {
+  return () => {
     return restoringContext(fn, arguments);
   };
 };
