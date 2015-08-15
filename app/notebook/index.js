@@ -357,8 +357,9 @@ function loadFile(ctx, file) {
   }
 }
 
-function save(input_cell) {
-  const text = JSON.stringify(exportNotebook(input_cell));
+// TODO rename
+function doSave(fromInputCell) {
+  const text = JSON.stringify(exportNotebook(fromInputCell));
   const blob = new Blob([text], {type: contentType});
   const link = document.createElement('a');
 
@@ -418,7 +419,7 @@ export function encodeNotebookValue(value) {
 
 Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   componentCmd('save', 'Saves the current notebook to a file', (ctx) => {
-    const link = save(ctx.notebook, ctx.input_cell);
+    const link = doSave(ctx.notebook, ctx.input_cell);
 
     return <a href={link.href}>Download Notebook</a>;
   });
