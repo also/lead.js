@@ -12,8 +12,10 @@ function enableGlobalWindow() {
   }
 }
 
-export function require(m) {
+function _require(m) {
   return require('./' + m);
 }
+
+export {_require as require};
 
 enableGlobalWindow();
