@@ -29,8 +29,6 @@ const ExportModal = React.createClass({
   }
 });
 
-
-
 function brushParams(params, brush) {
   return brush.filter(({brushing}) => !brushing)
   .map(({extent}) => {
@@ -223,6 +221,7 @@ export function createModel(ctx, ...args) {
       promise = source.load(params);
     }
   }
+
   if (promise) {
     data = Bacon.fromPromise(promise);
   }

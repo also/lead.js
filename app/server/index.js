@@ -7,7 +7,7 @@ import URI from 'URIjs';
 import * as dsl from '../dsl';
 import * as Modules from '../modules';
 import GraphiteFunctionNames from '../graphite/functions';
-import http from '../http';
+import * as http from '../http';
 import docs from '../graphite/docs';
 //import parser from '../graphite_parser';
 import * as Builtins from '../builtins';

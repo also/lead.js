@@ -4,7 +4,7 @@ import _ from 'underscore';
 import URI from 'URIjs';
 import Bacon from 'bacon.model';
 import * as Editor from '../editor';
-import http from '../http';
+import * as http from '../http';
 import * as Context from '../context';
 import * as Modules from '../modules';
 import CoffeeScriptCell from '../coffeescript_cell';
