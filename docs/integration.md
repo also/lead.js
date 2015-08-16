@@ -27,6 +27,6 @@ app = require './lead.js/app/app'
 # a file containing your own lead.js settings, for example
 require './config'
 
-app.init_app document.body,
+app.initApp document.body,
   extraRoutes: require('./myRoutes')
 ```

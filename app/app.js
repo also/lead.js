@@ -52,7 +52,7 @@ function bindUserSettingsToLocalStorage(key) {
   });
 }
 
-export function init_app(target, options={}) {
+export function initApp(target, options={}) {
   bindUserSettingsToLocalStorage('lead_user_settings');
   const publicUrl = Settings.get('app', 'publicUrl');
 
@@ -102,7 +102,7 @@ export function raw_cell_url(ctx, value) {
 
 window.lead = {
   settings: Settings,
-  init_app: init_app,
+  initApp: initApp,
   Router: Router,
   React: React
 };
