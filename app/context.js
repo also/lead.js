@@ -2,6 +2,9 @@ import _ from 'underscore';
 import Bacon from 'bacon.model';
 import React from 'react/addons';
 
+import {user_settings, global_settings} from './settings';
+
+
 import {ContextAwareMixin, ContextRegisteringMixin, ComponentContextComponent} from './contextComponents';
 import {ObservableMixin, SimpleLayoutComponent} from './components';
 import * as Builtins from './builtins';
@@ -250,7 +253,8 @@ export const create_base_context = function ({modules, imports}={}) {
     modules: modules,
     imports: imports,
     repl_vars: {},
-    prop_vars: {}
+    prop_vars: {},
+    settings: {user: user_settings, global: global_settings}
   };
 };
 

@@ -6,7 +6,7 @@ require('object.assign').shim();
 import * as React from 'react';
 import URI from 'URIjs';
 import Router from 'react-router';
-import Settings from './settings';
+import * as Settings from './settings';
 import * as Modules from './modules';
 import * as Modal from './modal';
 import AppRoutes from './routes';

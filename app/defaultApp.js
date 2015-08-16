@@ -4,7 +4,7 @@ export const modules = {
   compat: require('./compat'),
   graphing: require('./graphing'),
   input: require('./input'),
-  settings: require('./settings'),
+  settings: require('./settings/leadModule'),
   context: require('./context'),
   builtins: require('./builtins'),
   notebook: require('./notebook'),

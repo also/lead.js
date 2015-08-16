@@ -2,13 +2,13 @@ import React from 'react';
 import _ from 'underscore';
 import CodeMirror from 'codemirror';
 
-import AppAwareMixin from './appAwareMixin';
-import CoffeeScriptCell from './coffeescript_cell';
-import * as Context from './context';
-import Settings from './settings';
-import {ToggleComponent} from './components';
-import {ObjectComponent} from './builtins';
-import {EditorComponent} from './editor';
+import AppAwareMixin from '../appAwareMixin';
+import CoffeeScriptCell from '../coffeescript_cell';
+import * as Context from '../context';
+import * as Settings from '../settings';
+import {ToggleComponent} from '../components';
+import {ObjectComponent} from '../builtins';
+import {EditorComponent} from '../editor';
 
 const buildKeyMap = function () {
   const allKeys = {};
@@ -57,8 +57,6 @@ const KeyBindingComponent = React.createClass({
 });
 
 export default React.createClass({
-  displayName: 'SettingsComponent',
-
   mixins: [AppAwareMixin],
 
   saveSettings(value) {

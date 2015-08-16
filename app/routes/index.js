@@ -2,7 +2,7 @@ import {Route, Routes, NotFoundRoute, Navigation} from 'react-router';
 import * as React from 'react';
 
 import AppComponent from '../appComponent';
-import SettingsComponent from '../settingsComponent';
+import SettingsComponent from '../settings/SettingsEditor';
 import * as GitHub from '../github';
 
 import NotFoundComponent from './notFoundComponent';

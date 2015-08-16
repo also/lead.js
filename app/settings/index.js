@@ -1,26 +1,9 @@
 import _ from 'underscore';
 import $ from 'jquery';
 import Bacon from 'baconjs';
-import * as Modules from './modules';
-import * as Context from './context';
 
-function splitKeysAndValue(keysAndValue) {
-  keysAndValue = [...keysAndValue];
-  const value = keysAndValue.pop();
-  const keys = keysAndValue;
-  return {keys, value};
-}
+import {splitKeysAndValue} from './utils';
 
-Modules.export(exports, 'settings', ({fn}) => {
-  fn('set', 'Sets a user setting', (ctx, keysAndValue) => {
-    const {keys, value} = splitKeysAndValue(keysAndValue);
-    user_settings.set(...keys, value);
-  });
-
-  fn('get', 'Gets a setting', (ctx, ...keys) => {
-    return Context.value(global_settings.get(...keys));
-  });
-});
 
 function keysOverlap(a, b) {
   const [longer, shorter] = a.length < b.length ? [b, a] : [a, b];
@@ -81,7 +64,7 @@ export function create(overrides={get: () => {}}) {
         return get(data, prefix.concat(keys));
       },
 
-      set(keysAndValue) {
+      set(...keysAndValue) {
         const {keys, value} = splitKeysAndValue(keysAndValue);
         const k = prefix.concat(keys);
 
@@ -90,7 +73,7 @@ export function create(overrides={get: () => {}}) {
         return this;
       },
 
-      default(keysAndValue) {
+      default(...keysAndValue) {
         const {keys, value} = splitKeysAndValue(keysAndValue);
         return this.get(...keys) || this.set(...keys, value);
       },
@@ -122,6 +105,6 @@ export function create(overrides={get: () => {}}) {
 }
 
 export const user_settings = create();
-const global_settings = create(user_settings);
+export const global_settings = create(user_settings);
 
 Object.assign(exports, global_settings);

@@ -2,7 +2,7 @@
 
 import Q from 'q';
 import _ from 'underscore';
-import Settings from './settings';
+import * as Settings from './settings';
 
 let Context = null;
 
