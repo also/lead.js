@@ -16,7 +16,7 @@ module.exports = {
     filename: "lead-[name].js"
   },
   resolve: {
-    extensions: ['', '.webpack.js', '.web.js', '.js', '.coffee', '.cjsx'],
+    extensions: ['', '.webpack.js', '.web.js', '.js', '.coffee'],
     alias: {
       // bacon.model references 'baconjs' in commonjs and 'bacon' in amd
       'bacon': 'baconjs',
