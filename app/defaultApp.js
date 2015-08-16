@@ -4,7 +4,6 @@ export const modules = {
   compat: require('./compat'),
   graphing: require('./graphing'),
   input: require('./input'),
-  opentsdb: require('./opentsdb'),
   settings: require('./settings'),
   context: require('./context'),
   builtins: require('./builtins'),
@@ -18,6 +17,5 @@ export const imports = [
   'server.*',
   'github.*',
   'graphing.*',
-  'compat.*',
-  'opentsdb.tsd'
+  'compat.*'
 ];

@@ -9,7 +9,7 @@ settings.set('server', 'base_url', 'http://graphite.example.com');
 settings.set('github', 'githubs', 'github.example.com', {api_base_url: 'https://github.example.com/api/v3', requires_access_token: true});
 ```
 
-Now, installing lead.js is just placing these files on a server somewhere. You'll need to configure your Graphite, OpenTSDB, and any other data sources to allow CORS access to this origin.
+Now, installing lead.js is just placing these files on a server somewhere. You'll need to configure your data sources to allow CORS access to this origin.
 
 ## Building from source
 

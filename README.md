@@ -24,8 +24,6 @@ lead.js is a CoffeeScript console for exploring data, inspired by tools like [Ma
 
 [Graphing](docs/graphing.md)
 
-[OpenTSDB](docs/opentsdb.md)
-
 [Graphite DSL function list](http://lead.github.io/?ZG9jcw%3D%3D)
 
 [lead.js built-in functions](http://lead.github.io/?aGVscA%3D%3D)

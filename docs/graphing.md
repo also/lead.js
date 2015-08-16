@@ -8,8 +8,6 @@ It can be called in a few different ways. The simplest way is with a promise of 
 graph promise, options
 ```
 
-To graph [OpenTSDB](opentsdb.md) data, use this form. The `tsd` function returns a promise.
-
 For Graphite data, there's a convenience form that calls `graphite.get_data` on it's arguments:
 
 ```coffeescript

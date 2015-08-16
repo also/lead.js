@@ -12,9 +12,6 @@ github:
 server:
   base_url: 'http://graphite.example.com'
 
-opentsdb:
-  base_url: 'http://opentsdb.example.com'
-
 app:
   intro_command: 'intro'
   publicUrl: 'http://cdn.example.com/'
