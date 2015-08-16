@@ -21,12 +21,12 @@ export default React.createClass({
   getInitialState() {
     const site = this.props.site;
     const tokens = new Bacon.Bus();
-    const unsubscribe = tokens.plug(settings.toProperty('githubs', site.domain, 'accessToken').filter(_.identity));
+    const unsubscribe = tokens.plug(settings.toProperty('githubs', site.domain, 'access_token').filter(_.identity));
     const userDetails = tokens.flatMapLatest((accessToken) => {
       this.setState({tokenStatus: 'validating'});
 
       return Bacon.combineTemplate({
-        user: Bacon.fromPromise(Http.get(Github.to_api_url(site, '/user').setQuery({
+        user: Bacon.fromPromise(Http.get(Github.toApiUrl(this.state.ctx, site, '/user').setQuery({
           accessToken: accessToken
         }))),
         accessToken: accessToken
