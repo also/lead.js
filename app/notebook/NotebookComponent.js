@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import * as Bacon from 'bacon.model';
 import React from 'react/addons';
 

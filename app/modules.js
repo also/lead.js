@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import Q from 'q';
 import _ from 'underscore';
 import * as Settings from './settings';

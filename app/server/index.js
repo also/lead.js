@@ -1,4 +1,3 @@
-/* eslint-disable new-cap, no-use-before-define */
 import _ from 'underscore';
 import Bacon from 'bacon.model';
 import Q from 'q';

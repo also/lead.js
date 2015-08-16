@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import _ from 'underscore';
 import URI from 'URIjs';
 import Bacon from 'bacon.model';

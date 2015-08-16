@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import _ from 'underscore';
 import moment from 'moment';
 import Q from 'q';

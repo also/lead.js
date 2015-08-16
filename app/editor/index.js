@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import Bacon from 'bacon.model';
 import CodeMirror from 'codemirror';
 import * as React from 'react/addons';

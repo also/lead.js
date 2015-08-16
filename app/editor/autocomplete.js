@@ -1,4 +1,3 @@
-/* eslint-disable camelcase, new-cap */
 import CodeMirror from 'codemirror';
 import _ from 'underscore';
 import Q from 'q';
