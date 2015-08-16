@@ -65,17 +65,6 @@ module.exports = (grunt) ->
           ext: '.js'
           extDot: 'last' # FFS grunt, why would you rename foo.test.coffee to foo.js :(
         ]
-    cjsx:
-      source:
-        files: [
-          expand: true
-          flatten: true
-          cwd: 'app'
-          src: ['**/*.cjsx']
-          dest: 'build/node/app'
-          ext: '.js'
-          extDot: 'last'
-        ]
     babel:
       options:
         blacklist: ['strict']
@@ -99,14 +88,13 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks 'grunt-contrib-copy'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
-  grunt.loadNpmTasks 'grunt-coffee-react'
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-webpack'
   grunt.loadNpmTasks 'grunt-contrib-compress'
   grunt.loadNpmTasks 'grunt-babel'
   grunt.loadTasks 'tasks'
 
-  grunt.registerTask 'node', ['coffee', 'cjsx', 'babel', 'copy:javascript']
+  grunt.registerTask 'node', ['coffee', 'babel', 'copy:javascript']
   grunt.registerTask 'web', ['webpack', 'css', 'copy:static']
   grunt.registerTask 'default', ['web', 'node']
   grunt.registerTask 'dist', ['copy:dist-node', 'copy:dist-web']

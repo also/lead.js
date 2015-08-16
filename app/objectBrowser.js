@@ -269,7 +269,7 @@ const ObjectBrowserSummaryComponent = React.createClass({
       return c;
     } else {
       let name = this.props.object.constructor ? this.props.object.constructor.name : null;
-      if (!name || name == '') {
+      if (!name || name === '') {
         name = '(anonymous constructor)';
       }
       if (_.isArray(this.props.object)) {

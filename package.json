@@ -51,8 +51,6 @@
     "grunt-contrib-compress": "^0.10.0",
     "sass-loader": "^0.4.2",
     "file-loader": "^0.6.1",
-    "coffee-react-transform": "^1.0.4",
-    "grunt-coffee-react": "^1.0.3",
     "babel-loader": "^5.0.0",
     "babel-eslint": "^4.0.5",
     "eslint": "^1.1.0",
