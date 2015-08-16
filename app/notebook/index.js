@@ -7,7 +7,7 @@ import * as Editor from '../editor';
 import * as http from '../http';
 import * as Context from '../context';
 import * as Modules from '../modules';
-import CoffeeScriptCell from '../coffeescript_cell';
+import * as CoffeeScriptCell from '../coffeescript';
 import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';

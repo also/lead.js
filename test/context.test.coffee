@@ -1,6 +1,6 @@
 expect = require 'expect.js'
 Context = require '../app/context'
-CoffeeScriptCell = require '../app/coffeescript_cell'
+CoffeeScriptCell = require '../app/coffeescript'
 Builtins = require '../app/builtins'
 React = require 'react'
 $ = require 'jquery'

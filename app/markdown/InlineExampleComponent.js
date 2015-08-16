@@ -1,7 +1,7 @@
 import React from 'react/addons';
 
 import * as Context from '../context';
-import CoffeeScriptCell from '../coffeescript_cell';
+import * as CoffeeScriptCell from '../coffeescript';
 import {SourceComponent} from '../components';
 import {ContextAwareMixin} from '../contextComponents';
 import _ from 'underscore';

@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CodeMirror from 'codemirror';
 
 import AppAwareMixin from '../appAwareMixin';
-import CoffeeScriptCell from '../coffeescript_cell';
+import * as CoffeeScriptCell from '../coffeescript';
 import * as Context from '../context';
 import * as Settings from '../settings';
 import {ToggleComponent} from '../components';
