@@ -8,7 +8,7 @@ import * as http from '../http';
 import * as Context from '../context';
 import * as Modules from '../modules';
 import CoffeeScriptCell from '../coffeescript_cell';
-import Markdown from '../markdown';
+import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
 import NotebookComponent from './NotebookComponent';
@@ -322,7 +322,7 @@ export function handle_file(ctx, file, options={}) {
       }
     } else if (extension === 'md') {
       run_without_input_cell(ctx.notebook, {after: ctx.output_cell}, (ctx) => {
-        Context.add_component(ctx, <Markdown.MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
+        Context.add_component(ctx, <MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
         return Context.IGNORE;
       });
     } else {

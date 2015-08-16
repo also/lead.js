@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 
-import Markdown from './markdown';
+import MarkdownComponent from './markdown/MarkdownComponent';
 import * as modules from './modules';
 import * as Documentation from './documentation';
 import * as Components from './components';
@@ -311,7 +311,7 @@ modules.export(exports, 'builtins', function({doc, fn, componentFn, componentCmd
   });
 
   componentFn('md', 'Displays rendered Markdown', (ctx, string, opts) => {
-    return <Markdown.MarkdownComponent value={string} opts={opts}/>;
+    return <MarkdownComponent value={string} opts={opts}/>;
   });
 
   componentFn('text', 'Displays text', (ctx, string) => {

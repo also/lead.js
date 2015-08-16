@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 
-import Markdown from './markdown';
+import LeadMarkdownComponent from './markdown/LeadMarkdownComponent';
 import * as Context from './context';
 import {ContextAwareMixin} from './contextComponents';
 
@@ -91,7 +91,7 @@ export const complete = function(ctx, doc) {
   if (_.isFunction(doc.complete)) {
     return doc.complete(ctx, doc);
   } else if (_.isString(doc.complete)) {
-    return <Markdown.LeadMarkdownComponent value={doc.complete}/>;
+    return <LeadMarkdownComponent value={doc.complete}/>;
   } else if (doc.index) {
     return index(ctx, doc.key);
   } else {
@@ -151,14 +151,14 @@ export const loadFile = function(name) {
   if (process.browser) {
     return function() {
       const {images, content} = require("../lib/markdown-loader.coffee!../docs/" + name + ".md");
-      return <Markdown.LeadMarkdownComponent value={content} image_urls={images}/>;
+      return <LeadMarkdownComponent value={content} image_urls={images}/>;
     };
   }
 };
 
 export const registerLeadMarkdown = function(key, {images, content}) {
   return register(key, {
-    complete: <Markdown.LeadMarkdownComponent value={content} image_urls={images}/>
+    complete: <LeadMarkdownComponent value={content} image_urls={images}/>
   });
 };
 
