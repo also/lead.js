@@ -12,7 +12,7 @@ import {ModalComponent} from '../modal';
 import {ToggleComponent} from '../components';
 
 
-const settings = Settings.with_prefix('server');
+const settings = Settings.with_prefix('github');
 
 
 export default React.createClass({
