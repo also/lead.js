@@ -14,7 +14,7 @@ const {ExampleComponent} = Components;
 
 export {ExampleComponent as ExampleComponent, ObjectBrowserComponent as ObjectBrowserComponent};
 
-export const help_component = function(ctx, o) {
+export function help_component(ctx, o) {
   const key = Documentation.getKey(ctx, o);
 
   if (key != null) {
@@ -27,7 +27,7 @@ export const help_component = function(ctx, o) {
   } else {
     return <pre>Documentation not found.</pre>;
   }
-};
+}
 
 export const ObjectComponent = React.createClass({
   displayName: 'ObjectComponent',
@@ -47,7 +47,7 @@ export const ObjectComponent = React.createClass({
       }
     }
 
-    return <Components.SourceComponent value={s} language="json"/>;
+    return <Components.SourceComponent value={s} language='json'/>;
   }
 });
 
@@ -55,7 +55,7 @@ const HtmlComponent = React.createClass({
   displayName: 'HtmlComponent',
 
   render() {
-    return <div className="user-html" dangerouslySetInnerHTML={{__html: this.props.value}}/>;
+    return <div className='user-html' dangerouslySetInnerHTML={{__html: this.props.value}}/>;
   }
 });
 
@@ -85,7 +85,7 @@ export const ErrorComponent = React.createClass({
       }
     }
 
-    return <div className="error">{message}</div>;
+    return <div className='error'>{message}</div>;
   }
 });
 
@@ -139,7 +139,7 @@ export const PromiseStatusComponent = React.createClass({
       icon = 'fa-spinner fa-spin';
     }
 
-    return <div className="promise-status">
+    return <div className='promise-status'>
       <i className={`fa ${icon} fa-fw`}/>
       {' '}
       {text}
@@ -289,13 +289,13 @@ export const FlowComponent = React.createClass({
   displayName: 'FlowComponent',
 
   render() {
-    return <div className="flex-layout" style={{display: 'flex', flexWrap: 'wrap'}}>
+    return <div className='flex-layout' style={{display: 'flex', flexWrap: 'wrap'}}>
       {this.props.children}
     </div>;
   }
 });
 
-modules.export(exports, 'builtins', function({doc, fn, componentFn, componentCmd}) {
+modules.export(exports, 'builtins', ({doc, fn, componentFn, componentCmd}) => {
   componentCmd('help', 'Shows this help', (ctx, ...args) => {
     return help_component(ctx, ...args);
   });

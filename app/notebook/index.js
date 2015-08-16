@@ -434,7 +434,7 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
       throw statusText;
     }).then((xhr) => {
       handle_file(ctx, {
-        filename: URI(url).filename(),
+        filename: new URI(url).filename(),
         type: xhr.getResponseHeader('content-type'),
         content: xhr.responseText
       }, options);

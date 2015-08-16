@@ -33,7 +33,7 @@ export default React.createClass({
   },
 
   componentWillMount() {
-    return Modal.model.onValue(modals => {
+    return Modal.model.onValue((modals) => {
       return this.setState({
         modal: modals[modals.length - 1]
       });

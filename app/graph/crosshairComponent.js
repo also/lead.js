@@ -26,7 +26,7 @@ export default React.createClass({
               y2={height}
               stroke={params.crosshairLineColor}/>
         <text x={x}
-              y="-6"
+              y='-6'
               fill={params.crosshairTextColor}
               style={{'text-anchor': 'middle', 'font-size': params.crosshairTextSize}}>
           {moment(time).format('lll')}

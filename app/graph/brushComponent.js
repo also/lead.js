@@ -3,23 +3,24 @@ import _ from 'underscore';
 import d3 from 'd3';
 import Bacon from 'bacon.model';
 
-const clearExtent = function(v) {
+
+function clearExtent(v) {
   return _.extend({}, v, {
     extent: null
   });
-};
+}
 
-const setBrushing = function(v) {
+function setBrushing(v) {
   return _.extend({}, v, {
     brushing: true
   });
-};
+}
 
-const setNotBrushing = function(v) {
+function setNotBrushing(v) {
   return _.extend({}, v, {
     brushing: false
   });
-};
+}
 
 export default React.createClass({
   propTypes: {

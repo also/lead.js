@@ -5,6 +5,7 @@ import * as Http from '../http';
 import * as Settings from '../settings';
 import {ModalComponent} from '../app';
 
+
 export default React.createClass({
   getInitialState() {
     const {query} = this.props;
@@ -12,7 +13,7 @@ export default React.createClass({
     // TODO this is some bad promising
     promise.finally(() => this.setState({finished: true})).done();
 
-    promise.then(function({access_token}) {
+    promise.then(({access_token}) => {
       if (access_token != null) {
         Settings.user_settings.set('github', 'githubs', Settings.get('github', 'default'), 'access_token', access_token);
       }
@@ -47,9 +48,9 @@ export default React.createClass({
     }
 
     return (
-      <div className="modal-bg">
-        <div className="modal-fg">
-          <ModalComponent footer={footer} title="GitHub Authentication">
+      <div className='modal-bg'>
+        <div className='modal-fg'>
+          <ModalComponent footer={footer} title='GitHub Authentication'>
             <div>{body}</div>
           </ModalComponent>
         </div>

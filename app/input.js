@@ -6,6 +6,7 @@ import * as modules from './modules';
 import * as Context from './context';
 import {ObservableMixin} from './components';
 
+
 const InputMixin = _.extend({}, ObservableMixin, {
   getObservable(props) {
     return props.model;
@@ -18,13 +19,13 @@ const InputMixin = _.extend({}, ObservableMixin, {
 // creates an input component bound to a bacon model
 // changes to the input component will update the model and changes to the
 // model will update the input component
-const createComponent = function(constructor, props) {
+function createComponent(constructor, props) {
   const model = Bacon.Model(props.defaultValue ? String(props.defaultValue) : '');
   props = _.extend(props, {model});
   const component = constructor(props);
 
   return {component, model};
-};
+}
 
 const SelectComponent = React.createClass({
   displayName: 'SelectComponent',
@@ -66,7 +67,7 @@ const InputComponent = React.createClass({
   }
 });
 
-modules.export(exports, 'input', function({fn}) {
+modules.export(exports, 'input', ({fn}) => {
   fn('text_input', 'A text input field', (ctx, defaultValue='') => {
     const {component, model} = createComponent(InputComponent, {
       type: 'text',

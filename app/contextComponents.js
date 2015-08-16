@@ -1,13 +1,13 @@
 import React from 'react/addons';
-
 import _ from'underscore';
+
 
 const contextsByRootNodeId = {};
 
-const findAncestorContexts = function(componentInstance) {
+function findAncestorContexts(componentInstance) {
   const result = [];
 
-  _.each(React.__internals.InstanceHandles.traverseAncestors(componentInstance._rootNodeID, function(id) {
+  _.each(React.__internals.InstanceHandles.traverseAncestors(componentInstance._rootNodeID, (id) => {
     const context = contextsByRootNodeId[id];
     if (context) {
       result.unshift(context);
@@ -15,7 +15,7 @@ const findAncestorContexts = function(componentInstance) {
   }));
 
   return result;
-};
+}
 
 export const ContextRegisteringMixin = {
   componentWillMount() {

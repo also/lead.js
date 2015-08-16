@@ -181,7 +181,7 @@ const TreeComponent = React.createClass({
 
   render() {
     const {nodeClass: NodeClass} = this.props;
-    return <ul className="simple-tree"><NodeClass node={this.props.root}/></ul>;
+    return <ul className='simple-tree'><NodeClass node={this.props.root}/></ul>;
   }
 });
 

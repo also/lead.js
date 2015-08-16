@@ -104,7 +104,7 @@ export default React.createClass({
   componentDidMount() {
     for (const a of this.getDOMNode().querySelectorAll('a')) {
       a.addEventListener('click', (e) => {
-        const uri = URI(a.href);
+        const uri = new URI(a.href);
 
         if (uri.protocol() === 'help') {
           e.preventDefault();

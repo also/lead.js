@@ -1,29 +1,32 @@
 import Bacon from 'bacon.model';
 
-export const componentList = function() {
+export function componentList() {
   let components = [];
   let componentId = 1;
   const model = new Bacon.Model([]);
+
   return {
     model: model,
-    addComponent: function(c) {
+
+    addComponent(c) {
       components.push({
         component: c,
         key: componentId++
       });
-      return model.set(components.slice());
+      model.set(components.slice());
     },
-    empty: function() {
+
+    empty() {
       components = [];
-      return model.set([]);
+      model.set([]);
     }
   };
-};
+}
 
-export const addComponent = function(ctx, component) {
+export function addComponent(ctx, component) {
   return ctx.componentList.addComponent(component);
-};
+}
 
-export const removeAllComponents = function(ctx) {
+export function removeAllComponents(ctx) {
   return ctx.componentList.empty();
-};
+}

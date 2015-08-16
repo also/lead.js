@@ -19,20 +19,20 @@ export default React.createClass({
 
     let ownerLink;
     if (owner != null) {
-      ownerLink = <a href={owner.html_url} target="_blank">{username}</a>;
+      ownerLink = <a href={owner.html_url} target='_blank'>{username}</a>;
     } else {
       ownerLink = username;
     }
 
     return (
-      <div className="gist-link">
-        <div className="creator">
+      <div className='gist-link'>
+        <div className='creator'>
           <img src={avatar}/>
           {ownerLink}
           {' / '}
-          <a href={html_url} target="_blank">{title}</a>
+          <a href={html_url} target='_blank'>{title}</a>
         </div>
-        <span className="datetime">Saved {moment(updated_at).fromNow()}</span>
+        <span className='datetime'>Saved {moment(updated_at).fromNow()}</span>
       </div>
     );
   }

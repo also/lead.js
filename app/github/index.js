@@ -19,7 +19,7 @@ const settings = Settings.with_prefix('server');
 
 export function get_site_from_url(url) {
   let host;
-  const uri = URI(url);
+  const uri = new URI(url);
   const hostname = uri.hostname();
 
   if (hostname === 'gist.github.com' || hostname === 'api.github.com') {
@@ -69,9 +69,9 @@ export function to_repo_url(path) {
   } else {
     const site = get_site_from_url(path);
     if (path.indexOf(site.api_base_url) === 0) {
-      return URI(path);
+      return new URI(path);
     } else {
-      const uri = URI(path);
+      const uri = new URI(path);
 
       path = uri.pathname();
       if (path[0] === '/') {
@@ -105,7 +105,7 @@ export function to_api_url(site, path, params) {
   if (params == null) {
     params = {};
   }
-  const result = URI('' + site.api_base_url + path).setQuery(params);
+  const result = new URI('' + site.api_base_url + path).setQuery(params);
 
   if (site.access_token != null) {
     result.setQuery('access_token', site.access_token);
@@ -123,10 +123,10 @@ export function to_gist_url(gist) {
   } else {
     const site = get_site_from_url(gist);
     if (site != null) {
-      const [id] = URI(gist).filename().split('.');
+      const [id] = new URI(gist).filename().split('.');
       return buildUrl(site, id);
     } else {
-      return URI(gist);
+      return new URI(gist);
     }
   }
 }
@@ -134,7 +134,7 @@ export function to_gist_url(gist) {
 const NotebookGistLinkComponent = React.createClass({
   mixins: [Router.Navigation],
   render() {
-    const leadUri = URI(window.location.href);
+    const leadUri = new URI(window.location.href);
 
     leadUri.query(null);
     leadUri.fragment(this.makeHref('gist_notebook', {

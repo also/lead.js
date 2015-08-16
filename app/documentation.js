@@ -7,27 +7,27 @@ import {ContextAwareMixin} from './contextComponents';
 
 const docs = {};
 
-const getParent = function(key) {
+function getParent(key) {
   let parent = docs;
   key.forEach((segment) => {
     parent = parent[segment] != null ? parent[segment] : parent[segment] = {};
   });
   return parent;
-};
+}
 
-const normalizeKey = function(key) {
+function normalizeKey(key) {
   if (_.isArray(key)) {
     return key;
   } else {
     return key.split('.');
   }
-};
+}
 
-export const getDocumentation = function(key) {
+export function getDocumentation(key) {
   return getParent(normalizeKey(key))._lead_doc;
-};
+}
 
-const resolveKey = function(ctx, o) {
+function resolveKey(ctx, o) {
   const resolvers = Context.collect_extension_points(ctx, 'resolveDocumentationKey');
   let result = null;
   _.find(resolvers, (resolver) => {
@@ -39,35 +39,35 @@ const resolveKey = function(ctx, o) {
   });
 
   return result;
-};
+}
 
-export const keyToString = function(key) {
+export function keyToString(key) {
   if (_.isArray(key)) {
     return key.join('.');
   } else {
     return key;
   }
-};
+}
 
-export const navigate = function(ctx, key) {
+export function navigate(ctx, key) {
   key = keyToString(key);
   if (ctx.docsNavigate != null) {
     return ctx.docsNavigate(key);
   } else {
     return ctx.run("help '" + key + "'");
   }
-};
+}
 
-export const register = function(key, doc) {
+export function register(key, doc) {
   key = normalizeKey(key);
   doc = _.extend({
     key: key
   }, doc);
 
   getParent(key)._lead_doc = doc;
-};
+}
 
-export const keys = function(key) {
+export function keys(key) {
   return _.filter(_.map(getParent(normalizeKey(key)), (v, k) => {
     if (v._lead_doc != null) {
       return k;
@@ -75,9 +75,9 @@ export const keys = function(key) {
       return null;
     }
   }), _.identity);
-};
+}
 
-export const summary = function(ctx, doc) {
+export function summary(ctx, doc) {
   if (_.isFunction(doc.summary)) {
     return doc.summary(ctx, doc);
   } else if (_.isString(doc.summary)) {
@@ -85,9 +85,9 @@ export const summary = function(ctx, doc) {
   } else {
     return doc.summary;
   }
-};
+}
 
-export const complete = function(ctx, doc) {
+export function complete(ctx, doc) {
   if (_.isFunction(doc.complete)) {
     return doc.complete(ctx, doc);
   } else if (_.isString(doc.complete)) {
@@ -97,9 +97,9 @@ export const complete = function(ctx, doc) {
   } else {
     return doc.complete;
   }
-};
+}
 
-export const index = function(ctx, key) {
+export function index(ctx, key) {
   key = normalizeKey(key);
 
   const entries = keys(key).map((k) => {
@@ -112,9 +112,9 @@ export const index = function(ctx, key) {
   });
 
   return <DocumentationIndexComponent {...{ctx, entries}}/>;
-};
+}
 
-export const getKey = function(ctx, o) {
+export function getKey(ctx, o) {
   if (o == null) {
     return ['main'];
   }
@@ -145,28 +145,28 @@ export const getKey = function(ctx, o) {
   } else {
     return null;
   }
-};
+}
 
-export const loadFile = function(name) {
+export function loadFile(name) {
   if (process.browser) {
-    return function() {
-      const {images, content} = require("../lib/markdown-loader.coffee!../docs/" + name + ".md");
+    return () => {
+      const {images, content} = require(`../lib/markdown-loader.coffee!../docs/${name}.md`);
       return <LeadMarkdownComponent value={content} image_urls={images}/>;
     };
   }
-};
+}
 
-export const registerLeadMarkdown = function(key, {images, content}) {
+export function registerLeadMarkdown(key, {images, content}) {
   return register(key, {
     complete: <LeadMarkdownComponent value={content} image_urls={images}/>
   });
-};
+}
 
-const registerFile = function(name, key) {
+function registerFile(name, key) {
   return register(key != null ? key : name, {
     complete: loadFile(name)
   });
-};
+}
 
 export {normalizeKey as keyToPath};
 
@@ -181,7 +181,7 @@ export const DocumentationLinkComponent = React.createClass({
 
   render() {
     return (
-      <span className="run-link" onClick={this.showHelp}>
+      <span className='run-link' onClick={this.showHelp}>
         {this.props.children}
       </span>
     );

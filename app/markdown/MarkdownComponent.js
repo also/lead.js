@@ -6,7 +6,7 @@ import UserHtmlComponent from './UserHtmlComponent';
 
 
 function fix_marked_renderer_href(fn, baseHref) {
-  return (href, ...args) => fn.call(this, URI(href).absoluteTo(baseHref).toString(), ...args);
+  return (href, ...args) => fn.call(this, new URI(href).absoluteTo(baseHref).toString(), ...args);
 }
 
 export default React.createClass({

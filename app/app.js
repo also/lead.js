@@ -68,7 +68,7 @@ export function init_app(target, options={}) {
 
   if (location.search !== '') {
     let query;
-    const uri = URI(location.href);
+    const uri = new URI(location.href);
 
     if (uri.hash() === '') {
       query = encodeURIComponent(uri.query());
@@ -81,7 +81,7 @@ export function init_app(target, options={}) {
   }
 
   const initializationPromise = Modules.init_modules(modules);
-  initializationPromise.fail(error => {
+  initializationPromise.fail((error) => {
     console.error('Failure initializing modules', error);
     return Modal.pushModal({
       handler: InitializationFailureModal,
@@ -95,7 +95,7 @@ export function init_app(target, options={}) {
 export function raw_cell_url(ctx, value) {
   const encoded = encodeNotebookValue(value);
 
-  return URI(ctx.app.appComponent.makeHref('raw_notebook', {splat: encoded}))
+  return new URI(ctx.app.appComponent.makeHref('raw_notebook', {splat: encoded}))
     .absoluteTo(location.href)
     .toString();
 }

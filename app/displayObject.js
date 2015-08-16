@@ -8,11 +8,11 @@ import {addComponent} from './componentList';
 import {IGNORE, collect_extension_points} from './context';
 
 // statement result handlers. return truthy if handled.
-const ignored = function(ctx, object) {
+function ignored(ctx, object) {
   return object === IGNORE;
-};
+}
 
-const handleCmd = function(ctx, object) {
+function handleCmd(ctx, object) {
   if (object && object._lead_context_fn) {
     const op = object._lead_context_fn;
     if (op.cmd_fn != null) {
@@ -28,9 +28,9 @@ const handleCmd = function(ctx, object) {
       return true;
     }
   }
-};
+}
 
-const handleModule = function(ctx, object) {
+function handleModule(ctx, object) {
   if (object && object._lead_context_name) {
     addComponent(ctx,
       <div>{object._lead_context_name}
@@ -40,46 +40,40 @@ const handleModule = function(ctx, object) {
     );
     return true;
   }
-};
+}
 
-const handleUsingExtension = function(ctx, object) {
+function handleUsingExtension(ctx, object) {
   const handlers = collect_extension_points(ctx, 'context_result_handler');
-  return _.find(handlers, function(handler) {
+  return _.find(handlers, (handler) => {
     return handler(ctx, object);
   });
-};
+}
 
-const handlePromise = function(ctx, object) {
+function handlePromise(ctx, object) {
   if (Q.isPromise(object)) {
-    addComponent(ctx, Builtins.PromiseComponent({
-      promise: object
-    }));
+    addComponent(ctx, <Builtins.PromiseComponent promise={object}/>);
     return true;
   }
-};
+}
 
-const handleObservable = function(ctx, object) {
+function handleObservable(ctx, object) {
   if (object instanceof Bacon.Observable) {
-    addComponent(ctx, Builtins.ObservableComponent({
-      observable: object
-    }));
+    addComponent(ctx, <Builtins.ObservableComponent observable={object}/>);
     return true;
   }
-};
+}
 
-const handleComponent = function(ctx, object) {
+function handleComponent(ctx, object) {
   if (React.isValidComponent(object)) {
     addComponent(ctx, object);
     return true;
   }
-};
+}
 
-const handleAnyObject = function(ctx, object) {
-  addComponent(ctx, Builtins.ObjectBrowserComponent({
-    object: object
-  }));
+function handleAnyObject(ctx, object) {
+  addComponent(ctx, <Builtins.ObjectBrowserComponent object={object}/>);
   return true;
-};
+}
 
 // TODO make this configurable
 const resultHandlers = [
@@ -93,7 +87,7 @@ const resultHandlers = [
   handleAnyObject
 ];
 
-export default function(ctx, object) {
+export default function (ctx, object) {
   for (const handler of resultHandlers) {
     if (handler(ctx, object)) {
       return;

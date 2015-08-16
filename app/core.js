@@ -2,7 +2,7 @@ import underscore from 'underscore';
 
 const exports = {};
 
-underscore.extend(exports, underscore, {
+Object.assign(exports, underscore, {
   logError(...message) {
     const error = message.pop();
 
@@ -50,7 +50,7 @@ underscore.extend(exports, underscore, {
     return result;
   },
 
-  startsWith: function(str, starts) {
+  startsWith(str, starts) {
     if (starts === '') {
       return true;
     }

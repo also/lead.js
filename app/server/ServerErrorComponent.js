@@ -25,7 +25,7 @@ export default React.createClass({
     const {error} = this.props;
 
     const body = _.isArray(error)
-      ? error.map(exception => <ServerExceptionDetailsComponent exception={exception}/>)
+      ? error.map((exception) => <ServerExceptionDetailsComponent exception={exception}/>)
       : <ServerExceptionDetailsComponent exception={error['unhandled-exception']}/>;
 
     return (
