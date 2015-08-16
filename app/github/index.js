@@ -17,7 +17,7 @@ import * as  Settings from '../settings';
 
 const settings = Settings.with_prefix('server');
 
-export function get_site_from_url(url) {
+function get_site_from_url(url) {
   let host;
   const uri = new URI(url);
   const hostname = uri.hostname();
@@ -27,6 +27,7 @@ export function get_site_from_url(url) {
   } else {
     host = hostname;
   }
+
   return get_site(host);
 }
 
@@ -36,17 +37,15 @@ function _default() {
 
 export {_default as default};
 
-export function get_site(name) {
+function get_site(name) {
   const site = settings.get('githubs', name != null ? name : settings.get('default'));
 
   if (site != null) {
-    return _.extend({
-      domain: name
-    }, site);
+    return Object.assign({domain: name}, site);
   }
 }
 
-export function get_repo_contents(url) {
+function get_repo_contents(url) {
   return Http.get(url).then((response) => {
     return {
       content: atob(response.content.replace(/\n/g, '')),
@@ -57,6 +56,7 @@ export function get_repo_contents(url) {
   });
 }
 
+/** @private */
 export function to_repo_url(path) {
   path = path.toString();
   if (path.indexOf('http') !== 0) {
@@ -83,7 +83,7 @@ export function to_repo_url(path) {
   }
 }
 
-export function save_gist(gist, options) {
+function save_gist(gist, options) {
   if (options == null) {
     options = {};
   }
@@ -92,7 +92,7 @@ export function save_gist(gist, options) {
   return Http.post(to_api_url(site, '/gists'), gist);
 }
 
-export function update_gist(id, gist, options) {
+function update_gist(id, gist, options) {
   if (options == null) {
     options = {};
   }
@@ -113,6 +113,7 @@ export function to_api_url(site, path, params) {
   return result;
 }
 
+/** @private */
 export function to_gist_url(gist) {
   const buildUrl = (site, id) => to_api_url(site, '/gists/' + id);
 
@@ -143,8 +144,8 @@ const NotebookGistLinkComponent = React.createClass({
 
     return (
       <div>
-          <GistLinkComponent gist={this.props.gist}/>
-          <p><a href={leadUri}>{leadUri.toString()}</a></p>
+        <GistLinkComponent gist={this.props.gist}/>
+        <p><a href={leadUri}>{leadUri.toString()}</a></p>
       </div>
     );
   }
