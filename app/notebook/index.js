@@ -284,7 +284,7 @@ function createNotebookRunContext(cell) {
     },
 
     exportNotebook() {
-      exportNotebook(notebook, cell);
+      return exportNotebook(notebook, cell);
     }
   };
 }
