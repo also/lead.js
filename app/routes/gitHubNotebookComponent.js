@@ -13,7 +13,7 @@ export default React.createClass({
   initNotebook(nb) {
     const file = this.props.params.splat;
 
-    Notebook.run_without_input_cell(nb, null, (ctx) => {
+    Notebook.run_without_input_cell(nb, undefined, (ctx) => {
       GitHub.contextExports.load.fn(ctx, file, {
         run: true
       });
