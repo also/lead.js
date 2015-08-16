@@ -185,4 +185,4 @@ const TreeComponent = React.createClass({
   }
 });
 
-module.exports = {TreeNodeComponent, TreeComponent}
+export {TreeNodeComponent, TreeComponent};
