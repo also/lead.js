@@ -52,3 +52,6 @@ rules:
   no-use-before-define: 1
   no-shadow: 1
   no-constant-condition: 1
+  # https://github.com/babel/babel/issues/1486
+  # https://github.com/babel/babel-eslint/issues/141
+  no-empty: 1
