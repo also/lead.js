@@ -8,7 +8,7 @@ module.exports = {
   // https://github.com/webpack/webpack/issues/300#issuecomment-45313650
   entry: {
     app: ['./app/app'],
-    'app-complete': './app/app_main_complete.entry',
+    'app-complete': './app/app-complete.entry',
     test: './test/run_mocha_browser'
   },
   output: {
