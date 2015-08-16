@@ -9,7 +9,7 @@ export const modules = {
   builtins: require('./builtins'),
   notebook: require('./notebook'),
   server: require('./server'),
-  github: require('./settings')
+  github: require('./github')
 };
 
 export const imports = [
