@@ -16,7 +16,7 @@ module.exports = {
     filename: "lead-[name].js"
   },
   resolve: {
-    extensions: ['', '.webpack.js', '.web.js', '.js', '.web.coffee', '.coffee', '.cjsx'],
+    extensions: ['', '.webpack.js', '.web.js', '.js', '.coffee', '.cjsx'],
     alias: {
       // bacon.model references 'baconjs' in commonjs and 'bacon' in amd
       'bacon': 'baconjs',
@@ -26,14 +26,13 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
-      {test: /\.cjsx$/, loader: 'coffee-loader!' + __dirname + '/lib/coffee-react-transform-loader.coffee'},
-      {test: /\.jsx?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']}},
+      {test: /\.js?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']}},
       {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime', 'reactCompat']}},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
       {test: /coffee-script.js$/, loader: 'exports?exports.CoffeeScript'},
-      { test: /font-awesome\/fonts\/.+\.(ttf|woff|eot|svg)$/, loader: "file-loader?name=fonts/[name]-[hash].[ext]" }
+      {test: /font-awesome\/fonts\/.+\.(ttf|woff|eot|svg)$/, loader: "file-loader?name=fonts/[name]-[hash].[ext]"}
     ],
     // TODO coffeescript has a weird require browser
     noParse: /coffee-script.js$/
@@ -42,7 +41,7 @@ module.exports = {
     // only include the moment english language
     new webpack.ContextReplacementPlugin(/moment[\\\/]lang$/, /^\.\/(en)$/),
 
-    // no "." and no subdirectories in ./app context. this excludes .entry.coffee files, and files that don't match extensions
+    // no "." and no subdirectories in ./app context. this excludes .entry.js files, and files that don't match extensions
     new webpack.ContextReplacementPlugin(/\/app$/, false, /^\.\/[^.]*$/),
     new webpack.NormalModuleReplacementPlugin(/^\.\/lib\/colorbrewer$/, '../lib/colorbrewer')
   ],
