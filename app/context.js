@@ -65,7 +65,7 @@ const collectContextExports = function (context) {
       module.context_vars.call(context) :
       module.context_vars;
 
-    return [name, _.extend(new LeadNamespace(), module.contextExports, vars)];
+    return [name, Object.assign(new LeadNamespace(), module.contextExports, vars)];
   }));
 };
 
@@ -201,14 +201,10 @@ const ContextLayoutComponent = React.createClass({
         c = component;
       }
 
-      return React.addons.cloneWithProps(c, {
-        key: key
-      });
+      return React.addons.cloneWithProps(c, {key});
     });
 
-    return ctx.layout(_.extend({
-      children: children
-    }, ctx.layout_props));
+    return React.createElement(ctx.layout, Object.assign({children}, ctx.layout_props));
   }
 });
 
@@ -243,7 +239,7 @@ export const TopLevelContextComponent = React.createClass({
 // the base context contains the loaded modules, and the list of modules to import into every context
 export const create_base_context = function ({modules, imports}={}) {
   // TODO not really cool to reference exports here
-  modules = _.extend({
+  modules = Object.assign({
     context: exports,
     builtins: Builtins
   }, modules);
@@ -279,7 +275,7 @@ const importInto = function (obj, target, path) {
   }
 
   if (wildcard) {
-    _.extend(target, imported);
+    Object.assign(target, imported);
   } else {
     target[lastSegment] = imported;
   }
@@ -293,7 +289,7 @@ const context_run_context_prototype = {
 };
 
 export const create_nested_context = function (parent, overrides) {
-  const newContext = _.extend(Object.create(parent), {
+  const newContext = Object.assign(Object.create(parent), {
     layout: SimpleLayoutComponent
   }, overrides);
 
@@ -305,7 +301,7 @@ export const create_nested_context = function (parent, overrides) {
 };
 
 export const create_run_context = function (extraContexts) {
-  const run_context_prototype = _.extend({}, ...extraContexts, context_run_context_prototype);
+  const run_context_prototype = Object.assign({}, ...extraContexts, context_run_context_prototype);
   const result = create_nested_context(run_context_prototype);
   if (result.mainLayout != null) {
     result.layout = result.mainLayout;
@@ -403,7 +399,7 @@ export const create_context = function (base) {
 
   lazilyBindContextFns(scope, scope, imported);
 
-  return _.extend({}, base, {imported, scope});
+  return Object.assign({}, base, {imported, scope});
 };
 
 export const create_standalone_context = function ({imports, modules, context}={}) {
