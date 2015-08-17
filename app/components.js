@@ -103,8 +103,8 @@ export const ToggleComponent = React.createClass({
       <div className='toggle' onClick={this.toggle}>
         <i className={'fa fa-fw ' + toggleClass}/>
         <div className='toggle-title'>{this.props.title}</div>
-        {body}
       </div>
+      {body}
     </div>;
   }
 });
