@@ -65,9 +65,9 @@ function wrapParams(params) {
   return params;
 }
 
-function serverDataSource(serverParams) {
+function serverDataSource(ctx, serverParams) {
   return new Server.LeadDataSource((params) => {
-    return Server.getData(Object.assign({}, serverParams, params));
+    return Server.getData(ctx, Object.assign({}, serverParams, params));
   });
 }
 
@@ -176,13 +176,13 @@ export function createModel(ctx, ...args) {
       source = args[0];
       params = Object.assign({}, ctx.options(), args[1]);
     } else {
-      const all_params = Server.args_to_params({
+      const all_params = Server.args_to_params(ctx, {
         args: args,
         defaultOptions: ctx.options()
       });
 
       params = all_params.client;
-      source = serverDataSource(all_params.server);
+      source = serverDataSource(ctx, all_params.server);
     }
 
     const paramModifiers = [];

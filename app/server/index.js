@@ -14,7 +14,6 @@ import Html from '../html';
 import * as Documentation from '../documentation';
 import * as Context from '../context';
 import * as Components from '../components';
-import * as Settings from '../settings';
 
 import FunctionDocsComponent from './FunctionDocsComponent';
 import ParameterDocsComponent from './ParameterDocsComponent';
@@ -23,7 +22,9 @@ import FindResultsComponent from './FindResultsComponent';
 import MetricTreeComponent from './MetricTreeComponent';
 
 
-const settings = Settings.with_prefix('server');
+function getSetting(ctx, ...key) {
+  return ctx.settings.global.get('server', ...key);
+}
 
 let functionNames = null;
 let serverOptionNames = null;
@@ -48,14 +49,14 @@ function buildParameterDoc(ctx, doc) {
   return <ParameterDocsComponent ctx={ctx} docs={docs.parameter_docs[doc.parameterName]}/>;
 }
 
-function argsToServerParams(context, args) {
-  return args_to_params({
+function argsToServerParams(ctx, args) {
+  return args_to_params(ctx, {
     args,
-    defaultOptions: context.options()
+    defaultOptions: ctx.options()
   }).server;
 }
 
-function renderUrl(params) {
+function renderUrl(ctx, params) {
   return url('render', params);
 }
 
@@ -118,9 +119,9 @@ function parseFindResponse(query, response) {
   return _.uniq(resultsWithPatterns.concat(results));
 }
 
-function transformResponse(response) {
+function transformResponse(ctx, response) {
   let values;
-  if (settings.get('type') === 'lead') {
+  if (getSetting(ctx, 'type') === 'lead') {
     if (response.exceptions.length > 0) {
       return Q.reject(new ServerError(response.exceptions));
     }
@@ -162,32 +163,32 @@ function transformResponse(response) {
   }
 }
 
-export function getData(params) {
-  return execute(params).then(transformResponse);
+export function getData(ctx, params) {
+  return execute(ctx, params).then((response) => transformResponse(ctx, response));
 }
 
-export function execute(params) {
+export function execute(ctx, params) {
   let promise;
   params.format = 'json';
-  if (settings.get('type') === 'lead') {
-    promise = http.post(url('execute'), params);
+  if (getSetting(ctx, 'type') === 'lead') {
+    promise = http.post(url(ctx, 'execute'), params);
   } else {
-    promise = http.get(renderUrl(params));
+    promise = http.get(renderUrl(ctx, params));
   }
   return promise.fail(function (response) {
     return Q.reject(new ServerError(parseErrorResponse(response)));
   });
 }
 
-export function executeOne(target, params={}, defaultOptions) {
-  const request = batch(defaultOptions);
+export function executeOne(ctx, target, params={}, defaultOptions) {
+  const request = batch(ctx, defaultOptions);
   const result = request.add(target);
 
   request.execute(params);
   return result;
 }
 
-export function batch(defaultOptions) {
+export function batch(ctx, defaultOptions) {
   const items = [];
 
   return {
@@ -210,7 +211,7 @@ export function batch(defaultOptions) {
         args.push(params);
       }
 
-      return execute(args_to_params({args, defaultOptions}).server)
+      return execute(ctx, args_to_params(ctx, {args, defaultOptions}).server)
       .then((result) => {
         if (result.exceptions.length > 0) {
           return Q.reject(new ServerError(result.exceptions));
@@ -224,13 +225,13 @@ export function batch(defaultOptions) {
   };
 }
 
-export function complete(query) {
-  return find(query + '*').then(({result}) => parseFindResponse(query, result));
+export function complete(ctx, query) {
+  return find(ctx, query + '*').then(({result}) => parseFindResponse(query, result));
 }
 
-export function find(query) {
-  if (settings.get('type') === 'lead') {
-    return http.get(url('find', {query}))
+export function find(ctx, query) {
+  if (getSetting(ctx, 'type') === 'lead') {
+    return http.get(url(ctx, 'find', {query}))
     .then((response) => {
       const result = response.map((m) => {
         return {
@@ -245,7 +246,7 @@ export function find(query) {
   } else {
     const params = {query, format: 'completer'};
 
-    return http.get(url('metrics/find', params)).then((response) => {
+    return http.get(url(ctx, 'metrics/find', params)).then((response) => {
       const result = response.metrics.map(({path, name, is_leaf}) => {
         return {
           path: path.replace(/\.$/, ''),
@@ -259,11 +260,11 @@ export function find(query) {
   }
 }
 
-export function suggest_keys(s) {
+export function suggest_keys(ctx, s) {
   return _.filter(_.keys(docs.parameter_docs), (k) => k.indexOf(s) === 0);
 }
 
-export function args_to_params({args, defaultOptions={}}) {
+export function args_to_params(ctx, {args, defaultOptions={}}) {
   let lets, options, targets;
 
   if (args.legnth === 0) {
@@ -344,7 +345,7 @@ export function args_to_params({args, defaultOptions={}}) {
 }
 
 export function hasFeature(ctx, feature) {
-  return _.contains(settings.get('features') || [], feature);
+  return _.contains(getSetting(ctx, 'features') || [], feature);
 }
 
 export function resolveDocumentationKey(ctx, o) {
@@ -366,8 +367,8 @@ export function renderError(error) {
   }
 }
 
-export function url(path, params) {
-  const baseUrl = settings.get('base_url');
+export function url(ctx, path, params) {
+  const baseUrl = getSetting(ctx, 'base_url');
 
   if (baseUrl == null) {
     throw new Error('Server base_url not set');
@@ -461,7 +462,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
 
   // componentFn('url', 'Generates a URL for a graph image', ([ctx, ...args]) => {
   //   const params = argsToServerParams(ctx, args);
-  //   const url = renderUrl(params);
+  //   const url = renderUrl(ctx, params);
   //
   //   return React.DOM.pre({}, React.DOM.a({
   //     href: url,
@@ -471,7 +472,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   //
   // componentFn('img', 'Renders a graph image', ([ctx, ...args]) => {
   //   const params = argsToServerParams(ctx, args);
-  //   const url = renderUrl(params);
+  //   const url = renderUrl(ctx, params);
   //   const deferred = Q.defer();
   //   const promise = deferred.promise.fail(function () {
   //     return Q.reject('Failed to load image');
@@ -512,7 +513,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   fn('find', 'Finds metrics', (ctx, query) => {
     const results = new Bacon.Model([]);
 
-    const promise = find(query).then((r) => {
+    const promise = find(ctx, query).then((r) => {
       results.set(r.result);
       return r;
     }).fail(() => {
@@ -541,7 +542,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   });
 
   fn('get_data', 'Fetches metric data', (ctx, ...args) => {
-    return Context.value(getData(argsToServerParams(ctx, args)));
+    return Context.value(getData(ctx, argsToServerParams(ctx, args)));
   });
 
   fn('execute', 'Executes a DSL expression on the server', (ctx, ...args) => {
@@ -549,20 +550,20 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   });
 
   fn('batch', 'Executes a batch of DSL expressions with a promise for each', (ctx) => {
-    return Context.value(batch(ctx.options()));
+    return Context.value(batch(ctx, ctx.options()));
   });
 
   fn('executeOne', 'Executes a single DSL expression and returns a promise', (ctx, target, params) => {
-    return Context.value(executeOne(target, params, ctx.options()));
+    return Context.value(executeOne(ctx, target, params, ctx.options()));
   });
 
   return {
-    init() {
-      if (settings.get('type') === 'lead') {
+    init(ctx) {
+      if (getSetting(ctx, 'type') === 'lead') {
         serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
 
         if (!functionNames) {
-          return http.get(url('functions')).fail(() => {
+          return http.get(url(ctx, 'functions')).fail(() => {
             functionNames = [];
             initDocs();
             return Q.reject('failed to load functions from lead server');

@@ -101,7 +101,7 @@ export function collect_extension_points(modules, ep) {
   return _.flatten(_.compact(_.pluck(modules, ep)));
 }
 
-export function init_modules(modules) {
+export function init_modules(ctx, modules) {
   const Documentation = require('./documentation');
 
   Context = require('./context');
@@ -109,7 +109,7 @@ export function init_modules(modules) {
   const promises = _.map(modules, (mod) => {
     let promise;
     if (mod.init != null) {
-      promise = Q(mod.init()).then(function () {
+      promise = Q(mod.init(ctx)).then(function () {
         return mod;
       });
     } else {

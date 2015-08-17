@@ -61,6 +61,7 @@ exports.BuilderComponent = React.createClass
   mixins: [AppAwareMixin]
 
   getInitialState: ->
+    ctx = Context.create_standalone_context {imports: ['server'], modules: @context.app.modules}
     leaf_clicks = new Bacon.Bus()
     targets = Bacon.Model([])
     params = Bacon.Model({})
@@ -73,13 +74,13 @@ exports.BuilderComponent = React.createClass
         result
     render_results = targets.combine(server_params, (targets, server_params) -> {targets, server_params}).flatMapLatest ({targets, server_params}) ->
       if targets.length > 0
-        Bacon.fromPromise Server.getData _.defaults {target: targets}, server_params
+        Bacon.fromPromise Server.getData ctx, _.defaults {target: targets}, server_params
       else
         Bacon.once []
     data = Bacon.Model()
     data.addSource render_results
 
-    ctx: Context.create_standalone_context {imports: ['server'], modules: @context.app.modules}
+    ctx: ctx
     model: Bacon.Model.combine {data, params}
     leaf_clicks: leaf_clicks
     params: params

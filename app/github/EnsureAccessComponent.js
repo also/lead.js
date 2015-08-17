@@ -86,7 +86,7 @@ export default React.createClass({
 
     if (Server.hasFeature(this.state.ctx, 'github-oauth')) {
       try {
-        url = Server.url('github/oauth/authorize');
+        url = Server.url(this.state.ctx, 'github/oauth/authorize');
       } catch (e) {
         // ignore
       }

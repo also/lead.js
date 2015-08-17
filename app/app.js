@@ -80,7 +80,7 @@ export function initApp(target, options={}) {
     window.history.replaceState(null, document.title, uri.toString());
   }
 
-  const initializationPromise = Modules.init_modules(modules);
+  const initializationPromise = Modules.init_modules({settings: {user: Settings.user_settings, global: Settings.global_settings}}, modules);
   initializationPromise.fail((error) => {
     console.error('Failure initializing modules', error);
     return Modal.pushModal({

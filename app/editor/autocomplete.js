@@ -63,7 +63,7 @@ function followPath(o, path) {
 
 function collectStringSuggestions(ctx, string) {
   return Q.all(_.flatten(_.map(Context.collect_extension_points(ctx, 'suggest_strings'), (fn) => {
-    return fn(string);
+    return fn(ctx, string);
   }))).then(function (suggestions) {
     return _.flatten(suggestions);
   });
@@ -71,7 +71,7 @@ function collectStringSuggestions(ctx, string) {
 
 function collectKeySuggestions(ctx, string) {
   return _.flatten(_.map(Context.collect_extension_points(ctx, 'suggest_keys'), (fn) => {
-    return fn(string);
+    return fn(ctx, string);
   }));
 }
 
