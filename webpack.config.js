@@ -26,8 +26,8 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
-      {test: /\.js?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'reactCompat', 'es7.objectRestSpread']}},
-      {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime', 'reactCompat']}},
+      {test: /\.js?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'es7.objectRestSpread']}},
+      {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime']}},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
