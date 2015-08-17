@@ -157,7 +157,7 @@ function ensureAuth(ctx, props={}) {
 
     const modal = Modal.pushModal({
       handler: EnsureAccessComponent,
-      props: Object.assign({deferred, site, ctx}, props)
+      props: Object.assign({deferred, site, ctx, onAccess: deferred.resolve, onCancel: deferred.reject}, props)
     });
 
     deferred.promise.finally(() => Modal.removeModal(modal));

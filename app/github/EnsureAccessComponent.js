@@ -11,7 +11,16 @@ import {ModalComponent} from '../modal';
 import {ToggleComponent} from '../components';
 
 
+const {PropTypes} = React;
+
 export default React.createClass({
+  propTypes: {
+    onCancel: PropTypes.func.isRequired,
+    onAccess: PropTypes.func.isRequired,
+    ctx: PropTypes.object.isRequired,
+    site: PropTypes.object.isRequired
+  },
+
   getInitialState() {
     const {ctx, site} = this.props;
     const tokens = new Bacon.Bus();
@@ -31,7 +40,7 @@ export default React.createClass({
       if (ctx.settings.user.get('github', 'githubs', site.domain, 'access_token') !== accessToken) {
         ctx.settings.user.set('github', 'githubs', site.domain, 'access_token', accessToken);
       }
-      this.props.deferred.resolve();
+      this.props.onAccess();
       return this.setState({user, tokenStatus: 'valid'});
     });
 
@@ -51,7 +60,7 @@ export default React.createClass({
   },
 
   cancel() {
-    return this.props.deferred.reject('GitHub Authentication Cancelled');
+    return this.props.onCancel();
   },
 
   componentWillUnmount() {
