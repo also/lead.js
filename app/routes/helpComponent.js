@@ -8,18 +8,19 @@ import {encodeNotebookValue} from '../notebook';
 
 
 export default React.createClass({
-  displayName: 'HelpComponent',
   mixins: [Navigation, AppAwareMixin],
   run(value) {
     return this.transitionTo('raw_notebook', {
       splat: encodeNotebookValue(value)
     });
   },
+
   navigate(key) {
     return this.transitionTo('help', {
-      key: key
+      docKey: key
     });
   },
+
   render() {
     const {imports, modules} = this.context.app;
 
@@ -30,7 +31,7 @@ export default React.createClass({
           run: this.run,
           docsNavigate: this.navigate
         }}>
-          <HelpPageComponent doc_key={this.props.params.key}/>
+          <HelpPageComponent doc_key={this.props.params.docKey}/>
         </TopLevelContextComponent>
       </div>
     );

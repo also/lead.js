@@ -8,7 +8,7 @@ export default React.createClass({
     return (
       <div className='graphite-sphinx-docs'>
         <div className='tip'>
-          This is a Graphite parameter. The text below was extracted from the <a href='http://graphite.readthedocs.org/en/0.9.12/functions.html'>Graphite documentation</a>. Some Graphite parameters are supported by the <DocumentationLinkComponent key='graphing.graph'><code>graph</code></DocumentationLinkComponent> function.
+          This is a Graphite parameter. The text below was extracted from the <a href='http://graphite.readthedocs.org/en/0.9.12/functions.html'>Graphite documentation</a>. Some Graphite parameters are supported by the <DocumentationLinkComponent docKey='graphing.graph'><code>graph</code></DocumentationLinkComponent> function.
         </div>
         <div ref='docs'/>
       </div>

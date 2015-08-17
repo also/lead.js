@@ -5,6 +5,8 @@ import LeadMarkdownComponent from './markdown/LeadMarkdownComponent';
 import * as Context from './context';
 import {ContextAwareMixin} from './contextComponents';
 
+const {PropTypes} = React;
+
 const docs = {};
 
 function getParent(key) {
@@ -171,12 +173,17 @@ function registerFile(name, key) {
 export {normalizeKey as keyToPath};
 
 export const DocumentationLinkComponent = React.createClass({
-  displayName: 'DocumentationLinkComponent',
+  propsTypes: {
+    docKey: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.array
+    ]).isRequired
+  },
 
   mixins: [ContextAwareMixin],
 
   showHelp() {
-    return navigate(this.state.ctx, this.props.key);
+    return navigate(this.state.ctx, this.props.docKey);
   },
 
   render() {
@@ -198,7 +205,7 @@ export const DocumentationIndexComponent = React.createClass({
 
         return (
           <tr key={key}>
-            <td><DocumentationLinkComponent key={key}><code>{e.name}</code></DocumentationLinkComponent></td>
+            <td><DocumentationLinkComponent docKey={key}><code>{e.name}</code></DocumentationLinkComponent></td>
             <td>{summary(this.props.ctx, e.doc)}</td>
           </tr>
         );

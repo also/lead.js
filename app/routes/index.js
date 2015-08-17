@@ -41,7 +41,7 @@ export default React.createClass({
           <Route path='/notebook/github/*' name='github_notebook' handler={GitHubNotebookComponent} addHandlerKey={true}/>
           <Route path='/builder' handler={BuilderAppComponent}/>
           <Route path='/help' name='help-index' handler={HelpComponent}/>
-          <Route path='/help/:key' name='help' handler={HelpComponent} addHandlerKey={true}/>
+          <Route path='/help/:docKey' name='help' handler={HelpComponent} addHandlerKey={true}/>
           <Route path='/github/oauth' handler={GitHub.GitHubOAuthComponent} addHandlerKey={true}/>
           <Route name='settings' handler={SettingsComponent}/>
           {extraRoutes}

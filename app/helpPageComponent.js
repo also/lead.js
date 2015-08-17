@@ -20,13 +20,13 @@ const HelpPathComponent = React.createClass({
 
     return (
       <div className='help-path'>
-        <Documentation.DocumentationLinkComponent key='main'>help</Documentation.DocumentationLinkComponent>
+        <Documentation.DocumentationLinkComponent docKey='main'>help</Documentation.DocumentationLinkComponent>
         {paths.map(({path, segment}, i) => (
           <span key={i}>
             {' '}
             <i className='fa fa-caret-right'/>
             {' '}
-            <Documentation.DocumentationLinkComponent key={path}>
+            <Documentation.DocumentationLinkComponent docKey={path}>
               {Documentation.keyToString(segment)}
             </Documentation.DocumentationLinkComponent>
           </span>
