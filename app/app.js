@@ -89,7 +89,7 @@ export function initApp(target, options={}) {
     });
   });
 
-  return React.renderComponent(<AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>, target);
+  return React.render(<AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>, target);
 }
 
 export function raw_cell_url(ctx, value) {

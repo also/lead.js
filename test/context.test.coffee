@@ -12,8 +12,8 @@ eval_coffeescript_in_context = (run_context, string) ->
 
 render = (context) ->
   $result = $ '<div/>'
-  # FIXME renderComponentToString doesn't work for the output after render tests
-  React.renderComponent context.component(), $result.get(0)
+  # FIXME render doesn't work for the output after render tests
+  React.render context.component(), $result.get(0)
   $result
 
 
