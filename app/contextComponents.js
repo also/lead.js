@@ -1,4 +1,5 @@
 import React from 'react/addons';
+import ReactInstanceHandles from 'react/lib/ReactInstanceHandles';
 import _ from'underscore';
 
 
@@ -7,7 +8,7 @@ const contextsByRootNodeId = {};
 function findAncestorContexts(componentInstance) {
   const result = [];
 
-  _.each(React.__internals.InstanceHandles.traverseAncestors(componentInstance._rootNodeID, (id) => {
+  _.each(ReactInstanceHandles.traverseAncestors(componentInstance._rootNodeID, (id) => {
     const context = contextsByRootNodeId[id];
     if (context) {
       result.unshift(context);
