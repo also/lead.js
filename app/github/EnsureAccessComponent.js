@@ -5,43 +5,34 @@ import _ from 'underscore';
 import * as Server from '../server';
 import * as Http from '../http';
 import * as Github from '../github';
-import * as Settings from '../settings';
-import {ContextAwareMixin} from '../contextComponents';
+
 import AccessTokenForm from './AccessTokenForm';
 import {ModalComponent} from '../modal';
 import {ToggleComponent} from '../components';
 
 
-const settings = Settings.with_prefix('github');
-
-
 export default React.createClass({
-  mixins: [ContextAwareMixin],
-
   getInitialState() {
-    const site = this.props.site;
+    const {ctx, site} = this.props;
     const tokens = new Bacon.Bus();
-    const unsubscribe = tokens.plug(settings.toProperty('githubs', site.domain, 'access_token').filter(_.identity));
+    const unsubscribe = tokens.plug(ctx.settings.global.toProperty('githubs', site.domain, 'access_token').filter(_.identity));
     const userDetails = tokens.flatMapLatest((accessToken) => {
       this.setState({tokenStatus: 'validating'});
 
       return Bacon.combineTemplate({
-        user: Bacon.fromPromise(Http.get(this.state.ctx, Github.toApiUrl(this.state.ctx, site, '/user').setQuery({
-          accessToken: accessToken
+        user: Bacon.fromPromise(Http.get(ctx, Github.toApiUrl(ctx, site, '/user').setQuery({
+          access_token: accessToken
         }))),
         accessToken: accessToken
       }).changes();
     });
 
     userDetails.onValue(({user, accessToken}) => {
-      if (Settings.user_settings.get('github', 'githubs', site.domain, 'access_token') !== accessToken) {
-        Settings.user_settings.set('github', 'githubs', site.domain, 'access_token', accessToken);
+      if (ctx.settings.user.get('github', 'githubs', site.domain, 'access_token') !== accessToken) {
+        ctx.settings.user.set('github', 'githubs', site.domain, 'access_token', accessToken);
       }
       this.props.deferred.resolve();
-      return this.setState({
-        user,
-        tokenStatus: 'valid'
-      });
+      return this.setState({user, tokenStatus: 'valid'});
     });
 
     userDetails.onError(() => {
@@ -69,6 +60,8 @@ export default React.createClass({
   },
 
   render() {
+    const {ctx} = this.props;
+
     const message = () => {
       switch (this.state.tokenStatus) {
       case 'needed':
@@ -80,13 +73,13 @@ export default React.createClass({
       case 'invalid':
         return <strong>That access token didn't work. Try again?</strong>;
       }
-    };
+    }();
 
     let url = null;
 
-    if (Server.hasFeature(this.state.ctx, 'github-oauth')) {
+    if (Server.hasFeature(ctx, 'github-oauth')) {
       try {
-        url = Server.url(this.state.ctx, 'github/oauth/authorize');
+        url = Server.url(ctx, 'github/oauth/authorize');
       } catch (e) {
         // ignore
       }

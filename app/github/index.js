@@ -15,7 +15,11 @@ import * as  Notebook from '../notebook';
 
 function getSite(ctx, name) {
   const settings = ctx.settings.global.with_prefix('github');
-  const site = settings.get('githubs', name != null ? name : settings.get('default'));
+  if (!name) {
+    name = settings.get('default');
+  }
+
+  const site = settings.get('githubs', name);
 
   if (site != null) {
     return Object.assign({domain: name}, site);
@@ -153,7 +157,7 @@ function ensureAuth(ctx, props={}) {
 
     const modal = Modal.pushModal({
       handler: EnsureAccessComponent,
-      props: Object.assign({deferred, site}, props)
+      props: Object.assign({deferred, site, ctx}, props)
     });
 
     deferred.promise.finally(() => Modal.removeModal(modal));

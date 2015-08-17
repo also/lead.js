@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export default React.createClass({
-  handleSet() {
+  handleClick() {
     return this.props.handle_token(this.refs.input.getDOMNode().value);
   },
 
