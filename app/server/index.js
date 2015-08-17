@@ -171,9 +171,9 @@ export function execute(ctx, params) {
   let promise;
   params.format = 'json';
   if (getSetting(ctx, 'type') === 'lead') {
-    promise = http.post(url(ctx, 'execute'), params);
+    promise = http.post(ctx, url(ctx, 'execute'), params);
   } else {
-    promise = http.get(renderUrl(ctx, params));
+    promise = http.get(ctx, renderUrl(ctx, params));
   }
   return promise.fail(function (response) {
     return Q.reject(new ServerError(parseErrorResponse(response)));
@@ -231,7 +231,7 @@ export function complete(ctx, query) {
 
 export function find(ctx, query) {
   if (getSetting(ctx, 'type') === 'lead') {
-    return http.get(url(ctx, 'find', {query}))
+    return http.get(ctx, url(ctx, 'find', {query}))
     .then((response) => {
       const result = response.map((m) => {
         return {
@@ -246,7 +246,7 @@ export function find(ctx, query) {
   } else {
     const params = {query, format: 'completer'};
 
-    return http.get(url(ctx, 'metrics/find', params)).then((response) => {
+    return http.get(ctx, url(ctx, 'metrics/find', params)).then((response) => {
       const result = response.metrics.map(({path, name, is_leaf}) => {
         return {
           path: path.replace(/\.$/, ''),
@@ -563,7 +563,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
         serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
 
         if (!functionNames) {
-          return http.get(url(ctx, 'functions')).fail(() => {
+          return http.get(ctx, url(ctx, 'functions')).fail(() => {
             functionNames = [];
             initDocs();
             return Q.reject('failed to load functions from lead server');

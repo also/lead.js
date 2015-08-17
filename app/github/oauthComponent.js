@@ -4,12 +4,16 @@ import * as Server from '../server';
 import * as Http from '../http';
 import * as Settings from '../settings';
 import {ModalComponent} from '../app';
+import {ContextAwareMixin} from '../contextComponents';
 
 
 export default React.createClass({
+  mixins: [ContextAwareMixin],
+
   getInitialState() {
     const {query} = this.props;
-    const promise = Http.post(Server.url('github/oauth/token'), query);
+    const ctx = this.ctx();
+    const promise = Http.post(ctx, Server.url(ctx, 'github/oauth/token'), query);
     // TODO this is some bad promising
     promise.finally(() => this.setState({finished: true})).done();
 

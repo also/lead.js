@@ -31,12 +31,19 @@ export const ContextAwareMixin = {
   getInitialState() {
     // TODO update later in lifecycle
     return {
-      ctx: findAncestorContexts(this)[0]
+      ctx: this.ctx()
     };
   },
 
+  _getCtx() {
+    return findAncestorContexts(this)[0];
+  },
+
   ctx() {
-    return this.state.ctx;
+    if (!this._ctx) {
+      this._ctx = this._getCtx();
+    }
+    return this._ctx;
   }
 };
 

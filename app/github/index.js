@@ -69,7 +69,7 @@ export function toGistUrl(ctx, gist) {
 }
 
 function getRepoContents(ctx, url) {
-  return Http.get(url).then((response) => {
+  return Http.get(ctx, url).then((response) => {
     return {
       content: atob(response.content.replace(/\n/g, '')),
       filename: response.name,
@@ -112,7 +112,7 @@ function saveGist(ctx, gist, options) {
   }
   const site = getSite(ctx, options.github);
 
-  return Http.post(toApiUrl(ctx, site, '/gists'), gist);
+  return Http.post(ctx, toApiUrl(ctx, site, '/gists'), gist);
 }
 
 function updateGist(ctx, id, gist, options) {
@@ -121,7 +121,7 @@ function updateGist(ctx, id, gist, options) {
   }
   const site = getSite(ctx, options.github);
 
-  return Http.patch(toApiUrl(toApiUrl, site, '/gists/' + id), gist);
+  return Http.patch(ctx, toApiUrl(toApiUrl, site, '/gists/' + id), gist);
 }
 
 const NotebookGistLinkComponent = React.createClass({
@@ -199,7 +199,7 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
     const url = toGistUrl(ctx, gist);
     const gistPromise = ensureAuth(ctx, {url: url})
     .then(() => {
-      return Http.get(toGistUrl(ctx, gist)).fail((response) => {
+      return Http.get(ctx, toGistUrl(ctx, gist)).fail((response) => {
         return Q.reject(response.statusText);
       });
     });

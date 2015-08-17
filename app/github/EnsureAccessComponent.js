@@ -26,7 +26,7 @@ export default React.createClass({
       this.setState({tokenStatus: 'validating'});
 
       return Bacon.combineTemplate({
-        user: Bacon.fromPromise(Http.get(Github.toApiUrl(this.state.ctx, site, '/user').setQuery({
+        user: Bacon.fromPromise(Http.get(this.state.ctx, Github.toApiUrl(this.state.ctx, site, '/user').setQuery({
           accessToken: accessToken
         }))),
         accessToken: accessToken
