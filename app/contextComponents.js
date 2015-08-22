@@ -1,15 +1,16 @@
 import React from 'react/addons';
 import ReactInstanceHandles from 'react/lib/ReactInstanceHandles';
+import ReactInstanceMap from 'react/lib/ReactInstanceMap';
 import _ from'underscore';
 
 
-const contextsByRootNodeId = {};
+const ctxsByRootNodeId = {};
 
-function findAncestorContexts(componentInstance) {
+function findAncestorCtxs(_rootNodeID) {
   const result = [];
 
-  _.each(ReactInstanceHandles.traverseAncestors(componentInstance._rootNodeID, (id) => {
-    const context = contextsByRootNodeId[id];
+  _.each(ReactInstanceHandles.traverseAncestors(_rootNodeID, (id) => {
+    const context = ctxsByRootNodeId[id];
     if (context) {
       result.unshift(context);
     }
@@ -20,24 +21,17 @@ function findAncestorContexts(componentInstance) {
 
 export const ContextRegisteringMixin = {
   componentWillMount() {
-    contextsByRootNodeId[this._rootNodeID] = this.props.ctx;
+    ctxsByRootNodeId[ReactInstanceMap.get(this)._rootNodeID] = this.props.ctx;
   },
 
   componentWillUnmount() {
-    delete contextsByRootNodeId[this._rootNodeID];
+    delete ctxsByRootNodeId[ReactInstanceMap.get(this)._rootNodeID];
   }
 };
 
 export const ContextAwareMixin = {
-  getInitialState() {
-    // TODO update later in lifecycle
-    return {
-      ctx: this.ctx()
-    };
-  },
-
   _getCtx() {
-    return findAncestorContexts(this)[0];
+    return findAncestorCtxs(ReactInstanceMap.get(this)._rootNodeID)[0];
   },
 
   ctx() {

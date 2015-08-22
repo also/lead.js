@@ -262,7 +262,7 @@ export const EditorComponent = React.createClass({
   componentDidMount() {
     const {editor} = this.state;
 
-    editor.ctx = this.state.ctx;
+    editor.ctx = this.ctx();
     editor.run = this.run;
     this.getDOMNode().appendChild(editor.display.wrapper);
     if (this.props.initial_value != null) {

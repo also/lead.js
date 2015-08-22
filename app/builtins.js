@@ -65,7 +65,7 @@ export const ErrorComponent = React.createClass({
   mixins: [ContextComponents.ContextAwareMixin],
 
   render() {
-    const errorRenderers = Context.collect_extension_points(this.state.ctx, 'renderError');
+    const errorRenderers = Context.collect_extension_points(this.ctx(), 'renderError');
     let message = null;
 
     _.find(errorRenderers, (renderer) => {
@@ -109,7 +109,7 @@ export const PromiseResolvedComponent = React.createClass({
 
   render() {
     if (this.state.resolved) {
-      return <div>{this.props.constructor(this.state.value)}</div>;
+      return <div>{React.createElement(this.props.constructor, this.state.value)}</div>;
     } else {
       return null;
     }

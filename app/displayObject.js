@@ -64,7 +64,7 @@ function handleObservable(ctx, object) {
 }
 
 function handleComponent(ctx, object) {
-  if (React.isValidComponent(object)) {
+  if (React.isValidElement(object)) {
     addComponent(ctx, object);
     return true;
   }

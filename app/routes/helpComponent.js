@@ -9,6 +9,7 @@ import {encodeNotebookValue} from '../notebook';
 
 export default React.createClass({
   mixins: [Navigation, AppAwareMixin],
+
   run(value) {
     return this.transitionTo('raw_notebook', {
       splat: encodeNotebookValue(value)

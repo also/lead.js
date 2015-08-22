@@ -12,17 +12,6 @@ import LegendComponent from './legendComponent';
 import CrosshairComponent from './crosshairComponent';
 import BrushComponent from './brushComponent';
 
-import {MUST_USE_ATTRIBUTE} from 'react/lib/DOMProperty';
-import {DOMProperty} from 'react/lib/ReactInjection';
-
-DOMProperty.injectDOMPropertyConfig({
-  Properties: {
-    clipPath: MUST_USE_ATTRIBUTE
-  },
-  DOMAttributeNames: {
-    clipPath: 'clip-path'
-  }
-});
 
 export default React.createClass({
   propTypes: {

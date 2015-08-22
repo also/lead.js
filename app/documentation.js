@@ -183,7 +183,7 @@ export const DocumentationLinkComponent = React.createClass({
   mixins: [ContextAwareMixin],
 
   showHelp() {
-    return navigate(this.state.ctx, this.props.docKey);
+    return navigate(this.ctx(), this.props.docKey);
   },
 
   render() {
@@ -215,6 +215,9 @@ export const DocumentationIndexComponent = React.createClass({
 });
 
 export const DocumentationItemComponent = React.createClass({
+  componentWillReceiveProps(nextProps) {
+    console.log('nextProps', nextProps);
+  },
   render() {
     return (
       <div>

@@ -16,8 +16,8 @@ export default React.createClass({
       value={this.props.value}
       language='coffeescript'/>;
 
-    const nestedContext = Context.create_nested_context(this.state.ctx, {
-      current_options: _.clone(this.state.ctx.options())
+    const nestedContext = Context.create_nested_context(this.ctx(), {
+      current_options: _.clone(this.ctx().options())
     });
 
     const fn = CoffeeScriptCell.create_fn(this.props.value);
@@ -38,6 +38,6 @@ export default React.createClass({
   },
 
   onClick() {
-    return this.state.ctx.run(this.props.value);
+    return this.ctx().run(this.props.value);
   }
 });

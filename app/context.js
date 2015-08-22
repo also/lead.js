@@ -142,7 +142,7 @@ export const AsyncComponent = React.createClass({
   mixins: [ContextAwareMixin],
 
   componentWillMount() {
-    registerPromise(this.state.ctx, this.props.promise);
+    registerPromise(this.ctx(), this.props.promise);
   },
 
   componentWillUnmount() {
@@ -214,7 +214,7 @@ export const ContextOutputComponent = React.createClass({
   mixins: [ContextAwareMixin],
 
   render() {
-    return <ContextLayoutComponent ctx={this.state.ctx}/>;
+    return <ContextLayoutComponent ctx={this.ctx()}/>;
   }
 });
 

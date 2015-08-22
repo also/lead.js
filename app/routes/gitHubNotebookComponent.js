@@ -4,9 +4,10 @@ import AppAwareMixin from '../appAwareMixin';
 import * as Notebook from '../notebook';
 import * as Context from '../context';
 import * as GitHub from '../github';
+import {replaceOnPropChange} from '../component-utils';
 
 
-export default React.createClass({
+export default replaceOnPropChange(React.createClass({
   displayName: 'GitHubNotebookComponent',
   mixins: [AppAwareMixin],
 
@@ -30,4 +31,4 @@ export default React.createClass({
       init={this.initNotebook}
       {...{imports, modules}}/>;
   }
-});
+}));

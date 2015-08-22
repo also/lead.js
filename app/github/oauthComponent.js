@@ -5,9 +5,10 @@ import * as Http from '../http';
 import * as Settings from '../settings';
 import {ModalComponent} from '../app';
 import {ContextAwareMixin} from '../contextComponents';
+import {replaceOnPropChange} from '../component-utils';
 
 
-export default React.createClass({
+export default replaceOnPropChange(React.createClass({
   mixins: [ContextAwareMixin],
 
   getInitialState() {
@@ -61,4 +62,4 @@ export default React.createClass({
       </div>
     );
   }
-});
+}));

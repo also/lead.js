@@ -89,7 +89,7 @@ exports.BuilderComponent = React.createClass
   run: (value) ->
     value ?= @refs.editor.get_value()
     fn = CoffeeScriptCell.create_fn value
-    ctx = @state.ctx
+    ctx = @ctx()
     #ctx.current_options = {}
     Context.remove_all_components ctx
     fn ctx
@@ -106,7 +106,7 @@ exports.BuilderComponent = React.createClass
         Components.ToggleComponent {title: 'Targets'},
           TargetsEditorComponent targets: @state.targets
         Graphing.GraphComponent model: @state.model
-        ContextComponents.ComponentContextComponent ctx: @state.ctx,
+        ContextComponents.ComponentContextComponent ctx: @ctx(),
           Editor.EditorComponent {run: @run, ref: 'editor'}
           Context.ContextOutputComponent {}
         React.DOM.span {className: 'run-button', onClick: => @run()},

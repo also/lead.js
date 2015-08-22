@@ -1,4 +1,5 @@
-import {Route, Routes, NotFoundRoute, Navigation} from 'react-router';
+import {Route, NotFoundRoute, Navigation} from 'react-router';
+import * as Router from 'react-router';
 import * as React from 'react';
 
 import AppComponent from '../appComponent';
@@ -13,6 +14,14 @@ import GistNotebookComponent from './gistNotebookComponent';
 import Base64EncodedNotebookCellComponent from './base64EncodedNotebookCellComponent';
 import BuilderAppComponent from './builderAppComponent';
 
+
+function wrapComponent(Component, props) {
+  return React.createClass({
+    render() {
+      return React.createElement(Component, props);
+    }
+  });
+}
 
 const DefaultRoute = React.createClass({
   mixins: [Navigation],
@@ -29,25 +38,34 @@ const DefaultRoute = React.createClass({
 });
 
 export default React.createClass({
-  render() {
+  getInitialState() {
+    return {Handler: null};
+  },
+
+  componentWillMount() {
     const {extraRoutes, ...extraProps} = this.props;
-    return (
-      <Routes>
-        <Route handler={AppComponent} {...extraProps}>
-          <Route path='/' name='default' handler={DefaultRoute}/>
-          <Route name='notebook' handler={NewNotebookComponent}/>
-          <Route path='/notebook/raw/*' name='raw_notebook' handler={Base64EncodedNotebookCellComponent} addHandlerKey={true}/>
-          <Route path='/notebook/gist/*' name='gist_notebook' handler={GistNotebookComponent} addHandlerKey={true}/>
-          <Route path='/notebook/github/*' name='github_notebook' handler={GitHubNotebookComponent} addHandlerKey={true}/>
-          <Route path='/builder' handler={BuilderAppComponent}/>
-          <Route path='/help' name='help-index' handler={HelpComponent}/>
-          <Route path='/help/:docKey' name='help' handler={HelpComponent} addHandlerKey={true}/>
-          <Route path='/github/oauth' handler={GitHub.GitHubOAuthComponent} addHandlerKey={true}/>
-          <Route name='settings' handler={SettingsComponent}/>
-          {extraRoutes}
-          <NotFoundRoute handler={NotFoundComponent}/>
-        </Route>
-      </Routes>
+    const routes = (
+      <Route handler={wrapComponent(AppComponent, extraProps)}>
+        <Route path='/' name='default' handler={DefaultRoute}/>
+        <Route name='notebook' handler={NewNotebookComponent}/>
+        <Route path='/notebook/raw/*' name='raw_notebook' handler={Base64EncodedNotebookCellComponent}/>
+        <Route path='/notebook/gist/*' name='gist_notebook' handler={GistNotebookComponent}/>
+        <Route path='/notebook/github/*' name='github_notebook' handler={GitHubNotebookComponent}/>
+        <Route path='/builder' handler={BuilderAppComponent}/>
+        <Route path='/help' name='help-index' handler={HelpComponent}/>
+        <Route path='/help/:docKey' name='help' handler={HelpComponent}/>
+        <Route path='/github/oauth' handler={GitHub.GitHubOAuthComponent}/>
+        <Route name='settings' handler={SettingsComponent}/>
+        {extraRoutes}
+        <NotFoundRoute handler={NotFoundComponent}/>
+      </Route>
     );
+
+    Router.run(routes, (Handler) => this.setState({Handler}));
+  },
+
+  render() {
+    const {Handler} = this.state;
+    return <Handler/>;
   }
 });

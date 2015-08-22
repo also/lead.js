@@ -11,13 +11,12 @@ import InlineExampleComponent from  './InlineExampleComponent';
 
 export default React.createClass({
   displayName: 'LeadMarkdownComponent',
-  mixins: [ContextAwareMixin],
+  mixins: [ContextAwareMixin, React.addons.PureRenderMixin],
   getDefaultProps() {
     return {image_urls: {}};
   },
 
-  getInitialState() {
-    // FIXME #175 props can change
+  renderBody() {
     const {image_urls} = this.props;
 
     const renderer = new Marked.Renderer();
@@ -94,21 +93,30 @@ export default React.createClass({
 
       components.push(<UserHtmlComponent html={Marked.Parser.parse(currentTokens, opts)}/>);
     }
-    return {components};
+
+    return components;
   },
 
   render() {
-    return <div className='lead-markdown'>{this.state.components}</div>;
+    return <div className='lead-markdown'>{this.renderBody()}</div>;
   },
 
   componentDidMount() {
+    this.updateLinks();
+  },
+
+  componentDidUpdate() {
+    this.updateLinks();
+  },
+
+  updateLinks() {
     for (const a of this.getDOMNode().querySelectorAll('a')) {
       a.addEventListener('click', (e) => {
         const uri = new URI(a.href);
 
         if (uri.protocol() === 'help') {
           e.preventDefault();
-          return Documentation.navigate(this.state.ctx, uri.path());
+          Documentation.navigate(this.ctx(), uri.path());
         }
       });
     }

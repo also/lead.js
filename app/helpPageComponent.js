@@ -39,8 +39,9 @@ const HelpPathComponent = React.createClass({
 export default React.createClass({
   displayName: 'HelpWrapperComponent',
   mixins: [ContextAwareMixin],
+
   render() {
-    const resolvedKey = Documentation.getKey(this.state.ctx, this.props.doc_key);
+    const resolvedKey = Documentation.getKey(this.ctx(), this.props.doc_key);
 
     if (resolvedKey) {
       const doc = Documentation.getDocumentation(resolvedKey);
@@ -48,7 +49,7 @@ export default React.createClass({
       return (
         <div>
           <HelpPathComponent doc_key={resolvedKey}/>
-          <Documentation.DocumentationItemComponent ctx={this.state.ctx} doc={doc}/>
+          <Documentation.DocumentationItemComponent ctx={this.ctx()} doc={doc}/>
         </div>
       );
     } else {

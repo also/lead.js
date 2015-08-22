@@ -16,7 +16,7 @@ export default React.createClass({
       minHeight = 0;
     }
     if (this.props.input_cell) {
-      input = this.props.input_cell.component({
+      input = React.createElement(this.props.input_cell.component, {
         cell: this.props.input_cell,
         key: this.props.input_cell.key,
         minHeight: minHeight
@@ -27,7 +27,7 @@ export default React.createClass({
       });
     }
     if (this.props.output_cell) {
-      output = this.props.output_cell.component({
+      output = React.createElement(this.props.output_cell.component, {
         cell: this.props.output_cell,
         key: this.props.output_cell.key,
         ref: 'output'

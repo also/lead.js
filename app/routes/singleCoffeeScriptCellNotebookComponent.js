@@ -2,9 +2,10 @@ import * as React from 'react';
 
 import AppAwareMixin from '../appAwareMixin';
 import * as Notebook from '../notebook';
+import {replaceOnPropChange} from '../component-utils';
 
 
-export default React.createClass({
+export default replaceOnPropChange(React.createClass({
   displayName: 'SingleCoffeeScriptCellNotebookComponent',
   mixins: [AppAwareMixin],
 
@@ -21,4 +22,4 @@ export default React.createClass({
 
     return <Notebook.NotebookComponent context={{app: this.context.app}} {...{imports, modules}} init={this.initNotebook}/>;
   }
-});
+}));
