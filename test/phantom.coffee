@@ -3,7 +3,7 @@ page.onConsoleMessage = (msg) ->
   console.log msg
 
 page.onInitialized = ->
-  page.injectJs 'lib/es5-shim-v2.2.0.js'
+  page.injectJs 'node_modules/es5-shim/es5-shim.js'
 
 url = "http://localhost:8000/test/runner.html?pause"
 page.open url, ->
