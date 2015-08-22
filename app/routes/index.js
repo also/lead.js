@@ -30,10 +30,12 @@ const DefaultRoute = React.createClass({
     const queryKeys = Object.keys(this.props.query);
 
     if (queryKeys.length === 1 && this.props.query[queryKeys[0]].length === 0) {
-      return this.replaceWith('/notebook/raw/' + queryKeys[0]);
+      this.replaceWith('/notebook/raw/' + queryKeys[0]);
     } else {
-      return this.transitionTo('notebook');
+      this.transitionTo('notebook');
     }
+
+    return null;
   }
 });
 
