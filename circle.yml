@@ -14,4 +14,3 @@ test:
   override:
     - grunt connect:server test-phantomjs test-selenium-unit-local test-selenium-app-local
     - grunt test-node
-    - eslint .
