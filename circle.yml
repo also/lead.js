@@ -1,0 +1,17 @@
+machine:
+  node:
+    version: 0.10.33
+
+dependencies:
+  post:
+    - wget http://selenium-release.storage.googleapis.com/2.47/selenium-server-standalone-2.47.1.jar
+    - java -jar selenium-server-standalone-2.47.1.jar:
+        background: true
+
+test:
+  pre:
+    - grunt
+  override:
+    - grunt connect:server test-phantomjs test-selenium-unit-local test-selenium-app-local
+    - grunt test-node
+    - eslint .
