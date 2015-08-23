@@ -1,6 +1,9 @@
 var webpack = require('webpack');
 var _ = require('underscore');
 
+// used by the markdown-loader
+require('babel/register');
+
 module.exports = {
   debug: true,
   context: __dirname,
@@ -23,10 +26,15 @@ module.exports = {
       'coffee-script': __dirname + '/lib/coffee-script',
     }
   },
+  resolveLoader: {
+    alias: {
+      'lead-markdown': __dirname + '/lib/markdown-loader'
+    }
+  },
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
-      {test: /\.js?$/, exclude: [/(node_modules|lib|contextEval)/], loader: 'babel', query: {optional: ['runtime', 'es7.objectRestSpread']}},
+      {test: /\.js?$/, exclude: [/node_modules/, /contextEval/, __dirname + '/lib/coffee-script.js'], loader: 'babel', query: {optional: ['runtime', 'es7.objectRestSpread']}},
       {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime']}},
 
       // shims

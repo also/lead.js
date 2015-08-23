@@ -152,7 +152,7 @@ export function getKey(ctx, o) {
 export function loadFile(name) {
   if (process.browser) {
     return () => {
-      const {images, content} = require(`../lib/markdown-loader.coffee!../docs/${name}.md`);
+      const {images, content} = require(`lead-markdown!../docs/${name}.md`);
       return <LeadMarkdownComponent value={content} image_urls={images}/>;
     };
   }

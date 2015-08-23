@@ -1,5 +1,5 @@
 _ = require 'underscore'
-require("babel/register")
+require('babel/register')
 
 webpack_config = require './webpack.config'
 webpack_style_config = _.extend {}, webpack_config,
