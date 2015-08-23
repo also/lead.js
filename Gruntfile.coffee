@@ -85,6 +85,16 @@ module.exports = (grunt) ->
           src: ['*.js']
           dest: 'build/node/app'
         }]
+      tests:
+        options:
+          blacklist: ['strict']
+          optional: ['runtime', 'es7.objectRestSpread']
+        files: [
+          expand: true
+          cwd: 'test'
+          src: ['**/*.js']
+          dest: 'build/node/test'
+        ]
     connect:
       server: {}
 

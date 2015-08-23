@@ -27,7 +27,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'test-node', 'Runs the Mocha tests using node.js', ->
     done = @async()
-    grunt.util.spawn cmd: 'node', args: ['build/node/test/run_node.js'], (err, result, code) ->
+    grunt.util.spawn cmd: 'node', args: ['build/node/test/lib/run-node.js'], (err, result, code) ->
       if err?
         grunt.log.error 'Tests failed'
         grunt.log.error result.stdout
