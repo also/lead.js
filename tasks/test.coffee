@@ -91,7 +91,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'test-selenium-all-remote', 'Runs the unit and app tests remotely using Selenium and Sauce Labs', ->
     done = @async()
     selenium
-      .run_with_tunnel (driver) ->
+      .runWithTunnel (driver) ->
         app_results = selenium.runInSauceBrowsers driver, APP_INFO, REMOTE_APP_TEST_BROWSERS, app_tests
         unit_results = selenium.runInSauceBrowsers driver, UNIT_INFO, REMOTE_UNIT_TEST_BROWSERS, selenium.unitTests
         Q.allSettled([app_results, unit_results]).then -> [app_results, unit_results]
