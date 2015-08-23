@@ -6,13 +6,15 @@ import d3 from 'd3';
 import * as Context from './context';
 import colors from './colors';
 import * as modules from './modules';
+import React from 'react';
 
 const requireables = {
   q: Q,
-  _: _,
-  moment: moment,
-  colors: colors,
-  d3: d3
+  _,
+  moment,
+  colors,
+  d3,
+  react: React
 };
 
 modules.export(exports, 'compat', ({fn, contextExport}) => {

@@ -27,7 +27,8 @@
     Builtins = require 'builtins'
     Q = require 'q'
     Context = require 'context'
-    Builtins.ComponentAndError {promise: Q.reject 'nope'}, 'Component Goes Here'
+    React = require 'react'
+    React.createElement Builtins.ComponentAndError, {promise: Q.reject 'nope'}, 'Component Goes Here'
 
 ## Grid
 
@@ -71,4 +72,5 @@
 
 ## Error
 
-    require('builtins').ErrorComponent {message: new Error 'nope'}
+    React = require 'react'
+    React.createElement require('builtins').ErrorComponent, {message: new Error 'nope'}
