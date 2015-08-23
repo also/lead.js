@@ -15,7 +15,7 @@ export function mangle(src) {
     chunks[node.range[0]] = s;
     const results = [];
 
-    for (let i = node.range[0] + 1; i <= node.range[1]; i++) {
+    for (let i = node.range[0] + 1; i < node.range[1]; i++) {
       results.push(chunks[i] = '');
     }
     return results;
