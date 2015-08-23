@@ -1,6 +1,6 @@
 Q = require 'q'
 _ = require 'underscore'
-selenium = require '../test/run_selenium'
+selenium = require '../test/lib/selenium'
 app_tests = require '../test/app_tests'
 
 BUILD = process.env.TRAVIS_JOB_ID
