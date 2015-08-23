@@ -1,8 +1,8 @@
 import '../../app/node';
 
-import tests from '../runner';
+import {run} from './runner';
 
-tests.run()
+run()
 .then(
   () => process.exit(0),
   () => process.exit(1)
