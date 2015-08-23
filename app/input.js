@@ -11,6 +11,7 @@ const InputMixin = _.extend({}, ObservableMixin, {
   getObservable(props) {
     return props.model;
   },
+
   handleChange(e) {
     return this.props.model.set(e.target.value);
   }
@@ -22,7 +23,7 @@ const InputMixin = _.extend({}, ObservableMixin, {
 function createComponent(constructor, props) {
   const model = Bacon.Model(props.defaultValue ? String(props.defaultValue) : '');
   props = _.extend(props, {model});
-  const component = constructor(props);
+  const component = React.createElement(constructor, props);
 
   return {component, model};
 }
