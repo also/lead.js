@@ -7,10 +7,15 @@ import expect from 'expect.js';
 
 
 const username = process.env.SAUCE_USERNAME;
-const accessKey = process.env.SAUCE_accessKey;
-const base_url = 'https://' + username + ':' + accessKey + '@saucelabs.com/rest/v1/' + username;
+const accessKey = process.env.SAUCE_ACCESS_KEY;
 
-export function start_tunnel() {
+const baseUrl = 'https://' + username + ':' + accessKey + '@saucelabs.com/rest/v1/' + username;
+
+function startTunnel() {
+  if (!(username && accessKey)) {
+    return Q.reject(new Error('Missing username/access key'));
+  }
+
   const tunnel = new SauceTunnel(username, accessKey, null, true);
   const started = Q.defer();
 
@@ -18,14 +23,14 @@ export function start_tunnel() {
     if (status === true) {
       return started.resolve(tunnel);
     } else {
-      return started.reject(status);
+      return started.reject(new Error('Failed to start tunnel'));
     }
   });
   return started.promise;
 }
 
-export function run_with_tunnel(fn) {
-  return start_tunnel().then((tunnel) => {
+function runWithTunnel(fn) {
+  return startTunnel().then((tunnel) => {
     const driverOpts = {
       host: 'ondemand.saucelabs.com',
       port: '80',
@@ -45,21 +50,21 @@ export function run_with_tunnel(fn) {
   });
 }
 
-export function update_sauce_job(jobId, details) {
+function updateSauceJob(jobId, details) {
   return Q.nfcall(request, {
-    url: base_url + '/jobs/' + jobId,
+    url: baseUrl + '/jobs/' + jobId,
     method: 'put',
     body: details,
     json: true
   });
 }
 
-function runInBrowser({driverOpts, initOpts}, browser_opts, fn) {
+function runInBrowser({driverOpts, initOpts}, browserOpts, fn) {
   const browser = wd.promiseChainRemote(driverOpts);
 
-  return browser.init(_.extend({}, initOpts != null ? initOpts : {}, browser_opts)).then(() => {
+  return browser.init(Object.assign({}, initOpts, browserOpts)).then(() => {
     return browser.sessionCapabilities().then((c) => {
-      return browser.capabilities = c;
+      browser.capabilities = c;
     });
   }).then(() => fn(browser))
   .then((result) => {
@@ -72,26 +77,26 @@ function runInBrowser({driverOpts, initOpts}, browser_opts, fn) {
       browser: browser,
       result: result
     });
-  })['finally'](() => {
+  }).finally(() => {
     return browser.quit().fail(() => {});
   });
 }
 
-export function run_in_sauce_browsers(driver, sauceOpts, browsers, fn) {
-  return run_in_browsers(driver, _.map(browsers, (b) => {
-    return _.extend({}, sauceOpts, b);
+export function runInSauceBrowsers(driver, sauceOpts, browsers, fn) {
+  return runInBrowsers(driver, _.map(browsers, (b) => {
+    return Object.assign({}, sauceOpts, b);
   }), (browser) => {
     const result = fn(browser);
 
-    return result['finally'](() => {
-      return update_sauce_job(browser.sessionID, {
+    return result.finally(() => {
+      return updateSauceJob(browser.sessionID, {
         passed: result.isFulfilled()
       });
     });
   });
 }
 
-export function run_in_browsers(driver, browsers, fn) {
+function runInBrowsers(driver, browsers, fn) {
   const promises = _.map(browsers, (browser) => {
     return runInBrowser(driver, browser, fn);
   });
@@ -107,17 +112,22 @@ export function run_in_browsers(driver, browsers, fn) {
   });
 }
 
-export function run_remotely(sauceOpts, browsers, fn) {
-  return run_with_tunnel((driver) => {
-    return run_in_sauce_browsers(driver, sauceOpts, browsers, fn);
+export function runRemotely(sauceOpts, browsers, fn) {
+  return runWithTunnel((driver) => {
+    return runInSauceBrowsers(driver, sauceOpts, browsers, fn);
   });
 }
 
-export function run_locally(browsers, fn) {
-  return run_in_browsers({}, browsers, fn);
+export function runLocally(browsers, fn) {
+  return runInBrowsers({}, browsers, fn);
 }
 
-export function print_summary(results) {
+export function printSummary(results) {
+  if (results instanceof Error) {
+    console.log(results.stack);
+    return;
+  }
+
   return _.map(results, (r) => {
     const snapshot = r.inspect();
     const state = snapshot.state;
@@ -128,6 +138,7 @@ export function print_summary(results) {
     } else {
       value = snapshot.reason;
     }
+
     const {browser, result} = value;
     let {capabilities, defaultCapabilities} = browser;
     if (capabilities == null) {
@@ -157,7 +168,7 @@ export function print_summary(results) {
   });
 }
 
-export function unit_tests(browser) {
+export function unitTests(browser) {
   return browser.setAsyncScriptTimeout(10000).get('http://localhost:8000/test/runner.html?pause').title().then((title) => {
     expect(title).to.be('lead.js test runner');
     return browser.executeAsync('run(arguments[0])').then((results) => {
