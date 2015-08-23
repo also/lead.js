@@ -1,6 +1,7 @@
 // shim for loading sass syntax
 // https://github.com/sass/node-sass/issues/370#issuecomment-51012460
-@import "../lib/reset.css";
+
+@import "../node_modules/node-reset-scss/scss/reset";
 @import "style.sass";
 
 @import "../node_modules/font-awesome/scss/variables";
