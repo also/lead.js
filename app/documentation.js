@@ -215,9 +215,6 @@ export const DocumentationIndexComponent = React.createClass({
 });
 
 export const DocumentationItemComponent = React.createClass({
-  componentWillReceiveProps(nextProps) {
-    console.log('nextProps', nextProps);
-  },
   render() {
     return (
       <div>
