@@ -29,7 +29,7 @@ function startTunnel() {
   return started.promise;
 }
 
-function runWithTunnel(fn) {
+export function runWithTunnel(fn) {
   return startTunnel().then((tunnel) => {
     const driverOpts = {
       host: 'ondemand.saucelabs.com',
