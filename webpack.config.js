@@ -12,7 +12,7 @@ module.exports = {
   entry: {
     app: ['./app/app'],
     'app-complete': './app/app-complete.entry',
-    test: './test/run_mocha_browser'
+    test: './test/lib/run-browser'
   },
   output: {
     path: __dirname + "/build/web",
