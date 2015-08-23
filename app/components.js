@@ -191,6 +191,6 @@ export const PropsModelComponent = React.createClass({
   },
 
   render() {
-    return this.props.constructor(this.state.value);
+    return React.createElement(this.props.constructor, this.state.value);
   }
 });
