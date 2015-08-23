@@ -76,5 +76,5 @@ export const computeParams = function (params) {
     computedParams = {};
   }
 
-  return _.extend({}, defaultParams, computedParams, params);
+  return Object.assign({}, defaultParams, computedParams, params);
 };

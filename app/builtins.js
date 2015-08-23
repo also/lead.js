@@ -336,7 +336,7 @@ modules.export(exports, 'builtins', ({doc, fn, componentFn, componentCmd}) => {
 
   fn('options', 'Gets or sets options', (ctx, options) => {
     if (options != null) {
-      _.extend(ctx.current_options, options);
+      Object.assign(ctx.current_options, options);
     }
 
     return Context.value(ctx.current_options);

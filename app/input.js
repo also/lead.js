@@ -7,7 +7,7 @@ import * as Context from './context';
 import {ObservableMixin} from './components';
 
 
-const InputMixin = _.extend({}, ObservableMixin, {
+const InputMixin = Object.assign({}, ObservableMixin, {
   getObservable(props) {
     return props.model;
   },
@@ -22,7 +22,7 @@ const InputMixin = _.extend({}, ObservableMixin, {
 // model will update the input component
 function createComponent(constructor, props) {
   const model = Bacon.Model(props.defaultValue ? String(props.defaultValue) : '');
-  props = _.extend(props, {model});
+  props = Object.assign(props, {model});
   const component = React.createElement(constructor, props);
 
   return {component, model};

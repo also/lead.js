@@ -1,25 +1,9 @@
 import React from 'react';
-import _ from 'underscore';
 import d3 from 'd3';
 import Bacon from 'bacon.model';
 
-
-function clearExtent(v) {
-  return _.extend({}, v, {
-    extent: null
-  });
-}
-
-function setBrushing(v) {
-  return _.extend({}, v, {
-    brushing: true
-  });
-}
-
-function setNotBrushing(v) {
-  return _.extend({}, v, {
-    brushing: false
-  });
+function sets(newValue) {
+  return (v) => Object.assign({}, v, newValue);
 }
 
 export default React.createClass({
@@ -39,19 +23,15 @@ export default React.createClass({
 
   onBrush() {
     const brush = d3.event.target;
-    this.brushBus.push(brush.empty() ? clearExtent : (v) => {
-      return _.extend({}, v, {
-        extent: brush.extent()
-      });
-    });
+    this.brushBus.push(brush.empty() ? sets({extent: null}) : sets({extent: brush.extent()}));
   },
 
   onBrushStart() {
-    this.brushBus.push(setBrushing);
+    this.brushBus.push(sets({brushing: true}));
   },
 
   onBrushEnd() {
-    this.brushBus.push(setNotBrushing);
+    this.brushBus.push(sets({brushing: false}));
   },
 
   setExtent(context, extent) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'underscore';
+
 
 const pathStyles = {
   line: {
@@ -34,7 +34,7 @@ export default React.createClass({
       extraWidth += 3;
     }
 
-    const style = _.extend({
+    const style = Object.assign({
       'stroke-width': d.lineWidth + extraWidth,
       'stroke-opacity': d.lineAlpha,
       'fill-opacity': d.areaAlpha

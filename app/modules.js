@@ -65,7 +65,7 @@ function _export(exports, module_name, definition_fn) {
 
   function contextExport(...args) {
     if (args.length === 1) {
-      return _.extend(contextExports, arguments[0]);
+      return Object.assign(contextExports, arguments[0]);
     } else {
       const [k, v] = args;
       contextExports[k] = v;
@@ -89,7 +89,7 @@ function _export(exports, module_name, definition_fn) {
     docs: docs
   };
 
-  return _.extend(exports, {
+  return Object.assign(exports, {
     contextExports: contextExports,
     docs: docs
   }, definition_fn(helpers));

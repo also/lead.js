@@ -113,7 +113,7 @@ export const transformData = function (data, params, sizes) {
   let timeMax = null;
 
   const targets = data.map((s, targetIndex) => {
-    const options = _.extend({}, params, s.options);
+    const options = Object.assign({}, params, s.options);
     const {drawAsInfinite, getValue, getTimestamp} = options;
 
     const transformValue = params.drawNullAsZero ?
@@ -156,7 +156,7 @@ export const transformData = function (data, params, sizes) {
     // const lineAlpha = options.lineAlpha != null ? options.lineAlpha : options.alpha;
     // const pointAlpha = options.pointAlpha != null ? options.pointAlpha : options.alpha;
 
-    return _.extend(options, {
+    return Object.assign(options, {
       values,
       bisector,
       name,

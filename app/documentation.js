@@ -62,9 +62,7 @@ export function navigate(ctx, key) {
 
 export function register(key, doc) {
   key = normalizeKey(key);
-  doc = _.extend({
-    key: key
-  }, doc);
+  doc = Object.assign({key}, doc);
 
   getParent(key)._lead_doc = doc;
 }

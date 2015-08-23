@@ -1,9 +1,9 @@
 import React from 'react';
-import _ from 'underscore';
 
 import {ObservableMixin} from '../components';
 
-export default _.extend({}, ObservableMixin, {
+
+export default Object.assign({}, ObservableMixin, {
   contextTypes: {
     cursorPosition: React.PropTypes.object.isRequired
   },
