@@ -8,7 +8,7 @@ import * as Components from './components';
 import * as Context from './context';
 import * as ContextComponents from './contextComponents';
 import * as App from './app';
-import {ObjectBrowserComponent} from './objectBrowser';
+import ObjectBrowserComponent from './ObjectBrowserComponent';
 
 const {ExampleComponent} = Components;
 

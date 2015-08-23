@@ -7,7 +7,7 @@ import React from 'react/addons';
 import * as modules from './modules';
 import * as Documentation from './documentation';
 import * as Server from './server';
-import WrappedGraphComponent from './graph/graphComponent';
+import WrappedGraphComponent from './graph/GraphComponent';
 import * as Context from './context';
 import * as Builtins from './builtins';
 import * as Modal from './modal';

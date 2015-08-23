@@ -8,7 +8,7 @@ Context = require './context'
 CoffeeScriptCell = require './coffeescript'
 Components = require './components'
 ContextComponents = require './contextComponents'
-AppAwareMixin = require('./appAwareMixin')
+AppAwareMixin = require('./AppAwareMixin')
 MetricTreeComponent = require('./server/MetricTreeComponent')
 
 remove_target = (targets, target) ->

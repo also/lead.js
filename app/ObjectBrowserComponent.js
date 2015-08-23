@@ -55,7 +55,7 @@ const Punct = React.createClass({
   }
 });
 
-export const ObjectBrowserComponent = React.createClass({
+export default React.createClass({
   getDefaultProps() {
     return {showProto: true};
   },

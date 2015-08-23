@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import SingleCoffeeScriptCellNotebookComponent from './singleCoffeeScriptCellNotebookComponent';
+import SingleCoffeeScriptCellNotebookComponent from './SingleCoffeeScriptCellNotebookComponent';
 import * as Settings from '../settings';
-import AppAwareMixin from '../appAwareMixin';
+import AppAwareMixin from '../AppAwareMixin';
 import * as Notebook from '../notebook';
 
 

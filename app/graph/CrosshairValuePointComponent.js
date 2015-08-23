@@ -1,6 +1,6 @@
 import React from 'react';
 
-import CursorPositionMixin from './cursorPositionMixin';
+import CursorPositionMixin from './CursorPositionMixin';
 
 export default React.createClass({
   mixins: [CursorPositionMixin],

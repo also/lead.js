@@ -1,6 +1,7 @@
 import React from 'react';
 import d3 from 'd3';
 
+
 export default React.createClass({
   propTypes: {
     axis: React.PropTypes.func.isRequired

@@ -1,7 +1,7 @@
 import * as React from 'react/addons';
 import * as _ from 'underscore';
 
-import {ObjectBrowserComponent} from '../objectBrowser';
+import ObjectBrowserComponent from '../ObjectBrowserComponent';
 import {ToggleComponent} from '../builtins';
 
 import ServerExceptionDetailsComponent from './ServerExceptionDetailsComponent';

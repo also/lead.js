@@ -6,9 +6,9 @@ import * as Modules from '../modules';
 import * as  Http from '../http';
 import * as  Context from '../context';
 import * as  Builtins from '../builtins';
-import GistLinkComponent from './gistLinkComponent';
+import GistLinkComponent from './GistLinkComponent';
 import EnsureAccessComponent from './EnsureAccessComponent';
-import GitHubOAuthComponent from './oauthComponent';
+import GitHubOAuthComponent from './OAuthComponent';
 import * as  Modal from '../modal';
 import * as  Notebook from '../notebook';
 

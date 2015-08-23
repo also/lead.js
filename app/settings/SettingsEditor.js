@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import CodeMirror from 'codemirror';
 
-import AppAwareMixin from '../appAwareMixin';
+import AppAwareMixin from '../AppAwareMixin';
 import * as CoffeeScriptCell from '../coffeescript';
 import * as Context from '../context';
 import * as Settings from '../settings';

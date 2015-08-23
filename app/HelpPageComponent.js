@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {ContextAwareMixin} from './contextComponents';
 import * as Documentation from './documentation';
-import NotFoundComponent from './routes/notFoundComponent';
+import NotFoundComponent from './routes/NotFoundComponent';
 
 
 const HelpPathComponent = React.createClass({

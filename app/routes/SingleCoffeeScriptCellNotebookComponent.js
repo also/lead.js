@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import AppAwareMixin from '../appAwareMixin';
+import AppAwareMixin from '../AppAwareMixin';
 import * as Notebook from '../notebook';
 import {replaceOnPropChange} from '../component-utils';
 

@@ -1,10 +1,10 @@
 import React from 'react';
 
 import {ObservableMixin} from '../components';
-import LineComponent from './lineComponent';
-import InfiniteLinesComponent from './infiniteLinesComponent';
-import ScatterComponent from './scatterComponent';
-import CrosshairValuePointComponent from './crosshairValuePointComponent';
+import LineComponent from './LineComponent';
+import InfiniteLinesComponent from './InfiniteLinesComponent';
+import ScatterComponent from './ScatterComponent';
+import CrosshairValuePointComponent from './CrosshairValuePointComponent';
 
 export default React.createClass({
   mixins: [ObservableMixin],

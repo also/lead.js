@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import SingleCoffeeScriptCellNotebookComponent from './singleCoffeeScriptCellNotebookComponent';
+import SingleCoffeeScriptCellNotebookComponent from './SingleCoffeeScriptCellNotebookComponent';
 
 
 export default React.createClass({

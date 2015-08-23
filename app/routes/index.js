@@ -2,17 +2,17 @@ import {Route, NotFoundRoute, Navigation} from 'react-router';
 import * as Router from 'react-router';
 import * as React from 'react';
 
-import AppComponent from '../appComponent';
+import AppComponent from '../AppComponent';
 import SettingsComponent from '../settings/SettingsEditor';
 import * as GitHub from '../github';
 
-import NotFoundComponent from './notFoundComponent';
-import NewNotebookComponent from './newNotebookComponent';
+import NotFoundComponent from './NotFoundComponent';
+import NewNotebookComponent from './NewNotebookComponent';
 import HelpComponent from './helpComponent';
-import GitHubNotebookComponent from './gitHubNotebookComponent';
-import GistNotebookComponent from './gistNotebookComponent';
-import Base64EncodedNotebookCellComponent from './base64EncodedNotebookCellComponent';
-import BuilderAppComponent from './builderAppComponent';
+import GitHubNotebookComponent from './GitHubNotebookComponent';
+import GistNotebookComponent from './GistNotebookComponent';
+import Base64EncodedNotebookCellComponent from './Base64EncodedNotebookCellComponent';
+import BuilderAppComponent from './BuilderAppComponent';
 
 
 function wrapComponent(Component, props) {

@@ -6,11 +6,11 @@ import Q from 'q';
 
 import {computeParams} from './params';
 import {computeSizes, transformData, targetValueAtTime} from './utils';
-import AxisComponent from './axisComponent';
-import TargetComponent from './targetComponent';
-import LegendComponent from './legendComponent';
-import CrosshairComponent from './crosshairComponent';
-import BrushComponent from './brushComponent';
+import AxisComponent from './AxisComponent';
+import TargetComponent from './TargetComponent';
+import LegendComponent from './LegendComponent';
+import CrosshairComponent from './CrosshairComponent';
+import BrushComponent from './BrushComponent';
 
 
 export default React.createClass({

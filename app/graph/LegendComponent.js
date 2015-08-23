@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {ObservableMixin} from '../components';
-import CursorPositionMixin from './cursorPositionMixin';
+import CursorPositionMixin from './CursorPositionMixin';
 
 const LegendCrosshairValueComponent = React.createClass({
   mixins: [CursorPositionMixin],
