@@ -191,7 +191,7 @@ const ObjectBrowserEntriesComponent = React.createClass({
       }
 
       const enumerable = Object.getOwnPropertyDescriptor(object, key).enumerable;
-      return <ObjectBrowserEntryComponent key={key} value={value} enumerable={enumerable}/>;
+      return <ObjectBrowserEntryComponent key={key} name={key} value={value} enumerable={enumerable}/>;
     });
 
     const showMore = propertyNames.length > this.state.visibleEntries
@@ -199,7 +199,7 @@ const ObjectBrowserEntriesComponent = React.createClass({
       : null;
 
     const protoChild = proto != null && this.context.showProto
-      ? <ObjectBrowserEntryComponent key='__proto__' value={proto} own={false}/>
+      ? <ObjectBrowserEntryComponent key='__proto__' name='__proto__' value={proto} own={false}/>
       : null;
 
     return (
@@ -216,7 +216,7 @@ const ObjectBrowserEntryComponent = React.createClass({
   mixins: [Toggleable],
 
   render() {
-    const {key, value, enumerable} = this.props
+    const {name, value, enumerable} = this.props
 
     const className =  enumerable ? '' : 'non-enumerable-property';
 
@@ -231,7 +231,7 @@ const ObjectBrowserEntryComponent = React.createClass({
         <div>
           <div style={{display: 'inline-block', verticalAlign: 'top', marginRight: '0.5em'}}>
             {Spacer}
-            <span className={className}><Var>{key}</Var><Punct>:</Punct></span>
+            <span className={className}><Var>{name}</Var><Punct>:</Punct></span>
           </div>
           {summary}
         </div>
@@ -251,7 +251,7 @@ const ObjectBrowserEntryComponent = React.createClass({
           <div onClick={this.toggle}>
             <div style={{display: 'inline-block', verticalAlign: 'top', marginRight: '0.5em'}}>
               <i className={`fa fa-fw ${this.toggleClass()}`}/>
-              <span className={className}><Var>{key}</Var><Punct>:</Punct></span>
+              <span className={className}><Var>{name}</Var><Punct>:</Punct></span>
             </div>
             {summary}
           </div>
