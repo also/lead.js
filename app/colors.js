@@ -1,6 +1,6 @@
 import d3 from 'd3';
 
-import colorbrewer from './lib/colorbrewer';
+import colorbrewer from 'colorbrewer';
 
 const colors = {
   d3: {},
