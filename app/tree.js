@@ -12,7 +12,7 @@ const TreeNodeComponent = React.createClass({
   contextTypes: {
     nodeClass: React.PropTypes.func.isRequired,
     errorNodeClass: React.PropTypes.func.isRequired,
-    tree_state: React.PropTypes.object.isRequired,
+    treeState: React.PropTypes.object.isRequired,
     value: React.PropTypes.func.isRequired,
     toggle: React.PropTypes.func.isRequired,
     leafClicked: React.PropTypes.func.isRequired
@@ -26,15 +26,15 @@ const TreeNodeComponent = React.createClass({
     const {node, children} = this.props;
     const {nodeClass: NodeClass, errorNodeClass: ErrorNodeClass} = this.context;
     const {path} = node;
-    const state = this.context.tree_state[path];
+    const state = this.context.treeState[path];
 
     let child;
 
     if (state === 'open') {
       const sortedNodes = _.sortBy(this.context.value(path), (child) => child.name);
-      const child_nodes = sortedNodes.map((child) => <NodeClass node={child}/>);
+      const childNodes = sortedNodes.map((child) => <NodeClass node={child}/>);
 
-      child = <ul>{child_nodes}</ul>;
+      child = <ul>{childNodes}</ul>;
     } else if (state === 'failed') {
       child = <ErrorNodeClass {... this.props}/>;
     } else {
@@ -87,7 +87,7 @@ const TreeComponent = React.createClass({
   childContextTypes: {
     nodeClass: React.PropTypes.func.isRequired,
     errorNodeClass: React.PropTypes.func.isRequired,
-    tree_state: React.PropTypes.object.isRequired,
+    treeState: React.PropTypes.object.isRequired,
     value: React.PropTypes.func.isRequired,
     toggle: React.PropTypes.func.isRequired,
     leafClicked: React.PropTypes.func.isRequired
@@ -100,12 +100,12 @@ const TreeComponent = React.createClass({
   getInitialState() {
     return {
       cache: {},
-      tree_state: {}
+      treeState: {}
     }
   },
 
   toggle(path) {
-    const state = this.state.tree_state[path];
+    const state = this.state.treeState[path];
     if (state === 'closed' || state == null) {
       this.open(path);
     } else {
@@ -119,14 +119,14 @@ const TreeComponent = React.createClass({
   },
 
   open(path) {
-    const tree_state = _.clone(this.state.tree_state);
-    const cache = _.clone(this.state.cache);
+    const treeState = Object.assign({}, this.state.treeState);
+    const cache = Object.assign({}, this.state.cache);
 
     const state = this.state.cache[path];
     if (state && state.isFulfilled()) {
-      tree_state[path] = 'open';
+      treeState[path] = 'open';
     } else {
-      tree_state[path] = 'opening';
+      treeState[path] = 'opening';
 
       if (!state || state.isRejected()) {
         const promise = this.props.loadChildren(path);
@@ -134,34 +134,34 @@ const TreeComponent = React.createClass({
         promise.then(
           () => {
             if (this.state.cache[path] === promise) {
-              const tree_state = _.clone(this.state.tree_state);
-              tree_state[path] = 'open';
-              this.setState({tree_state});
+              const treeState = Object.assign({}, this.state.treeState);
+              treeState[path] = 'open';
+              this.setState({treeState});
             }
           },
           () => {
             if (this.state.cache[path] === promise) {
-              const tree_state = _.clone(this.state.tree_state);
-              tree_state[path] = 'failed';
-              this.setState({tree_state});
+              const treeState = Object.assign({}, this.state.treeState);
+              treeState[path] = 'failed';
+              this.setState({treeState});
             }
           }
         );
       }
     }
 
-    this.setState({tree_state, cache});
+    this.setState({treeState, cache});
   },
 
   close(path) {
-    const tree_state = _.clone(this.state.tree_state);
-    tree_state[path] = 'closed';
+    const treeState = Object.assign({}, this.state.treeState);
+    treeState[path] = 'closed';
     const cache = this.state.cache;
     if (cache[path] && cache[path].isRejected()) {
-      const cache = _.clone(cache);
+      const cache = Object.assign({}, cache);
       delete cache[path];
     }
-    this.setState({tree_state, cache});
+    this.setState({treeState, cache});
   },
 
   componentWillMount() {
@@ -170,7 +170,7 @@ const TreeComponent = React.createClass({
 
   getChildContext() {
     return {
-      tree_state: this.state.tree_state,
+      treeState: this.state.treeState,
       nodeClass: this.props.nodeClass,
       errorNodeClass: this.props.errorNodeClass,
       value: this.value,
