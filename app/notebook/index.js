@@ -13,7 +13,6 @@ import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
 import InputCellComponent from './InputCellComponent';
-import OutputCellComponent from './OutputCellComponent';
 import './editor';
 
 
@@ -37,7 +36,8 @@ function identity(cell) {
 const actionTypes = {
   CELLS_REPLACED: 'CELLS_REPLACED',
   SETTINGS_CHANGED: 'SETTINGS_CHANGED',
-  INSERT_CELL: 'INSERT_CELL'
+  INSERT_CELL: 'INSERT_CELL',
+  UPDATE_CELL: 'UPDATE_CELL'
 };
 
 export const actions = {
@@ -55,6 +55,10 @@ export const actions = {
 
   removeCellAtIndex(index) {
     return {type: actionTypes.REMOVE_CELL_AT_INDEX, index};
+  },
+
+  updateCell(id, update) {
+    return {type: actionTypes.UPDATE_CELL, id, update};
   }
 }
 
@@ -76,6 +80,11 @@ function reducer(state=initialState, action) {
         return cells.push(cell.key);
       }
     }).setIn(['cellsById', cell.key], cell);
+
+  case actionTypes.UPDATE_CELL:
+    return state.updateIn(['cellsById', action.id], (cell) => {
+      return Object.assign({}, cell, action.update);
+    });
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
     let key;
@@ -119,7 +128,7 @@ export function createNotebook(opts) {
       const bodyTop = bodyElt.getBoundingClientRect().top;
       const bodyScroll = bodyElt.scrollTop;
 
-      bodyElt.scrollTop = output_cell.dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
+      bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.key]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
     });
   }
 
@@ -274,16 +283,12 @@ export function set_cell_value(cell, value) {
 
 function createOutputCell(notebook) {
   const number = notebook.output_number++;
-  const cell = {
-    component_model: new Bacon.Model(null),
+  return {
     type: 'output',
     key: 'output' + cellKey++,
     notebook: notebook,
     number: number
   };
-
-  cell.component = OutputCellComponent;
-  return cell;
 }
 
 function runInputCell(input_cell) {
@@ -322,7 +327,7 @@ function runWithContext(ctx, fn) {
 
   output_cell.done = noLongerPending.take(1).map(() => output_cell);
   Context.run_in_context(ctx, fn);
-  output_cell.component_model.set(() => ctx.component);
+  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.key, {component: ctx.component}));
 }
 
 function createBareOutputCellAndContext(notebook) {

@@ -1,5 +1,8 @@
 import React from 'react/addons';
 
+import OutputCellComponent from './OutputCellComponent';
+
+
 export default React.createClass({
   mixins: [React.addons.PureRenderMixin],
 
@@ -24,11 +27,10 @@ export default React.createClass({
     }
 
     if (output_cell) {
-      output = React.createElement(output_cell.component, {
-        cell: output_cell,
-        key: output_cell.key,
-        ref: 'output'
-      });
+      output = <OutputCellComponent
+        cell={output_cell}
+        key={output_cell.key}
+        ref='output'/>
     } else {
       output = <div className='placeholder cell'/>;
     }
@@ -44,7 +46,7 @@ export default React.createClass({
   onAnimationFrame() {
     this._animationFrame = requestAnimationFrame(this.onAnimationFrame);
     const {output} = this.refs;
-    const newHeight = output ? output.getOutputHeight() : 0;
+    const newHeight = output ? output.getWrappedInstance().getOutputHeight() : 0;
 
     if (newHeight !== this.state.outputHeight) {
       this.setState({outputHeight: newHeight});
