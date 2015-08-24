@@ -171,7 +171,7 @@ function clearNotebook(notebook) {
 }
 
 function cellIndex(cell) {
-  return cell.notebook.store.getState().get('cells').indexOf(cell);
+  return cell.notebook.store.getState().get('cells').indexOf(cell.key);
 }
 
 function seek(startCell, direction, predicate=identity) {
