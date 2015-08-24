@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import AppAwareMixin from '../AppAwareMixin';
 import * as Notebook from '../notebook';
+import NotebookComponent from '../notebook/NotebookComponent';
 import {replaceOnPropChange} from '../component-utils';
 
 
@@ -20,6 +21,6 @@ export default replaceOnPropChange(React.createClass({
   render() {
     const {imports, modules} = this.context.app;
 
-    return <Notebook.NotebookComponent context={{app: this.context.app}} {...{imports, modules}} init={this.initNotebook}/>;
+    return <NotebookComponent context={{app: this.context.app}} {...{imports, modules}} init={this.initNotebook}/>;
   }
 }));

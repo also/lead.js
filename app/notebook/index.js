@@ -8,12 +8,10 @@ import * as CoffeeScriptCell from '../coffeescript';
 import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
-import NotebookComponent from './NotebookComponent';
 import InputCellComponent from './InputCellComponent';
 import OutputCellComponent from './OutputCellComponent';
 import './editor';
 
-export {NotebookComponent};
 
 const contentType = 'application/x-lead-notebook';
 const forwards = +1;

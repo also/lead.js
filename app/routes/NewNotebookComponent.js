@@ -4,6 +4,7 @@ import SingleCoffeeScriptCellNotebookComponent from './SingleCoffeeScriptCellNot
 import * as Settings from '../settings';
 import AppAwareMixin from '../AppAwareMixin';
 import * as Notebook from '../notebook';
+import NotebookComponent from '../notebook/NotebookComponent';
 
 
 export default React.createClass({
@@ -17,7 +18,7 @@ export default React.createClass({
     if (introCommand && introCommand !== '') {
       return <SingleCoffeeScriptCellNotebookComponent value={introCommand}/>;
     } else {
-      return <Notebook.NotebookComponent
+      return <NotebookComponent
         context={{app: this.context.app}}
         init={(nb) => Notebook.focus_cell(Notebook.add_input_cell(nb))}
         {...{imports, modules}}/>;
