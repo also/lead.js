@@ -1,5 +1,9 @@
 import URI from 'URIjs';
 import Bacon from 'bacon.model';
+import * as Immutable from 'immutable';
+import {createStore} from 'redux';
+
+import * as Settings from '../settings';
 import * as Editor from '../editor';
 import * as http from '../http';
 import * as Context from '../context';
@@ -26,18 +30,111 @@ function isClean(cell) {
   return Editor.get_value(cell.editor) === '' && !cell.used;
 }
 
-function visible(cell) {
-  return cell.visible;
-}
-
 function identity(cell) {
   return cell;
+}
+
+const actionTypes = {
+  CELLS_REPLACED: 'CELLS_REPLACED',
+  SETTINGS_CHANGED: 'SETTINGS_CHANGED',
+  INSERT_CELL: 'INSERT_CELL'
+};
+
+export const actions = {
+  cellsReplaced(cells) {
+    return {type: actionTypes.CELLS_REPLACED, cells};
+  },
+
+  settingsChanged(settings) {
+    return {type: actionTypes.SETTINGS_CHANGED, settings};
+  },
+
+  insertCell(cell, index) {
+    return {type: actionTypes.INSERT_CELL, cell, index};
+  },
+
+  removeCellAtIndex(index) {
+    return {type: actionTypes.REMOVE_CELL_AT_INDEX, index};
+  }
+}
+
+const initialState = Immutable.fromJS({cells: [], cellsById: {}, settings: {}});
+
+function reducer(state=initialState, action) {
+  console.log('notebook action', action.type);
+  switch (action.type) {
+  case actionTypes.CELLS_REPLACED:
+    return state.setIn(['cells'], action.cells.map(({key}) => key))
+      .setIn(['cellsById'], new Immutable.Map(action.cells.map((cell) => [cell.key, cell])));
+
+  case actionTypes.INSERT_CELL:
+    const {cell} = action;
+    return state.updateIn(['cells'], (cells) => {
+      if (action.index) {
+        return cells.splice(action.index, 0, cell.key);
+      } else {
+        return cells.push(cell.key);
+      }
+    }).setIn(['cellsById', cell.key], cell);
+
+  case actionTypes.REMOVE_CELL_AT_INDEX:
+    let key;
+    return state.updateIn(['cells'], (cells) => {
+      key = cells.get(action.index);
+      return cells.delete(action.index);
+    }).deleteIn(['cellsById', key]);
+
+  case actionTypes.SETTINGS_CHANGED:
+    return state.setIn(['settings'], action.settings);
+
+  default:
+    return state;
+  }
+}
+
+export function createNotebook(opts) {
+  const store = createStore(reducer);
+  const unsubscribeSettings = Settings.toProperty('notebook').onValue((settings) => {
+    store.dispatch(actions.settingsChanged(settings));
+  });
+
+  const notebook = {
+    store,
+    unsubscribeSettings,
+    context: opts.context,
+    input_number: 1,
+    output_number: 1,
+    cell_run: new Bacon.Bus(),
+    cell_focused: new Bacon.Bus()
+  };
+
+  if (process.browser) {
+    const bodyElt = document.querySelector('.body');
+    const scrolls = Bacon.fromEventTarget(bodyElt, 'scroll');
+    const scroll_to = notebook.cell_run.flatMapLatest(function (input_cell) {
+      return input_cell.output_cell.done.delay(0).takeUntil(scrolls);
+    });
+
+    scroll_to.onValue(function (output_cell) {
+      const bodyTop = bodyElt.getBoundingClientRect().top;
+      const bodyScroll = bodyElt.scrollTop;
+
+      bodyElt.scrollTop = output_cell.dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
+    });
+  }
+
+  notebook.base_context = Context.create_base_context(opts);
+  return notebook;
+}
+
+export function destroyNotebook(notebook) {
+  notebook.unsubscribeSettings();
 }
 
 function exportNotebook(notebook, currentCell) {
   return {
     lead_js_version: 0,
-    cells: notebook.cells.filter((cell) => cell !== currentCell && isInput(cell))
+    cells: notebook.store.getState().get('cells').filter((cell) => cell !== currentCell && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
@@ -58,10 +155,6 @@ function importNotebook(notebook, cell, imported, options) {
   return notebook;
 }
 
-function updateView(notebook) {
-  return notebook.cells_model.set(notebook.cells.slice());
-}
-
 export function focus_cell(cell) {
   // hack around not understanding how this plays with react
   // https://github.com/facebook/react/issues/1791
@@ -72,21 +165,23 @@ export function focus_cell(cell) {
 }
 
 function clearNotebook(notebook) {
-  notebook.cells.forEach((cell) => cell.active = false);
-  notebook.cells.length = 0;
+  notebook.store.dispatch(actions.cellsReplaced(new Immutable.List()));
+
   focus_cell(add_input_cell(notebook));
 }
 
 function cellIndex(cell) {
-  return cell.notebook.cells.indexOf(cell);
+  return cell.notebook.store.getState().get('cells').indexOf(cell);
 }
 
 function seek(startCell, direction, predicate=identity) {
   const {notebook} = startCell;
   let index = cellIndex(startCell) + direction;
 
+  const cells = notebook.store.getState().get('cells');
+
   while (true) {
-    const cell = notebook.cells[index];
+    const cell = cells.get(index);
 
     if (cell == null || predicate(cell)) {
       return cell;
@@ -100,33 +195,28 @@ export function input_cell_at_offset(cell, offset) {
   return seek(cell, offset, isInput);
 }
 
-export function remove_cell(cell) {
+function remove_cell(cell) {
   const index = cellIndex(cell);
 
-  cell.notebook.cells.splice(index, 1);
-  cell.active = false;
-  updateView(cell.notebook);
+  cell.notebook.store.dispatch(actions.removeCellAtIndex(index));
 }
 
 function insertCell(cell, position={}) {
   let currentCell, offset;
-  // TODO is it still possible to end up with cells that aren't active?
-  if (position.before && position.before.active) {
+  if (position.before) {
     offset = 0;
     currentCell = position.before;
-  } else if (position.after && position.after.active) {
+  } else if (position.after) {
     offset = 1;
     currentCell = position.after;
   } else {
-    cell.notebook.cells.push(cell);
-    updateView(cell.notebook);
+    cell.notebook.store.dispatch(actions.insertCell(cell));
     return;
   }
 
   const index = cellIndex(currentCell);
 
-  currentCell.notebook.cells.splice(index + offset, 0, cell);
-  updateView(cell.notebook);
+  cell.notebook.store.dispatch(actions.insertCell(cell, index + offset));
 }
 
 export function add_input_cell(notebook, opts={}) {
@@ -135,11 +225,11 @@ export function add_input_cell(notebook, opts={}) {
   if (opts.reuse) {
     if (opts.after != null) {
       cell = seek(opts.after, forwards, (cell) => {
-        return isInput(cell) && visible(cell);
+        return isInput(cell);
       });
     } else if (opts.before != null) {
       cell = seek(opts.before, backwards, (cell) => {
-        return isInput(cell) && visible(cell);
+        return isInput(cell);
       });
     }
   }
@@ -157,8 +247,6 @@ function createInputCell(notebook) {
   const cell = {
     type: 'input',
     key: `input${cellKey++}`,
-    visible: true,
-    active: true,
     notebook: notebook,
     context: createInputContext(notebook),
     used: false,
@@ -187,8 +275,6 @@ function createOutputCell(notebook) {
     component_model: new Bacon.Model(null),
     type: 'output',
     key: 'output' + cellKey++,
-    visible: true,
-    active: true,
     notebook: notebook,
     number: number
   };

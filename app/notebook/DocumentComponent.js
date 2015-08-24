@@ -1,19 +1,17 @@
 import React from 'react/addons';
-
-import {ObservableMixin} from '../components';
+import {connect} from 'react-redux';
 
 import InputOutputComponent from './InputOutputComponent';
 
 
-export default React.createClass({
-  mixins: [ObservableMixin],
+function mapStateToProps(state) {
+  const cellsById = state.get('cellsById');
+  return {cells: state.get('cells').map(cellsById.get.bind(cellsById)), settings: state.get('settings')};
+}
 
-  getObservable(props) {
-    return props.notebook.model;
-  },
-
+export default connect(mapStateToProps)(React.createClass({
   render() {
-    const {settings={layout: 'repl'}, cells} = this.state.value;
+    const {settings={layout: 'repl'}, cells} = this.props;
     const {layout} = settings;
     const useMinHeight = layout === 'two-column';
 
@@ -47,4 +45,4 @@ export default React.createClass({
       </div>
     );
   }
-});
+}));
