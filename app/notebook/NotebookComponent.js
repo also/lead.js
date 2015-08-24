@@ -46,7 +46,6 @@ function createNotebook(opts) {
 
 
 export default React.createClass({
-  displayName: 'NotebookComponent',
   propTypes: {
     imports: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
     modules: React.PropTypes.object.isRequired,

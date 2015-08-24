@@ -17,11 +17,12 @@ function generatePermalink(cell) {
 }
 
 export default React.createClass({
-  displayName: 'InputCellComponent',
   mixins: [ObservableMixin, React.addons.PureRenderMixin],
+
   getObservable(props) {
     return props.cell.changes;
   },
+
   render() {
     const {cell} = this.props;
     return (
@@ -33,9 +34,11 @@ export default React.createClass({
       </div>
     );
   },
+
   updateHeight(minHeight) {
     return Editor.setMinHeight(this.props.cell.editor, minHeight);
   },
+
   componentDidMount() {
     const editor = this.props.cell.editor;
 
@@ -43,9 +46,11 @@ export default React.createClass({
     editor.refresh();
     return this.updateHeight(this.props.minHeight);
   },
+
   componentWillUpdate(newProps) {
     return this.updateHeight(newProps.minHeight);
   },
+
   permalinkLinkClicked() {
     return generatePermalink(this.props.cell);
   }

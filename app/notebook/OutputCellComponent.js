@@ -4,7 +4,6 @@ import {ObservableMixin} from '../components';
 
 
 export default React.createClass({
-  displayName: 'OutputCellComponent',
   mixins: [ObservableMixin, React.addons.PureRenderMixin],
 
   getObservable(props) {
@@ -16,14 +15,16 @@ export default React.createClass({
   },
 
   render() {
-    let base;
-    return React.DOM.div({
-      className: 'output-cell-wrapper'
-    }, React.DOM.div({
-      className: 'cell output',
-      'data-cell-number': this.props.cell.number,
-      ref: 'output'
-    }, typeof (base = this.state).value === 'function' ? base.value() : void 0));
+    const {cell} = this.props;
+    const {value} = this.state;
+
+    return (
+      <div className='output-cell-wrapper'>
+        <div className='cell output' data-cell-number={cell.number} ref='output'>
+          {value ? value() : null}
+        </div>
+      </div>
+    );
   },
 
   componentDidMount() {

@@ -6,7 +6,6 @@ import InputOutputComponent from './InputOutputComponent';
 
 
 export default React.createClass({
-  displayName: 'DocumentComponent',
   mixins: [ObservableMixin],
 
   getObservable(props) {
@@ -14,13 +13,13 @@ export default React.createClass({
   },
 
   render() {
-    const {settings={layout: 'repl'}} = this.state.value;
+    const {settings={layout: 'repl'}, cells} = this.state.value;
     const {layout} = settings;
     const useMinHeight = layout === 'two-column';
 
     const ios = [];
     let props = null;
-    this.state.value.cells.forEach((cell) => {
+    cells.forEach((cell) => {
       if (cell.type === 'input') {
         props = {
           input_cell: cell,
