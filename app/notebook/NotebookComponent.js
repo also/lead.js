@@ -31,7 +31,7 @@ export default React.createClass({
 
     return (
       <Provider store={notebook.store}>
-        {() => <DocumentComponent notebook={notebook}/>}
+        {() => <DocumentComponent/>}
       </Provider>
     );
   },
