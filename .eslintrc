@@ -47,7 +47,7 @@ rules:
   react/jsx-boolean-value: 2
   react/jsx-no-duplicate-props: 2
   react/jsx-quotes: [1, "single", "avoid-escape"]
-  new-cap: 1
+  new-cap: [1, {capIsNewExceptions: ["CodeMirror.Pos", "CodeMirror"]}]
   no-loop-func: 1
   no-use-before-define: 1
   no-shadow: 1
