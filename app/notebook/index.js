@@ -178,13 +178,20 @@ function seek(startCell, direction, predicate=identity) {
   const {notebook} = startCell;
   let index = cellIndex(startCell) + direction;
 
-  const cells = notebook.store.getState().get('cells');
+  const state = notebook.store.getState();
+  const cellsById = state.get('cellsById');
+  const cells = state.get('cells');
 
   while (true) {
-    const cell = cells.get(index);
+    const key = cells.get(index);
 
-    if (cell == null || predicate(cell)) {
-      return cell;
+    if (key == null) {
+      return null;
+    } else {
+      const cell = cellsById.get(key);
+      if (predicate(cell)) {
+        return cell;
+      }
     }
 
     index += direction;
@@ -224,13 +231,9 @@ export function add_input_cell(notebook, opts={}) {
 
   if (opts.reuse) {
     if (opts.after != null) {
-      cell = seek(opts.after, forwards, (cell) => {
-        return isInput(cell);
-      });
+      cell = seek(opts.after, forwards, isInput);
     } else if (opts.before != null) {
-      cell = seek(opts.before, backwards, (cell) => {
-        return isInput(cell);
-      });
+      cell = seek(opts.before, backwards, isInput);
     }
   }
 
