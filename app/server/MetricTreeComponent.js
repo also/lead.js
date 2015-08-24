@@ -22,7 +22,7 @@ export default React.createClass({
 
   loadChildren(path) {
     const subpath = path === '' ? '*' : `${path}.*`;
-    return Server.find(subpath).then(({result}) => {
+    return Server.find(this.ctx(), subpath).then(({result}) => {
       return result.map(({path, is_leaf}) => {
         const parts = path.split('.');
         const name = parts[parts.length - 1];
