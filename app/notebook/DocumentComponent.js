@@ -26,7 +26,7 @@ export default connect(mapStateToProps)(React.createClass({
         };
         ios.push(props);
       } else {
-        if (props == null || props.input_cell.output_cell.key !== cell.key) {
+        if (props == null || props.input_cell.output_cell && props.input_cell.output_cell.key !== cell.key) {
           ios.push({
             output_cell: cell,
             key: cell.key,
