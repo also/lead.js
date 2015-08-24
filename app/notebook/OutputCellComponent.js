@@ -13,7 +13,7 @@ export default connect(null, actions)(React.createClass({
   },
 
   render() {
-    const {cell: {component}, number} = this.props;
+    const {cell: {component, number}} = this.props;
 
     return (
       <div className='output-cell-wrapper'>
