@@ -34,6 +34,7 @@ function handleModule(ctx, object) {
   if (object && object._lead_context_name) {
     addComponent(ctx,
       <div>{object._lead_context_name}
+        {' '}
         is a module.
         {Builtins.help_component(ctx, object)}
       </div>
