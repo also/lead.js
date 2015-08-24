@@ -45,7 +45,7 @@ function exportNotebook(notebook, currentCell) {
 }
 
 function importNotebook(notebook, cell, imported, options) {
-  const cells = _.map(imported.cells, (importedCell) => {
+  const cells = imported.cells.map((importedCell) => {
     if (importedCell.type === 'input') {
       cell = add_input_cell(notebook, {after: cell});
       set_cell_value(cell, importedCell.value);
@@ -54,7 +54,7 @@ function importNotebook(notebook, cell, imported, options) {
   });
 
   if (options.run) {
-    _.each(cells, run);
+    cells.forEach(run);
   }
 
   return notebook;

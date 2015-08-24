@@ -1,6 +1,5 @@
 import Bacon from 'bacon.model';
 import CodeMirror from 'codemirror';
-import * as React from 'react/addons';
 
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/coffeescript/coffeescript';
@@ -8,7 +7,6 @@ import 'codemirror/addon/hint/show-hint';
 
 import {suggest} from './autocomplete';
 
-import * as ContextComponents from '../contextComponents';
 import * as Notebook from '../notebook';
 
 let userNotebookKeymap = null;
@@ -240,42 +238,3 @@ if (process.browser) {
   CodeMirror.keyMap.lead = leadKeyMap;
   Object.assign(CodeMirror.commands, commands);
 }
-
-export const EditorComponent = React.createClass({
-  propTypes: {
-    run: React.PropTypes.func.isRequired,
-    initial_value: React.PropTypes.string
-  },
-
-  mixins: [ContextComponents.ContextAwareMixin],
-
-  getInitialState() {
-    return {
-      editor: create_editor('context')
-    };
-  },
-
-  run() {
-    return this.props.run(this.state.editor.getValue());
-  },
-
-  componentDidMount() {
-    const {editor} = this.state;
-
-    editor.ctx = this.ctx();
-    editor.run = this.run;
-    this.getDOMNode().appendChild(editor.display.wrapper);
-    if (this.props.initial_value != null) {
-      editor.setValue(this.props.initial_value);
-    }
-    return editor.refresh();
-  },
-
-  get_value() {
-    return this.state.editor.getValue();
-  },
-
-  render() {
-    return <div className='code'/>;
-  }
-});

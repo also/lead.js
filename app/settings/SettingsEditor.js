@@ -8,7 +8,7 @@ import * as Context from '../context';
 import * as Settings from '../settings';
 import {ToggleComponent} from '../components';
 import {ObjectComponent} from '../builtins';
-import {EditorComponent} from '../editor';
+import EditorComponent from '../editor/EditorComponent';
 
 const buildKeyMap = function () {
   const allKeys = {};
