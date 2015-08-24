@@ -118,20 +118,21 @@ export function createNotebook(opts) {
     cell_focused: new Bacon.Bus()
   };
 
-  if (process.browser) {
-    const bodyElt = document.querySelector('.body');
-    const scrolls = Bacon.fromEventTarget(bodyElt, 'scroll');
-    const scroll_to = notebook.cell_run.flatMapLatest(function (input_cell) {
-      return input_cell.output_cell.done.delay(0).takeUntil(scrolls);
-    });
-
-    scroll_to.onValue(function (output_cell) {
-      const bodyTop = bodyElt.getBoundingClientRect().top;
-      const bodyScroll = bodyElt.scrollTop;
-
-      bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.key]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
-    });
-  }
+  // FIXME
+  // if (process.browser) {
+  //   const bodyElt = document.querySelector('.body');
+  //   const scrolls = Bacon.fromEventTarget(bodyElt, 'scroll');
+  //   const scroll_to = notebook.cell_run.flatMapLatest(function (input_cell) {
+  //     return input_cell.output_cell.done.delay(0).takeUntil(scrolls);
+  //   });
+  //
+  //   scroll_to.onValue(function (output_cell) {
+  //     const bodyTop = bodyElt.getBoundingClientRect().top;
+  //     const bodyScroll = bodyElt.scrollTop;
+  //
+  //     bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.key]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
+  //   });
+  // }
 
   notebook.base_context = Context.create_base_context(opts);
   return notebook;
@@ -287,35 +288,32 @@ function createOutputCell(notebook) {
   return {
     type: 'output',
     key: 'output' + cellKey++,
-    notebook: notebook,
-    number: number
+    notebook,
+    number
   };
 }
 
-function runInputCell(input_cell) {
-  const output_cell = createOutputCell(input_cell.notebook);
+function runInputCell({notebook, key}) {
+  const inputCell = notebook.store.getState().getIn(['cellsById', key])
+  const outputCell = createOutputCell(notebook);
 
-  input_cell.used = true;
-  if (input_cell.output_cell != null) {
-    remove_cell(input_cell.output_cell);
+  inputCell.used = true;
+  if (inputCell.output_cell != null) {
+    remove_cell(inputCell.output_cell);
   }
-  input_cell.output_cell = output_cell;
-  insertCell(output_cell, {
-    after: input_cell
-  });
-  input_cell.number = input_cell.notebook.input_number++;
-  input_cell.changes.push(input_cell);
+  insertCell(outputCell, {after: inputCell});
+  notebook.store.dispatch(actions.updateCell(key, {number: notebook.input_number++, output_cell: outputCell}));
   const run_context = Context.create_run_context([
-    input_cell.notebook.context,
-    input_cell.context,
-    {input_cell, output_cell},
-    createNotebookRunContext(input_cell)
+    inputCell.notebook.context,
+    inputCell.context,
+    {input_cell: inputCell, output_cell: outputCell},
+    createNotebookRunContext(inputCell)
   ]);
   const fn = CoffeeScriptCell.get_fn(run_context);
 
   runWithContext(run_context, fn);
-  input_cell.notebook.cell_run.push(input_cell);
-  return output_cell;
+  notebook.cell_run.push(inputCell);
+  return outputCell;
 }
 
 function runWithContext(ctx, fn) {
@@ -359,13 +357,13 @@ function createNotebookRunContext(cell) {
     notebook,
 
     set_code(code) {
-      cell = add_input_cell(notebook, {after: this.output_cell});
+      const cell = add_input_cell(notebook, {after: this.output_cell});
       set_cell_value(cell, code);
       focus_cell(cell);
     },
 
     run(code) {
-      cell = add_input_cell(notebook, {after: this.output_cell});
+      const cell = add_input_cell(notebook, {after: this.output_cell});
       set_cell_value(cell, code);
       runInputCell(cell);
     },

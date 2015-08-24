@@ -1,6 +1,5 @@
 import React from 'react/addons';
 
-import {ObservableMixin} from '../components';
 import * as Editor from '../editor';
 import * as Builtins from '../builtins';
 import * as Context from '../context';
@@ -17,11 +16,7 @@ function generatePermalink(cell) {
 }
 
 export default React.createClass({
-  mixins: [ObservableMixin, React.addons.PureRenderMixin],
-
-  getObservable(props) {
-    return props.cell.changes;
-  },
+  mixins: [React.addons.PureRenderMixin],
 
   render() {
     const {cell} = this.props;
