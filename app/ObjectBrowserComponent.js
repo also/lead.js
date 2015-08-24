@@ -1,5 +1,6 @@
 import * as React from 'react';
-import * as _  from './core';
+import * as _  from 'underscore';
+import {intersperse} from './core';
 
 
 function isSimple(o) {
@@ -137,7 +138,7 @@ const ObjectBrowserTopLevelObjectComponent = React.createClass({
         <span>
           <Var>Object </Var>
           <Punct>{'{'}</Punct>
-          {_.intersperse(children, <Punct>, </Punct>)}
+          {intersperse(children, <Punct>, </Punct>)}
           <Punct>{'}'}</Punct>
         </span>
       </TopLevelComponent>
@@ -155,7 +156,7 @@ const ObjectBrowserTopLevelArrayComponent = React.createClass({
       <TopLevelComponent object={this.props.object}>
         <span>
           <Punct>[</Punct>
-          {_.intersperse(children, <Punct>, </Punct>)}
+          {intersperse(children, <Punct>, </Punct>)}
           <Punct>]</Punct>
         </span>
       </TopLevelComponent>

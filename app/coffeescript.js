@@ -4,7 +4,8 @@ import * as Context from './context';
 import * as Builtins from './builtins';
 import React from 'react';
 import {ToggleComponent, SourceComponent} from './components';
-import _ from './core';
+import _ from 'underscore';
+import {logError, errorInfo} from './core';
 import * as Javascript from './javascript';
 
 if (process.browser) {
@@ -20,12 +21,12 @@ if (process.browser) {
 const CoffeeScriptErrorComponent = React.createClass({
   render() {
     const {error, compiled} = this.props;
-    const errorInfo = _.errorInfo(error);
-    const title = <pre>{errorInfo.message}</pre>;
+    const info = errorInfo(error);
+    const title = <pre>{info.message}</pre>;
 
     return (
       <div className='error'>
-        {errorInfo.trace ? <ToggleComponent title={title}><pre>{errorInfo.trace.join('\n')}</pre></ToggleComponent> : title}
+        {info.trace ? <ToggleComponent title={title}><pre>{info.trace.join('\n')}</pre></ToggleComponent> : title}
         <ToggleComponent title='Compiled JavaScript'>
           <SourceComponent language='javascript' value={compiled}/>
         </ToggleComponent>
@@ -78,7 +79,7 @@ export function create_fn(string) {
         }
         Context.add_component(ctx, <Builtins.ErrorComponent message={`Syntax Error: ${e.message}${details}`}/>);
       } else {
-        _.logError('Exception in CoffeeScript cell', e);
+        logError('Exception in CoffeeScript cell', e);
 
         Context.add_component(ctx, <CoffeeScriptErrorComponent error={e} compiled={compiled}/>);
       }
