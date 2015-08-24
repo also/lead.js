@@ -11,6 +11,7 @@ import * as Documentation from '../documentation';
 import NotebookComponent from './NotebookComponent';
 import InputCellComponent from './InputCellComponent';
 import OutputCellComponent from './OutputCellComponent';
+import './editor';
 
 export {NotebookComponent};
 
