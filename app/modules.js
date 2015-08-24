@@ -45,21 +45,19 @@ function _export(exports, module_name, definition_fn) {
     return fn(name, wrapped, wrapped);
   });
 
-  const component_fn = optDocFn((name, f) => {
+  const componentFn = optDocFn((name, f) => {
     const wrapped = (ctx, ...args) => {
       return Context.add_component(ctx, f(ctx, ...args));
     };
 
-    wrapped.raw_fn = f;
     return fn(name, wrapped);
   });
 
-  const component_cmd = optDocFn((name, f) => {
+  const componentCmd = optDocFn((name, f) => {
     const wrapped = function (ctx, ...args) {
       return Context.add_component(ctx, f(ctx, ...args));
     };
 
-    wrapped.raw_fn = f;
     return cmd(name, wrapped);
   });
 
@@ -72,27 +70,19 @@ function _export(exports, module_name, definition_fn) {
     }
   }
 
-  const componentCmd = component_cmd;
-  const componentFn = component_fn;
-
   const helpers = {
-    doc: doc,
-    cmd: cmd,
-    fn: fn,
-    component_cmd: component_cmd,
-    component_fn: component_fn,
-    componentCmd: componentCmd,
-    componentFn: componentFn,
-    contextExport: contextExport,
-    settings: settings,
-    contextExports: contextExports,
-    docs: docs
+    doc,
+    cmd,
+    fn,
+    componentCmd,
+    componentFn,
+    contextExport,
+    settings,
+    contextExports,
+    docs
   };
 
-  return Object.assign(exports, {
-    contextExports: contextExports,
-    docs: docs
-  }, definition_fn(helpers));
+  return Object.assign(exports, {contextExports, docs}, definition_fn(helpers));
 }
 
 export {_export as export};
