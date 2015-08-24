@@ -22,13 +22,13 @@ function _export(exports, module_name, definition_fn) {
   };
 
   function optDocFn(f) {
-    return (...args) => {
-      if (_.isString(args[1])) {
-        const [name, summary] = args;
+    return (name, ...args) => {
+      if (_.isString(args[0])) {
+        const [summary] = args;
         doc(name, summary);
-        args.splice(1, 1);
+        args = args.slice(1);
       }
-      return f(...args);
+      return f(name, ...args);
     };
   }
 
