@@ -57,7 +57,7 @@ module.exports = {
     var result = _.clone(module.exports);
     result.resolve.root = [__dirname + '/node_modules', directory + '/node_modules'];
     result.resolve.alias['lead.js'] = __dirname + '/app';
-    result.resolveLoader = {root: result.resolve.root};
+    _.extend(result.resolveLoader, {root: result.resolve.root});
     return result;
   }
 }
