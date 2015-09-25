@@ -63,5 +63,8 @@
     "wd": "~0.2.8",
     "webpack": "^1.11.0",
     "webpack-dev-server": "^1.10.1"
+  },
+  "scripts": {
+    "start": "webpack-dev-server"
   }
 }
