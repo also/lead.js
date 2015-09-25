@@ -197,7 +197,7 @@ export default React.createClass({
                   y={10}
                   dy={params.titleTextSize}
                   fill={params.titleTextColor}
-                  style={{'font-size': params.titleTextSize, 'font-weight': 'bold'}}>{params.title}</text>;
+                  style={{fontSize: params.titleTextSize, fontWeight: 'bold'}}>{params.title}</text>;
       }
 
       let xAxis = null;

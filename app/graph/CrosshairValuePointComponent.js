@@ -35,7 +35,7 @@ export default React.createClass({
         return <circle
                   fill={target.color}
                   stroke={params.bgcolor}
-                  style={{'stroke-width': 2, visibility}}
+                  style={{strokeWidth: 2, visibility}}
                   cx={d.x}
                   cy={d.y}
                   r={radius}/>;

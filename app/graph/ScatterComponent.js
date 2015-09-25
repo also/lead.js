@@ -40,7 +40,7 @@ export default React.createClass({
                        cy={v.y}
                        fill={circleColor}
                        r={radius}
-                       style={{'fill-opacity': d.pointAlpha}}/>;
+                       style={{fillOpacity: d.pointAlpha}}/>;
       }
     });
 

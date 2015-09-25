@@ -37,7 +37,7 @@ export default React.createClass({
                      y1={0}
                      y2={height}
                      stroke={lineColor}
-                     style={{'stroke-opacity': d.lineAlpha, 'stroke-width': lineWidth}}/>;
+                     style={{strokeOpacity: d.lineAlpha, strokeWidth: lineWidth}}/>;
       }
     });
 

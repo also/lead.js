@@ -4,7 +4,7 @@ import React from 'react';
 const pathStyles = {
   line: {
     fill: 'none',
-    'stroke-linecap': 'square'
+    strokeLinecap: 'square'
   }
 };
 
@@ -35,9 +35,9 @@ export default React.createClass({
     }
 
     const style = Object.assign({
-      'stroke-width': d.lineWidth + extraWidth,
-      'stroke-opacity': d.lineAlpha,
-      'fill-opacity': d.areaAlpha
+      strokeWidth: d.lineWidth + extraWidth,
+      strokeOpacity: d.lineAlpha,
+      fillOpacity: d.areaAlpha
     }, pathStyles[d.lineMode]);
 
     return <path stroke={d.color}

@@ -19,7 +19,7 @@ export default React.createClass({
       const {x, time} = this.state.value;
 
       return <g>
-        <line style={{'shape-rendering': 'crispEdges'}}
+        <line style={{shapeRendering: 'crispEdges'}}
               x1={x}
               x2={x}
               y1={0}
@@ -28,7 +28,7 @@ export default React.createClass({
         <text x={x}
               y='-6'
               fill={params.crosshairTextColor}
-              style={{'text-anchor': 'middle', 'font-size': params.crosshairTextSize}}>
+              style={{textAnchor: 'middle', fontSize: params.crosshairTextSize}}>
           {moment(time).format('lll')}
         </text>
       </g>;

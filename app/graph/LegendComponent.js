@@ -71,9 +71,9 @@ export default React.createClass({
                 onMouseOver={() => mouseHandler.onTargetMouseOver(d)}
                 onMouseOut={() => mouseHandler.onTargetMouseOut(d)}>
         <rect x={offset} y={offset} width={size} height={size} fill={d.color}/>
-        <text x='16' dy='11' style={{'font-size': '11px'}}>
+        <text x='16' dy='11' style={{fontSize: '11px'}}>
           <tspan fill={params.legendTextColor}>{params.legendText(d)}</tspan>
-          <tspan style={{'white-space': 'pre'}}>{'   '}</tspan>
+          <tspan style={{whiteSpace: 'pre'}}>{'   '}</tspan>
           <LegendCrosshairValueComponent target={d}/>
         </text>
       </g>;
