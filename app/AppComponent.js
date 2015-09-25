@@ -61,7 +61,7 @@ export default React.createClass({
     let body = this.state.initializationState.state === 'pending' ? null : <Router.RouteHandler/>;
 
     if (bodyWrapper) {
-      body = bodyWrapper(null, body);
+      body = React.createElement(bodyWrapper, null, body);
     }
 
     return (
