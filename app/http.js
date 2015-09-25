@@ -14,8 +14,12 @@ export function execute_xhr(ctx, url, options) {
   return Q.when(xhr).then(() => Q.fulfill(xhr));
 }
 
-export function execute(ctx, url, options) {
+export let execute = function (ctx, url, options) {
   return Q.when($.ajax(Object.assign({url, dataType: 'json', contentType: 'application/json'}, options)));
+}
+
+export function setExecute(e) {
+  execute = e;
 }
 
 export function get(ctx, url, options) {
