@@ -235,7 +235,7 @@ export default React.createClass({
       const svg =
         <svg width={sizes.svgWidth} height={sizes.svgHeight}
             ref='svg'
-            style={{'font-family': '"Helvetica Neue"', cursor: 'default', 'background-color': params.bgcolor}}
+            style={{fontFamily: '"Helvetica Neue"', cursor: 'default', backgroundColor: params.bgcolor}}
             onMouseMove={this.onMouseMove}>
           {title}
           <g dangerouslySetInnerHTML={{__html: clipper}}/>
