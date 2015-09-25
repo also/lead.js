@@ -57,7 +57,7 @@ function argsToServerParams(ctx, args) {
 }
 
 function renderUrl(ctx, params) {
-  return url('render', params);
+  return url(ctx, 'render', params);
 }
 
 function isPattern(s) {
