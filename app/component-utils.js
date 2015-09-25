@@ -1,4 +1,5 @@
 import * as React from 'react';
+import shallowEqual from 'react/lib/shallowEqual';
 
 // using this is probably a bad sign
 export function replaceOnPropChange(Component) {
@@ -7,8 +8,10 @@ export function replaceOnPropChange(Component) {
       return {key: 1};
     },
 
-    componentWillReceiveProps() {
-      this.setState({key: this.state.key + 1});
+    componentWillReceiveProps(nextProps) {
+      if (!shallowEqual(this.props, nextProps)) {
+        this.setState({key: this.state.key + 1});
+      }
     },
 
     render() {
