@@ -363,7 +363,7 @@ export function resolveDocumentationKey(ctx, o) {
 
 export function renderError(error) {
   if (error instanceof ServerError) {
-    return ServerErrorComponent({error: error.error});
+    <ServerErrorComponent error={error.error}/>;
   }
 }
 
