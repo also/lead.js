@@ -1,3 +1,4 @@
+import React from 'react/addons';
 import URI from 'urijs';
 import Bacon from 'bacon.model';
 import * as Immutable from 'immutable';

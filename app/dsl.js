@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 
+import React from 'react/addons';
 import _ from 'underscore';
 
 import * as Context from './context';

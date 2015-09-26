@@ -106,5 +106,3 @@ window.lead = {
   Router: Router,
   React: React
 };
-
-window.React = React;

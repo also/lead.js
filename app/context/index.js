@@ -1,3 +1,4 @@
+import React from 'react/addons';
 import _ from 'underscore';
 import Bacon from 'bacon.model';
 
