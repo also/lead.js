@@ -2,7 +2,7 @@ import * as React from 'react/addons';
 import * as _ from 'underscore';
 
 import ObjectBrowserComponent from '../ObjectBrowserComponent';
-import {ToggleComponent} from '../builtins';
+import {ToggleComponent} from '../components';
 
 import ServerExceptionDetailsComponent from './ServerExceptionDetailsComponent';
 
