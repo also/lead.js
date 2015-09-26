@@ -1,7 +1,8 @@
 import * as React from 'react/addons';
 
-import * as ContextComponents from '../contextComponents';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import {create_editor} from '../editor';
+
 
 export default React.createClass({
   propTypes: {
@@ -9,7 +10,7 @@ export default React.createClass({
     initial_value: React.PropTypes.string
   },
 
-  mixins: [ContextComponents.ContextAwareMixin],
+  mixins: [ContextAwareMixin],
 
   getInitialState() {
     return {

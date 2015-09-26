@@ -7,7 +7,7 @@ Editor = require './editor'
 Context = require './context'
 CoffeeScriptCell = require './coffeescript'
 Components = require './components'
-ContextComponents = require './contextComponents'
+ComponentContextComponent = require './context/ComponentContextComponent'
 AppAwareMixin = require('./AppAwareMixin')
 MetricTreeComponent = require('./server/MetricTreeComponent')
 
@@ -106,7 +106,7 @@ exports.BuilderComponent = React.createClass
         Components.ToggleComponent {title: 'Targets'},
           TargetsEditorComponent targets: @state.targets
         Graphing.GraphComponent model: @state.model
-        ContextComponents.ComponentContextComponent ctx: @ctx(),
+        ComponentContextComponent ctx: @ctx(),
           Editor.EditorComponent {run: @run, ref: 'editor'}
           Context.ContextOutputComponent {}
         React.DOM.span {className: 'run-button', onClick: => @run()},

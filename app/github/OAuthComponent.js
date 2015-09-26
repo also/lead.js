@@ -4,7 +4,7 @@ import * as Server from '../server';
 import * as Http from '../http';
 import * as Settings from '../settings';
 import {ModalComponent} from '../app';
-import {ContextAwareMixin} from '../contextComponents';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import {replaceOnPropChange} from '../component-utils';
 
 

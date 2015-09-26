@@ -3,7 +3,7 @@ import React from 'react/addons';
 import * as Context from '../context';
 import * as CoffeeScriptCell from '../coffeescript';
 import {SourceComponent} from '../components';
-import {ContextAwareMixin} from '../contextComponents';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import _ from 'underscore';
 
 

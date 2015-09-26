@@ -2,17 +2,18 @@ import _ from 'underscore';
 import Bacon from 'bacon.model';
 import React from 'react/addons';
 
-import {user_settings, global_settings} from './settings';
+import {user_settings, global_settings} from '../settings';
 
+import ContextAwareMixin from './ContextAwareMixin';
+import ContextRegisteringMixin from './ContextRegisteringMixin';
+import ComponentContextComponent from './ComponentContextComponent';
+import {ObservableMixin, SimpleLayoutComponent} from '../components';
+import * as Builtins from '../builtins';
+import * as Modules from '../modules';
 
-import {ContextAwareMixin, ContextRegisteringMixin, ComponentContextComponent} from './contextComponents';
-import {ObservableMixin, SimpleLayoutComponent} from './components';
-import * as Builtins from './builtins';
-import * as Modules from './modules';
-
-import {addComponent, removeAllComponents, componentList} from './componentList';
-import {scopedEval} from './contextEval';
-import displayObject from './displayObject';
+import {addComponent, removeAllComponents, componentList} from '../componentList';
+import {scopedEval} from '../contextEval';
+import displayObject from '../displayObject';
 
 export {scopedEval as scoped_eval};
 export {addComponent as add_component};

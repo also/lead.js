@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import LeadMarkdownComponent from './markdown/LeadMarkdownComponent';
 import * as Context from './context';
-import {ContextAwareMixin} from './contextComponents';
+import ContextAwareMixin from './context/ContextAwareMixin';
 
 const {PropTypes} = React;
 

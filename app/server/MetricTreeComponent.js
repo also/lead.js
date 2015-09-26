@@ -1,6 +1,6 @@
 import * as React from 'react/addons';
 
-import {ContextAwareMixin} from '../contextComponents';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import * as Server from '../server';
 import {TreeComponent} from '../tree';
 

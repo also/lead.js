@@ -3,7 +3,7 @@ import React from 'react/addons';
 import URI from 'urijs';
 import _ from 'underscore';
 import * as Components from '../components';
-import {ContextAwareMixin} from '../contextComponents';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import * as Documentation from '../documentation';
 import UserHtmlComponent from './UserHtmlComponent';
 import InlineExampleComponent from  './InlineExampleComponent';

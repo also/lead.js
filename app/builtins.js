@@ -6,7 +6,7 @@ import * as modules from './modules';
 import * as Documentation from './documentation';
 import * as Components from './components';
 import * as Context from './context';
-import * as ContextComponents from './contextComponents';
+import ContextAwareMixin from './context/ContextAwareMixin';
 import * as App from './app';
 import ObjectBrowserComponent from './ObjectBrowserComponent';
 
@@ -62,7 +62,7 @@ const HtmlComponent = React.createClass({
 export const ErrorComponent = React.createClass({
   displayName: 'ErrorComponent',
 
-  mixins: [ContextComponents.ContextAwareMixin],
+  mixins: [ContextAwareMixin],
 
   render() {
     const errorRenderers = Context.collect_extension_points(this.ctx(), 'renderError');

@@ -2,7 +2,7 @@ import CodeMirror from 'codemirror';
 import 'codemirror/addon/runmode/runmode';
 import React from 'react/addons';
 
-import {ContextAwareMixin} from './contextComponents';
+import ContextAwareMixin from './context/ContextAwareMixin';
 
 const formatCode = function (code, language, target) {
   if (CodeMirror.runMode != null) {

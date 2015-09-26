@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {ContextAwareMixin} from './contextComponents';
+import ContextAwareMixin from './context/ContextAwareMixin';
 import * as Documentation from './documentation';
 import NotFoundComponent from './routes/NotFoundComponent';
 
