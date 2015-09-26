@@ -1,6 +1,6 @@
 import React from 'react/addons';
 
-import {create_standalone_context} from '.';
+import {create_standalone_context} from './';
 import ComponentContextComponent from './ComponentContextComponent';
 
 

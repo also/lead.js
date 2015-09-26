@@ -2,7 +2,7 @@ import React from 'react/addons';
 
 import ContextRegisteringMixin from './ContextRegisteringMixin';
 import ContextLayoutComponent from './ContextLayoutComponent';
-import {isRunContext} from '.';
+import {isRunContext} from './';
 
 
 export default React.createClass({

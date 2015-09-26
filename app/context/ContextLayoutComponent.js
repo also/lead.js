@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react/addons';
 
 import {ObservableMixin} from '../components';
-import {isRunContext} from '.';
+import {isRunContext} from './';
 
 
 export default React.createClass({
