@@ -22,6 +22,7 @@ const contentType = 'application/x-lead-notebook';
 const forwards = +1;
 const backwards = -1;
 let cellKey = 0;
+let notebookId = 0;
 
 function isInput(cell) {
   return cell.type === 'input';
@@ -36,6 +37,7 @@ function identity(cell) {
 }
 
 const actionTypes = {
+  NOTEBOOK_CREATED: 'NOTEBOOK_CREATED',
   CELLS_REPLACED: 'CELLS_REPLACED',
   SETTINGS_CHANGED: 'SETTINGS_CHANGED',
   INSERT_CELL: 'INSERT_CELL',
@@ -44,20 +46,24 @@ const actionTypes = {
 };
 
 export const actions = {
-  cellsReplaced(cells) {
-    return {type: actionTypes.CELLS_REPLACED, cells};
+  notebookCreated(id) {
+    return {type: actionTypes.NOTEBOOK_CREATED, id};
+  },
+
+  cellsReplaced(notebookId, cells) {
+    return {type: actionTypes.CELLS_REPLACED, notebookId, cells};
   },
 
   settingsChanged(settings) {
     return {type: actionTypes.SETTINGS_CHANGED, settings};
   },
 
-  insertCell(cell, index) {
-    return {type: actionTypes.INSERT_CELL, cell, index};
+  insertCell(notebookId, cell, index) {
+    return {type: actionTypes.INSERT_CELL, notebookId, cell, index};
   },
 
-  removeCellAtIndex(index) {
-    return {type: actionTypes.REMOVE_CELL_AT_INDEX, index};
+  removeCellAtIndex(notebookId, index) {
+    return {type: actionTypes.REMOVE_CELL_AT_INDEX, notebookId, index};
   },
 
   updateCell(id, update) {
@@ -65,18 +71,21 @@ export const actions = {
   }
 }
 
-const initialState = Immutable.fromJS({cells: [], cellsById: {}, settings: {}});
+const initialState = Immutable.fromJS({notebooksById: {}, cellsById: {}, settings: {}});
 
 function reducer(state=initialState, action) {
   console.log('notebook action', action.type);
   switch (action.type) {
+  case actionTypes.NOTEBOOK_CREATED:
+    return state.setIn(['notebooksById', action.id], Immutable.fromJS({cells: []}));
+
   case actionTypes.CELLS_REPLACED:
-    return state.setIn(['cells'], action.cells.map(({key}) => key))
+    return state.setIn(['notebooksById', action.notebookId, 'cells'], action.cells.map(({key}) => key))
       .setIn(['cellsById'], new Immutable.Map(action.cells.map((cell) => [cell.key, cell])));
 
   case actionTypes.INSERT_CELL:
     const {cell} = action;
-    return state.updateIn(['cells'], (cells) => {
+    return state.updateIn(['notebooksById', action.notebookId, 'cells'], (cells) => {
       if (action.index) {
         return cells.splice(action.index, 0, cell.key);
       } else {
@@ -91,7 +100,7 @@ function reducer(state=initialState, action) {
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
     let key;
-    return state.updateIn(['cells'], (cells) => {
+    return state.updateIn(['notebooksById', action.notebookId, 'cells'], (cells) => {
       key = cells.get(action.index);
       return cells.delete(action.index);
     }).deleteIn(['cellsById', key]);
@@ -104,13 +113,15 @@ function reducer(state=initialState, action) {
   }
 }
 
-export function createNotebook(opts) {
-  const store = createStore(reducer);
-  const unsubscribeSettings = Settings.toProperty('notebook').onValue((settings) => {
-    store.dispatch(actions.settingsChanged(settings));
-  });
 
+const store = createStore(reducer);
+const unsubscribeSettings = Settings.toProperty('notebook').onValue((settings) => {
+  store.dispatch(actions.settingsChanged(settings));
+});
+
+export function createNotebook(opts) {
   const notebook = {
+    id: notebookId++,
     store,
     unsubscribeSettings,
     context: opts.context,
@@ -119,6 +130,8 @@ export function createNotebook(opts) {
     cell_run: new Bacon.Bus(),
     cell_focused: new Bacon.Bus()
   };
+
+  store.dispatch(actions.notebookCreated(notebook.id));
 
   // FIXME
   // if (process.browser) {
@@ -147,7 +160,7 @@ export function destroyNotebook(notebook) {
 function exportNotebook(notebook, currentCell) {
   return {
     lead_js_version: 0,
-    cells: notebook.store.getState().get('cells').filter((cell) => cell !== currentCell && isInput(cell))
+    cells: notebook.store.getState().getIn(['notebooksById', notebook.id, 'cells']).filter((cell) => cell !== currentCell && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
@@ -178,13 +191,13 @@ export function focus_cell(cell) {
 }
 
 function clearNotebook(notebook) {
-  notebook.store.dispatch(actions.cellsReplaced(new Immutable.List()));
+  notebook.store.dispatch(actions.cellsReplaced(notebook.id, new Immutable.List()));
 
   focus_cell(add_input_cell(notebook));
 }
 
 function cellIndex(cell) {
-  return cell.notebook.store.getState().get('cells').indexOf(cell.key);
+  return cell.notebook.store.getState().getIn(['notebooksById', cell.notebook.id, 'cells']).indexOf(cell.key);
 }
 
 function seek(startCell, direction, predicate=identity) {
@@ -193,7 +206,7 @@ function seek(startCell, direction, predicate=identity) {
 
   const state = notebook.store.getState();
   const cellsById = state.get('cellsById');
-  const cells = state.get('cells');
+  const cells = state.getIn(['notebooksById', notebook.id, 'cells']);
 
   while (true) {
     const key = cells.get(index);
@@ -218,10 +231,12 @@ export function input_cell_at_offset(cell, offset) {
 function remove_cell(cell) {
   const index = cellIndex(cell);
 
-  cell.notebook.store.dispatch(actions.removeCellAtIndex(index));
+  cell.notebook.store.dispatch(actions.removeCellAtIndex(cell.notebook.id, index));
 }
 
 function insertCell(cell, position={}) {
+  const {notebook} = cell;
+
   let currentCell, offset;
   if (position.before) {
     offset = 0;
@@ -230,13 +245,13 @@ function insertCell(cell, position={}) {
     offset = 1;
     currentCell = position.after;
   } else {
-    cell.notebook.store.dispatch(actions.insertCell(cell));
+    notebook.store.dispatch(actions.insertCell(notebook.id, cell));
     return;
   }
 
   const index = cellIndex(currentCell);
 
-  cell.notebook.store.dispatch(actions.insertCell(cell, index + offset));
+  notebook.store.dispatch(actions.insertCell(notebook.id, cell, index + offset));
 }
 
 export function add_input_cell(notebook, opts={}) {

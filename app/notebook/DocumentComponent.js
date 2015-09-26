@@ -4,9 +4,10 @@ import {connect} from 'react-redux';
 import InputOutputComponent from './InputOutputComponent';
 
 
-function mapStateToProps(state) {
+function mapStateToProps(state, ownProps) {
   const cellsById = state.get('cellsById');
-  return {cells: state.get('cells').map(cellsById.get.bind(cellsById)), settings: state.get('settings')};
+  const {notebook} = ownProps;
+  return {cells: state.getIn(['notebooksById', notebook.id, 'cells']).map(cellsById.get.bind(cellsById)), settings: state.get('settings')};
 }
 
 export default connect(mapStateToProps)(React.createClass({
