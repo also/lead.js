@@ -418,12 +418,12 @@ export function handle_file(ctx, file, options={}) {
       try {
         imported = JSON.parse(file.content);
       } catch (error) {
-        Builtins.contextExports.error.fn(ctx, `File ${file.filename} isn't a lead.js notebook:\n${error}`);
+        Context.add_component(ctx, <Builtins.ErrorComponent message={`File ${file.filename} isn't a lead.js notebook:\n${error}`}/>);
       }
       const version = imported.lead_js_version;
 
       if (version == null) {
-        Builtins.contextExports.error.fn(ctx, `File ${file.filename} isn't a lead.js notebook`);
+        Context.add_component(ctx, <Builtins.ErrorComponent message={`File ${file.filename} isn't a lead.js notebook`}/>);
       }
 
       importNotebook(ctx.notebook, ctx.output_cell, imported, options);
