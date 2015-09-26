@@ -4,6 +4,7 @@ import Bacon from 'bacon.model';
 import React from 'react/addons';
 
 import * as Builtins from './builtins';
+import ObjectBrowserComponent from './ObjectBrowserComponent';
 import {addComponent} from './componentList';
 import {IGNORE, collect_extension_points} from './context';
 
@@ -72,7 +73,7 @@ function handleComponent(ctx, object) {
 }
 
 function handleAnyObject(ctx, object) {
-  addComponent(ctx, <Builtins.ObjectBrowserComponent object={object}/>);
+  addComponent(ctx, <ObjectBrowserComponent object={object}/>);
   return true;
 }
 
