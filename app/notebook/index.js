@@ -146,9 +146,7 @@ export function createNotebook(opts) {
     store,
     context: opts.context,
     input_number: 1,
-    output_number: 1,
-    cell_run: new Bacon.Bus(),
-    cell_focused: new Bacon.Bus()
+    output_number: 1
   };
 
   store.dispatch(actions.notebookCreated(notebook.notebookId));
@@ -206,7 +204,6 @@ export function focus_cell(cell) {
   // https://github.com/facebook/react/issues/1791
   setTimeout(function () {
     cell.editor.focus();
-    cell.notebook.cell_focused.push(cell);
   }, 0);
 }
 
@@ -355,7 +352,6 @@ function runInputCell({notebook, cellId}) {
   const fn = CoffeeScriptCell.get_fn(run_context);
 
   runWithContext(run_context, fn);
-  notebook.cell_run.push(inputCell);
   return outputCell;
 }
 
