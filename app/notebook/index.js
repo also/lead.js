@@ -38,6 +38,7 @@ function identity(cell) {
 
 const actionTypes = {
   NOTEBOOK_CREATED: 'NOTEBOOK_CREATED',
+  NOTEBOOK_DESTROYED: 'NOTEBOOK_DESTROYED',
   CELLS_REPLACED: 'CELLS_REPLACED',
   SETTINGS_CHANGED: 'SETTINGS_CHANGED',
   INSERT_CELL: 'INSERT_CELL',
@@ -48,6 +49,10 @@ const actionTypes = {
 export const actions = {
   notebookCreated(id) {
     return {type: actionTypes.NOTEBOOK_CREATED, id};
+  },
+
+  notebookDestroyed(id) {
+    return {type: actionTypes.NOTEBOOK_DESTROYED, id};
   },
 
   cellsReplaced(notebookId, cells) {
@@ -71,17 +76,33 @@ export const actions = {
   }
 }
 
+const Notebook = Immutable.Record({cells: new Immutable.List()})
+
+function cellsRemoved(cellsById, cellKeys) {
+  const set = new Set(cellKeys);
+  return cellsById.filterNot(({key}) => set.has(key));
+}
+
 const initialState = Immutable.fromJS({notebooksById: {}, cellsById: {}, settings: {}});
 
 function reducer(state=initialState, action) {
   console.log('notebook action', action.type);
   switch (action.type) {
   case actionTypes.NOTEBOOK_CREATED:
-    return state.setIn(['notebooksById', action.id], Immutable.fromJS({cells: []}));
+    return state.setIn(['notebooksById', action.id], new Notebook());
+
+  case actionTypes.NOTEBOOK_DESTROYED:
+    const notebook = state.getIn(['notebooksById', action.id]);
+    return state.deleteIn(['notebooks', action.id])
+      .updateIn(['cellsById'], (cellsById) => cellsRemoved(cellsById, notebook.cells.map(({key}) => key)));
 
   case actionTypes.CELLS_REPLACED:
+    const currentCellKeys = state.getIn(['notebooksById', action.notebookId, 'cells']).map(({key}) => key);
     return state.setIn(['notebooksById', action.notebookId, 'cells'], action.cells.map(({key}) => key))
-      .setIn(['cellsById'], new Immutable.Map(action.cells.map((cell) => [cell.key, cell])));
+      .updateIn(['cellsById'], (cellsById) => {
+        return cellsRemoved(cellsById, currentCellKeys)
+          .merge(action.cells.map((cell) => [cell.key, cell]));
+      });
 
   case actionTypes.INSERT_CELL:
     const {cell} = action;
@@ -115,7 +136,7 @@ function reducer(state=initialState, action) {
 
 
 const store = createStore(reducer);
-const unsubscribeSettings = Settings.toProperty('notebook').onValue((settings) => {
+Settings.toProperty('notebook').onValue((settings) => {
   store.dispatch(actions.settingsChanged(settings));
 });
 
@@ -123,7 +144,6 @@ export function createNotebook(opts) {
   const notebook = {
     id: notebookId++,
     store,
-    unsubscribeSettings,
     context: opts.context,
     input_number: 1,
     output_number: 1,
@@ -154,7 +174,7 @@ export function createNotebook(opts) {
 }
 
 export function destroyNotebook(notebook) {
-  notebook.unsubscribeSettings();
+  notebook.store.dispatch(actions.notebookDestroyed(notebook.id));
 }
 
 function exportNotebook(notebook, currentCell) {
