@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Bacon from 'bacon.model';
 import Q from 'q';
-import URI from 'URIjs';
+import URI from 'urijs';
 
 import * as dsl from '../dsl';
 import * as Modules from '../modules';

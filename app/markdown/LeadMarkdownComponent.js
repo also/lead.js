@@ -1,6 +1,6 @@
 import Marked from 'marked';
 import React from 'react/addons';
-import URI from 'URIjs';
+import URI from 'urijs';
 import _ from 'underscore';
 import * as Components from '../components';
 import {ContextAwareMixin} from '../contextComponents';

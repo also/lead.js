@@ -4,7 +4,7 @@
 require('object.assign').shim();
 
 import * as React from 'react';
-import URI from 'URIjs';
+import URI from 'urijs';
 import Router from 'react-router';
 import * as Settings from './settings';
 import * as Modules from './modules';

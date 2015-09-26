@@ -1,4 +1,4 @@
-import URI from 'URIjs';
+import URI from 'urijs';
 import Q from 'q';
 import Router from 'react-router';
 import React from 'react';

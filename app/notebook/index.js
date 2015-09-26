@@ -1,4 +1,4 @@
-import URI from 'URIjs';
+import URI from 'urijs';
 import Bacon from 'bacon.model';
 import * as Immutable from 'immutable';
 import {createStore} from 'redux';

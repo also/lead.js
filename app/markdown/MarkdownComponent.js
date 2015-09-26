@@ -1,5 +1,5 @@
 import React from 'react/addons';
-import URI from 'URIjs';
+import URI from 'urijs';
 import Marked from 'marked';
 
 import UserHtmlComponent from './UserHtmlComponent';
