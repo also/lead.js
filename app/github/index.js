@@ -4,7 +4,7 @@ import Router from 'react-router';
 import React from 'react';
 import * as Modules from '../modules';
 import * as  Http from '../http';
-import * as  Context from '../context';
+import AsyncComponent from '../context/AsyncComponent';
 import * as  Builtins from '../builtins';
 import GistLinkComponent from './GistLinkComponent';
 import EnsureAccessComponent from './EnsureAccessComponent';
@@ -189,11 +189,11 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
 
     return (
       <div>
-        <Context.AsyncComponent promise={promise}>
+        <AsyncComponent promise={promise}>
           <Builtins.ComponentAndError promise={promise}>
             Loading file {path}
           </Builtins.ComponentAndError>
-        </Context.AsyncComponent>
+        </AsyncComponent>
         <Builtins.PromiseStatusComponent promise={promise} start_time={new Date()}/>
       </div>
     );
@@ -222,12 +222,12 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
 
     return (
       <div>
-        <Context.AsyncComponent promise={promise}>
+        <AsyncComponent promise={promise}>
           <Builtins.ComponentAndError promise={promise}>
             Loading gist {gist}
             <Builtins.PromiseResolvedComponent constructor={GistLinkComponent} promise={gistPromise.then((r) => ({gist: r}))}/>
           </Builtins.ComponentAndError>
-        </Context.AsyncComponent>
+        </AsyncComponent>
         <Builtins.PromiseStatusComponent promise={promise} start_time={new Date()}/>
       </div>
     );
@@ -256,12 +256,12 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
 
     return () => (
       <div>
-        <Context.AsyncComponent promise={promise}>
+        <AsyncComponent promise={promise}>
           <Builtins.ComponentAndError promise={promise}>
             Saving gist
             <Builtins.PromiseResolvedComponent constructor={NotebookGistLinkComponent} promise={promise}/>
           </Builtins.ComponentAndError>
-        </Context.AsyncComponent>
+        </AsyncComponent>
         <Builtins.PromiseStatusComponent promise={promise} start_time={new Date()}/>
       </div>
     );

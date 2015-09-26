@@ -1,13 +1,10 @@
 import _ from 'underscore';
 import Bacon from 'bacon.model';
-import React from 'react/addons';
 
 import {user_settings, global_settings} from '../settings';
 
-import ContextAwareMixin from './ContextAwareMixin';
-import ContextRegisteringMixin from './ContextRegisteringMixin';
-import ComponentContextComponent from './ComponentContextComponent';
-import {ObservableMixin, SimpleLayoutComponent} from '../components';
+import ContextComponent from './ContextComponent';
+import {SimpleLayoutComponent} from '../components';
 import * as Builtins from '../builtins';
 import * as Modules from '../modules';
 
@@ -70,7 +67,7 @@ const collectContextExports = function (context) {
   }));
 };
 
-const isRunContext = function (o) {
+export const isRunContext = function (o) {
   return (o != null ? o.componentList : void 0) != null;
 };
 
@@ -128,114 +125,6 @@ const lazilyBindContextFns = function (target, scope, fns, namePrefix='') {
 export const find_in_scope = function (ctx, name) {
   return ctx.scope[name];
 };
-
-const registerPromise = function (ctx, promise) {
-  ctx.asyncs.push(1);
-  promise.finally(() => {
-    ctx.asyncs.push(-1);
-    ctx.changes.push(true);
-  });
-};
-
-export const AsyncComponent = React.createClass({
-  displayName: 'AsyncComponent',
-
-  mixins: [ContextAwareMixin],
-
-  componentWillMount() {
-    registerPromise(this.ctx(), this.props.promise);
-  },
-
-  componentWillUnmount() {
-    // FIXME should unregister
-  },
-
-  render() {
-    return <div>{this.props.children}</div>;
-  }
-});
-
-export const ContextComponent = React.createClass({
-  displayName: 'ContextComponent',
-
-  mixins: [ContextRegisteringMixin],
-
-  propTypes: {
-    ctx(c) {
-      if (!isRunContext(c.ctx)) {
-        throw new Error('context required');
-      }
-    }
-  },
-
-  render() {
-    return <ContextLayoutComponent ctx={this.props.ctx}/>;
-  }
-});
-
-const ContextLayoutComponent = React.createClass({
-  displayName: 'ContextLayoutComponent',
-
-  mixins: [ObservableMixin],
-
-  propTypes: {
-    ctx(c) {
-      if (!isRunContext(c.ctx)) {
-        throw new Error('context required');
-      }
-    }
-  },
-
-  getObservable(props) {
-    return props.ctx.componentList.model;
-  },
-
-  render() {
-    const {ctx} = this.props;
-
-    const children = _.map(this.state.value, ({key, component}) => {
-      let c;
-
-      if (_.isFunction(component)) {
-        c = component();
-      } else {
-        c = component;
-      }
-
-      return React.addons.cloneWithProps(c, {key});
-    });
-
-    return React.createElement(ctx.layout, Object.assign({children}, ctx.layout_props));
-  }
-});
-
-export const ContextOutputComponent = React.createClass({
-  displayName: 'ContextOutputComponent',
-
-  mixins: [ContextAwareMixin],
-
-  render() {
-    return <ContextLayoutComponent ctx={this.ctx()}/>;
-  }
-});
-
-export const TopLevelContextComponent = React.createClass({
-  displayName: 'TopLevelContextComponent',
-
-  getInitialState() {
-    // FIXME #175 props can change
-    const ctx = create_standalone_context(this.props);
-    return {ctx};
-  },
-
-  get_ctx() {
-    return this.state.ctx;
-  },
-
-  render() {
-    return <ComponentContextComponent children={this.props.children} ctx={this.state.ctx}/>;
-  }
-});
 
 // the base context contains the loaded modules, and the list of modules to import into every context
 export const create_base_context = function ({modules, imports}={}) {

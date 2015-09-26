@@ -5,6 +5,8 @@ import CodeMirror from 'codemirror';
 import AppAwareMixin from '../AppAwareMixin';
 import * as CoffeeScriptCell from '../coffeescript';
 import * as Context from '../context';
+import TopLevelContextComponent from '../context/TopLevelContextComponent';
+import ContextOutputComponent from '../context/ContextOutputComponent';
 import * as Settings from '../settings';
 import {ToggleComponent} from '../components';
 import {ObjectComponent} from '../builtins';
@@ -86,10 +88,10 @@ export default React.createClass({
       <ToggleComponent title='Key Map'>
         <KeyBindingComponent keys={keyBindings} commands={CodeMirror.commands}/>
       </ToggleComponent>
-      <Context.TopLevelContextComponent ref='ctx' {...{imports, modules, context}}>
+      <TopLevelContextComponent ref='ctx' {...{imports, modules, context}}>
         <EditorComponent run={this.saveSettings} ref='editor' key='settings_editor' initial_value={initialValue}/>
-        <Context.ContextOutputComponent/>
-      </Context.TopLevelContextComponent>
+        <ContextOutputComponent/>
+      </TopLevelContextComponent>
       <span className='run-button' onClick={() => this.saveSettings()}>
         <i className='fa fa-floppy-o'/>
         {' '}

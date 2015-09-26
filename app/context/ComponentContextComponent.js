@@ -3,7 +3,7 @@ import React from 'react/addons';
 import ContextRegisteringMixin from './ContextRegisteringMixin';
 
 
-export const ComponentContextComponent = React.createClass({
+export default React.createClass({
   displayName: 'ComponentContextComponent',
 
   mixins: [ContextRegisteringMixin],

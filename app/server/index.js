@@ -13,6 +13,7 @@ import * as Builtins from '../builtins';
 import Html from '../html';
 import * as Documentation from '../documentation';
 import * as Context from '../context';
+import AsyncComponent from '../context/AsyncComponent';
 import * as Components from '../components';
 
 import FunctionDocsComponent from './FunctionDocsComponent';
@@ -478,7 +479,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   //     return Q.reject('Failed to load image');
   //   });
   //
-  //   return Context.AsyncComponent({
+  //   return AsyncComponent({
   //     promise: promise
   //   }, Builtins.ComponentAndError({
   //     promise: promise
@@ -530,12 +531,12 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
     });
 
     const component = (
-      <Context.AsyncComponent promise={promise}>
+      <AsyncComponent promise={promise}>
         <Builtins.ComponentAndError promise={promise}>
           <Components.PropsModelComponent constructor={FindResultsComponent} child_props={props}/>
         </Builtins.ComponentAndError>
         <Builtins.PromiseStatusComponent promise={promise} start_time={new Date()}/>
-      </Context.AsyncComponent>
+      </AsyncComponent>
     );
 
     return Context.value({promise, clicks, component});

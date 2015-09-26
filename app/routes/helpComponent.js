@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Navigation} from 'react-router';
 
 import HelpPageComponent from '../HelpPageComponent';
-import {TopLevelContextComponent} from '../context';
+import TopLevelContextComponent from '../context/TopLevelContextComponent';
 import AppAwareMixin from '../AppAwareMixin';
 import {encodeNotebookValue} from '../notebook';
 

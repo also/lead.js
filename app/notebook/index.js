@@ -7,6 +7,7 @@ import * as Settings from '../settings';
 import * as Editor from '../editor';
 import * as http from '../http';
 import * as Context from '../context';
+import AsyncComponent from '../context/AsyncComponent';
 import * as Modules from '../modules';
 import * as CoffeeScriptCell from '../coffeescript';
 import MarkdownComponent from '../markdown/MarkdownComponent';
@@ -530,12 +531,12 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
     });
 
     return (
-      <Context.AsyncComponent promise={promise}>
+      <AsyncComponent promise={promise}>
         <Builtins.ComponentAndError promise={promise}>
           Loading {url}
         </Builtins.ComponentAndError>
         <Builtins.PromiseStatusComponent promise={promise} start_time={new Date()}/>
-      </Context.AsyncComponent>
+      </AsyncComponent>
     );
   });
 

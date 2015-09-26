@@ -4,6 +4,7 @@ import _ from'underscore';
 
 import {ctxsByRootNodeId} from './contextRegistry';
 
+
 function findAncestorCtxs(_rootNodeID) {
   const result = [];
 
@@ -17,7 +18,7 @@ function findAncestorCtxs(_rootNodeID) {
   return result;
 }
 
-export const ContextAwareMixin = {
+export default {
   _getCtx() {
     return findAncestorCtxs(ReactInstanceMap.get(this)._rootNodeID)[0];
   },

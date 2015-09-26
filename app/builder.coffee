@@ -8,6 +8,7 @@ Context = require './context'
 CoffeeScriptCell = require './coffeescript'
 Components = require './components'
 ComponentContextComponent = require './context/ComponentContextComponent'
+ContextOutputComponent = require './context/ContextOutputComponent'
 AppAwareMixin = require('./AppAwareMixin')
 MetricTreeComponent = require('./server/MetricTreeComponent')
 
@@ -108,7 +109,7 @@ exports.BuilderComponent = React.createClass
         Graphing.GraphComponent model: @state.model
         ComponentContextComponent ctx: @ctx(),
           Editor.EditorComponent {run: @run, ref: 'editor'}
-          Context.ContextOutputComponent {}
+          ContextOutputComponent {}
         React.DOM.span {className: 'run-button', onClick: => @run()},
           React.DOM.i {className: 'fa fa-play-circle'}
           ' Run'
