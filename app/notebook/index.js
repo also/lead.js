@@ -22,7 +22,7 @@ const contentType = 'application/x-lead-notebook';
 const forwards = +1;
 const backwards = -1;
 let cellKey = 0;
-let notebookId = 0;
+let nextNotebookId = 0;
 
 function isInput(cell) {
   return cell.type === 'input';
@@ -47,12 +47,12 @@ const actionTypes = {
 };
 
 export const actions = {
-  notebookCreated(id) {
-    return {type: actionTypes.NOTEBOOK_CREATED, id};
+  notebookCreated(notebookId) {
+    return {type: actionTypes.NOTEBOOK_CREATED, notebookId};
   },
 
-  notebookDestroyed(id) {
-    return {type: actionTypes.NOTEBOOK_DESTROYED, id};
+  notebookDestroyed(notebookId) {
+    return {type: actionTypes.NOTEBOOK_DESTROYED, notebookId};
   },
 
   cellsReplaced(notebookId, cells) {
@@ -71,8 +71,8 @@ export const actions = {
     return {type: actionTypes.REMOVE_CELL_AT_INDEX, notebookId, index};
   },
 
-  updateCell(id, update) {
-    return {type: actionTypes.UPDATE_CELL, id, update};
+  updateCell(cellId, update) {
+    return {type: actionTypes.UPDATE_CELL, cellId, update};
   }
 }
 
@@ -80,7 +80,7 @@ const Notebook = Immutable.Record({cells: new Immutable.List()})
 
 function cellsRemoved(cellsById, cellKeys) {
   const set = new Set(cellKeys);
-  return cellsById.filterNot(({key}) => set.has(key));
+  return cellsById.filterNot(({cellId}) => set.has(cellId));
 }
 
 const initialState = Immutable.fromJS({notebooksById: {}, cellsById: {}, settings: {}});
@@ -89,42 +89,42 @@ function reducer(state=initialState, action) {
   console.log('notebook action', action.type);
   switch (action.type) {
   case actionTypes.NOTEBOOK_CREATED:
-    return state.setIn(['notebooksById', action.id], new Notebook());
+    return state.setIn(['notebooksById', action.notebookId], new Notebook());
 
   case actionTypes.NOTEBOOK_DESTROYED:
-    const notebook = state.getIn(['notebooksById', action.id]);
-    return state.deleteIn(['notebooks', action.id])
-      .updateIn(['cellsById'], (cellsById) => cellsRemoved(cellsById, notebook.cells.map(({key}) => key)));
+    const notebook = state.getIn(['notebooksById', action.notebookId]);
+    return state.deleteIn(['notebooks', action.notebookId])
+      .updateIn(['cellsById'], (cellsById) => cellsRemoved(cellsById, notebook.cells.map(({cellId}) => cellId)));
 
   case actionTypes.CELLS_REPLACED:
-    const currentCellKeys = state.getIn(['notebooksById', action.notebookId, 'cells']).map(({key}) => key);
-    return state.setIn(['notebooksById', action.notebookId, 'cells'], action.cells.map(({key}) => key))
+    const currentCellKeys = state.getIn(['notebooksById', action.notebookId, 'cells']).map(({cellId}) => cellId);
+    return state.setIn(['notebooksById', action.notebookId, 'cells'], action.cells.map(({cellId}) => cellId))
       .updateIn(['cellsById'], (cellsById) => {
         return cellsRemoved(cellsById, currentCellKeys)
-          .merge(action.cells.map((cell) => [cell.key, cell]));
+          .merge(action.cells.map((cell) => [cell.cellId, cell]));
       });
 
   case actionTypes.INSERT_CELL:
     const {cell} = action;
     return state.updateIn(['notebooksById', action.notebookId, 'cells'], (cells) => {
       if (action.index) {
-        return cells.splice(action.index, 0, cell.key);
+        return cells.splice(action.index, 0, cell.cellId);
       } else {
-        return cells.push(cell.key);
+        return cells.push(cell.cellId);
       }
-    }).setIn(['cellsById', cell.key], cell);
+    }).setIn(['cellsById', cell.cellId], cell);
 
   case actionTypes.UPDATE_CELL:
-    return state.updateIn(['cellsById', action.id], (cell) => {
+    return state.updateIn(['cellsById', action.cellId], (cell) => {
       return Object.assign({}, cell, action.update);
     });
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
-    let key;
+    let cellId;
     return state.updateIn(['notebooksById', action.notebookId, 'cells'], (cells) => {
-      key = cells.get(action.index);
+      cellId = cells.get(action.index);
       return cells.delete(action.index);
-    }).deleteIn(['cellsById', key]);
+    }).deleteIn(['cellsById', cellId]);
 
   case actionTypes.SETTINGS_CHANGED:
     return state.setIn(['settings'], action.settings);
@@ -142,7 +142,7 @@ Settings.toProperty('notebook').onValue((settings) => {
 
 export function createNotebook(opts) {
   const notebook = {
-    id: notebookId++,
+    notebookId: nextNotebookId++,
     store,
     context: opts.context,
     input_number: 1,
@@ -151,7 +151,7 @@ export function createNotebook(opts) {
     cell_focused: new Bacon.Bus()
   };
 
-  store.dispatch(actions.notebookCreated(notebook.id));
+  store.dispatch(actions.notebookCreated(notebook.notebookId));
 
   // FIXME
   // if (process.browser) {
@@ -165,7 +165,7 @@ export function createNotebook(opts) {
   //     const bodyTop = bodyElt.getBoundingClientRect().top;
   //     const bodyScroll = bodyElt.scrollTop;
   //
-  //     bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.key]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
+  //     bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.cellId]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
   //   });
   // }
 
@@ -174,13 +174,13 @@ export function createNotebook(opts) {
 }
 
 export function destroyNotebook(notebook) {
-  notebook.store.dispatch(actions.notebookDestroyed(notebook.id));
+  notebook.store.dispatch(actions.notebookDestroyed(notebook.notebookId));
 }
 
 function exportNotebook(notebook, currentCell) {
   return {
     lead_js_version: 0,
-    cells: notebook.store.getState().getIn(['notebooksById', notebook.id, 'cells']).filter((cell) => cell !== currentCell && isInput(cell))
+    cells: notebook.store.getState().getIn(['notebooksById', notebook.notebookId, 'cells']).filter((cell) => cell !== currentCell && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
@@ -211,30 +211,30 @@ export function focus_cell(cell) {
 }
 
 function clearNotebook(notebook) {
-  notebook.store.dispatch(actions.cellsReplaced(notebook.id, new Immutable.List()));
+  notebook.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
 
   focus_cell(add_input_cell(notebook));
 }
 
 function cellIndex(cell) {
-  return cell.notebook.store.getState().getIn(['notebooksById', cell.notebook.id, 'cells']).indexOf(cell.key);
+  return cell.notebook.store.getState().getIn(['notebooksById', cell.notebookId, 'cells']).indexOf(cell.cellId);
 }
 
 function seek(startCell, direction, predicate=identity) {
-  const {notebook} = startCell;
+  const {notebook, notebookId} = startCell;
   let index = cellIndex(startCell) + direction;
 
   const state = notebook.store.getState();
   const cellsById = state.get('cellsById');
-  const cells = state.getIn(['notebooksById', notebook.id, 'cells']);
+  const cells = state.getIn(['notebooksById', notebookId, 'cells']);
 
   while (true) {
-    const key = cells.get(index);
+    const cellId = cells.get(index);
 
-    if (key == null) {
+    if (cellId == null) {
       return null;
     } else {
-      const cell = cellsById.get(key);
+      const cell = cellsById.get(cellId);
       if (predicate(cell)) {
         return cell;
       }
@@ -251,11 +251,11 @@ export function input_cell_at_offset(cell, offset) {
 function remove_cell(cell) {
   const index = cellIndex(cell);
 
-  cell.notebook.store.dispatch(actions.removeCellAtIndex(cell.notebook.id, index));
+  cell.notebook.store.dispatch(actions.removeCellAtIndex(cell.notebookId, index));
 }
 
 function insertCell(cell, position={}) {
-  const {notebook} = cell;
+  const {notebook, notebookId} = cell;
 
   let currentCell, offset;
   if (position.before) {
@@ -265,13 +265,13 @@ function insertCell(cell, position={}) {
     offset = 1;
     currentCell = position.after;
   } else {
-    notebook.store.dispatch(actions.insertCell(notebook.id, cell));
+    notebook.store.dispatch(actions.insertCell(notebookId, cell));
     return;
   }
 
   const index = cellIndex(currentCell);
 
-  notebook.store.dispatch(actions.insertCell(notebook.id, cell, index + offset));
+  notebook.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
 
 export function add_input_cell(notebook, opts={}) {
@@ -295,9 +295,12 @@ export function add_input_cell(notebook, opts={}) {
 
 function createInputCell(notebook) {
   const editor = Editor.create_editor();
+  const cellId = `input${cellKey++}`;
   const cell = {
     type: 'input',
-    key: `input${cellKey++}`,
+    key: cellId,
+    cellId,
+    notebookId: notebook.notebookId,
     notebook: notebook,
     context: createInputContext(notebook),
     used: false,
@@ -322,16 +325,19 @@ export function set_cell_value(cell, value) {
 
 function createOutputCell(notebook) {
   const number = notebook.output_number++;
+  const cellId = 'output' + cellKey++;
   return {
     type: 'output',
-    key: 'output' + cellKey++,
+    key: cellId,
+    cellId,
+    notebookId: notebook.notebookId,
     notebook,
     number
   };
 }
 
-function runInputCell({notebook, key}) {
-  const inputCell = notebook.store.getState().getIn(['cellsById', key])
+function runInputCell({notebook, cellId}) {
+  const inputCell = notebook.store.getState().getIn(['cellsById', cellId])
   const outputCell = createOutputCell(notebook);
 
   inputCell.used = true;
@@ -339,7 +345,7 @@ function runInputCell({notebook, key}) {
     remove_cell(inputCell.output_cell);
   }
   insertCell(outputCell, {after: inputCell});
-  notebook.store.dispatch(actions.updateCell(key, {number: notebook.input_number++, output_cell: outputCell}));
+  notebook.store.dispatch(actions.updateCell(cellId, {number: notebook.input_number++, output_cell: outputCell}));
   const run_context = Context.create_run_context([
     inputCell.notebook.context,
     inputCell.context,
@@ -363,7 +369,7 @@ function runWithContext(ctx, fn) {
 
   output_cell.done = noLongerPending.take(1).map(() => output_cell);
   Context.run_in_context(ctx, fn);
-  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.key, {component: ctx.component}));
+  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}));
 }
 
 function createBareOutputCellAndContext(notebook) {

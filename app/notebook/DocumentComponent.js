@@ -6,8 +6,11 @@ import InputOutputComponent from './InputOutputComponent';
 
 function mapStateToProps(state, ownProps) {
   const cellsById = state.get('cellsById');
-  const {notebook} = ownProps;
-  return {cells: state.getIn(['notebooksById', notebook.id, 'cells']).map(cellsById.get.bind(cellsById)), settings: state.get('settings')};
+  const {notebookId} = ownProps;
+  return {
+    cells: state.getIn(['notebooksById', notebookId, 'cells']).map(cellsById.get.bind(cellsById)),
+    settings: state.get('settings')
+  };
 }
 
 export default connect(mapStateToProps)(React.createClass({
