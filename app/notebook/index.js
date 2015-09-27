@@ -76,7 +76,7 @@ export const actions = {
   }
 }
 
-const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 0, outputNumber: 0});
+const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 1, outputNumber: 1});
 
 function cellsRemoved(cellsById, cellKeys) {
   const set = new Set(cellKeys);
