@@ -16,7 +16,6 @@ import * as actions from './actions';
 import './editor';
 
 
-
 const contentType = 'application/x-lead-notebook';
 const forwards = +1;
 const backwards = -1;

@@ -4,7 +4,8 @@ import {connect} from 'react-redux';
 
 import * as Modal from './modal';
 
-export default connect((state) => ({coreInit: state.get('coreInit')}))(React.createClass({
+// react-router needs this to be impure?
+export default connect((state) => ({coreInit: state.get('coreInit')}), null, null, {pure: false})(React.createClass({
   displayName: 'AppComponent',
   childContextTypes: {
     app: React.PropTypes.object
