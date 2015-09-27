@@ -78,7 +78,7 @@ function runInBrowser({driverOpts, initOpts}, browserOpts, fn) {
       result: result
     });
   }).finally(() => {
-    return browser.quit().fail(() => {});
+    //return browser.quit().fail(() => {});
   });
 }
 

@@ -71,12 +71,12 @@ export const actions = {
     return {type: actionTypes.REMOVE_CELL_AT_INDEX, notebookId, index};
   },
 
-  updateCell(cellId, update) {
-    return {type: actionTypes.UPDATE_CELL, cellId, update};
+  updateCell(cellId, update, incrementNumber) {
+    return {type: actionTypes.UPDATE_CELL, cellId, update, incrementNumber};
   }
 }
 
-const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 1, outputNumber: 1});
+const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 0, outputNumber: 0});
 
 function cellsRemoved(cellsById, cellKeys) {
   const set = new Set(cellKeys);
@@ -116,9 +116,14 @@ function reducer(state=initialState, action) {
 
   case actionTypes.UPDATE_CELL:
     let updatedCell = state.getIn(['cellsById', action.cellId]);
-    let number;
-    return state.updateIn(['notebooksById', updatedCell.notebookId, `${updatedCell.type}Number`], (n) => number = n++)
-      .setIn(['cellsById', action.cellId], Object.assign({}, updatedCell, action.update, {number}));
+    if (action.incrementNumber) {
+      let number;
+      return state.updateIn(['notebooksById', updatedCell.notebookId, `${updatedCell.type}Number`], (n) => number = n + 1)
+        .setIn(['cellsById', action.cellId], Object.assign({}, updatedCell, action.update, {number}));
+    } else {
+      return state.setIn(['cellsById', action.cellId], Object.assign({}, updatedCell, action.update));
+    }
+    break;
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
     let cellId;
@@ -144,12 +149,11 @@ export function createNotebook(opts) {
   const notebook = {
     notebookId: nextNotebookId++,
     store,
-    context: opts.context
+    context: opts.context,
+    base_context: Context.create_base_context(opts)
   };
 
   store.dispatch(actions.notebookCreated(notebook.notebookId));
-
-  notebook.base_context = Context.create_base_context(opts);
   return notebook;
 }
 
@@ -322,7 +326,7 @@ function runInputCell({notebook, cellId}) {
     remove_cell(inputCell.output_cell);
   }
   insertCell(outputCell, {after: inputCell});
-  notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}));
+  notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
   const run_context = Context.create_run_context([
     inputCell.notebook.context,
     inputCell.context,
@@ -345,7 +349,7 @@ function runWithContext(ctx, fn) {
 
   output_cell.done = noLongerPending.take(1).map(() => output_cell);
   Context.run_in_context(ctx, fn);
-  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}));
+  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}, true));
 }
 
 function createBareOutputCellAndContext(notebook) {
