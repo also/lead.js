@@ -19,22 +19,22 @@ export {removeAllComponents as remove_all_components};
 
 export const IGNORE = Symbol('ignore');
 
-const CONTEXT_FN_VALUE = Symbol('context function value');
+const SCRIPTING_FN_VALUE = Symbol('scripting function value');
 
 let runningContextBinding = null;
 
 export const value = function (v) {
   return {
-    [CONTEXT_FN_VALUE]: v
+    [SCRIPTING_FN_VALUE]: v
   };
 };
 
 export const isValue = function (v) {
-  return v && v.hasOwnProperty(CONTEXT_FN_VALUE);
+  return v && v.hasOwnProperty(SCRIPTING_FN_VALUE);
 };
 
 export const unwrapValue = function (v) {
-  return v[CONTEXT_FN_VALUE];
+  return v[SCRIPTING_FN_VALUE];
 };
 
 export const collect_extension_points = function (context, extensionPoint) {
@@ -55,8 +55,8 @@ export const resolveDocumentationKey = function (ctx, o) {
 
 class LeadNamespace {}
 
-const collectContextExports = function (context) {
-  return _.object(_.map(context.modules, function (module, name) {
+const collectScriptingExports = function (context) {
+  return _.object(_.map(context.modules, (module, name) => {
     if (!module) {
       throw new Error('Module ' + name + ' is invalid');
     }
@@ -79,16 +79,16 @@ const bindFnToContext = function (ctx, fn) {
   };
 };
 
-// define a getter for every context function that binds to the current scope on access.
+// define a getter for every scripting function that binds to the current scope on access.
 // copy everything else.
-const lazilyBindContextFns = function (target, scope, fns, namePrefix='') {
+const lazilyBindScriptingFns = function (target, scope, fns, namePrefix='') {
   const doBind = function (k, o) {
     if ((o != null) && _.isFunction(o.fn)) {
       const name = namePrefix + k;
 
       const wrappedFn = function () {
         const wrappedResult = o.fn.apply(null, arguments);
-        // ignore return values except for special {CONTEXT_FN_VALUE}
+        // ignore return values except for special {SCRIPTING_FN_VALUE}
         return isValue(wrappedResult) ? unwrapValue(wrappedResult) : IGNORE;
       };
 
@@ -105,7 +105,7 @@ const lazilyBindContextFns = function (target, scope, fns, namePrefix='') {
       });
     } else {
       if (o instanceof LeadNamespace) {
-        target[k] = lazilyBindContextFns({
+        target[k] = lazilyBindScriptingFns({
           _lead_context_name: k
         }, scope, o, k + '.');
       } else {
@@ -275,9 +275,9 @@ export const in_running_context = function (ctx, fn, args) {
 // the "script static context" context contains all the scripting functions and vars. basically, everything needed to support
 // an editor
 export const createScriptStaticContext = function (base) {
-  const contextExports = collectContextExports(base);
-  const imported = _.clone(contextExports);
-  _.each(base.imports, _.partial(importInto, contextExports, imported));
+  const scriptingExports = collectScriptingExports(base);
+  const imported = _.clone(scriptingExports);
+  _.each(base.imports, _.partial(importInto, scriptingExports, imported));
 
   const scope = {
     _capture_context(fn) {
@@ -288,7 +288,7 @@ export const createScriptStaticContext = function (base) {
     }
   };
 
-  lazilyBindContextFns(scope, scope, imported);
+  lazilyBindScriptingFns(scope, scope, imported);
 
   return Object.assign({}, base, {imported, scope});
 };
