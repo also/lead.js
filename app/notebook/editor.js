@@ -1,7 +1,7 @@
 import CodeMirror from 'codemirror';
 
 import * as Notebook from '../notebook';
-import {cmd, set_value} from '../editor';
+import {cmd} from '../editor';
 
 
 const keyMap = {
@@ -32,16 +32,6 @@ const commands = {
     const token = cm.getTokenAt(cur);
 
     return Notebook.context_help(cm.lead_cell, token.string);
-  }),
-
-  fill_with_last_value: cmd('Replaces the cell with the contents of the previous cell', (cm) => {
-    const cell = Notebook.input_cell_at_offset(cm.lead_cell, -1);
-
-    if (cell != null) {
-      return set_value(cm, Notebook.cell_value(cell));
-    } else {
-      return CodeMirror.Pass;
-    }
   }),
 
   next_cell: cmd('Moves the cursor to the next cell', (cm) => {
