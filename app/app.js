@@ -87,8 +87,15 @@ export function initApp(target, options={}) {
     window.history.replaceState(null, document.title, uri.toString());
   }
 
+
+  const store = createStore(combineReducers([reducer, notebookReducer]));
+  store.dispatch(actions.coreInit('pending'));
   const initializationPromise = Modules.init_modules({settings: {user: Settings.user_settings, global: Settings.global_settings}}, modules);
+  initializationPromise.then(() => {
+    store.dispatch(actions.coreInit('finished'));
+  });
   initializationPromise.fail((error) => {
+    store.dispatch(actions.coreInit('finished'));
     console.error('Failure initializing modules', error);
     return Modal.pushModal({
       handler: InitializationFailureModal,
@@ -96,15 +103,13 @@ export function initApp(target, options={}) {
     });
   });
 
-  const store = createStore(combineReducers([reducer, notebookReducer]));
-
   Settings.toProperty().onValue((settings) => {
     store.dispatch(actions.settingsChanged(settings));
   });
 
   React.render(
     <Provider store={store}>
-      {() => <AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>}
+      {() => <AppRoutes {...{bodyWrapper, app, extraRoutes}}/>}
     </Provider>
   , target);
 }

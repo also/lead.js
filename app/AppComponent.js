@@ -1,9 +1,10 @@
 import * as React from 'react';
 import * as Router from 'react-router';
+import {connect} from 'react-redux';
 
 import * as Modal from './modal';
 
-export default React.createClass({
+export default connect((state) => ({coreInit: state.get('coreInit')}))(React.createClass({
   displayName: 'AppComponent',
   childContextTypes: {
     app: React.PropTypes.object
@@ -18,17 +19,8 @@ export default React.createClass({
   },
 
   getInitialState() {
-    const {initializationPromise} = this.props;
-
-    initializationPromise.finally(() => {
-      return this.setState({
-        initializationState: initializationPromise.inspect()
-      });
-    }).done();
-
     return {
-      modal: null,
-      initializationState: initializationPromise.inspect()
+      modal: null
     };
   },
 
@@ -54,11 +46,11 @@ export default React.createClass({
   },
 
   render() {
-    const {bodyWrapper} = this.props;
+    const {bodyWrapper, coreInit} = this.props;
     this.props.app.appComponent = this;
     const {modal} = this.state;
 
-    let body = this.state.initializationState.state === 'pending' ? null : <Router.RouteHandler/>;
+    let body = coreInit.get('state') === 'pending' ? null : <Router.RouteHandler/>;
 
     if (bodyWrapper) {
       body = React.createElement(bodyWrapper, null, body);
@@ -85,4 +77,4 @@ export default React.createClass({
       </div>
     );
   }
-});
+}));
