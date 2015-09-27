@@ -14,6 +14,7 @@ import * as Modal from './modal';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
 import {encodeNotebookValue, store} from './notebook';
+import * as actions from './notebook/actions';
 
 
 Settings.default('app', 'intro_command', `help 'introduction'`);
@@ -89,6 +90,10 @@ export function initApp(target, options={}) {
       handler: InitializationFailureModal,
       props: {error}
     });
+  });
+
+  Settings.toProperty().onValue((settings) => {
+    store.dispatch(actions.settingsChanged(settings));
   });
 
   React.render(

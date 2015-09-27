@@ -9,7 +9,7 @@ function mapStateToProps(state, ownProps) {
   const {notebookId} = ownProps;
   return {
     cells: state.getIn(['notebooksById', notebookId, 'cells']).map(cellsById.get.bind(cellsById)),
-    settings: state.get('settings')
+    settings: state.get('settings').notebook
   };
 }
 

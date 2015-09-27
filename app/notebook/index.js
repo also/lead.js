@@ -3,7 +3,6 @@ import URI from 'urijs';
 import * as Immutable from 'immutable';
 import {createStore} from 'redux';
 
-import * as Settings from '../settings';
 import * as Editor from '../editor';
 import * as http from '../http';
 import * as Context from '../context';
@@ -110,9 +109,6 @@ function reducer(state=initialState, action) {
 }
 
 export const store = createStore(reducer);
-Settings.toProperty('notebook').onValue((settings) => {
-  store.dispatch(actions.settingsChanged(settings));
-});
 
 export function createNotebook(opts) {
   return new Notebook({
