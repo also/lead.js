@@ -410,7 +410,7 @@ function openFilePicker(run_context) {
       loadFile(run_context, file)
     });
   };
-  return inputElt.dispatchEvent(new Event('click'));
+  inputElt.dispatchEvent(new Event('click'));
 }
 
 export function handle_file(ctx, file, options={}) {
@@ -423,7 +423,7 @@ export function handle_file(ctx, file, options={}) {
 
       set_cell_value(cell, file.content);
       if (options.run) {
-        return runInputCell(cell);
+        runInputCell(cell);
       }
     } else if (extension === 'md') {
       run_without_input_cell(ctx.notebook, {after: ctx.output_cell}, (ctx) => {
@@ -452,13 +452,13 @@ function loadFile(ctx, file) {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-      return handle_file(ctx, {
+      handle_file(ctx, {
         filename: file.name,
         content: e.target.result,
         type: file.type
       });
     };
-    return reader.readAsText(file);
+    reader.readAsText(file);
   }
 }
 
