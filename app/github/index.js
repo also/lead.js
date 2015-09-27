@@ -155,12 +155,12 @@ function ensureAuth(ctx, props={}) {
   if (site.requires_access_token && site.access_token == null) {
     const deferred = Q.defer();
 
-    const modal = Modal.pushModal({
+    const modal = Modal.pushModal(ctx, {
       handler: EnsureAccessComponent,
       props: Object.assign({deferred, site, ctx, onAccess: deferred.resolve, onCancel: deferred.reject}, props)
     });
 
-    deferred.promise.finally(() => Modal.removeModal(modal));
+    deferred.promise.finally(() => Modal.removeModal(ctx, modal));
 
     return deferred.promise;
   } else {

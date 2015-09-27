@@ -2,10 +2,16 @@ import * as React from 'react';
 import * as Router from 'react-router';
 import {connect} from 'react-redux';
 
-import * as Modal from './modal';
+import {removeModal} from './actions';
+
 
 // react-router needs this to be impure?
-export default connect((state) => ({coreInit: state.get('coreInit')}), null, null, {pure: false})(React.createClass({
+export default connect(
+  (state) => ({coreInit: state.get('coreInit'), modals: state.get('modals')}),
+  {removeModal},
+  null,
+  {pure: false}
+)(React.createClass({
   displayName: 'AppComponent',
   childContextTypes: {
     app: React.PropTypes.object
@@ -17,20 +23,6 @@ export default connect((state) => ({coreInit: state.get('coreInit')}), null, nul
     return {
       app: this.props.app
     };
-  },
-
-  getInitialState() {
-    return {
-      modal: null
-    };
-  },
-
-  componentWillMount() {
-    return Modal.model.onValue((modals) => {
-      return this.setState({
-        modal: modals[modals.length - 1]
-      });
-    });
   },
 
   toggleFullscreen() {
@@ -47,9 +39,9 @@ export default connect((state) => ({coreInit: state.get('coreInit')}), null, nul
   },
 
   render() {
-    const {bodyWrapper, coreInit} = this.props;
+    const {bodyWrapper, coreInit, modals} = this.props;
     this.props.app.appComponent = this;
-    const {modal} = this.state;
+    const modal = modals.last();
 
     let body = coreInit.get('state') === 'pending' ? null : <Router.RouteHandler/>;
 
@@ -71,7 +63,7 @@ export default connect((state) => ({coreInit: state.get('coreInit')}), null, nul
         {modal ? (
           <div className='modal-bg'>
             <div className='modal-fg'>
-              <modal.handler dismiss={() => Modal.removeModal(modal)} {...modal.props}/>
+              <modal.handler dismiss={() => this.props.removeModal(modal)} {...modal.props}/>
             </div>
           </div>
         ) : null}

@@ -69,7 +69,6 @@ export function initApp(target, options={}) {
 
   const modules = {...Defaults.modules, ...options.modules};
   const imports = [...Defaults.imports, ...(Settings.get('app', 'imports') || [])];
-  const app = {imports, modules};
   const extraRoutes = options.extraRoutes || [];
   const bodyWrapper = options.bodyWrapper;
 
@@ -97,15 +96,18 @@ export function initApp(target, options={}) {
   initializationPromise.fail((error) => {
     store.dispatch(actions.coreInit('finished'));
     console.error('Failure initializing modules', error);
-    return Modal.pushModal({
+    return store.dispatch(actions.pushModal({
       handler: InitializationFailureModal,
       props: {error}
-    });
+    }));
   });
 
   Settings.toProperty().onValue((settings) => {
     store.dispatch(actions.settingsChanged(settings));
   });
+
+
+  const app = {imports, modules, store};
 
   React.render(
     <Provider store={store}>

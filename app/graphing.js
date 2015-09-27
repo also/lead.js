@@ -3,6 +3,7 @@ import moment from 'moment';
 import Q from 'q';
 import Bacon from 'bacon.model';
 import React from 'react/addons';
+import {connect} from 'react-redux';
 
 import * as modules from './modules';
 import * as Documentation from './documentation';
@@ -10,6 +11,7 @@ import * as Server from './server';
 import WrappedGraphComponent from './graph/GraphComponent';
 import * as Context from './context';
 import * as Builtins from './builtins';
+import {pushModal} from './actions';
 import * as Modal from './modal';
 
 
@@ -242,10 +244,10 @@ export function createModel(ctx, ...args) {
   });
 }
 
-export const GraphComponent = React.createClass({
+export const GraphComponent = connect(null, {pushModal})(React.createClass({
   export() {
     this.refs.graph.exportImage().then((url) => {
-      Modal.pushModal({handler: ExportModal, props: {url}});
+      this.props.pushModal({handler: ExportModal, props: {url}});
     });
   },
 
@@ -287,4 +289,4 @@ export const GraphComponent = React.createClass({
   componentWillUnmount() {
     this._unsubscribe();
   }
-});
+}));

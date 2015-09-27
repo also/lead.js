@@ -1,21 +1,13 @@
-import * as _ from 'underscore';
-import * as Bacon from 'bacon.model';
 import * as React from 'react';
+import * as actions from './actions';
 
-// FIXME static global
-export const model = new Bacon.Model([]);
-
-export function pushModal(modal) {
-  window.setTimeout(() => {
-    return model.modify((v) => v.concat(modal));
-  }, 0);
+export function pushModal(ctx, modal) {
+  ctx.app.store.dispatch(actions.pushModal(modal));
   return modal;
 }
 
-export function removeModal(modal) {
-  return window.setTimeout(() => {
-    return model.modify((v) => _.without(v, modal));
-  }, 0);
+export function removeModal(ctx, modal) {
+  ctx.app.store.dispatch(actions.removeModal(modal));
 }
 
 export const ModalComponent = React.createClass({
