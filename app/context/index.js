@@ -21,6 +21,9 @@ export const IGNORE = Symbol('ignore');
 
 const SCRIPTING_FN_VALUE = Symbol('scripting function value');
 
+const SCRIPTING = Symbol('scripting');
+
+
 let runningContextBinding = null;
 
 export const value = function (v) {
@@ -37,18 +40,22 @@ export const unwrapValue = function (v) {
   return v[SCRIPTING_FN_VALUE];
 };
 
+export function scriptingInfo(o) {
+  return o[SCRIPTING];
+}
+
 export const collect_extension_points = function (context, extensionPoint) {
   return Modules.collect_extension_points(context.modules, extensionPoint);
 };
 
 // extension point
 export const resolveDocumentationKey = function (ctx, o) {
-  if (o && o._lead_context_name) {
-    if (o._lead_context_fn) {
-      const fn = o._lead_context_fn;
+  if (o && o[SCRIPTING]) {
+    if (o[SCRIPTING].fn) {
+      const fn = o[SCRIPTING].fn;
       return [fn.module_name, fn.name];
     } else {
-      return o._lead_context_name;
+      return o[SCRIPTING].name;
     }
   }
 };
@@ -94,8 +101,7 @@ const lazilyBindScriptingFns = function (target, scope, fns, namePrefix='') {
 
       const bind = function () {
         const bound = bindFnToContext(scope.ctx, wrappedFn);
-        bound._lead_context_fn = o;
-        bound._lead_context_name = name;
+        bound[SCRIPTING] = {fn: o, name};
         return bound;
       };
 
@@ -106,7 +112,7 @@ const lazilyBindScriptingFns = function (target, scope, fns, namePrefix='') {
     } else {
       if (o instanceof LeadNamespace) {
         target[k] = lazilyBindScriptingFns({
-          _lead_context_name: k
+          [SCRIPTING]: {name: k}
         }, scope, o, k + '.');
       } else {
         target[k] = o;

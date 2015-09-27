@@ -6,7 +6,7 @@ import React from 'react/addons';
 import * as Builtins from './builtins';
 import ObjectBrowserComponent from './ObjectBrowserComponent';
 import {addComponent} from './componentList';
-import {IGNORE, collect_extension_points} from './context';
+import {IGNORE, collect_extension_points, scriptingInfo} from './context';
 
 // statement result handlers. return truthy if handled.
 function ignored(ctx, object) {
@@ -14,15 +14,16 @@ function ignored(ctx, object) {
 }
 
 function handleCmd(ctx, object) {
-  if (object && object._lead_context_fn) {
-    const op = object._lead_context_fn;
+  const scripting = object && scriptingInfo(object);
+  if (scripting && scripting.fn) {
+    const op = scripting.fn;
     if (op.cmd_fn != null) {
       op.cmd_fn.call(null, ctx);
       return true;
     } else {
       addComponent(ctx,
         <div>
-          Did you forget to call a function? {object._lead_context_name} must be called with arguments.
+          Did you forget to call a function? {scripting.name} must be called with arguments.
           {Builtins.help_component(ctx, object)}
         </div>
       );
@@ -32,9 +33,10 @@ function handleCmd(ctx, object) {
 }
 
 function handleModule(ctx, object) {
-  if (object && object._lead_context_name) {
+  const scripting = object && scriptingInfo(object);
+  if (scripting) {
     addComponent(ctx,
-      <div>{object._lead_context_name}
+      <div>{scripting.name}
         {' '}
         is a module.
         {Builtins.help_component(ctx, object)}
