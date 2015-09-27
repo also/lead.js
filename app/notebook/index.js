@@ -115,12 +115,10 @@ function reducer(state=initialState, action) {
     }).setIn(['cellsById', cell.cellId], cell);
 
   case actionTypes.UPDATE_CELL:
-    let updatedCell;
-    return state.updateIn(['cellsById', action.cellId], (cell) => {
-      updatedCell = cell;
-      return Object.assign({}, cell, action.update);
-    })
-      .updateIn(['notebooksById', updatedCell.notebookId, `${updatedCell.type}Number`], (n) => updatedCell.number = n++);
+    let updatedCell = state.getIn(['cellsById', action.cellId]);
+    let number;
+    return state.updateIn(['notebooksById', updatedCell.notebookId, `${updatedCell.type}Number`], (n) => number = n++)
+      .setIn(['cellsById', action.cellId], Object.assign({}, updatedCell, action.update, {number}));
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
     let cellId;
