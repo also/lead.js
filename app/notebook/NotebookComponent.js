@@ -1,10 +1,14 @@
 import React from 'react/addons';
+import {connect} from 'react-redux';
 
-import {createNotebook, destroyNotebook} from '../notebook';
+import {createNotebook, actions} from '../notebook';
 
 import DocumentComponent from './DocumentComponent';
 
-export default React.createClass({
+
+const {notebookCreated, notebookDestroyed} = actions;
+
+export default connect(null, {notebookCreated, notebookDestroyed})(React.createClass({
   propTypes: {
     imports: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
     modules: React.PropTypes.object.isRequired,
@@ -13,6 +17,8 @@ export default React.createClass({
 
   getInitialState() {
     const notebook = createNotebook(this.props);
+
+    this.props.notebookCreated(notebook);
 
     const {init} = this.props;
     if (init) {
@@ -32,6 +38,6 @@ export default React.createClass({
   },
 
   componentWillUnmount() {
-    destroyNotebook(this.state.notebook);
+    this.props.notebookDestroyed(this.state.notebook.notebookId);
   }
-});
+}));

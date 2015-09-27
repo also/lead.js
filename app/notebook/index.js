@@ -46,8 +46,8 @@ const actionTypes = {
 };
 
 export const actions = {
-  notebookCreated(notebookId) {
-    return {type: actionTypes.NOTEBOOK_CREATED, notebookId};
+  notebookCreated(notebook) {
+    return {type: actionTypes.NOTEBOOK_CREATED, notebook};
   },
 
   notebookDestroyed(notebookId) {
@@ -75,7 +75,15 @@ export const actions = {
   }
 }
 
-const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 0, outputNumber: 0});
+const Notebook = new Immutable.Record({
+  notebookId: null,
+  cells: new Immutable.List(),
+  inputNumber: 0,
+  outputNumber: 0,
+  ctx: null,
+  baseCtx: null,
+  store // lol
+});
 
 function cellsRemoved(cellsById, cellKeys) {
   const set = new Set(cellKeys);
@@ -88,7 +96,7 @@ function reducer(state=initialState, action) {
   console.log('notebook action', action.type);
   switch (action.type) {
   case actionTypes.NOTEBOOK_CREATED:
-    return state.setIn(['notebooksById', action.notebookId], new Notebook());
+    return state.setIn(['notebooksById', action.notebook.notebookId], action.notebook);
 
   case actionTypes.NOTEBOOK_DESTROYED:
     const notebook = state.getIn(['notebooksById', action.notebookId]);
@@ -145,19 +153,12 @@ Settings.toProperty('notebook').onValue((settings) => {
 });
 
 export function createNotebook(opts) {
-  const notebook = {
+  return new Notebook({
     notebookId: nextNotebookId++,
     store,
     ctx: opts.context,
-    base_context: Context.create_base_context(opts)
-  };
-
-  store.dispatch(actions.notebookCreated(notebook.notebookId));
-  return notebook;
-}
-
-export function destroyNotebook(notebook) {
-  notebook.store.dispatch(actions.notebookDestroyed(notebook.notebookId));
+    baseCtx: Context.create_base_context(opts)
+  });
 }
 
 function exportNotebook(notebook, currentCell) {
@@ -366,7 +367,7 @@ export function run_without_input_cell(notebook, position, fn) {
 }
 
 function createInputContext(notebook) {
-  return Context.createScriptStaticContext(notebook.base_context);
+  return Context.createScriptStaticContext(notebook.baseCtx);
 }
 
 function createNotebookRunContext(cell) {
