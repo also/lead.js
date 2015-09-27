@@ -11,7 +11,6 @@ function cellsRemoved(cellsById, cellKeys) {
 const initialState = Immutable.fromJS({notebooksById: {}, cellsById: {}});
 
 export default function reducer(state=initialState, action) {
-  console.log('notebook action', action.type);
   switch (action.type) {
   case actionTypes.NOTEBOOK_CREATED:
     return state.setIn(['notebooksById', action.notebook.notebookId], action.notebook);
