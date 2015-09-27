@@ -33,13 +33,13 @@ describe 'contexts', ->
     context = null
     beforeEach ->
       base_context = Context.create_base_context()
-      context = Context.create_context(base_context)
+      context = Context.createScriptStaticContext(base_context)
 
     it 'can be created', ->
-      Context.create_run_context [context]
+      Context.createScriptExecutionContext [context]
 
     it 'can output', ->
-      run_context = Context.create_run_context [context]
+      run_context = Context.createScriptExecutionContext [context]
       text = 'hello, world'
       Context.add_component run_context, React.DOM.span null, text
       $el = render run_context
@@ -64,32 +64,32 @@ describe 'contexts', ->
       ctx = null
       result = null
       base_context = Context.create_base_context(imports: ['builtins.*', 'test_module.*'], modules: {test_module, builtins: Builtins})
-      ctx = Context.create_context base_context
+      ctx = Context.createScriptStaticContext base_context
 
     it 'can run javascript strings', ->
-      run_context = Context.create_run_context [ctx, {set_test_result}]
+      run_context = Context.createScriptExecutionContext [ctx, {set_test_result}]
       Context.eval_in_context run_context, 'ctx.set_test_result(1 + 1);'
       expect(result).to.be 2
 
     it 'can run coffeescript strings', ->
-      run_context = Context.create_run_context [ctx, {set_test_result}]
+      run_context = Context.createScriptExecutionContext [ctx, {set_test_result}]
       eval_coffeescript_in_context run_context, 'ctx.set_test_result 1 + 1'
       expect(result).to.be 2
 
     it 'can eval functions', ->
-      run_context = Context.create_run_context [ctx, {set_test_result}]
+      run_context = Context.createScriptExecutionContext [ctx, {set_test_result}]
       Context.eval_in_context run_context, ->
         ctx.set_test_result test_module.test_function()
       expect(result).to.be 'test value'
 
     it 'can run custom module functions', ->
-      run_context = Context.create_run_context [ctx, {set_test_result}]
+      run_context = Context.createScriptExecutionContext [ctx, {set_test_result}]
       Context.eval_in_context run_context, 'ctx.set_test_result(test_module.test_function())'
       expect(result).to.be 'test value'
 
     it 'can use other contexts', ->
-      context_a = Context.create_run_context [ctx]
-      context_b = Context.create_run_context [ctx, {context_a}]
+      context_a = Context.createScriptExecutionContext [ctx]
+      context_b = Context.createScriptExecutionContext [ctx, {context_a}]
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
           ctx.value_in_context_a = 'a'
@@ -98,8 +98,8 @@ describe 'contexts', ->
       expect(context_b.value_in_context_b).to.be 'a'
 
     it 'can use the running context', ->
-      context_a = Context.create_run_context [ctx]
-      context_b = Context.create_run_context [ctx, {context_a}]
+      context_a = Context.createScriptExecutionContext [ctx]
+      context_b = Context.createScriptExecutionContext [ctx, {context_a}]
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
           Context.in_running_context ctx, (ctx) ->
@@ -110,8 +110,8 @@ describe 'contexts', ->
       expect(context_b.value_in_context_b).to.be 'a'
 
     it 'can keep the running context in an async function', (done) ->
-      context_a = Context.create_run_context [ctx]
-      context_b = Context.create_run_context [ctx, {context_a}]
+      context_a = Context.createScriptExecutionContext [ctx]
+      context_b = Context.createScriptExecutionContext [ctx, {context_a}]
       context_b.scope.Context = Context
       Context.run_in_context context_a, (ctx) ->
         ctx.function_in_context_a = ->
@@ -128,8 +128,8 @@ describe 'contexts', ->
         expect(context_b.value_in_context_b).to.be 'a'
 
     it 'can use the running context when calling a function from another context', ->
-      context_a = Context.create_run_context [ctx]
-      context_b = Context.create_run_context [ctx, {context_a}]
+      context_a = Context.createScriptExecutionContext [ctx]
+      context_b = Context.createScriptExecutionContext [ctx, {context_a}]
       context_b.scope.Context = Context
 
       Context.run_in_context context_a, (ctx) ->
@@ -143,7 +143,7 @@ describe 'contexts', ->
       expect(context_b.value_in_context_b).to.be 'a'
 
     it 'can output in nested items', ->
-      context_a = Context.create_run_context [ctx]
+      context_a = Context.createScriptExecutionContext [ctx]
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
@@ -153,7 +153,7 @@ describe 'contexts', ->
       expect($el.text()).to.be 'ab'
 
     it "allows output after render", (done) ->
-      context_a = Context.create_run_context [ctx, {set_test_result}]
+      context_a = Context.createScriptExecutionContext [ctx, {set_test_result}]
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         text 'a'
@@ -167,7 +167,7 @@ describe 'contexts', ->
         expect($el.text()).to.be 'abc'
 
     it 'allows output in an async block after render', (done) ->
-      context_a = Context.create_run_context [ctx, {set_test_result}]
+      context_a = Context.createScriptExecutionContext [ctx, {set_test_result}]
       context_a.scope.Context = Context
       Context.eval_in_context context_a, ->
         Context.nested_item ctx, (ctx) ->

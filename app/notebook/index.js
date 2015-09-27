@@ -327,7 +327,7 @@ function runInputCell({notebook, cellId}) {
   }
   insertCell(outputCell, {after: inputCell});
   notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
-  const run_context = Context.create_run_context([
+  const run_context = Context.createScriptExecutionContext([
     inputCell.notebook.context,
     inputCell.context,
     {input_cell: inputCell, output_cell: outputCell},
@@ -354,7 +354,7 @@ function runWithContext(ctx, fn) {
 
 function createBareOutputCellAndContext(notebook) {
   const output_cell = createOutputCell(notebook);
-  return Context.create_run_context([
+  return Context.createScriptExecutionContext([
     notebook.context,
     createInputContext(notebook),
     {output_cell},
@@ -370,7 +370,7 @@ export function run_without_input_cell(notebook, position, fn) {
 }
 
 function createInputContext(notebook) {
-  return Context.create_context(notebook.base_context);
+  return Context.createScriptStaticContext(notebook.base_context);
 }
 
 function createNotebookRunContext(cell) {

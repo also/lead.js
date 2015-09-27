@@ -191,7 +191,7 @@ export const create_nested_context = function (parent, overrides) {
   return newContext;
 };
 
-export const create_run_context = function (extraContexts) {
+export const createScriptExecutionContext = function (extraContexts) {
   const run_context_prototype = Object.assign({}, ...extraContexts, context_run_context_prototype);
   const result = create_nested_context(run_context_prototype);
   if (result.mainLayout != null) {
@@ -272,9 +272,9 @@ export const in_running_context = function (ctx, fn, args) {
   return spliceCtx(runningContextBinding, ctx, fn, args);
 };
 
-// the XXX context contains all the context functions and vars. basically, everything needed to support
+// the "script static context" context contains all the scripting functions and vars. basically, everything needed to support
 // an editor
-export const create_context = function (base) {
+export const createScriptStaticContext = function (base) {
   const contextExports = collectContextExports(base);
   const imported = _.clone(contextExports);
   _.each(base.imports, _.partial(importInto, contextExports, imported));
@@ -299,7 +299,7 @@ export const create_standalone_context = function ({imports, modules, context}={
     modules: modules
   });
 
-  return create_run_context([context != null ? context : {}, create_context(baseContext)]);
+  return createScriptExecutionContext([context != null ? context : {}, createScriptStaticContext(baseContext)]);
 };
 
 export const run_in_context = function (runContext, fn) {
