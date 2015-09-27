@@ -38,7 +38,7 @@ function identity(cell) {
 const actionTypes = {
   NOTEBOOK_CREATED: 'NOTEBOOK_CREATED',
   NOTEBOOK_DESTROYED: 'NOTEBOOK_DESTROYED',
-  CELLS_REPLACED: 'CELLS_REPLACED',
+  NOTEBOOK_CELLS_REPLACED: 'NOTEBOOK_CELLS_REPLACED',
   SETTINGS_CHANGED: 'SETTINGS_CHANGED',
   INSERT_CELL: 'INSERT_CELL',
   UPDATE_CELL: 'UPDATE_CELL',
@@ -55,7 +55,7 @@ export const actions = {
   },
 
   cellsReplaced(notebookId, cells) {
-    return {type: actionTypes.CELLS_REPLACED, notebookId, cells};
+    return {type: actionTypes.NOTEBOOK_CELLS_REPLACED, notebookId, cells};
   },
 
   settingsChanged(settings) {
@@ -95,7 +95,7 @@ function reducer(state=initialState, action) {
     return state.deleteIn(['notebooks', action.notebookId])
       .updateIn(['cellsById'], (cellsById) => cellsRemoved(cellsById, notebook.cells.map(({cellId}) => cellId)));
 
-  case actionTypes.CELLS_REPLACED:
+  case actionTypes.NOTEBOOK_CELLS_REPLACED:
     const currentCellKeys = state.getIn(['notebooksById', action.notebookId, 'cells']).map(({cellId}) => cellId);
     return state.setIn(['notebooksById', action.notebookId, 'cells'], action.cells.map(({cellId}) => cellId))
       .updateIn(['cellsById'], (cellsById) => {
@@ -139,7 +139,7 @@ function reducer(state=initialState, action) {
   }
 }
 
-const store = createStore(reducer);
+export const store = createStore(reducer);
 Settings.toProperty('notebook').onValue((settings) => {
   store.dispatch(actions.settingsChanged(settings));
 });

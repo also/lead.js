@@ -1,5 +1,4 @@
 import React from 'react/addons';
-import {Provider} from 'react-redux';
 
 import {createNotebook, destroyNotebook} from '../notebook';
 
@@ -29,11 +28,7 @@ export default React.createClass({
   render() {
     const {notebook} = this.state;
 
-    return (
-      <Provider store={notebook.store}>
-        {() => <DocumentComponent notebookId={notebook.notebookId}/>}
-      </Provider>
-    );
+    return <DocumentComponent notebookId={notebook.notebookId}/>;
   },
 
   componentWillUnmount() {

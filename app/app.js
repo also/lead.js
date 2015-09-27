@@ -4,14 +4,16 @@
 require('object.assign').shim();
 
 import * as React from 'react';
+import {Provider} from 'react-redux';
 import URI from 'urijs';
 import Router from 'react-router';
+
 import * as Settings from './settings';
 import * as Modules from './modules';
 import * as Modal from './modal';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
-import {encodeNotebookValue} from './notebook';
+import {encodeNotebookValue, store} from './notebook';
 
 
 Settings.default('app', 'intro_command', `help 'introduction'`);
@@ -89,7 +91,11 @@ export function initApp(target, options={}) {
     });
   });
 
-  return React.render(<AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>, target);
+  return React.render(
+    <Provider store={store}>
+      {() => <AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>}
+    </Provider>
+  , target);
 }
 
 export function raw_cell_url(ctx, value) {
