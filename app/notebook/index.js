@@ -1,6 +1,5 @@
 import React from 'react/addons';
 import URI from 'urijs';
-import Bacon from 'bacon.model';
 import * as Immutable from 'immutable';
 import {createStore} from 'redux';
 
@@ -149,7 +148,7 @@ export function createNotebook(opts) {
   const notebook = {
     notebookId: nextNotebookId++,
     store,
-    context: opts.context,
+    ctx: opts.context,
     base_context: Context.create_base_context(opts)
   };
 
@@ -227,7 +226,7 @@ function seek(startCell, direction, predicate=identity) {
   }
 }
 
-export function input_cell_at_offset(cell, offset) {
+function input_cell_at_offset(cell, offset) {
   return seek(cell, offset, isInput);
 }
 
@@ -285,15 +284,14 @@ function createInputCell(notebook) {
     cellId,
     notebookId: notebook.notebookId,
     notebook: notebook,
-    context: createInputContext(notebook),
+    ctx: createInputContext(notebook),
     used: false,
-    changes: new Bacon.Bus(),
     editor: editor,
     editor_changes: Editor.as_event_stream(editor, 'change')
   };
 
   editor.lead_cell = cell;
-  editor.ctx = cell.context;
+  editor.ctx = cell.ctx;
   cell.component = InputCellComponent;
 
   // scan changes for the side effect in recompile
@@ -328,8 +326,8 @@ function runInputCell({notebook, cellId}) {
   insertCell(outputCell, {after: inputCell});
   notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
   const run_context = Context.createScriptExecutionContext([
-    inputCell.notebook.context,
-    inputCell.context,
+    inputCell.notebook.ctx,
+    inputCell.ctx,
     {input_cell: inputCell, output_cell: outputCell},
     createNotebookRunContext(inputCell)
   ]);
@@ -355,7 +353,7 @@ function runWithContext(ctx, fn) {
 function createBareOutputCellAndContext(notebook) {
   const output_cell = createOutputCell(notebook);
   return Context.createScriptExecutionContext([
-    notebook.context,
+    notebook.ctx,
     createInputContext(notebook),
     {output_cell},
     createNotebookRunContext(output_cell)
@@ -492,7 +490,7 @@ export function save(cell) {
 }
 
 export function context_help(cell, token) {
-  const key = Documentation.getKey(cell.context, token);
+  const key = Documentation.getKey(cell.ctx, token);
 
   run_without_input_cell(cell.notebook, {before: cell}, (ctx) => {
     if (key != null) {
