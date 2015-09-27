@@ -2,7 +2,7 @@ import React from 'react/addons';
 
 import {connect} from 'react-redux';
 
-import {actions} from '../notebook';
+import * as actions from './actions';
 
 
 export default connect(null, actions)(React.createClass({

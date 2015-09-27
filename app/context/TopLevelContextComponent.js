@@ -5,8 +5,6 @@ import ComponentContextComponent from './ComponentContextComponent';
 
 
 export default React.createClass({
-  displayName: 'TopLevelContextComponent',
-
   getInitialState() {
     // FIXME #175 props can change
     const ctx = createStandaloneScriptContext(this.props);

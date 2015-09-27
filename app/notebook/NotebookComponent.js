@@ -1,12 +1,11 @@
 import React from 'react/addons';
 import {connect} from 'react-redux';
 
-import {createNotebook, actions} from '../notebook';
+import {createNotebook} from '../notebook';
+import {notebookCreated, notebookDestroyed} from './actions';
 
 import DocumentComponent from './DocumentComponent';
 
-
-const {notebookCreated, notebookDestroyed} = actions;
 
 export default connect(null, {notebookCreated, notebookDestroyed})(React.createClass({
   propTypes: {

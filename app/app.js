@@ -91,7 +91,7 @@ export function initApp(target, options={}) {
     });
   });
 
-  return React.render(
+  React.render(
     <Provider store={store}>
       {() => <AppRoutes {...{bodyWrapper, app, initializationPromise, extraRoutes}}/>}
     </Provider>

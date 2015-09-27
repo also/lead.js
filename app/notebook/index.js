@@ -14,6 +14,8 @@ import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
 import InputCellComponent from './InputCellComponent';
+import * as actions from './actions';
+import * as actionTypes from './actionTypes';
 import './editor';
 
 
@@ -33,46 +35,6 @@ function isClean(cell) {
 
 function identity(cell) {
   return cell;
-}
-
-const actionTypes = {
-  NOTEBOOK_CREATED: 'NOTEBOOK_CREATED',
-  NOTEBOOK_DESTROYED: 'NOTEBOOK_DESTROYED',
-  NOTEBOOK_CELLS_REPLACED: 'NOTEBOOK_CELLS_REPLACED',
-  SETTINGS_CHANGED: 'SETTINGS_CHANGED',
-  INSERT_CELL: 'INSERT_CELL',
-  UPDATE_CELL: 'UPDATE_CELL',
-  REMOVE_CELL_AT_INDEX: 'REMOVE_CELL_AT_INDEX'
-};
-
-export const actions = {
-  notebookCreated(notebook) {
-    return {type: actionTypes.NOTEBOOK_CREATED, notebook};
-  },
-
-  notebookDestroyed(notebookId) {
-    return {type: actionTypes.NOTEBOOK_DESTROYED, notebookId};
-  },
-
-  cellsReplaced(notebookId, cells) {
-    return {type: actionTypes.NOTEBOOK_CELLS_REPLACED, notebookId, cells};
-  },
-
-  settingsChanged(settings) {
-    return {type: actionTypes.SETTINGS_CHANGED, settings};
-  },
-
-  insertCell(notebookId, cell, index) {
-    return {type: actionTypes.INSERT_CELL, notebookId, cell, index};
-  },
-
-  removeCellAtIndex(notebookId, index) {
-    return {type: actionTypes.REMOVE_CELL_AT_INDEX, notebookId, index};
-  },
-
-  updateCell(cellId, update, incrementNumber) {
-    return {type: actionTypes.UPDATE_CELL, cellId, update, incrementNumber};
-  }
 }
 
 const Notebook = new Immutable.Record({
@@ -164,7 +126,8 @@ export function createNotebook(opts) {
 function exportNotebook(notebook, currentCell) {
   return {
     lead_js_version: 0,
-    cells: notebook.store.getState().getIn(['notebooksById', notebook.notebookId, 'cells']).filter((cell) => cell !== currentCell && isInput(cell))
+    cells: notebook.store.getState().getIn(['notebooksById', notebook.notebookId, 'cells'])
+      .filter((cell) => cell !== currentCell && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
