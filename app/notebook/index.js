@@ -149,22 +149,6 @@ export function createNotebook(opts) {
 
   store.dispatch(actions.notebookCreated(notebook.notebookId));
 
-  // FIXME
-  // if (process.browser) {
-  //   const bodyElt = document.querySelector('.body');
-  //   const scrolls = Bacon.fromEventTarget(bodyElt, 'scroll');
-  //   const scroll_to = notebook.cell_run.flatMapLatest(function (input_cell) {
-  //     return input_cell.output_cell.done.delay(0).takeUntil(scrolls);
-  //   });
-  //
-  //   scroll_to.onValue(function (output_cell) {
-  //     const bodyTop = bodyElt.getBoundingClientRect().top;
-  //     const bodyScroll = bodyElt.scrollTop;
-  //
-  //     bodyElt.scrollTop = store.getState().getIn(['cellsById', output_cell.cellId]).dom_node.getBoundingClientRect().top - bodyTop + bodyScroll;
-  //   });
-  // }
-
   notebook.base_context = Context.create_base_context(opts);
   return notebook;
 }
