@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import $ from 'jquery';
 import Bacon from 'baconjs';
+import * as Immutable from 'immutable';
 
 import {splitKeysAndValue} from './utils';
 
@@ -10,65 +10,46 @@ function keysOverlap(a, b) {
   return _.isEqual(longer.slice(0, shorter.length), shorter);
 }
 
-export function create(overrides={get: () => {}}) {
+const toJS = (v) => v instanceof Immutable.Iterable ? v.toJS() : v;
+
+export function create(overrides={getRaw: () => null}) {
   const changeBus = new Bacon.Bus();
 
   if (overrides.changes != null) {
     changeBus.plug(overrides.changes);
   }
 
-  let data = {};
-  function get(d, keys) {
-    if (keys.length === 0) {
-      return d;
-    }
-    if (d == null) {
-      return d;
-    }
-    let key;
-    [key, ...keys] = keys;
-    return get(d[key], keys);
-  }
-
-  function set(d, value, keys) {
-    if (keys.length === 0) {
-      data = _.clone(value);
-    }
-
-    let key;
-    [key, ...keys] = keys;
-    if (keys.length === 0) {
-      return d[key] = value;
-    } else {
-      return set(d[key] != null ? d[key] : d[key] = {}, value, keys);
-    }
-  }
+  let data = new Immutable.Map();
 
   function with_prefix(...prefix) {
     return {
-      get(...keys) {
+      getRaw(...keys) {
         const k = prefix.concat(keys);
-        const override = overrides.get(...k);
-        const value = get(data, k);
+        const override = overrides.getRaw(...k);
+        const value = data.getIn(k);
 
         if (override == null) {
           return value;
-        } else if (_.isObject(override) && _.isObject(value)) {
-          return $.extend(true, {}, value, override);
+        } else if (override instanceof Immutable.Map && value instanceof Immutable.Map) {
+          return value.mergeDeep(override);
         } else {
           return override;
         }
       },
 
+      get(...keys) {
+        return toJS(this.getRaw(...keys));
+      },
+
       get_without_overrides(...keys) {
-        return get(data, prefix.concat(keys));
+        return data.getIn(prefix.concat(keys));
       },
 
       set(...keysAndValue) {
         const {keys, value} = splitKeysAndValue(keysAndValue);
         const k = prefix.concat(keys);
 
-        set(data, value, k);
+        data = data.setIn(k, Immutable.fromJS(value));
         changeBus.push(k);
         return this;
       },
@@ -83,8 +64,10 @@ export function create(overrides={get: () => {}}) {
         const k = prefix.concat(keys);
 
         return changeBus.filter((changedKey) => keysOverlap(k, changedKey))
-          .map(() => _.clone(this.get(...keys)))
-          .skipDuplicates(_.isEqual).toProperty(current);
+          .map(() => this.getRaw(...keys))
+          .skipDuplicates(Immutable.is)
+          .map(toJS)
+          .toProperty(current);
       },
 
       toModel(...keys) {

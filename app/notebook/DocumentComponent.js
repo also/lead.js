@@ -9,14 +9,13 @@ function mapStateToProps(state, ownProps) {
   const {notebookId} = ownProps;
   return {
     cells: state.getIn(['notebooksById', notebookId, 'cells']).map(cellsById.get.bind(cellsById)),
-    settings: state.get('settings').notebook
+    layout: state.getIn(['settings', 'notebook', 'layout'])
   };
 }
 
 export default connect(mapStateToProps)(React.createClass({
   render() {
-    const {settings={layout: 'repl'}, cells} = this.props;
-    const {layout} = settings;
+    const {layout='repl', cells} = this.props;
     const useMinHeight = layout === 'two-column';
 
     const ios = [];

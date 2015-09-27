@@ -86,8 +86,8 @@ export function initApp(target, options={}) {
     window.history.replaceState(null, document.title, uri.toString());
   }
 
-
   const store = createStore(combineReducers([reducer, notebookReducer]));
+
   store.dispatch(actions.coreInit('pending'));
   const initializationPromise = Modules.init_modules({settings: {user: Settings.user_settings, global: Settings.global_settings}}, modules);
   initializationPromise.then(() => {
@@ -102,8 +102,9 @@ export function initApp(target, options={}) {
     }));
   });
 
-  Settings.toProperty().onValue((settings) => {
-    store.dispatch(actions.settingsChanged(settings));
+  store.dispatch(actions.settingsChanged(Settings.getRaw()));
+  Settings.changes.onValue(() => {
+    store.dispatch(actions.settingsChanged(Settings.getRaw()));
   });
 
 
