@@ -1,6 +1,6 @@
 import React from 'react/addons';
 
-import {create_standalone_context} from './';
+import {createStandaloneScriptContext} from './';
 import ComponentContextComponent from './ComponentContextComponent';
 
 
@@ -9,7 +9,7 @@ export default React.createClass({
 
   getInitialState() {
     // FIXME #175 props can change
-    const ctx = create_standalone_context(this.props);
+    const ctx = createStandaloneScriptContext(this.props);
     return {ctx};
   },
 

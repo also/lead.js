@@ -62,7 +62,7 @@ exports.BuilderComponent = React.createClass
   mixins: [AppAwareMixin]
 
   getInitialState: ->
-    ctx = Context.create_standalone_context {imports: ['server'], modules: @context.app.modules}
+    ctx = Context.createStandaloneScriptContext {imports: ['server'], modules: @context.app.modules}
     leaf_clicks = new Bacon.Bus()
     targets = Bacon.Model([])
     params = Bacon.Model({})

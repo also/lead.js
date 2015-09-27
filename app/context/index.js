@@ -146,7 +146,6 @@ export const create_base_context = function ({modules, imports}={}) {
     modules: modules,
     imports: imports,
     repl_vars: {},
-    prop_vars: {},
     settings: {user: user_settings, global: global_settings}
   };
 };
@@ -234,6 +233,7 @@ const callInCtx = function (ctx, fn, args) {
 };
 
 // creates a nested context, adds it to the component list, and applies the function to it
+// TODO only used by input
 export const nested_item = function (ctx, fn, ...args) {
   const nested = create_nested_context(ctx);
   addComponent(ctx, nested.component);
@@ -299,7 +299,7 @@ export const createScriptStaticContext = function (base) {
   return Object.assign({}, base, {imported, scope});
 };
 
-export const create_standalone_context = function ({imports, modules, context}={}) {
+export const createStandaloneScriptContext = function ({imports, modules, context}={}) {
   const baseContext = create_base_context({
     imports: ['builtins.*'].concat(imports || []),
     modules: modules
