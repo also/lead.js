@@ -1,9 +1,7 @@
 import React from 'react/addons';
 import URI from 'urijs';
 import * as Immutable from 'immutable';
-import {createStore} from 'redux';
 
-import {combineReducers} from '../store';
 import * as Editor from '../editor';
 import * as http from '../http';
 import * as Context from '../context';
@@ -15,11 +13,8 @@ import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
 import InputCellComponent from './InputCellComponent';
 import * as actions from './actions';
-import reducer from './reducer';
-import coreReducer from '../reducer';
 import './editor';
 
-export const store = createStore(combineReducers([coreReducer, reducer]));
 
 
 const contentType = 'application/x-lead-notebook';
@@ -47,13 +42,13 @@ const Notebook = new Immutable.Record({
   outputNumber: 0,
   ctx: null,
   baseCtx: null,
-  store // lol
+  store: null // lol
 });
 
 export function createNotebook(opts) {
   return new Notebook({
     notebookId: nextNotebookId++,
-    store,
+    store: opts.store,
     ctx: opts.context,
     baseCtx: Context.create_base_context(opts)
   });

@@ -14,8 +14,13 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
     init: React.PropTypes.func
   },
 
+  contextTypes: {
+    store: React.PropTypes.object.isRequired
+  },
+
   getInitialState() {
-    const notebook = createNotebook(this.props);
+    const {store} = this.context;
+    const notebook = createNotebook(Object.assign({store}, this.props));
 
     this.props.notebookCreated(notebook);
 

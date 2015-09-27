@@ -7,13 +7,17 @@ import * as React from 'react';
 import {Provider} from 'react-redux';
 import URI from 'urijs';
 import Router from 'react-router';
+import {createStore} from 'redux';
 
+import reducer from './reducer';
+import notebookReducer from './notebook/reducer';
+import {combineReducers} from './store';
 import * as Settings from './settings';
 import * as Modules from './modules';
 import * as Modal from './modal';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
-import {encodeNotebookValue, store} from './notebook';
+import {encodeNotebookValue} from './notebook';
 import * as actions from './actions';
 
 
@@ -91,6 +95,8 @@ export function initApp(target, options={}) {
       props: {error}
     });
   });
+
+  const store = createStore(combineReducers([reducer, notebookReducer]));
 
   Settings.toProperty().onValue((settings) => {
     store.dispatch(actions.settingsChanged(settings));
