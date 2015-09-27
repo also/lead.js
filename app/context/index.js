@@ -145,7 +145,7 @@ export const create_base_context = function ({modules, imports}={}) {
   return {
     modules: modules,
     imports: imports,
-    repl_vars: {},
+    scripting: {replVars: {}},
     settings: {user: user_settings, global: global_settings}
   };
 };

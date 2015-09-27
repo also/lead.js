@@ -9,11 +9,11 @@ export const scopedEval = function(ctx, string, var_names) {
   }
   _.each(var_names, function(name) {
     var _base;
-    return (_base = ctx.repl_vars)[name] != null ? _base[name] : _base[name] = void 0;
+    return (_base = ctx.scripting.replVars)[name] != null ? _base[name] : _base[name] = void 0;
   });
 
   /*eslint-disable no-with */
-  with (ctx.scope) { with (ctx.repl_vars) {
+  with (ctx.scope) { with (ctx.scripting.replVars) {
     return eval(string);
   }};
   /*eslint-enable no-with */

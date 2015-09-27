@@ -61,7 +61,7 @@ export function create_fn(string) {
   return (ctx) => {
     let compiled;
     try {
-      const locals = Object.keys(ctx.repl_vars);
+      const locals = Object.keys(ctx.scripting.replVars);
 
       compiled = CoffeeScript.compile(string, {bare: true, locals: locals}) + (`\n//# sourceURL=console-coffeescript-${fnNumber++}.js`);
       const {global_vars, source} = Javascript.mangle(compiled);
