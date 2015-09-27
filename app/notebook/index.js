@@ -280,7 +280,6 @@ function createInputCell(notebook) {
   const cellId = `input${cellKey++}`;
   const cell = {
     type: 'input',
-    key: cellId,
     cellId,
     notebookId: notebook.notebookId,
     notebook: notebook,
@@ -308,7 +307,6 @@ function createOutputCell(notebook) {
   const cellId = 'output' + cellKey++;
   return {
     type: 'output',
-    key: cellId,
     cellId,
     notebookId: notebook.notebookId,
     notebook

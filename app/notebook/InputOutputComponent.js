@@ -19,7 +19,7 @@ export default React.createClass({
     if (input_cell) {
       input = React.createElement(input_cell.component, {
         cell: input_cell,
-        key: input_cell.key,
+        key: input_cell.cellId,
         minHeight: minHeight
       });
     } else {
@@ -29,7 +29,7 @@ export default React.createClass({
     if (output_cell) {
       output = <OutputCellComponent
         cell={output_cell}
-        key={output_cell.key}
+        key={output_cell.cellId}
         ref='output'/>
     } else {
       output = <div className='placeholder cell'/>;
