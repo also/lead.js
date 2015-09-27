@@ -144,6 +144,7 @@ export const create_base_context = function ({modules, imports}={}) {
   // TODO find a better home for repl vars
   return {
     modules: modules,
+    // TODO move imports into scripting
     imports: imports,
     scripting: {replVars: {}},
     settings: {user: user_settings, global: global_settings}

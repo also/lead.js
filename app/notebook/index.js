@@ -406,16 +406,9 @@ function openFilePicker(run_context) {
 
   inputElt.type = 'file';
   inputElt.onchange = function (e) {
-    let i, len;
-    const ref = e.target.files;
-    const results = [];
-
-    for (i = 0, len = ref.length; i < len; i++) {
-      const file = ref[i];
-
-      results.push(loadFile(run_context, file));
-    }
-    return results;
+    Array.from(e.target.files).forEach((file) => {
+      loadFile(run_context, file)
+    });
   };
   return inputElt.dispatchEvent(new Event('click'));
 }
