@@ -14,7 +14,7 @@ import * as Modal from './modal';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
 import {encodeNotebookValue, store} from './notebook';
-import * as actions from './notebook/actions';
+import * as actions from './actions';
 
 
 Settings.default('app', 'intro_command', `help 'introduction'`);

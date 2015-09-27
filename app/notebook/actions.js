@@ -13,10 +13,6 @@ export function cellsReplaced(notebookId, cells) {
   return {type: types.NOTEBOOK_CELLS_REPLACED, notebookId, cells};
 }
 
-export function settingsChanged(settings) {
-  return {type: types.SETTINGS_CHANGED, settings};
-}
-
 export function insertCell(notebookId, cell, index) {
   return {type: types.INSERT_CELL, notebookId, cell, index};
 }
