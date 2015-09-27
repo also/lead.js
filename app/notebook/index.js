@@ -76,7 +76,7 @@ export const actions = {
   }
 }
 
-const Notebook = Immutable.Record({cells: new Immutable.List()})
+const Notebook = new Immutable.Record({cells: new Immutable.List(), inputNumber: 0, outputNumber: 0});
 
 function cellsRemoved(cellsById, cellKeys) {
   const set = new Set(cellKeys);
@@ -115,9 +115,12 @@ function reducer(state=initialState, action) {
     }).setIn(['cellsById', cell.cellId], cell);
 
   case actionTypes.UPDATE_CELL:
+    let updatedCell;
     return state.updateIn(['cellsById', action.cellId], (cell) => {
+      updatedCell = cell;
       return Object.assign({}, cell, action.update);
-    });
+    })
+      .updateIn(['notebooksById', updatedCell.notebookId, `${updatedCell.type}Number`], (n) => updatedCell.number = n++);
 
   case actionTypes.REMOVE_CELL_AT_INDEX:
     let cellId;
@@ -134,7 +137,6 @@ function reducer(state=initialState, action) {
   }
 }
 
-
 const store = createStore(reducer);
 Settings.toProperty('notebook').onValue((settings) => {
   store.dispatch(actions.settingsChanged(settings));
@@ -144,9 +146,7 @@ export function createNotebook(opts) {
   const notebook = {
     notebookId: nextNotebookId++,
     store,
-    context: opts.context,
-    input_number: 1,
-    output_number: 1
+    context: opts.context
   };
 
   store.dispatch(actions.notebookCreated(notebook.notebookId));
@@ -321,15 +321,13 @@ export function set_cell_value(cell, value) {
 }
 
 function createOutputCell(notebook) {
-  const number = notebook.output_number++;
   const cellId = 'output' + cellKey++;
   return {
     type: 'output',
     key: cellId,
     cellId,
     notebookId: notebook.notebookId,
-    notebook,
-    number
+    notebook
   };
 }
 
@@ -342,7 +340,7 @@ function runInputCell({notebook, cellId}) {
     remove_cell(inputCell.output_cell);
   }
   insertCell(outputCell, {after: inputCell});
-  notebook.store.dispatch(actions.updateCell(cellId, {number: notebook.input_number++, output_cell: outputCell}));
+  notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}));
   const run_context = Context.create_run_context([
     inputCell.notebook.context,
     inputCell.context,
