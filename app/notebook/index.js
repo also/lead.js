@@ -43,10 +43,13 @@ const Notebook = new Immutable.Record({
 });
 
 export function createNotebook(opts) {
-  return new Notebook({
+  const ctx = Object.assign({}, opts.context, Context.create_base_context(opts));
+  const notebook = new Notebook({
     notebookId: nextNotebookId++,
-    ctx: Object.assign({}, opts.context, Context.create_base_context(opts))
+    ctx
   });
+  ctx.notebook = notebook;
+  return notebook;
 }
 
 function exportNotebook(ctx, notebook, currentCell) {
@@ -263,8 +266,6 @@ function createNotebookRunContext(cell) {
   const notebook = cell.notebook;
 
   return {
-    notebook,
-
     set_code(code) {
       const cell = add_input_cell(this, notebook, {after: this.output_cell});
       set_cell_value(this, cell, code);
