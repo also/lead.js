@@ -130,7 +130,7 @@ function remove_cell(cell) {
   cell.notebook.store.dispatch(actions.removeCell(cell.notebookId, cell.cellId));
 }
 
-function insertCell(cell, position={}) {
+function insertCell(ctx, cell, position={}) {
   const {notebook, notebookId} = cell;
 
   let currentCell, offset;
@@ -141,13 +141,13 @@ function insertCell(cell, position={}) {
     offset = 1;
     currentCell = position.after;
   } else {
-    notebook.store.dispatch(actions.insertCell(notebookId, cell));
+    ctx.app.store.dispatch(actions.insertCell(notebookId, cell));
     return;
   }
 
   const index = cellIndex(currentCell);
 
-  notebook.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
+  ctx.app.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
 
 export function add_input_cell(ctx, notebook, opts={}) {
@@ -163,7 +163,7 @@ export function add_input_cell(ctx, notebook, opts={}) {
 
   if (!(cell != null && isClean(cell))) {
     cell = createInputCell(notebook);
-    insertCell(cell, opts);
+    insertCell(ctx, cell, opts);
   }
 
   return cell;
@@ -207,16 +207,16 @@ function createOutputCell(notebook) {
   };
 }
 
-function runInputCell({notebook, cellId}) {
-  const inputCell = notebook.store.getState().getIn(['cellsById', cellId])
+function runInputCell(ctx, {notebook, cellId}) {
+  const inputCell = ctx.app.store.getState().getIn(['cellsById', cellId])
   const outputCell = createOutputCell(notebook);
 
   inputCell.used = true;
   if (inputCell.output_cell != null) {
     remove_cell(inputCell.output_cell);
   }
-  insertCell(outputCell, {after: inputCell});
-  notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
+  insertCell(ctx, outputCell, {after: inputCell});
+  ctx.app.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
   const run_context = Context.createScriptExecutionContext([
     inputCell.ctx,
     {input_cell: inputCell, output_cell: outputCell},
@@ -238,7 +238,7 @@ function runWithContext(ctx, fn) {
 
   output_cell.done = noLongerPending.take(1).map(() => output_cell);
   Context.run_in_context(ctx, fn);
-  output_cell.notebook.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}, true));
+  ctx.app.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}, true));
 }
 
 function createBareOutputCellAndContext(notebook) {
@@ -250,10 +250,10 @@ function createBareOutputCellAndContext(notebook) {
   ]);
 }
 
-export function run_without_input_cell(notebook, position, fn) {
+export function run_without_input_cell(ctx, notebook, position, fn) {
   const runContext = createBareOutputCellAndContext(notebook);
 
-  insertCell(runContext.output_cell, position);
+  insertCell(ctx, runContext.output_cell, position);
   runWithContext(runContext, fn);
 }
 
@@ -276,7 +276,7 @@ function createNotebookRunContext(cell) {
     run(code) {
       const cell = add_input_cell(this, notebook, {after: this.output_cell});
       set_cell_value(this, cell, code);
-      runInputCell(cell);
+      runInputCell(this, cell);
     },
 
     previously_run() {
@@ -311,10 +311,10 @@ export function handle_file(ctx, file, options={}) {
 
       set_cell_value(ctx, cell, file.content);
       if (options.run) {
-        runInputCell(cell);
+        runInputCell(ctx, cell);
       }
     } else if (extension === 'md') {
-      run_without_input_cell(ctx.notebook, {after: ctx.output_cell}, (ctx) => {
+      run_without_input_cell(ctx, ctx.notebook, {after: ctx.output_cell}, (ctx) => {
         Context.add_component(ctx, <MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
         return Context.IGNORE;
       });
@@ -363,7 +363,7 @@ function doSave(ctx, notebook, fromInputCell) {
 }
 
 export function run(ctx, cell, opts={advance: true}) {
-  const output_cell = runInputCell(cell);
+  const output_cell = runInputCell(ctx, cell);
 
   if (opts.advance) {
     const new_cell = add_input_cell(ctx, cell.notebook, {after: output_cell, reuse: true});
@@ -372,17 +372,17 @@ export function run(ctx, cell, opts={advance: true}) {
   }
 }
 
-export function save(cell) {
-  run_without_input_cell(cell.notebook, {before: cell}, (ctx) => {
+export function save(ctx, cell) {
+  run_without_input_cell(ctx, cell.notebook, {before: cell}, (ctx) => {
     exports.contextExports.save.fn(ctx);
     return Context.IGNORE;
   });
 }
 
-export function context_help(cell, token) {
+export function context_help(ctx, cell, token) {
   const key = Documentation.getKey(cell.ctx, token);
 
-  run_without_input_cell(cell.notebook, {before: cell}, (ctx) => {
+  run_without_input_cell(ctx, cell.notebook, {before: cell}, (ctx) => {
     if (key != null) {
       Context.add_component(ctx, Builtins.help_component(ctx, Documentation.keyToString(key)));
     }

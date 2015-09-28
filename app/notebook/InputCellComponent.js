@@ -4,19 +4,20 @@ import * as Editor from '../editor';
 import * as Builtins from '../builtins';
 import * as Context from '../context';
 import {run_without_input_cell} from '../notebook';
+import ContextAwareMixin from '../context/ContextAwareMixin';
 
 
-function generatePermalink(cell) {
-  run_without_input_cell(cell.notebook, {
+function generatePermalink(ctx, cell) {
+  run_without_input_cell(ctx, cell.notebook, {
     after: cell.output_cell || cell
-  }, function (ctx) {
+  }, (ctx) => {
     Builtins.contextExports.permalink.fn(ctx);
     return Context.IGNORE;
   });
 }
 
 export default React.createClass({
-  mixins: [React.addons.PureRenderMixin],
+  mixins: [React.addons.PureRenderMixin, ContextAwareMixin],
 
   render() {
     const {cell} = this.props;
@@ -47,6 +48,6 @@ export default React.createClass({
   },
 
   permalinkLinkClicked() {
-    return generatePermalink(this.props.cell);
+    return generatePermalink(this.ctx(), this.props.cell);
   }
 });

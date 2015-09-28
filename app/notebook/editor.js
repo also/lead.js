@@ -31,7 +31,7 @@ const commands = {
     const cur = cm.getCursor();
     const token = cm.getTokenAt(cur);
 
-    return Notebook.context_help(cm.lead_cell, token.string);
+    return Notebook.context_help(cm.ctx, cm.lead_cell, token.string);
   }),
 
   next_cell: cmd('Moves the cursor to the next cell', (cm) => {
@@ -67,7 +67,7 @@ const commands = {
   }),
 
   save(cm) {
-    return Notebook.save(cm.lead_cell);
+    return Notebook.save(cm.ctx, cm.lead_cell);
   }
 };
 

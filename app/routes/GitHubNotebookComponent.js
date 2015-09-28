@@ -15,7 +15,7 @@ export default replaceOnPropChange(React.createClass({
   initNotebook(ctx, nb) {
     const file = this.props.params.splat;
 
-    Notebook.run_without_input_cell(nb, undefined, (ctx) => {
+    Notebook.run_without_input_cell(ctx, nb, undefined, (ctx) => {
       GitHub.contextExports.load.fn(ctx, file, {run: true});
       return Context.IGNORE;
     });
