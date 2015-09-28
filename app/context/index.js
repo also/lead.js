@@ -67,11 +67,8 @@ const collectScriptingExports = function (context) {
     if (!module) {
       throw new Error('Module ' + name + ' is invalid');
     }
-    const vars = _.isFunction(module.context_vars) ?
-      module.context_vars.call(context) :
-      module.context_vars;
 
-    return [name, Object.assign(new LeadNamespace(), module.contextExports, vars)];
+    return [name, Object.assign(new LeadNamespace(), module.contextExports)];
   }));
 };
 
