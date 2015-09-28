@@ -18,7 +18,7 @@ export default replaceOnPropChange(React.createClass({
       GitHub.contextExports.gist.fn(ctx, gist, {run: true});
       return Context.IGNORE;
     });
-    Notebook.focus_cell(Notebook.add_input_cell(nb));
+    Notebook.focus_cell(Notebook.add_input_cell(ctx, nb));
   },
 
   render() {

@@ -64,17 +64,17 @@ function exportNotebook(ctx, notebook, currentCell) {
   };
 }
 
-function importNotebook(notebook, cell, imported, options) {
+function importNotebook(ctx, notebook, cell, imported, options) {
   const cells = imported.cells.map((importedCell) => {
     if (importedCell.type === 'input') {
-      cell = add_input_cell(notebook, {after: cell});
-      set_cell_value(cell, importedCell.value);
+      cell = add_input_cell(ctx, notebook, {after: cell});
+      set_cell_value(ctx, cell, importedCell.value);
       return cell;
     }
   });
 
   if (options.run) {
-    cells.forEach(run);
+    cells.forEach((cell) => run(ctx, cell));
   }
 
   return notebook;
@@ -91,7 +91,7 @@ export function focus_cell(cell) {
 function clearNotebook(ctx, notebook) {
   ctx.app.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
 
-  focus_cell(add_input_cell(notebook));
+  focus_cell(add_input_cell(ctx, notebook));
 }
 
 function cellIndex(cell) {
@@ -150,7 +150,7 @@ function insertCell(cell, position={}) {
   notebook.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
 
-export function add_input_cell(notebook, opts={}) {
+export function add_input_cell(ctx, notebook, opts={}) {
   let cell;
 
   if (opts.reuse) {
@@ -193,7 +193,7 @@ function createInputCell(notebook) {
   return cell;
 }
 
-export function set_cell_value(cell, value) {
+export function set_cell_value(ctx, cell, value) {
   Editor.set_value(cell.editor, value);
 }
 
@@ -268,14 +268,14 @@ function createNotebookRunContext(cell) {
     notebook,
 
     set_code(code) {
-      const cell = add_input_cell(notebook, {after: this.output_cell});
-      set_cell_value(cell, code);
+      const cell = add_input_cell(this, notebook, {after: this.output_cell});
+      set_cell_value(this, cell, code);
       focus_cell(cell);
     },
 
     run(code) {
-      const cell = add_input_cell(notebook, {after: this.output_cell});
-      set_cell_value(cell, code);
+      const cell = add_input_cell(this, notebook, {after: this.output_cell});
+      set_cell_value(this, cell, code);
       runInputCell(cell);
     },
 
@@ -307,9 +307,9 @@ export function handle_file(ctx, file, options={}) {
     const extension = file.filename.split('.').pop();
 
     if (extension === 'coffee') {
-      const cell = add_input_cell(ctx.notebook, {after: ctx.output_cell});
+      const cell = add_input_cell(ctx, ctx.notebook, {after: ctx.output_cell});
 
-      set_cell_value(cell, file.content);
+      set_cell_value(ctx, cell, file.content);
       if (options.run) {
         runInputCell(cell);
       }
@@ -330,7 +330,7 @@ export function handle_file(ctx, file, options={}) {
         Context.add_component(ctx, <Builtins.ErrorComponent message={`File ${file.filename} isn't a lead.js notebook`}/>);
       }
 
-      importNotebook(ctx.notebook, ctx.output_cell, imported, options);
+      importNotebook(ctx, ctx.notebook, ctx.output_cell, imported, options);
     }
   }
 }
@@ -362,11 +362,11 @@ function doSave(ctx, notebook, fromInputCell) {
   return link;
 }
 
-export function run(cell, opts={advance: true}) {
+export function run(ctx, cell, opts={advance: true}) {
   const output_cell = runInputCell(cell);
 
   if (opts.advance) {
-    const new_cell = add_input_cell(cell.notebook, {after: output_cell, reuse: true});
+    const new_cell = add_input_cell(ctx, cell.notebook, {after: output_cell, reuse: true});
 
     return focus_cell(new_cell);
   }

@@ -16,13 +16,13 @@ const keyMap = {
 
 const commands = {
   nb_run: cmd('Runs the contents of the cell and advances the cursor to the next cell', (cm) => {
-    return Notebook.run(cm.lead_cell, {
+    return Notebook.run(cm.ctx, cm.lead_cell, {
       advance: true
     });
   }),
 
   nb_run_in_place: cmd('Runs the contents of the cell and keeps the cursor in the cell', (cm) => {
-    return Notebook.run(cm.lead_cell, {
+    return Notebook.run(cm.ctx, cm.lead_cell, {
       advance: false
     });
   }),
