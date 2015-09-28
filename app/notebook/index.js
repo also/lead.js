@@ -39,14 +39,12 @@ const Notebook = new Immutable.Record({
   cells: new Immutable.List(),
   inputNumber: 0,
   outputNumber: 0,
-  ctx: null,
-  store: null // lol
+  ctx: null
 });
 
 export function createNotebook(opts) {
   return new Notebook({
     notebookId: nextNotebookId++,
-    store: opts.store,
     ctx: Object.assign({}, opts.context, Context.create_base_context(opts))
   });
 }
@@ -94,15 +92,15 @@ function clearNotebook(ctx, notebook) {
   focus_cell(add_input_cell(ctx, notebook));
 }
 
-function cellIndex(cell) {
-  return cell.notebook.store.getState().getIn(['notebooksById', cell.notebookId, 'cells']).indexOf(cell.cellId);
+function cellIndex(ctx, cell) {
+  return ctx.app.store.getState().getIn(['notebooksById', cell.notebookId, 'cells']).indexOf(cell.cellId);
 }
 
-function seek(startCell, direction, predicate=identity) {
-  const {notebook, notebookId} = startCell;
-  let index = cellIndex(startCell) + direction;
+function seek(ctx, startCell, direction, predicate=identity) {
+  const {notebookId} = startCell;
+  let index = cellIndex(ctx, startCell) + direction;
 
-  const state = notebook.store.getState();
+  const state = ctx.app.store.getState();
   const cellsById = state.get('cellsById');
   const cells = state.getIn(['notebooksById', notebookId, 'cells']);
 
@@ -122,12 +120,12 @@ function seek(startCell, direction, predicate=identity) {
   }
 }
 
-function input_cell_at_offset(cell, offset) {
-  return seek(cell, offset, isInput);
+function inputCellAtOffset(ctx, cell, offset) {
+  return seek(ctx, cell, offset, isInput);
 }
 
-function remove_cell(cell) {
-  cell.notebook.store.dispatch(actions.removeCell(cell.notebookId, cell.cellId));
+function removeCell(ctx, cell) {
+  ctx.app.store.dispatch(actions.removeCell(cell.notebookId, cell.cellId));
 }
 
 function insertCell(ctx, cell, position={}) {
@@ -145,7 +143,7 @@ function insertCell(ctx, cell, position={}) {
     return;
   }
 
-  const index = cellIndex(currentCell);
+  const index = cellIndex(ctx, currentCell);
 
   ctx.app.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
@@ -155,9 +153,9 @@ export function add_input_cell(ctx, notebook, opts={}) {
 
   if (opts.reuse) {
     if (opts.after != null) {
-      cell = seek(opts.after, forwards, isInput);
+      cell = seek(ctx, opts.after, forwards, isInput);
     } else if (opts.before != null) {
-      cell = seek(opts.before, backwards, isInput);
+      cell = seek(ctx, opts.before, backwards, isInput);
     }
   }
 
@@ -213,7 +211,7 @@ function runInputCell(ctx, {notebook, cellId}) {
 
   inputCell.used = true;
   if (inputCell.output_cell != null) {
-    remove_cell(inputCell.output_cell);
+    removeCell(ctx, inputCell.output_cell);
   }
   insertCell(ctx, outputCell, {after: inputCell});
   ctx.app.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
@@ -280,7 +278,7 @@ function createNotebookRunContext(cell) {
     },
 
     previously_run() {
-      return Editor.get_value(input_cell_at_offset(cell, -1).editor);
+      return Editor.get_value(inputCellAtOffset(this, cell, -1).editor);
     },
 
     exportNotebook() {
@@ -391,8 +389,8 @@ export function context_help(ctx, cell, token) {
   });
 }
 
-export function move_focus(cell, offset) {
-  const new_cell = input_cell_at_offset(cell, offset);
+export function move_focus(ctx, cell, offset) {
+  const new_cell = inputCellAtOffset(ctx, cell, offset);
 
   if (new_cell != null) {
     focus_cell(new_cell);

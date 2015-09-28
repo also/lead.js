@@ -35,13 +35,13 @@ const commands = {
   }),
 
   next_cell: cmd('Moves the cursor to the next cell', (cm) => {
-    if (!Notebook.move_focus(cm.lead_cell, 1)) {
+    if (!Notebook.move_focus(cm.ctx, cm.lead_cell, 1)) {
       return CodeMirror.Pass;
     }
   }),
 
   previous_cell: cmd('Moves the cursor to the previous cell', (cm) => {
-    if (!Notebook.move_focus(cm.lead_cell, -1)) {
+    if (!Notebook.move_focus(cm.ctx, cm.lead_cell, -1)) {
       return CodeMirror.Pass;
     }
   }),
