@@ -2,6 +2,7 @@ import React from 'react/addons';
 import {connect} from 'react-redux';
 
 import InputOutputComponent from './InputOutputComponent';
+import ContextRegisteringMixin from '../context/ContextRegisteringMixin';
 
 
 function mapStateToProps(state, ownProps) {
@@ -14,6 +15,8 @@ function mapStateToProps(state, ownProps) {
 }
 
 export default connect(mapStateToProps)(React.createClass({
+  mixins: [ContextRegisteringMixin],
+
   render() {
     const {layout='repl', cells} = this.props;
     const useMinHeight = layout === 'two-column';

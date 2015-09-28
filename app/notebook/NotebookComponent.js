@@ -38,7 +38,7 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
   render() {
     const {notebook} = this.state;
 
-    return <DocumentComponent notebookId={notebook.notebookId}/>;
+    return <DocumentComponent notebookId={notebook.notebookId} ctx={notebook.ctx}/>;
   },
 
   componentWillUnmount() {
