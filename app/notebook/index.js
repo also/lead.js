@@ -131,7 +131,7 @@ function remove_cell(cell) {
 }
 
 function insertCell(ctx, cell, position={}) {
-  const {notebook, notebookId} = cell;
+  const {notebookId} = cell;
 
   let currentCell, offset;
   if (position.before) {
