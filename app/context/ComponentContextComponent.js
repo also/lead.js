@@ -9,6 +9,6 @@ export default React.createClass({
   mixins: [ContextRegisteringMixin],
 
   render() {
-    return <div>{this.props.children}</div>;
+    return this.props.children;
   }
 });

@@ -89,8 +89,10 @@ export default React.createClass({
         <KeyBindingComponent keys={keyBindings} commands={CodeMirror.commands}/>
       </ToggleComponent>
       <TopLevelContextComponent ref='ctx' {...{imports, modules, context}}>
-        <EditorComponent run={this.saveSettings} ref='editor' key='settings_editor' initial_value={initialValue}/>
-        <ContextOutputComponent/>
+        <div>
+          <EditorComponent run={this.saveSettings} ref='editor' key='settings_editor' initial_value={initialValue}/>
+          <ContextOutputComponent/>
+        </div>
       </TopLevelContextComponent>
       <span className='run-button' onClick={() => this.saveSettings()}>
         <i className='fa fa-floppy-o'/>
