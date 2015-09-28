@@ -53,8 +53,8 @@ export function createNotebook(opts) {
   });
 }
 
-function exportNotebook(notebook, currentCell) {
-  const state = notebook.store.getState();
+function exportNotebook(ctx, notebook, currentCell) {
+  const state = ctx.app.store.getState();
   const cellsById = state.get('cellsById');
   return {
     lead_js_version: 0,
@@ -290,7 +290,7 @@ function createNotebookRunContext(cell) {
     },
 
     exportNotebook() {
-      return exportNotebook(notebook, cell);
+      return exportNotebook(this, notebook, cell);
     }
   };
 }
@@ -357,8 +357,8 @@ function loadFile(ctx, file) {
 }
 
 // TODO rename
-function doSave(notebook, fromInputCell) {
-  const text = JSON.stringify(exportNotebook(notebook, fromInputCell));
+function doSave(ctx, notebook, fromInputCell) {
+  const text = JSON.stringify(exportNotebook(ctx, notebook, fromInputCell));
   const blob = new Blob([text], {type: contentType});
   const link = document.createElement('a');
 
@@ -418,7 +418,7 @@ export function encodeNotebookValue(value) {
 
 Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   componentCmd('save', 'Saves the current notebook to a file', (ctx) => {
-    const link = doSave(ctx.notebook, ctx.input_cell);
+    const link = doSave(ctx, ctx.notebook, ctx.input_cell);
 
     return <a href={link.href}>Download Notebook</a>;
   });
