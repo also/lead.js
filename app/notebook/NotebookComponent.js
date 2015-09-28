@@ -26,7 +26,7 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
 
     const {init} = this.props;
     if (init) {
-      init(notebook);
+      init(notebook.ctx, notebook);
     }
     return {notebook};
   },

@@ -10,7 +10,7 @@ export default replaceOnPropChange(React.createClass({
   displayName: 'SingleCoffeeScriptCellNotebookComponent',
   mixins: [AppAwareMixin],
 
-  initNotebook(nb) {
+  initNotebook(ctx, nb) {
     const {value} = this.props;
     const firstCell = Notebook.add_input_cell(nb);
 

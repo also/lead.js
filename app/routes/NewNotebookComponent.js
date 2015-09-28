@@ -20,7 +20,7 @@ export default React.createClass({
     } else {
       return <NotebookComponent
         context={{app: this.context.app}}
-        init={(nb) => Notebook.focus_cell(Notebook.add_input_cell(nb))}
+        init={(ctx, nb) => Notebook.focus_cell(Notebook.add_input_cell(nb))}
         {...{imports, modules}}/>;
     }
   }
