@@ -238,22 +238,17 @@ function runWithContext(ctx, fn) {
   ctx.app.store.dispatch(actions.updateCell(outputCell.cellId, {component: ctx.component}, true));
 }
 
-function createBareOutputCellAndContext(ctx) {
-  // TODO can we just use ctx?
+export function runWithoutInputCell(ctx, position, fn) {
   const notebook = ctx.app.store.getState().getIn(['notebooksById', ctx.notebookId]);
   const outputCell = createOutputCell(ctx.notebookId);
-  return Context.createScriptExecutionContext([
+  const scriptExecutionContext = Context.createScriptExecutionContext([
     createInputContext(notebook.ctx),
     {outputCell},
     createNotebookRunContext(outputCell)
   ]);
-}
 
-export function runWithoutInputCell(ctx, position, fn) {
-  const runContext = createBareOutputCellAndContext(ctx);
-
-  insertCell(ctx, runContext.outputCell, position);
-  runWithContext(runContext, fn);
+  insertCell(ctx, outputCell, position);
+  runWithContext(scriptExecutionContext, fn);
 }
 
 function createInputContext(ctx) {
