@@ -54,10 +54,14 @@ export function createNotebook(opts) {
 }
 
 function exportNotebook(notebook, currentCell) {
+  const state = notebook.store.getState();
+  const cellsById = state.get('cellsById');
   return {
     lead_js_version: 0,
-    cells: notebook.store.getState().getIn(['notebooksById', notebook.notebookId, 'cells'])
-      .filter((cell) => cell !== currentCell && isInput(cell))
+    cells: state.getIn(['notebooksById', notebook.notebookId, 'cells'])
+      .map((cellId) => cellsById.get(cellId))
+      .toJS()
+      .filter((cell) => cell.cellId !== currentCell.cellId && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
@@ -353,8 +357,8 @@ function loadFile(ctx, file) {
 }
 
 // TODO rename
-function doSave(fromInputCell) {
-  const text = JSON.stringify(exportNotebook(fromInputCell));
+function doSave(notebook, fromInputCell) {
+  const text = JSON.stringify(exportNotebook(notebook, fromInputCell));
   const blob = new Blob([text], {type: contentType});
   const link = document.createElement('a');
 
