@@ -151,7 +151,7 @@ export const ObservableMixin = {
           });
         } catch (e) {
           // TODO what's the right way to handle this?
-          console.error(e);
+          console.error(e.stack);
         }
       } else if (event.hasValue()) {
         try {
@@ -160,7 +160,7 @@ export const ObservableMixin = {
             error: null
           });
         } catch (e) {
-          console.error(e);
+          console.error(e.stack);
         }
       }
     });
