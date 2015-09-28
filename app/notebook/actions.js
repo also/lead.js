@@ -17,8 +17,8 @@ export function insertCell(notebookId, cell, index) {
   return {type: types.INSERT_CELL, notebookId, cell, index};
 }
 
-export function removeCellAtIndex(notebookId, index) {
-  return {type: types.REMOVE_CELL_AT_INDEX, notebookId, index};
+export function removeCell(notebookId, cellId) {
+  return {type: types.REMOVE_CELL, notebookId, cellId};
 }
 
 export function updateCell(cellId, update, incrementNumber) {

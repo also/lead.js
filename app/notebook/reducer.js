@@ -49,12 +49,10 @@ export default function reducer(state=initialState, action) {
     }
     break;
 
-  case actionTypes.REMOVE_CELL_AT_INDEX:
-    let cellId;
-    return state.updateIn(['notebooksById', action.notebookId, 'cells'], (cells) => {
-      cellId = cells.get(action.index);
-      return cells.delete(action.index);
-    }).deleteIn(['cellsById', cellId]);
+  case actionTypes.REMOVE_CELL:
+    return state.updateIn(['notebooksById', action.notebookId, 'cells'],
+      (cells) => cells.filterNot((cellId) => cellId === action.cellId)
+    ).deleteIn(['cellsById', action.cellId]);
 
   default:
     return state;

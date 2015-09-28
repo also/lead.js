@@ -129,9 +129,7 @@ function input_cell_at_offset(cell, offset) {
 }
 
 function remove_cell(cell) {
-  const index = cellIndex(cell);
-
-  cell.notebook.store.dispatch(actions.removeCellAtIndex(cell.notebookId, index));
+  cell.notebook.store.dispatch(actions.removeCell(cell.notebookId, cell.cellId));
 }
 
 function insertCell(cell, position={}) {
