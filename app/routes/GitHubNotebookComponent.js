@@ -12,14 +12,14 @@ export default replaceOnPropChange(React.createClass({
   displayName: 'GitHubNotebookComponent',
   mixins: [AppAwareMixin],
 
-  initNotebook(ctx, nb) {
+  initNotebook(ctx) {
     const file = this.props.params.splat;
 
-    Notebook.runWithoutInputCell(ctx, nb, undefined, (ctx) => {
+    Notebook.runWithoutInputCell(ctx, undefined, (ctx) => {
       GitHub.contextExports.load.fn(ctx, file, {run: true});
       return Context.IGNORE;
     });
-    Notebook.focusCell(Notebook.addInputCell(ctx, nb));
+    Notebook.focusCell(Notebook.addInputCell(ctx));
   },
 
   render() {

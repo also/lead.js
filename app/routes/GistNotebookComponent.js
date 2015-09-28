@@ -12,13 +12,13 @@ export default replaceOnPropChange(React.createClass({
   displayName: 'GistNotebookComponent',
   mixins: [AppAwareMixin],
 
-  initNotebook(ctx, nb) {
+  initNotebook(ctx) {
     const gist = this.props.params.splat;
-    Notebook.runWithoutInputCell(ctx, nb, undefined, (ctx) => {
+    Notebook.runWithoutInputCell(ctx, undefined, (ctx) => {
       GitHub.contextExports.gist.fn(ctx, gist, {run: true});
       return Context.IGNORE;
     });
-    Notebook.focusCell(Notebook.addInputCell(ctx, nb));
+    Notebook.focusCell(Notebook.addInputCell(ctx));
   },
 
   render() {

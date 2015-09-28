@@ -48,27 +48,27 @@ export function createNotebook(opts) {
     notebookId: nextNotebookId++,
     ctx
   });
-  ctx.notebook = notebook;
+  ctx.notebookId = notebook.notebookId;
   return notebook;
 }
 
-function exportNotebook(ctx, notebook, currentCell) {
+function exportNotebook(ctx, currentCellId) {
   const state = ctx.app.store.getState();
   const cellsById = state.get('cellsById');
   return {
     lead_js_version: 0,
-    cells: state.getIn(['notebooksById', notebook.notebookId, 'cells'])
+    cells: state.getIn(['notebooksById', ctx.notebookId, 'cells'])
       .map((cellId) => cellsById.get(cellId))
       .toJS()
-      .filter((cell) => cell.cellId !== currentCell.cellId && isInput(cell))
+      .filter((cell) => cell.cellId !== currentCellId && isInput(cell))
       .map((cell) => ({type: 'input', value: Editor.get_value(cell.editor)}))
   };
 }
 
-function importNotebook(ctx, notebook, cell, imported, options) {
+function importNotebook(ctx, cell, imported, options) {
   const cells = imported.cells.map((importedCell) => {
     if (importedCell.type === 'input') {
-      cell = addInputCell(ctx, notebook, {after: cell});
+      cell = addInputCell(ctx, {after: cell});
       setCellValue(ctx, cell, importedCell.value);
       return cell;
     }
@@ -77,8 +77,6 @@ function importNotebook(ctx, notebook, cell, imported, options) {
   if (options.run) {
     cells.forEach((cell) => run(ctx, cell));
   }
-
-  return notebook;
 }
 
 export function focusCell(cell) {
@@ -89,19 +87,19 @@ export function focusCell(cell) {
   }, 0);
 }
 
-function clearNotebook(ctx, notebook) {
-  ctx.app.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
+function clearNotebook(ctx) {
+  ctx.app.store.dispatch(actions.cellsReplaced(ctx.notebookId, new Immutable.List()));
 
-  focusCell(addInputCell(ctx, notebook));
+  focusCell(addInputCell(ctx));
 }
 
-function cellIndex(ctx, cell) {
-  return ctx.app.store.getState().getIn(['notebooksById', cell.notebookId, 'cells']).indexOf(cell.cellId);
+function cellIndex(ctx, cellId) {
+  return ctx.app.store.getState().getIn(['notebooksById', ctx.notebookId, 'cells']).indexOf(cellId);
 }
 
 function seek(ctx, startCell, direction, predicate=identity) {
-  const {notebookId} = startCell;
-  let index = cellIndex(ctx, startCell) + direction;
+  const {notebookId} = ctx;
+  let index = cellIndex(ctx, startCell.cellId) + direction;
 
   const state = ctx.app.store.getState();
   const cellsById = state.get('cellsById');
@@ -132,7 +130,7 @@ function removeCell(ctx, cell) {
 }
 
 function insertCell(ctx, cell, position={}) {
-  const {notebookId} = cell;
+  const {notebookId} = ctx;
 
   let currentCell, offset;
   if (position.before) {
@@ -146,12 +144,12 @@ function insertCell(ctx, cell, position={}) {
     return;
   }
 
-  const index = cellIndex(ctx, currentCell);
+  const index = cellIndex(ctx, currentCell.cellId);
 
   ctx.app.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
 
-export function addInputCell(ctx, notebook, opts={}) {
+export function addInputCell(ctx, opts={}) {
   let cell;
 
   if (opts.reuse) {
@@ -163,21 +161,21 @@ export function addInputCell(ctx, notebook, opts={}) {
   }
 
   if (!(cell != null && isClean(cell))) {
-    cell = createInputCell(notebook);
+    cell = createInputCell(ctx, ctx.notebookId);
     insertCell(ctx, cell, opts);
   }
 
   return cell;
 }
 
-function createInputCell(notebook) {
+function createInputCell(ctx, notebookId) {
+  const notebook = ctx.app.store.getState().getIn(['notebooksById', notebookId])
   const editor = Editor.create_editor();
   const cellId = `input${cellKey++}`;
   const cell = {
     type: 'input',
     cellId,
-    notebookId: notebook.notebookId,
-    notebook: notebook,
+    notebookId,
     ctx: createInputContext(notebook),
     used: false,
     editor: editor,
@@ -198,19 +196,19 @@ export function setCellValue(ctx, cell, value) {
   Editor.set_value(cell.editor, value);
 }
 
-function createOutputCell(notebook) {
+function createOutputCell(notebookId) {
   const cellId = 'output' + cellKey++;
   return {
     type: 'output',
     cellId,
-    notebookId: notebook.notebookId,
-    notebook
+    notebookId
   };
 }
 
-function runInputCell(ctx, {notebook, cellId}) {
-  const inputCell = ctx.app.store.getState().getIn(['cellsById', cellId])
-  const outputCell = createOutputCell(notebook);
+function runInputCell(ctx, {cellId}) {
+  const state = ctx.app.store.getState();
+  const inputCell = state.getIn(['cellsById', cellId])
+  const outputCell = createOutputCell(ctx.notebookId);
 
   inputCell.used = true;
   if (inputCell.outputCell != null) {
@@ -229,6 +227,7 @@ function runInputCell(ctx, {notebook, cellId}) {
   return outputCell;
 }
 
+// TODO rename: runs in a ctx with an outputCell
 function runWithContext(ctx, fn) {
   const {outputCell, pending} = ctx;
   // pending is a property that has the initial value 0 and tracks the number of pending promises
@@ -242,8 +241,10 @@ function runWithContext(ctx, fn) {
   ctx.app.store.dispatch(actions.updateCell(outputCell.cellId, {component: ctx.component}, true));
 }
 
-function createBareOutputCellAndContext(notebook) {
-  const outputCell = createOutputCell(notebook);
+function createBareOutputCellAndContext(ctx) {
+  // TODO can we just use ctx?
+  const notebook = ctx.app.store.getState().getIn(['notebooksById', ctx.notebookId]);
+  const outputCell = createOutputCell(ctx.notebookId);
   return Context.createScriptExecutionContext([
     createInputContext(notebook),
     {outputCell},
@@ -251,8 +252,8 @@ function createBareOutputCellAndContext(notebook) {
   ]);
 }
 
-export function runWithoutInputCell(ctx, notebook, position, fn) {
-  const runContext = createBareOutputCellAndContext(notebook);
+export function runWithoutInputCell(ctx, position, fn) {
+  const runContext = createBareOutputCellAndContext(ctx);
 
   insertCell(ctx, runContext.outputCell, position);
   runWithContext(runContext, fn);
@@ -263,17 +264,15 @@ function createInputContext(notebook) {
 }
 
 function createNotebookRunContext(cell) {
-  const notebook = cell.notebook;
-
   return {
     set_code(code) {
-      const cell = addInputCell(this, notebook, {after: this.outputCell});
+      const cell = addInputCell(this, {after: this.outputCell});
       setCellValue(this, cell, code);
       focusCell(cell);
     },
 
     run(code) {
-      const cell = addInputCell(this, notebook, {after: this.outputCell});
+      const cell = addInputCell(this, {after: this.outputCell});
       setCellValue(this, cell, code);
       runInputCell(this, cell);
     },
@@ -283,7 +282,7 @@ function createNotebookRunContext(cell) {
     },
 
     exportNotebook() {
-      return exportNotebook(this, notebook, cell);
+      return exportNotebook(this, cell.cellId);
     }
   };
 }
@@ -306,14 +305,14 @@ export function handleFile(ctx, file, options={}) {
     const extension = file.filename.split('.').pop();
 
     if (extension === 'coffee') {
-      const cell = addInputCell(ctx, ctx.notebook, {after: ctx.outputCell});
+      const cell = addInputCell(ctx, {after: ctx.outputCell});
 
       setCellValue(ctx, cell, file.content);
       if (options.run) {
         runInputCell(ctx, cell);
       }
     } else if (extension === 'md') {
-      runWithoutInputCell(ctx, ctx.notebook, {after: ctx.outputCell}, (ctx) => {
+      runWithoutInputCell(ctx, {after: ctx.outputCell}, (ctx) => {
         Context.add_component(ctx, <MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
         return Context.IGNORE;
       });
@@ -329,7 +328,7 @@ export function handleFile(ctx, file, options={}) {
         Context.add_component(ctx, <Builtins.ErrorComponent message={`File ${file.filename} isn't a lead.js notebook`}/>);
       }
 
-      importNotebook(ctx, ctx.notebook, ctx.outputCell, imported, options);
+      importNotebook(ctx, ctx.outputCell, imported, options);
     }
   }
 }
@@ -350,8 +349,8 @@ function loadFile(ctx, file) {
 }
 
 // TODO rename
-function doSave(ctx, notebook, fromInputCell) {
-  const text = JSON.stringify(exportNotebook(ctx, notebook, fromInputCell));
+function doSave(ctx, currentCellId) {
+  const text = JSON.stringify(exportNotebook(ctx, currentCellId));
   const blob = new Blob([text], {type: contentType});
   const link = document.createElement('a');
 
@@ -365,14 +364,14 @@ export function run(ctx, cell, opts={advance: true}) {
   const outputCell = runInputCell(ctx, cell);
 
   if (opts.advance) {
-    const newCell = addInputCell(ctx, cell.notebook, {after: outputCell, reuse: true});
+    const newCell = addInputCell(ctx, {after: outputCell, reuse: true});
 
     return focusCell(newCell);
   }
 }
 
 export function save(ctx, cell) {
-  runWithoutInputCell(ctx, cell.notebook, {before: cell}, (ctx) => {
+  runWithoutInputCell(ctx, {before: cell}, (ctx) => {
     exports.contextExports.save.fn(ctx);
     return Context.IGNORE;
   });
@@ -381,7 +380,7 @@ export function save(ctx, cell) {
 export function contextHelp(ctx, cell, token) {
   const key = Documentation.getKey(cell.ctx, token);
 
-  runWithoutInputCell(ctx, cell.notebook, {before: cell}, (ctx) => {
+  runWithoutInputCell(ctx, {before: cell}, (ctx) => {
     if (key != null) {
       Context.add_component(ctx, Builtins.help_component(ctx, Documentation.keyToString(key)));
     }
@@ -407,7 +406,7 @@ export function encodeNotebookValue(value) {
 
 Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   componentCmd('save', 'Saves the current notebook to a file', (ctx) => {
-    const link = doSave(ctx, ctx.notebook, ctx.inputCell);
+    const link = doSave(ctx, ctx.inputCell.cellId);
 
     return <a href={link.href}>Download Notebook</a>;
   });
@@ -439,6 +438,6 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   });
 
   cmd('clear', 'Clears the notebook', (ctx) => {
-    clearNotebook(ctx, ctx.notebook);
+    clearNotebook(ctx);
   });
 });

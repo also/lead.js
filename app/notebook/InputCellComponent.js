@@ -8,7 +8,7 @@ import ContextAwareMixin from '../context/ContextAwareMixin';
 
 
 function generatePermalink(ctx, cell) {
-  runWithoutInputCell(ctx, cell.notebook, {
+  runWithoutInputCell(ctx, {
     after: cell.outputCell || cell
   }, (ctx) => {
     Builtins.contextExports.permalink.fn(ctx);
