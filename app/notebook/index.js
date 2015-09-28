@@ -90,8 +90,8 @@ export function focus_cell(cell) {
   }, 0);
 }
 
-function clearNotebook(notebook) {
-  notebook.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
+function clearNotebook(ctx, notebook) {
+  ctx.app.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
 
   focus_cell(add_input_cell(notebook));
 }
@@ -450,6 +450,6 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   });
 
   cmd('clear', 'Clears the notebook', (ctx) => {
-    clearNotebook(ctx.notebook);
+    clearNotebook(ctx, ctx.notebook);
   });
 });
