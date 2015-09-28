@@ -43,13 +43,9 @@ const Notebook = new Immutable.Record({
 });
 
 export function createNotebook(opts) {
-  const ctx = Object.assign({}, opts.context, Context.create_base_context(opts));
-  const notebook = new Notebook({
-    notebookId: nextNotebookId++,
-    ctx
-  });
-  ctx.notebookId = notebook.notebookId;
-  return notebook;
+  const notebookId = nextNotebookId++;
+  const ctx = Object.assign({}, opts.context, Context.create_base_context(opts), {notebookId});
+  return new Notebook({notebookId, ctx});
 }
 
 function exportNotebook(ctx, currentCellId) {
@@ -161,22 +157,23 @@ export function addInputCell(ctx, opts={}) {
   }
 
   if (!(cell != null && isClean(cell))) {
-    cell = createInputCell(ctx, ctx.notebookId);
+    cell = createInputCell(ctx);
     insertCell(ctx, cell, opts);
   }
 
   return cell;
 }
 
-function createInputCell(ctx, notebookId) {
-  const notebook = ctx.app.store.getState().getIn(['notebooksById', notebookId])
+function createInputCell(ctx) {
+  const {notebookId} = ctx;
+  const notebook = ctx.app.store.getState().getIn(['notebooksById', notebookId]);
   const editor = Editor.create_editor();
   const cellId = `input${cellKey++}`;
   const cell = {
     type: 'input',
     cellId,
     notebookId,
-    ctx: createInputContext(notebook),
+    ctx: createInputContext(notebook.ctx),
     used: false,
     editor: editor,
     editorChanges: Editor.as_event_stream(editor, 'change')
@@ -246,7 +243,7 @@ function createBareOutputCellAndContext(ctx) {
   const notebook = ctx.app.store.getState().getIn(['notebooksById', ctx.notebookId]);
   const outputCell = createOutputCell(ctx.notebookId);
   return Context.createScriptExecutionContext([
-    createInputContext(notebook),
+    createInputContext(notebook.ctx),
     {outputCell},
     createNotebookRunContext(outputCell)
   ]);
@@ -259,8 +256,8 @@ export function runWithoutInputCell(ctx, position, fn) {
   runWithContext(runContext, fn);
 }
 
-function createInputContext(notebook) {
-  return Context.createScriptStaticContext(notebook.ctx);
+function createInputContext(ctx) {
+  return Context.createScriptStaticContext(ctx);
 }
 
 function createNotebookRunContext(cell) {
