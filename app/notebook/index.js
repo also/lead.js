@@ -257,13 +257,13 @@ function createInputContext(ctx) {
 
 function createNotebookRunContext(cell) {
   return {
-    set_code(code) {
+    addScript(code) {
       const cell = addInputCell(this, {after: this.outputCell});
       setCellValue(this, cell, code);
       focusCell(cell);
     },
 
-    run(code) {
+    runScript(code) {
       const cell = addInputCell(this, {after: this.outputCell});
       setCellValue(this, cell, code);
       runInputCell(this, cell);

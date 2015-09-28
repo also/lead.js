@@ -16,7 +16,7 @@ export default React.createClass({
     if (leafClicked) {
       leafClicked(path);
     } else {
-      this.ctx().run(`q(${JSON.stringify(path)})`);
+      this.ctx().runScript(`q(${JSON.stringify(path)})`);
     }
   },
 

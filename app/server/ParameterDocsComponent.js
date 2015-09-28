@@ -25,7 +25,7 @@ export default React.createClass({
       e.preventDefault();
       const href = a.getAttribute('href');
       if (href[0] === '#') {
-        ctx.run(`help 'server.parameters.${decodeURI(href.substr(1))}'`);
+        ctx.runScript(`help 'server.parameters.${decodeURI(href.substr(1))}'`);
       }
     });
   }

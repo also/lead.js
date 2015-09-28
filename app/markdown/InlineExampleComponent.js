@@ -38,6 +38,6 @@ export default React.createClass({
   },
 
   onClick() {
-    return this.ctx().run(this.props.value);
+    return this.ctx().runScript(this.props.value);
   }
 });

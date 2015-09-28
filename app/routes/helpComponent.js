@@ -10,7 +10,7 @@ import {encodeNotebookValue} from '../notebook';
 export default React.createClass({
   mixins: [Navigation, AppAwareMixin],
 
-  run(value) {
+  runScript(value) {
     return this.transitionTo('raw_notebook', {
       splat: encodeNotebookValue(value)
     });
@@ -29,7 +29,7 @@ export default React.createClass({
       <div className='help output'>
         <TopLevelContextComponent {...{imports, modules}} context={{
           app: this.context.app,
-          run: this.run,
+          runScript: this.runScript,
           docsNavigate: this.navigate
         }}>
           <HelpPageComponent doc_key={this.props.params.docKey}/>

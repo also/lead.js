@@ -56,7 +56,7 @@ export function navigate(ctx, key) {
   if (ctx.docsNavigate != null) {
     return ctx.docsNavigate(key);
   } else {
-    return ctx.run("help '" + key + "'");
+    return ctx.runScript("help '" + key + "'");
   }
 }
 

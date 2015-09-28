@@ -47,9 +47,9 @@ export const ExampleComponent = React.createClass({
 
   onClick() {
     if (this.props.run) {
-      return this.ctx().run(this.props.value);
+      return this.ctx().runScript(this.props.value);
     } else {
-      return this.ctx().set_code(this.props.value);
+      return this.ctx().addScript(this.props.value);
     }
   }
 });
