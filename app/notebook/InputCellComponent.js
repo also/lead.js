@@ -11,7 +11,7 @@ function generatePermalink(ctx, cell) {
   runWithoutInputCell(ctx, {
     after: cell.outputCell || cell
   }, (ctx) => {
-    Builtins.contextExports.permalink.fn(ctx);
+    Builtins.scriptingExports.permalink.fn(ctx);
     return Context.IGNORE;
   });
 }

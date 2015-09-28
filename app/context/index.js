@@ -68,7 +68,7 @@ const collectScriptingExports = function (context) {
       throw new Error('Module ' + name + ' is invalid');
     }
 
-    return [name, Object.assign(new LeadNamespace(), module.contextExports)];
+    return [name, Object.assign(new LeadNamespace(), module.scriptingExports)];
   }));
 };
 

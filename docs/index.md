@@ -46,4 +46,4 @@ The `settings` object returned by `modules.create` will use the `github` prefix 
 A module can provide functionality through an *extension point*. An extension point is an attribute of the module that will be used by other modules. A context will look at all loaded modules and collect the attributes.
 
 Notable extension points include
- * `contextExports`
+ * `scriptingExports`

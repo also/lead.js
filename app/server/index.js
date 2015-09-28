@@ -398,7 +398,7 @@ export function url(ctx, path, params) {
   return uri.toString();
 }
 
-Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, contextExports}) => {
+Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scriptingExports}) => {
   function initDocs() {
     _.sortBy(functionNames, _.identity).forEach((n) => {
       let value;
@@ -495,7 +495,7 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
   // });
 
   componentFn('browser', 'Browse metrics using a wildcard query', (ctx, query) => {
-    const finder = Context.unwrapValue(contextExports.find.fn(ctx, query));
+    const finder = Context.unwrapValue(scriptingExports.find.fn(ctx, query));
 
     finder.clicks.onValue((node) => {
       if (node.is_leaf) {
@@ -571,13 +571,13 @@ Modules.export(exports, 'server', ({fn, componentFn, contextExport, doc, context
             return Q.reject('failed to load functions from lead server');
           }).then((functions) => {
             functionNames = Object.keys(functions).filter((f) => f.indexOf('-') === -1);
-            contextExport(dsl.define_functions({}, functionNames));
+            scriptingExport(dsl.define_functions({}, functionNames));
             initDocs();
           });
         }
       } else {
         functionNames = GraphiteFunctionNames;
-        contextExport(dsl.define_functions({}, functionNames));
+        scriptingExport(dsl.define_functions({}, functionNames));
         serverOptionNames = Object.keys(docs.parameter_docs);
         serverOptionNames.push('start', 'end');
         return initDocs();

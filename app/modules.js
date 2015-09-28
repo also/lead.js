@@ -6,7 +6,7 @@ let Context = null;
 
 function _export(exports, module_name, definition_fn) {
   const settings = Settings.with_prefix(module_name);
-  const contextExports = {};
+  const scriptingExports = {};
   const docs = [];
 
   docs.push({
@@ -33,7 +33,7 @@ function _export(exports, module_name, definition_fn) {
   }
 
   const fn = optDocFn((name, f, cmd_f) => {
-    contextExports[name] = {
+    scriptingExports[name] = {
       module_name,
       fn: f,
       cmd_fn: cmd_f,
@@ -61,12 +61,12 @@ function _export(exports, module_name, definition_fn) {
     return cmd(name, wrapped);
   });
 
-  function contextExport(...args) {
+  function scriptingExport(...args) {
     if (args.length === 1) {
-      return Object.assign(contextExports, arguments[0]);
+      return Object.assign(scriptingExports, arguments[0]);
     } else {
       const [k, v] = args;
-      contextExports[k] = v;
+      scriptingExports[k] = v;
     }
   }
 
@@ -76,13 +76,13 @@ function _export(exports, module_name, definition_fn) {
     fn,
     componentCmd,
     componentFn,
-    contextExport,
+    scriptingExport,
     settings,
-    contextExports,
+    scriptingExports,
     docs
   };
 
-  return Object.assign(exports, {contextExports, docs}, definition_fn(helpers));
+  return Object.assign(exports, {scriptingExports, docs}, definition_fn(helpers));
 }
 
 export {_export as export};

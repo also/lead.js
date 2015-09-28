@@ -17,12 +17,12 @@ const requireables = {
   react: React
 };
 
-modules.export(exports, 'compat', ({fn, contextExport}) => {
+modules.export(exports, 'compat', ({fn, scriptingExport}) => {
   fn('require', (ctx, moduleName) => {
     return Context.value(requireables[moduleName] || ctx.modules[moduleName]);
   });
 
-  return contextExport({
+  return scriptingExport({
     moment,
     CodeMirror,
     _,

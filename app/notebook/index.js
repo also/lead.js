@@ -364,7 +364,7 @@ export function run(ctx, cell, opts={advance: true}) {
 
 export function save(ctx, cell) {
   runWithoutInputCell(ctx, {before: cell}, (ctx) => {
-    exports.contextExports.save.fn(ctx);
+    exports.scriptingExports.save.fn(ctx);
     return Context.IGNORE;
   });
 }
