@@ -31,17 +31,17 @@ const commands = {
     const cur = cm.getCursor();
     const token = cm.getTokenAt(cur);
 
-    return Notebook.context_help(cm.ctx, cm.lead_cell, token.string);
+    return Notebook.contextHelp(cm.ctx, cm.lead_cell, token.string);
   }),
 
   next_cell: cmd('Moves the cursor to the next cell', (cm) => {
-    if (!Notebook.move_focus(cm.ctx, cm.lead_cell, 1)) {
+    if (!Notebook.moveFocus(cm.ctx, cm.lead_cell, 1)) {
       return CodeMirror.Pass;
     }
   }),
 
   previous_cell: cmd('Moves the cursor to the previous cell', (cm) => {
-    if (!Notebook.move_focus(cm.ctx, cm.lead_cell, -1)) {
+    if (!Notebook.moveFocus(cm.ctx, cm.lead_cell, -1)) {
       return CodeMirror.Pass;
     }
   }),

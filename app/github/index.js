@@ -184,7 +184,7 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
         return Q.reject(response.statusText);
       });
     }).then((file) => {
-      Notebook.handle_file(ctx, file, options);
+      Notebook.handleFile(ctx, file, options);
     });
 
     return (
@@ -211,7 +211,7 @@ Modules.export(exports, 'github', ({componentFn, componentCmd, settings}) => {
     const promise = gistPromise.then((response) => {
       for (const name in response.files) {
         const file = response.files[name];
-        Notebook.handle_file(ctx, file, options);
+        Notebook.handleFile(ctx, file, options);
       }
     });
 

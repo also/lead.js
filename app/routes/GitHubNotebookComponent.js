@@ -15,11 +15,11 @@ export default replaceOnPropChange(React.createClass({
   initNotebook(ctx, nb) {
     const file = this.props.params.splat;
 
-    Notebook.run_without_input_cell(ctx, nb, undefined, (ctx) => {
+    Notebook.runWithoutInputCell(ctx, nb, undefined, (ctx) => {
       GitHub.contextExports.load.fn(ctx, file, {run: true});
       return Context.IGNORE;
     });
-    Notebook.focus_cell(Notebook.add_input_cell(ctx, nb));
+    Notebook.focusCell(Notebook.addInputCell(ctx, nb));
   },
 
   render() {

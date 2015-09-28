@@ -26,20 +26,20 @@ export default connect(mapStateToProps)(React.createClass({
     cells.forEach((cell) => {
       if (cell.type === 'input') {
         props = {
-          input_cell: cell,
+          inputCell: cell,
           key: cell.key,
           useMinHeight: useMinHeight
         };
         ios.push(props);
       } else {
-        if (props == null || props.input_cell.output_cell && props.input_cell.output_cell.key !== cell.key) {
+        if (props == null || props.inputCell.outputCell && props.inputCell.outputCell.key !== cell.key) {
           ios.push({
-            output_cell: cell,
+            outputCell: cell,
             key: cell.key,
             useMinHeight: useMinHeight
           });
         } else {
-          props.output_cell = cell;
+          props.outputCell = cell;
         }
         props = null;
       }

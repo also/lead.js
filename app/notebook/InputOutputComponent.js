@@ -11,25 +11,25 @@ export default React.createClass({
   },
 
   render() {
-    const {input_cell, output_cell, useMinHeight} = this.props;
+    const {inputCell, outputCell, useMinHeight} = this.props;
 
     const minHeight = useMinHeight ? this.state.outputHeight : 0;
 
     let input, output;
-    if (input_cell) {
-      input = React.createElement(input_cell.component, {
-        cell: input_cell,
-        key: input_cell.cellId,
+    if (inputCell) {
+      input = React.createElement(inputCell.component, {
+        cell: inputCell,
+        key: inputCell.cellId,
         minHeight: minHeight
       });
     } else {
       input = <div className='placeholder cell'/>;
     }
 
-    if (output_cell) {
+    if (outputCell) {
       output = <OutputCellComponent
-        cell={output_cell}
-        key={output_cell.cellId}
+        cell={outputCell}
+        key={outputCell.cellId}
         ref='output'/>
     } else {
       output = <div className='placeholder cell'/>;

@@ -12,9 +12,9 @@ export default replaceOnPropChange(React.createClass({
 
   initNotebook(ctx, nb) {
     const {value} = this.props;
-    const firstCell = Notebook.add_input_cell(ctx, nb);
+    const firstCell = Notebook.addInputCell(ctx, nb);
 
-    Notebook.set_cell_value(ctx, firstCell, value);
+    Notebook.setCellValue(ctx, firstCell, value);
     Notebook.run(ctx, firstCell);
   },
 

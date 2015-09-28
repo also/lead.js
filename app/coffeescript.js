@@ -50,7 +50,7 @@ export function recompile(error_marks, editor) {
 // gets the function for a cell
 // TODO rename
 export function get_fn(run_context) {
-  return create_fn(Editor.get_value(run_context.input_cell.editor));
+  return create_fn(Editor.get_value(run_context.inputCell.editor));
 }
 
 let fnNumber = 1;

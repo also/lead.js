@@ -3,13 +3,13 @@ import React from 'react/addons';
 import * as Editor from '../editor';
 import * as Builtins from '../builtins';
 import * as Context from '../context';
-import {run_without_input_cell} from '../notebook';
+import {runWithoutInputCell} from '../notebook';
 import ContextAwareMixin from '../context/ContextAwareMixin';
 
 
 function generatePermalink(ctx, cell) {
-  run_without_input_cell(ctx, cell.notebook, {
-    after: cell.output_cell || cell
+  runWithoutInputCell(ctx, cell.notebook, {
+    after: cell.outputCell || cell
   }, (ctx) => {
     Builtins.contextExports.permalink.fn(ctx);
     return Context.IGNORE;

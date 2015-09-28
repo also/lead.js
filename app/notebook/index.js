@@ -68,8 +68,8 @@ function exportNotebook(ctx, notebook, currentCell) {
 function importNotebook(ctx, notebook, cell, imported, options) {
   const cells = imported.cells.map((importedCell) => {
     if (importedCell.type === 'input') {
-      cell = add_input_cell(ctx, notebook, {after: cell});
-      set_cell_value(ctx, cell, importedCell.value);
+      cell = addInputCell(ctx, notebook, {after: cell});
+      setCellValue(ctx, cell, importedCell.value);
       return cell;
     }
   });
@@ -81,7 +81,7 @@ function importNotebook(ctx, notebook, cell, imported, options) {
   return notebook;
 }
 
-export function focus_cell(cell) {
+export function focusCell(cell) {
   // hack around not understanding how this plays with react
   // https://github.com/facebook/react/issues/1791
   setTimeout(function () {
@@ -92,7 +92,7 @@ export function focus_cell(cell) {
 function clearNotebook(ctx, notebook) {
   ctx.app.store.dispatch(actions.cellsReplaced(notebook.notebookId, new Immutable.List()));
 
-  focus_cell(add_input_cell(ctx, notebook));
+  focusCell(addInputCell(ctx, notebook));
 }
 
 function cellIndex(ctx, cell) {
@@ -151,7 +151,7 @@ function insertCell(ctx, cell, position={}) {
   ctx.app.store.dispatch(actions.insertCell(notebookId, cell, index + offset));
 }
 
-export function add_input_cell(ctx, notebook, opts={}) {
+export function addInputCell(ctx, notebook, opts={}) {
   let cell;
 
   if (opts.reuse) {
@@ -181,7 +181,7 @@ function createInputCell(notebook) {
     ctx: createInputContext(notebook),
     used: false,
     editor: editor,
-    editor_changes: Editor.as_event_stream(editor, 'change')
+    editorChanges: Editor.as_event_stream(editor, 'change')
   };
 
   editor.lead_cell = cell;
@@ -190,11 +190,11 @@ function createInputCell(notebook) {
 
   // scan changes for the side effect in recompile
   // we have to subscribe so that the events are sent
-  cell.editor_changes.debounce(200).scan([], CoffeeScriptCell.recompile).onValue(function () {});
+  cell.editorChanges.debounce(200).scan([], CoffeeScriptCell.recompile).onValue(function () {});
   return cell;
 }
 
-export function set_cell_value(ctx, cell, value) {
+export function setCellValue(ctx, cell, value) {
   Editor.set_value(cell.editor, value);
 }
 
@@ -213,48 +213,48 @@ function runInputCell(ctx, {notebook, cellId}) {
   const outputCell = createOutputCell(notebook);
 
   inputCell.used = true;
-  if (inputCell.output_cell != null) {
-    removeCell(ctx, inputCell.output_cell);
+  if (inputCell.outputCell != null) {
+    removeCell(ctx, inputCell.outputCell);
   }
   insertCell(ctx, outputCell, {after: inputCell});
-  ctx.app.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
-  const run_context = Context.createScriptExecutionContext([
+  ctx.app.store.dispatch(actions.updateCell(cellId, {outputCell}, true));
+  const scriptExecutionContext = Context.createScriptExecutionContext([
     inputCell.ctx,
-    {input_cell: inputCell, output_cell: outputCell},
+    {inputCell, outputCell},
     createNotebookRunContext(inputCell)
   ]);
-  const fn = CoffeeScriptCell.get_fn(run_context);
+  const fn = CoffeeScriptCell.get_fn(scriptExecutionContext);
 
-  runWithContext(run_context, fn);
+  runWithContext(scriptExecutionContext, fn);
   return outputCell;
 }
 
 function runWithContext(ctx, fn) {
-  const {output_cell, pending} = ctx;
+  const {outputCell, pending} = ctx;
   // pending is a property that has the initial value 0 and tracks the number of pending promises
   const hasPending = pending.map((n) => n > 0);
   // a cell is "done enough" if there were no async tasks,
   // or when the first async task completes
   const noLongerPending = ctx.changes.skipWhile(hasPending);
 
-  output_cell.done = noLongerPending.take(1).map(() => output_cell);
+  outputCell.done = noLongerPending.take(1).map(() => outputCell);
   Context.run_in_context(ctx, fn);
-  ctx.app.store.dispatch(actions.updateCell(output_cell.cellId, {component: ctx.component}, true));
+  ctx.app.store.dispatch(actions.updateCell(outputCell.cellId, {component: ctx.component}, true));
 }
 
 function createBareOutputCellAndContext(notebook) {
-  const output_cell = createOutputCell(notebook);
+  const outputCell = createOutputCell(notebook);
   return Context.createScriptExecutionContext([
     createInputContext(notebook),
-    {output_cell},
-    createNotebookRunContext(output_cell)
+    {outputCell},
+    createNotebookRunContext(outputCell)
   ]);
 }
 
-export function run_without_input_cell(ctx, notebook, position, fn) {
+export function runWithoutInputCell(ctx, notebook, position, fn) {
   const runContext = createBareOutputCellAndContext(notebook);
 
-  insertCell(ctx, runContext.output_cell, position);
+  insertCell(ctx, runContext.outputCell, position);
   runWithContext(runContext, fn);
 }
 
@@ -267,14 +267,14 @@ function createNotebookRunContext(cell) {
 
   return {
     set_code(code) {
-      const cell = add_input_cell(this, notebook, {after: this.output_cell});
-      set_cell_value(this, cell, code);
-      focus_cell(cell);
+      const cell = addInputCell(this, notebook, {after: this.outputCell});
+      setCellValue(this, cell, code);
+      focusCell(cell);
     },
 
     run(code) {
-      const cell = add_input_cell(this, notebook, {after: this.output_cell});
-      set_cell_value(this, cell, code);
+      const cell = addInputCell(this, notebook, {after: this.outputCell});
+      setCellValue(this, cell, code);
       runInputCell(this, cell);
     },
 
@@ -300,20 +300,20 @@ function openFilePicker(run_context) {
   inputElt.dispatchEvent(new Event('click'));
 }
 
-export function handle_file(ctx, file, options={}) {
+export function handleFile(ctx, file, options={}) {
   let imported;
   if (file.type.indexOf('image') < 0) {
     const extension = file.filename.split('.').pop();
 
     if (extension === 'coffee') {
-      const cell = add_input_cell(ctx, ctx.notebook, {after: ctx.output_cell});
+      const cell = addInputCell(ctx, ctx.notebook, {after: ctx.outputCell});
 
-      set_cell_value(ctx, cell, file.content);
+      setCellValue(ctx, cell, file.content);
       if (options.run) {
         runInputCell(ctx, cell);
       }
     } else if (extension === 'md') {
-      run_without_input_cell(ctx, ctx.notebook, {after: ctx.output_cell}, (ctx) => {
+      runWithoutInputCell(ctx, ctx.notebook, {after: ctx.outputCell}, (ctx) => {
         Context.add_component(ctx, <MarkdownComponent value={file.content} opts={{base_href: file.base_href}}/>);
         return Context.IGNORE;
       });
@@ -329,7 +329,7 @@ export function handle_file(ctx, file, options={}) {
         Context.add_component(ctx, <Builtins.ErrorComponent message={`File ${file.filename} isn't a lead.js notebook`}/>);
       }
 
-      importNotebook(ctx, ctx.notebook, ctx.output_cell, imported, options);
+      importNotebook(ctx, ctx.notebook, ctx.outputCell, imported, options);
     }
   }
 }
@@ -339,7 +339,7 @@ function loadFile(ctx, file) {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-      handle_file(ctx, {
+      handleFile(ctx, {
         filename: file.name,
         content: e.target.result,
         type: file.type
@@ -362,26 +362,26 @@ function doSave(ctx, notebook, fromInputCell) {
 }
 
 export function run(ctx, cell, opts={advance: true}) {
-  const output_cell = runInputCell(ctx, cell);
+  const outputCell = runInputCell(ctx, cell);
 
   if (opts.advance) {
-    const new_cell = add_input_cell(ctx, cell.notebook, {after: output_cell, reuse: true});
+    const newCell = addInputCell(ctx, cell.notebook, {after: outputCell, reuse: true});
 
-    return focus_cell(new_cell);
+    return focusCell(newCell);
   }
 }
 
 export function save(ctx, cell) {
-  run_without_input_cell(ctx, cell.notebook, {before: cell}, (ctx) => {
+  runWithoutInputCell(ctx, cell.notebook, {before: cell}, (ctx) => {
     exports.contextExports.save.fn(ctx);
     return Context.IGNORE;
   });
 }
 
-export function context_help(ctx, cell, token) {
+export function contextHelp(ctx, cell, token) {
   const key = Documentation.getKey(cell.ctx, token);
 
-  run_without_input_cell(ctx, cell.notebook, {before: cell}, (ctx) => {
+  runWithoutInputCell(ctx, cell.notebook, {before: cell}, (ctx) => {
     if (key != null) {
       Context.add_component(ctx, Builtins.help_component(ctx, Documentation.keyToString(key)));
     }
@@ -390,19 +390,15 @@ export function context_help(ctx, cell, token) {
   });
 }
 
-export function move_focus(ctx, cell, offset) {
-  const new_cell = inputCellAtOffset(ctx, cell, offset);
+export function moveFocus(ctx, cell, offset) {
+  const offsetCell = inputCellAtOffset(ctx, cell, offset);
 
-  if (new_cell != null) {
-    focus_cell(new_cell);
+  if (offsetCell != null) {
+    focusCell(offsetCell);
     return true;
   } else {
     return false;
   }
-}
-
-export function cell_value(cell) {
-  return cell.editor.getValue();
 }
 
 export function encodeNotebookValue(value) {
@@ -411,7 +407,7 @@ export function encodeNotebookValue(value) {
 
 Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
   componentCmd('save', 'Saves the current notebook to a file', (ctx) => {
-    const link = doSave(ctx, ctx.notebook, ctx.input_cell);
+    const link = doSave(ctx, ctx.notebook, ctx.inputCell);
 
     return <a href={link.href}>Download Notebook</a>;
   });
@@ -425,7 +421,7 @@ Modules.export(exports, 'notebook', ({componentFn, cmd, componentCmd}) => {
     .fail(({statusText}) => {
       throw statusText;
     }).then((xhr) => {
-      handle_file(ctx, {
+      handleFile(ctx, {
         filename: new URI(url).filename(),
         type: xhr.getResponseHeader('content-type'),
         content: xhr.responseText
