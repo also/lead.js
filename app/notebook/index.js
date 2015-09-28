@@ -40,7 +40,6 @@ const Notebook = new Immutable.Record({
   inputNumber: 0,
   outputNumber: 0,
   ctx: null,
-  baseCtx: null,
   store: null // lol
 });
 
@@ -48,8 +47,7 @@ export function createNotebook(opts) {
   return new Notebook({
     notebookId: nextNotebookId++,
     store: opts.store,
-    ctx: opts.context,
-    baseCtx: Context.create_base_context(opts)
+    ctx: Object.assign({}, opts.context, Context.create_base_context(opts))
   });
 }
 
@@ -220,7 +218,6 @@ function runInputCell({notebook, cellId}) {
   insertCell(outputCell, {after: inputCell});
   notebook.store.dispatch(actions.updateCell(cellId, {output_cell: outputCell}, true));
   const run_context = Context.createScriptExecutionContext([
-    inputCell.notebook.ctx,
     inputCell.ctx,
     {input_cell: inputCell, output_cell: outputCell},
     createNotebookRunContext(inputCell)
@@ -247,7 +244,6 @@ function runWithContext(ctx, fn) {
 function createBareOutputCellAndContext(notebook) {
   const output_cell = createOutputCell(notebook);
   return Context.createScriptExecutionContext([
-    notebook.ctx,
     createInputContext(notebook),
     {output_cell},
     createNotebookRunContext(output_cell)
@@ -262,7 +258,7 @@ export function run_without_input_cell(notebook, position, fn) {
 }
 
 function createInputContext(notebook) {
-  return Context.createScriptStaticContext(notebook.baseCtx);
+  return Context.createScriptStaticContext(notebook.ctx);
 }
 
 function createNotebookRunContext(cell) {
