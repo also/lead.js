@@ -1,6 +1,6 @@
 app/graphite_parser.js
 app/graphite
-app/contextEval.js
+app/scripting/eval.js
 webpack.config.js
 lib
 build

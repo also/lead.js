@@ -10,7 +10,7 @@ import * as Builtins from '../builtins';
 import * as Modules from '../modules';
 
 import {addComponent, removeAllComponents, componentList} from '../componentList';
-import {scopedEval} from '../contextEval';
+import {scopedEval} from '../scripting/eval';
 import displayObject from '../displayObject';
 
 export {scopedEval as scoped_eval};

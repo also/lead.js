@@ -34,8 +34,8 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.coffee$/, loader: "coffee-loader"},
-      {test: /\.js?$/, exclude: [/node_modules/, /contextEval/, __dirname + '/lib/coffee-script.js'], loader: 'babel', query: {optional: ['runtime', 'es7.objectRestSpread']}},
-      {test: /contextEval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime']}},
+      {test: /\.js?$/, exclude: [/node_modules/, /scripting\/eval/, __dirname + '/lib/coffee-script.js'], loader: 'babel', query: {optional: ['runtime', 'es7.objectRestSpread']}},
+      {test: /scripting\/eval/, loader: 'babel', query: {blacklist: ['strict'], optional: ['runtime']}},
 
       // shims
       {test: /baconjs/, loader: 'imports?jQuery=jquery'},
