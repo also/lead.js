@@ -7,7 +7,6 @@ import * as CoffeeScriptCell from '../scripting/coffeescript';
 import * as Context from '../context';
 import TopLevelContextComponent from '../context/TopLevelContextComponent';
 import ContextOutputComponent from '../context/ContextOutputComponent';
-import * as Settings from '../settings';
 import {ToggleComponent} from '../components';
 import {ObjectComponent} from '../builtins';
 import EditorComponent from '../editor/EditorComponent';
@@ -62,6 +61,7 @@ export default React.createClass({
   mixins: [AppAwareMixin],
 
   saveSettings(value) {
+    const {app} = this.context;
     const fn = CoffeeScriptCell.create_fn(value != null ? value : this.refs.editor.get_value());
     const ctx = this.refs.ctx.get_ctx();
 
@@ -70,20 +70,22 @@ export default React.createClass({
     const userSettings = fn(ctx);
 
     if (userSettings !== Context.IGNORE && _.isObject(userSettings)) {
-      Settings.user_settings.set(userSettings);
+      app.settings.user.set(userSettings);
     }
   },
 
   render() {
-    const initialValue = JSON.stringify(Settings.user_settings.get_without_overrides(), null, '  ');
-    const {imports, modules} = this.context.app;
-    const context = {app: this.context.app};
+    const {app} = this.context;
+    const {settings} = app;
+    const initialValue = JSON.stringify(settings.user.get_without_overrides(), null, '  ');
+    const {imports, modules} = app;
+    const context = {app};
 
     const keyBindings = buildKeyMap();
 
     return <div className='settings output'>
       <ToggleComponent title='Default Settings'>
-        <ObjectComponent object={Settings.get_without_overrides()}/>
+        <ObjectComponent object={settings.global.get_without_overrides()}/>
       </ToggleComponent>
       <ToggleComponent title='Key Map'>
         <KeyBindingComponent keys={keyBindings} commands={CodeMirror.commands}/>

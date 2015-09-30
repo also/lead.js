@@ -89,7 +89,15 @@ export function initApp(target, options={}) {
   const store = createStore(combineReducers([reducer, notebookReducer]));
 
   store.dispatch(actions.coreInit('pending'));
-  const initializationPromise = Modules.init_modules({settings: {user: Settings.user_settings, global: Settings.global_settings}}, modules);
+
+  const ctx = {
+    settings: {user: Settings.user_settings, global: Settings.global_settings},
+    imports,
+    modules,
+    store
+  };
+
+  const initializationPromise = Modules.init_modules(ctx, modules);
   initializationPromise.then(() => {
     store.dispatch(actions.coreInit('finished'));
   });
@@ -107,12 +115,9 @@ export function initApp(target, options={}) {
     store.dispatch(actions.settingsChanged(Settings.getRaw()));
   });
 
-
-  const app = {imports, modules, store};
-
   React.render(
     <Provider store={store}>
-      {() => <AppRoutes {...{bodyWrapper, app, extraRoutes}}/>}
+      {() => <AppRoutes {...{bodyWrapper, app: ctx, extraRoutes}}/>}
     </Provider>
   , target);
 }
