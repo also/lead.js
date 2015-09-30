@@ -12,8 +12,6 @@ const registerPromise = function (ctx, promise) {
 };
 
 export default React.createClass({
-  displayName: 'AsyncComponent',
-
   mixins: [ContextAwareMixin],
 
   componentWillMount() {
