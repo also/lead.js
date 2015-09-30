@@ -13,6 +13,8 @@ import CrosshairComponent from './CrosshairComponent';
 import BrushComponent from './BrushComponent';
 
 
+let clipperId = 0;
+
 export default React.createClass({
   propTypes: {
     params: React.PropTypes.object,
@@ -20,6 +22,7 @@ export default React.createClass({
   },
 
   getInitialState() {
+    this.clipperId = `clipper${clipperId++}`;
     this.mousePosition = new Bacon.Bus();
     this.targetState = new Bacon.Model();
 
@@ -152,7 +155,7 @@ export default React.createClass({
   getChildContext() {
     const context = _.pick(this.state, Object.keys(this.constructor.childContextTypes));
     context.targetState = this.targetState;
-    context.clipPath = 'url(#clipper)';
+    context.clipPath = `url(#${this.clipperId})`;
     return context;
   },
 
@@ -228,7 +231,7 @@ export default React.createClass({
 
       // react doesn't support clipPath :(
       const clipper = `
-      <clipPath id='clipper'>
+      <clipPath id='${this.clipperId}'>
           <rect width="${sizes.width}" height="${sizes.height}"/>
       </clipPath>`;
 
