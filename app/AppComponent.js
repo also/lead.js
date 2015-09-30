@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Router from 'react-router';
 import {connect} from 'react-redux';
 
-import ContextRegisteringMixin from './context/ContextRegisteringMixin';
+import AppAwareMixin from './AppAwareMixin';
 import {removeModal} from './actions';
 
 
@@ -13,18 +13,7 @@ export default connect(
   null,
   {pure: false}
 )(React.createClass({
-  displayName: 'AppComponent',
-  childContextTypes: {
-    app: React.PropTypes.object
-  },
-
-  mixins: [Router.Navigation, ContextRegisteringMixin],
-
-  getChildContext() {
-    return {
-      app: this.props.ctx
-    };
-  },
+  mixins: [Router.Navigation, AppAwareMixin],
 
   toggleFullscreen() {
     if (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement) {
@@ -41,7 +30,7 @@ export default connect(
 
   render() {
     const {bodyWrapper, coreInit, modals} = this.props;
-    this.props.ctx.appComponent = this;
+    this.context.app.appComponent = this;
     const modal = modals.last();
 
     let body = coreInit.get('state') === 'pending' ? null : <Router.RouteHandler/>;

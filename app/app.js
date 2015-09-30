@@ -1,10 +1,7 @@
 /* globals __webpack_public_path__: true */
 /* exported __webpack_public_path__ */
 
-require('object.assign').shim();
-
 import * as React from 'react';
-import {Provider} from 'react-redux';
 import URI from 'urijs';
 import Router from 'react-router';
 import {createStore} from 'redux';
@@ -15,6 +12,7 @@ import {combineReducers} from './store';
 import * as Settings from './settings';
 import * as Modules from './modules';
 import * as Modal from './modal';
+import RootComponent from './RootComponent';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
 import {encodeNotebookValue} from './notebook';
@@ -59,6 +57,42 @@ function bindUserSettingsToLocalStorage(key) {
   });
 }
 
+export function createLeadContext({imports=[], modules={}}={}) {
+  const store = createStore(combineReducers([reducer, notebookReducer]));
+  store.dispatch(actions.coreInit('pending'));
+
+  const ctx = {
+    settings: {user: Settings.user_settings, global: Settings.global_settings},
+    imports,
+    modules,
+    store
+  };
+
+  ctx.app = ctx;
+
+  const initializationPromise = Modules.init_modules(ctx, modules);
+  ctx.initializationPromise = initializationPromise;
+
+  initializationPromise.then(() => {
+    store.dispatch(actions.coreInit('finished'));
+  })
+  .fail((error) => {
+    store.dispatch(actions.coreInit('failed', error));
+    console.error('Failure initializing modules', error);
+    return store.dispatch(actions.pushModal({
+      handler: InitializationFailureModal,
+      props: {error}
+    }));
+  });
+
+  store.dispatch(actions.settingsChanged(Settings.getRaw()));
+  Settings.changes.onValue(() => {
+    store.dispatch(actions.settingsChanged(Settings.getRaw()));
+  });
+
+  return ctx;
+}
+
 export function initApp(target, options={}) {
   bindUserSettingsToLocalStorage('lead_user_settings');
   const publicUrl = Settings.get('app', 'publicUrl');
@@ -66,11 +100,6 @@ export function initApp(target, options={}) {
   if (publicUrl != null) {
     __webpack_public_path__ = publicUrl;
   }
-
-  const modules = {...Defaults.modules, ...options.modules};
-  const imports = [...Defaults.imports, ...(Settings.get('app', 'imports') || [])];
-  const extraRoutes = options.extraRoutes || [];
-  const bodyWrapper = options.bodyWrapper;
 
   if (location.search !== '') {
     let query;
@@ -86,42 +115,17 @@ export function initApp(target, options={}) {
     window.history.replaceState(null, document.title, uri.toString());
   }
 
-  const store = createStore(combineReducers([reducer, notebookReducer]));
+  const modules = {...Defaults.modules, ...options.modules};
+  const imports = [...Defaults.imports, ...(Settings.get('app', 'imports') || [])];
+  const extraRoutes = options.extraRoutes || [];
+  const bodyWrapper = options.bodyWrapper;
 
-  store.dispatch(actions.coreInit('pending'));
-
-  const ctx = {
-    settings: {user: Settings.user_settings, global: Settings.global_settings},
-    imports,
-    modules,
-    store,
-    ctxType: 'app'
-  };
-
-  ctx.app = ctx;
-
-  const initializationPromise = Modules.init_modules(ctx, modules);
-  initializationPromise.then(() => {
-    store.dispatch(actions.coreInit('finished'));
-  });
-  initializationPromise.fail((error) => {
-    store.dispatch(actions.coreInit('finished'));
-    console.error('Failure initializing modules', error);
-    return store.dispatch(actions.pushModal({
-      handler: InitializationFailureModal,
-      props: {error}
-    }));
-  });
-
-  store.dispatch(actions.settingsChanged(Settings.getRaw()));
-  Settings.changes.onValue(() => {
-    store.dispatch(actions.settingsChanged(Settings.getRaw()));
-  });
+  const ctx = createLeadContext({imports, modules});
 
   React.render(
-    <Provider store={store}>
-      {() => <AppRoutes {...{bodyWrapper, ctx, extraRoutes}}/>}
-    </Provider>
+    <RootComponent ctx={ctx}>
+      {() => <AppRoutes {...{bodyWrapper, extraRoutes}}/>}
+    </RootComponent>
   , target);
 }
 
