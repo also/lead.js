@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CodeMirror from 'codemirror';
 
 import AppAwareMixin from '../AppAwareMixin';
-import * as CoffeeScriptCell from '../coffeescript';
+import * as CoffeeScriptCell from '../scripting/coffeescript';
 import * as Context from '../context';
 import TopLevelContextComponent from '../context/TopLevelContextComponent';
 import ContextOutputComponent from '../context/ContextOutputComponent';

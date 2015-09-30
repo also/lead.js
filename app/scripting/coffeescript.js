@@ -1,11 +1,11 @@
 import CoffeeScript from 'coffee-script';
-import * as Editor from './editor';
-import * as Context from './context';
-import * as Builtins from './builtins';
+import * as Editor from '../editor';
+import * as Context from '../context';
+import * as Builtins from '../builtins';
 import React from 'react';
-import {ToggleComponent, SourceComponent} from './components';
+import {ToggleComponent, SourceComponent} from '../components';
 import _ from 'underscore';
-import {logError, errorInfo} from './core';
+import {logError, errorInfo} from '../core';
 import * as Javascript from './javascript';
 
 if (process.browser) {

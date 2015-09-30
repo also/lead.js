@@ -7,7 +7,7 @@ import * as http from '../http';
 import * as Context from '../context';
 import AsyncComponent from '../context/AsyncComponent';
 import * as Modules from '../modules';
-import * as CoffeeScriptCell from '../coffeescript';
+import * as CoffeeScriptCell from '../scripting/coffeescript';
 import MarkdownComponent from '../markdown/MarkdownComponent';
 import * as Builtins from '../builtins';
 import * as Documentation from '../documentation';
