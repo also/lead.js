@@ -128,8 +128,7 @@ export const find_in_scope = function (ctx, name) {
   return ctx.scope[name];
 };
 
-// the base context contains the loaded modules, and the list of modules to import into every context
-export const create_base_context = function (ctx) {
+export const createScriptingSessionContext = function (ctx) {
   let {modules} = ctx;
   // TODO not really cool to reference exports here
   modules = Object.assign({
@@ -137,7 +136,6 @@ export const create_base_context = function (ctx) {
     builtins: Builtins
   }, modules);
 
-  // TODO find a better home for repl vars
   return Object.assign({}, ctx, {modules, scripting: {replVars: {}}});
 };
 
@@ -292,7 +290,7 @@ export const createScriptStaticContext = function (base) {
 
 export const createStandaloneScriptContext = function (ctx) {
   const {imports=[]} = ctx;
-  const baseContext = create_base_context(Object.assign({}, ctx, {imports: ['builtins.*'].concat(imports)}));
+  const baseContext = createScriptingSessionContext(Object.assign({}, ctx, {imports: ['builtins.*'].concat(imports)}));
 
   return createScriptExecutionContext([createScriptStaticContext(baseContext)]);
 };

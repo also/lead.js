@@ -44,7 +44,7 @@ const Notebook = new Immutable.Record({
 
 export function createNotebook(ctx) {
   const notebookId = nextNotebookId++;
-  const notebookCtx = Object.assign({}, Context.create_base_context(ctx), {notebookId});
+  const notebookCtx = Object.assign({}, Context.createScriptingSessionContext(ctx), {notebookId});
   return new Notebook({notebookId, ctx: notebookCtx});
 }
 

@@ -27,12 +27,12 @@ later = (done, fn) ->
 describe 'contexts', ->
   describe 'base contexts', ->
     it 'can be created', ->
-      Context.create_base_context()
+      Context.createScriptingSessionContext()
 
   describe 'run contexts', ->
     context = null
     beforeEach ->
-      base_context = Context.create_base_context()
+      base_context = Context.createScriptingSessionContext()
       context = Context.createScriptStaticContext(base_context)
 
     it 'can be created', ->
@@ -63,7 +63,7 @@ describe 'contexts', ->
       complete_callback = ->
       ctx = null
       result = null
-      base_context = Context.create_base_context(imports: ['builtins.*', 'test_module.*'], modules: {test_module, builtins: Builtins})
+      base_context = Context.createScriptingSessionContext(imports: ['builtins.*', 'test_module.*'], modules: {test_module, builtins: Builtins})
       ctx = Context.createScriptStaticContext base_context
 
     it 'can run javascript strings', ->
