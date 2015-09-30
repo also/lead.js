@@ -8,7 +8,7 @@ import Router from 'react-router';
 import {createLeadContext} from './core';
 import * as Settings from './settings';
 import * as Modal from './modal';
-import RootComponent from './RootComponent';
+import RootComponent from './core/RootComponent';
 import AppRoutes from './routes';
 import * as Defaults from './defaultApp';
 import {encodeNotebookValue} from './notebook';
@@ -83,7 +83,6 @@ export function initApp(target, options={}) {
   const ctx = createLeadContext({imports, modules});
 
   ctx.initializationPromise.fail((error) => {
-    console.error('Failure initializing modules', error);
     return ctx.store.dispatch(actions.pushModal({
       handler: InitializationFailureModal,
       props: {error}

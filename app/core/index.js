@@ -26,6 +26,7 @@ export function createLeadContext({imports=[], modules={}}={}) {
   });
 
   initializationPromise.fail((error) => {
+    console.error('Failure initializing modules', error);
     store.dispatch(actions.coreInit('failed', error));
   });
 

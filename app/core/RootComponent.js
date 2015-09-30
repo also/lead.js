@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Provider} from 'react-redux';
 
-import ContextRegisteringMixin from './context/ContextRegisteringMixin';
+import ContextRegisteringMixin from '../context/ContextRegisteringMixin';
 
 
 export default React.createClass({
