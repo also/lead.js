@@ -5,7 +5,7 @@ import CodeMirror from 'codemirror';
 import AppAwareMixin from '../AppAwareMixin';
 import * as CoffeeScriptCell from '../scripting/coffeescript';
 import * as Context from '../context';
-import TopLevelContextComponent from '../context/TopLevelContextComponent';
+import StandaloneScriptContextComponent from '../scripting/StandaloneScriptContextComponent';
 import ContextOutputComponent from '../context/ContextOutputComponent';
 import {ToggleComponent} from '../components';
 import {ObjectComponent} from '../builtins';
@@ -78,8 +78,6 @@ export default React.createClass({
     const {app} = this.context;
     const {settings} = app;
     const initialValue = JSON.stringify(settings.user.get_without_overrides(), null, '  ');
-    const {imports, modules} = app;
-    const context = {app};
 
     const keyBindings = buildKeyMap();
 
@@ -90,12 +88,12 @@ export default React.createClass({
       <ToggleComponent title='Key Map'>
         <KeyBindingComponent keys={keyBindings} commands={CodeMirror.commands}/>
       </ToggleComponent>
-      <TopLevelContextComponent ref='ctx' {...{imports, modules, context}}>
+      <StandaloneScriptContextComponent ref='ctx'>
         <div>
           <EditorComponent run={this.saveSettings} ref='editor' key='settings_editor' initial_value={initialValue}/>
           <ContextOutputComponent/>
         </div>
-      </TopLevelContextComponent>
+      </StandaloneScriptContextComponent>
       <span className='run-button' onClick={() => this.saveSettings()}>
         <i className='fa fa-floppy-o'/>
         {' '}

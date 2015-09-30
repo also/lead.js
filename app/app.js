@@ -94,8 +94,11 @@ export function initApp(target, options={}) {
     settings: {user: Settings.user_settings, global: Settings.global_settings},
     imports,
     modules,
-    store
+    store,
+    ctxType: 'app'
   };
+
+  ctx.app = ctx;
 
   const initializationPromise = Modules.init_modules(ctx, modules);
   initializationPromise.then(() => {
@@ -117,7 +120,7 @@ export function initApp(target, options={}) {
 
   React.render(
     <Provider store={store}>
-      {() => <AppRoutes {...{bodyWrapper, app: ctx, extraRoutes}}/>}
+      {() => <AppRoutes {...{bodyWrapper, ctx, extraRoutes}}/>}
     </Provider>
   , target);
 }

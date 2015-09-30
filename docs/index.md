@@ -6,6 +6,16 @@ A *notebook* is a collection of input and output cells.
 
 Each input cell defines a *program* that runs in a *context*. The context provides the program with an output cell it can manipulate.
 
+## Nested Contexts:
+
+`app`: `{modules, settings, imports}`. Imports probably belongs in settings.
+
+`base`:
+
+`ScriptStatic`:
+
+`ScriptExecution`: 
+
 ### Scripting Functions
 
 A *scripting function* is a function that is has access to the current context. It will be called with the context as the first argument.

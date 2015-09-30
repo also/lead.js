@@ -4,18 +4,19 @@ import {connect} from 'react-redux';
 import {createNotebook} from '../notebook';
 import {notebookCreated, notebookDestroyed} from './actions';
 
+import ContextAwareMixin from '../context/ContextAwareMixin';
 import DocumentComponent from './DocumentComponent';
 
 
 export default connect(null, {notebookCreated, notebookDestroyed})(React.createClass({
   propTypes: {
-    imports: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-    modules: React.PropTypes.object.isRequired,
     init: React.PropTypes.func
   },
 
-  getInitialState() {
-    const notebook = createNotebook(this.props);
+  mixins: [ContextAwareMixin],
+
+  componentWillMount() {
+    const notebook = createNotebook(this.ctx());
 
     this.props.notebookCreated(notebook);
 
@@ -23,7 +24,8 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
     if (init) {
       init(notebook.ctx, notebook);
     }
-    return {notebook};
+
+    this.notebook = notebook;
   },
 
   shouldComponentUpdate() {
@@ -31,12 +33,12 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
   },
 
   render() {
-    const {notebook} = this.state;
+    const {notebook} = this;
 
     return <DocumentComponent notebookId={notebook.notebookId} ctx={notebook.ctx}/>;
   },
 
   componentWillUnmount() {
-    this.props.notebookDestroyed(this.state.notebook.notebookId);
+    this.props.notebookDestroyed(this.notebook.notebookId);
   }
 }));

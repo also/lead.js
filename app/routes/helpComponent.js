@@ -2,13 +2,12 @@ import * as React from 'react';
 import {Navigation} from 'react-router';
 
 import HelpPageComponent from '../HelpPageComponent';
-import TopLevelContextComponent from '../context/TopLevelContextComponent';
-import AppAwareMixin from '../AppAwareMixin';
+import StandaloneScriptContextComponent from '../scripting/StandaloneScriptContextComponent';
 import {encodeNotebookValue} from '../notebook';
 
 
 export default React.createClass({
-  mixins: [Navigation, AppAwareMixin],
+  mixins: [Navigation],
 
   runScript(value) {
     return this.transitionTo('raw_notebook', {
@@ -23,17 +22,14 @@ export default React.createClass({
   },
 
   render() {
-    const {imports, modules} = this.context.app;
-
     return (
       <div className='help output'>
-        <TopLevelContextComponent {...{imports, modules}} context={{
-          app: this.context.app,
+        <StandaloneScriptContextComponent {...{
           runScript: this.runScript,
           docsNavigate: this.navigate
         }}>
           <HelpPageComponent doc_key={this.props.params.docKey}/>
-        </TopLevelContextComponent>
+        </StandaloneScriptContextComponent>
       </div>
     );
   }

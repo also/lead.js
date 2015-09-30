@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import AppAwareMixin from '../AppAwareMixin';
 import * as Notebook from '../notebook';
 import NotebookComponent from '../notebook/NotebookComponent';
 import * as Context from '../context';
@@ -9,9 +8,6 @@ import {replaceOnPropChange} from '../component-utils';
 
 
 export default replaceOnPropChange(React.createClass({
-  displayName: 'GitHubNotebookComponent',
-  mixins: [AppAwareMixin],
-
   initNotebook(ctx) {
     const file = this.props.params.splat;
 
@@ -23,11 +19,6 @@ export default replaceOnPropChange(React.createClass({
   },
 
   render() {
-    const {imports, modules} = this.context.app;
-
-    return <NotebookComponent
-      context={{app: this.context.app}}
-      init={this.initNotebook}
-      {...{imports, modules}}/>;
+    return <NotebookComponent init={this.initNotebook}/>;
   }
 }));

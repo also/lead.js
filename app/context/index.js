@@ -2,8 +2,6 @@ import React from 'react/addons';
 import _ from 'underscore';
 import Bacon from 'bacon.model';
 
-import {user_settings, global_settings} from '../settings';
-
 import ContextComponent from './ContextComponent';
 import {SimpleLayoutComponent} from '../components';
 import * as Builtins from '../builtins';
@@ -131,7 +129,8 @@ export const find_in_scope = function (ctx, name) {
 };
 
 // the base context contains the loaded modules, and the list of modules to import into every context
-export const create_base_context = function ({modules, imports}={}) {
+export const create_base_context = function (ctx) {
+  let {modules} = ctx;
   // TODO not really cool to reference exports here
   modules = Object.assign({
     context: exports,
@@ -139,13 +138,7 @@ export const create_base_context = function ({modules, imports}={}) {
   }, modules);
 
   // TODO find a better home for repl vars
-  return {
-    modules: modules,
-    // TODO move imports into scripting
-    imports: imports,
-    scripting: {replVars: {}},
-    settings: {user: user_settings, global: global_settings}
-  };
+  return Object.assign({}, ctx, {modules, scripting: {replVars: {}}});
 };
 
 const importInto = function (obj, target, path) {
@@ -297,13 +290,11 @@ export const createScriptStaticContext = function (base) {
   return Object.assign({}, base, {imported, scope});
 };
 
-export const createStandaloneScriptContext = function ({imports, modules, context}={}) {
-  const baseContext = create_base_context({
-    imports: ['builtins.*'].concat(imports || []),
-    modules: modules
-  });
+export const createStandaloneScriptContext = function (ctx) {
+  const {imports=[]} = ctx;
+  const baseContext = create_base_context(Object.assign({}, ctx, {imports: ['builtins.*'].concat(imports)}));
 
-  return createScriptExecutionContext([context != null ? context : {}, createScriptStaticContext(baseContext)]);
+  return createScriptExecutionContext([createScriptStaticContext(baseContext)]);
 };
 
 export const run_in_context = function (runContext, fn) {

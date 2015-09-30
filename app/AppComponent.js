@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as Router from 'react-router';
 import {connect} from 'react-redux';
 
+import ContextRegisteringMixin from './context/ContextRegisteringMixin';
 import {removeModal} from './actions';
 
 
@@ -17,11 +18,11 @@ export default connect(
     app: React.PropTypes.object
   },
 
-  mixins: [Router.Navigation],
+  mixins: [Router.Navigation, ContextRegisteringMixin],
 
   getChildContext() {
     return {
-      app: this.props.app
+      app: this.props.ctx
     };
   },
 
@@ -40,7 +41,7 @@ export default connect(
 
   render() {
     const {bodyWrapper, coreInit, modals} = this.props;
-    this.props.app.appComponent = this;
+    this.props.ctx.appComponent = this;
     const modal = modals.last();
 
     let body = coreInit.get('state') === 'pending' ? null : <Router.RouteHandler/>;

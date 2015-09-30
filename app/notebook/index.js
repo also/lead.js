@@ -42,10 +42,10 @@ const Notebook = new Immutable.Record({
   ctx: null
 });
 
-export function createNotebook(opts) {
+export function createNotebook(ctx) {
   const notebookId = nextNotebookId++;
-  const ctx = Object.assign({}, opts.context, Context.create_base_context(opts), {notebookId});
-  return new Notebook({notebookId, ctx});
+  const notebookCtx = Object.assign({}, Context.create_base_context(ctx), {notebookId});
+  return new Notebook({notebookId, ctx: notebookCtx});
 }
 
 function exportNotebook(ctx, currentCellId) {
