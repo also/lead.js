@@ -5,7 +5,7 @@ import * as Builtins from '../builtins';
 import React from 'react';
 import {ToggleComponent, SourceComponent} from '../components';
 import _ from 'underscore';
-import {logError, errorInfo} from '../core';
+import {logError, errorInfo} from '../utils';
 import * as Javascript from './javascript';
 
 if (process.browser) {

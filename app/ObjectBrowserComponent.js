@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as _  from 'underscore';
-import {intersperse} from './core';
+import {intersperse} from './utils';
 
 
 function isSimple(o) {

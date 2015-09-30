@@ -4,13 +4,9 @@
 import * as React from 'react';
 import URI from 'urijs';
 import Router from 'react-router';
-import {createStore} from 'redux';
 
-import reducer from './reducer';
-import notebookReducer from './notebook/reducer';
-import {combineReducers} from './store';
+import {createLeadContext} from './core';
 import * as Settings from './settings';
-import * as Modules from './modules';
 import * as Modal from './modal';
 import RootComponent from './RootComponent';
 import AppRoutes from './routes';
@@ -57,42 +53,6 @@ function bindUserSettingsToLocalStorage(key) {
   });
 }
 
-export function createLeadContext({imports=[], modules={}}={}) {
-  const store = createStore(combineReducers([reducer, notebookReducer]));
-  store.dispatch(actions.coreInit('pending'));
-
-  const ctx = {
-    settings: {user: Settings.user_settings, global: Settings.global_settings},
-    imports,
-    modules,
-    store
-  };
-
-  ctx.app = ctx;
-
-  const initializationPromise = Modules.init_modules(ctx, modules);
-  ctx.initializationPromise = initializationPromise;
-
-  initializationPromise.then(() => {
-    store.dispatch(actions.coreInit('finished'));
-  })
-  .fail((error) => {
-    store.dispatch(actions.coreInit('failed', error));
-    console.error('Failure initializing modules', error);
-    return store.dispatch(actions.pushModal({
-      handler: InitializationFailureModal,
-      props: {error}
-    }));
-  });
-
-  store.dispatch(actions.settingsChanged(Settings.getRaw()));
-  Settings.changes.onValue(() => {
-    store.dispatch(actions.settingsChanged(Settings.getRaw()));
-  });
-
-  return ctx;
-}
-
 export function initApp(target, options={}) {
   bindUserSettingsToLocalStorage('lead_user_settings');
   const publicUrl = Settings.get('app', 'publicUrl');
@@ -121,6 +81,14 @@ export function initApp(target, options={}) {
   const bodyWrapper = options.bodyWrapper;
 
   const ctx = createLeadContext({imports, modules});
+
+  ctx.initializationPromise.fail((error) => {
+    console.error('Failure initializing modules', error);
+    return ctx.store.dispatch(actions.pushModal({
+      handler: InitializationFailureModal,
+      props: {error}
+    }));
+  });
 
   React.render(
     <RootComponent ctx={ctx}>
