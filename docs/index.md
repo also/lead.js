@@ -6,13 +6,13 @@ A *notebook* is a collection of input and output cells.
 
 Each input cell defines a *program* that runs in a *context*. The context provides the program with an output cell it can manipulate.
 
-### Context Functions
+### Scripting Functions
 
-A *context function* is a function that is has access to the current context. It will be called with the context as the first argument.
+A *scripting function* is a function that is has access to the current context. It will be called with the context as the first argument.
 
-### Context Commands
+### Scripting Commands
 
-A *context command* is a context function that will be invoked if it is the return value of the program. So,
+A *scripting command* is a scripting function that will be invoked if it is the return value of the script. So,
 
 ```coffeescript
 help
@@ -24,9 +24,9 @@ is the same as
 help()
 ```
 
-### Context Vars
+### Scripting Vars
 
-A *context var* is simply a variable that is made available in the context scope.
+A *scripting var* is simply a variable that is made available in the scripting scope.
 
 ## Modules
 
