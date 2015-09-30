@@ -25,14 +25,14 @@ later = (done, fn) ->
     done e
 
 describe 'contexts', ->
-  describe 'base contexts', ->
+  describe 'scripting session contexts', ->
     it 'can be created', ->
-      Context.createScriptingSessionContext()
+      Context.createScriptingSessionContext({})
 
-  describe 'run contexts', ->
+  describe 'script execution contexts', ->
     context = null
     beforeEach ->
-      base_context = Context.createScriptingSessionContext()
+      base_context = Context.createScriptingSessionContext({})
       context = Context.createScriptStaticContext(base_context)
 
     it 'can be created', ->
