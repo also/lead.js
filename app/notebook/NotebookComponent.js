@@ -16,11 +16,11 @@ export default connect(null, {notebookCreated, notebookDestroyed})(React.createC
   mixins: [ContextAwareMixin],
 
   componentWillMount() {
-    const notebook = createNotebook(this.ctx());
+    const {init, ...ctx} = this.props;
+    const notebook = createNotebook(Object.assign({}, this.ctx(), ctx));
 
     this.props.notebookCreated(notebook);
 
-    const {init} = this.props;
     if (init) {
       init(notebook.ctx, notebook);
     }
