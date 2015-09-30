@@ -174,7 +174,7 @@ const context_run_context_prototype = {
 };
 
 export const create_nested_context = function (parent, overrides) {
-  const newContext = Object.assign(Object.create(parent), {
+  const newContext = Object.assign({}, parent, {
     layout: SimpleLayoutComponent
   }, overrides);
 
