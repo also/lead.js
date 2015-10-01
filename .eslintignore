@@ -1,4 +1,3 @@
-app/graphite_parser.js
 app/graphite
 app/scripting/eval.js
 webpack.config.js

@@ -6,10 +6,8 @@ import URI from 'urijs';
 
 import * as dsl from '../dsl';
 import * as Modules from '../modules';
-import GraphiteFunctionNames from '../graphite/functions';
 import * as http from '../http';
 import docs from '../graphite/docs';
-//import parser from '../graphite_parser';
 import * as Builtins from '../builtins';
 import Html from '../html';
 import * as Documentation from '../documentation';
@@ -29,7 +27,7 @@ function getSetting(ctx, ...key) {
 }
 
 let functionNames = null;
-let serverOptionNames = null;
+const serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
 
 class ServerError {
   constructor(error) {
@@ -58,31 +56,9 @@ function argsToServerParams(ctx, args) {
   }).server;
 }
 
-function renderUrl(ctx, params) {
-  return url(ctx, 'render', params);
-}
-
 function isPattern(s) {
   return !!s.match(/[*?[{]/);
 }
-
-// function parseTarget(string) {
-//   return parser.parse(string);
-// }
-
-// function parseUrl(string) {
-//   const url = new URI(string);
-//   const query = url.query(true);
-//   let targets = query.target || [];
-//
-//   if (!_.isArray(targets)) {
-//     targets = [targets];
-//   }
-//   return {
-//     targets: _.map(targets, parse_target),
-//     options: _.omit(query, 'target')
-//   };
-// }
 
 function parseErrorResponse(response) {
   if (response.responseJSON != null) {
@@ -123,46 +99,32 @@ function parseFindResponse(query, response) {
 
 function transformResponse(ctx, response) {
   let values;
-  if (getSetting(ctx, 'type') === 'lead') {
-    if (response.exceptions.length > 0) {
-      return Q.reject(new ServerError(response.exceptions));
-    }
-    if (_.isArray(response.results)) {
-      values = response.results.map(({result}) => result);
-    } else {
-      values = _.values(response.results);
-    }
-
-    return _.flatten(values).map(({name, start, step, values, options}) => {
-      if (step != null) {
-        return {
-          target: name,
-          datapoints: values.map((v, i) => {
-            return [start + step * i, v];
-          }),
-          options
-        };
-      } else {
-        return {
-          target: name,
-          datapoints: values,
-          options
-        };
-      }
-    });
+  if (response.exceptions.length > 0) {
+    return Q.reject(new ServerError(response.exceptions));
+  }
+  if (_.isArray(response.results)) {
+    values = response.results.map(({result}) => result);
   } else {
-    return response.map(({target, datapoints, options}) => {
+    values = _.values(response.results);
+  }
+
+  return _.flatten(values).map(({name, start, step, values, options}) => {
+    if (step != null) {
       return {
-        target,
-        datapoints: datapoints.map((arg3) => {
-          let ts, v;
-          [v, ts] = arg3;
-          return [ts, v];
+        target: name,
+        datapoints: values.map((v, i) => {
+          return [start + step * i, v];
         }),
         options
       };
-    });
-  }
+    } else {
+      return {
+        target: name,
+        datapoints: values,
+        options
+      };
+    }
+  });
 }
 
 export function getData(ctx, params) {
@@ -170,15 +132,10 @@ export function getData(ctx, params) {
 }
 
 export function execute(ctx, params) {
-  let promise;
   params.format = 'json';
-  if (getSetting(ctx, 'type') === 'lead') {
-    promise = http.post(ctx, url(ctx, 'execute'), params);
-  } else {
-    promise = http.get(ctx, renderUrl(ctx, params));
-  }
-  return promise.fail(function (response) {
-    return Q.reject(new ServerError(parseErrorResponse(response)));
+
+  return http.post(ctx, url(ctx, 'execute'), params).fail((response) => {
+    throw new ServerError(parseErrorResponse(response));
   });
 }
 
@@ -232,34 +189,18 @@ export function complete(ctx, query) {
 }
 
 export function find(ctx, query) {
-  if (getSetting(ctx, 'type') === 'lead') {
-    return http.get(ctx, url(ctx, 'find', {query}))
-    .then((response) => {
-      const result = response.map((m) => {
-        return {
-          path: m.name,
-          name: m.name,
-          is_leaf: m['is-leaf']
-        };
-      });
-
-      return {query, result};
+  return http.get(ctx, url(ctx, 'find', {query}))
+  .then((response) => {
+    const result = response.map((m) => {
+      return {
+        path: m.name,
+        name: m.name,
+        is_leaf: m['is-leaf']
+      };
     });
-  } else {
-    const params = {query, format: 'completer'};
 
-    return http.get(ctx, url(ctx, 'metrics/find', params)).then((response) => {
-      const result = response.metrics.map(({path, name, is_leaf}) => {
-        return {
-          path: path.replace(/\.$/, ''),
-          name,
-          is_leaf: is_leaf === '1'
-        };
-      });
-
-      return {query, result};
-    });
-  }
+    return {query, result};
+  });
 }
 
 export function suggest_keys(ctx, s) {
@@ -462,38 +403,6 @@ Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scrip
     return Context.value(argsToServerParams(ctx, args));
   });
 
-  // componentFn('url', 'Generates a URL for a graph image', ([ctx, ...args]) => {
-  //   const params = argsToServerParams(ctx, args);
-  //   const url = renderUrl(ctx, params);
-  //
-  //   return React.DOM.pre({}, React.DOM.a({
-  //     href: url,
-  //     target: 'blank'
-  //   }, url));
-  // });
-  //
-  // componentFn('img', 'Renders a graph image', ([ctx, ...args]) => {
-  //   const params = argsToServerParams(ctx, args);
-  //   const url = renderUrl(ctx, params);
-  //   const deferred = Q.defer();
-  //   const promise = deferred.promise.fail(function () {
-  //     return Q.reject('Failed to load image');
-  //   });
-  //
-  //   return AsyncComponent({
-  //     promise: promise
-  //   }, Builtins.ComponentAndError({
-  //     promise: promise
-  //   }, React.DOM.img({
-  //     onLoad: deferred.resolve,
-  //     onError: deferred.reject,
-  //     src: url
-  //   })), Builtins.PromiseStatusComponent({
-  //     promise: promise,
-  //     start_time: new Date()
-  //   }));
-  // });
-
   componentFn('browser', 'Browse metrics using a wildcard query', (ctx, query) => {
     const finder = Context.unwrapValue(scriptingExports.find.fn(ctx, query));
 
@@ -561,26 +470,16 @@ Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scrip
 
   return {
     init(ctx) {
-      if (getSetting(ctx, 'type') === 'lead') {
-        serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
-
-        if (!functionNames) {
-          return http.get(ctx, url(ctx, 'functions')).fail(() => {
-            functionNames = [];
-            initDocs();
-            return Q.reject('failed to load functions from lead server');
-          }).then((functions) => {
-            functionNames = Object.keys(functions).filter((f) => f.indexOf('-') === -1);
-            scriptingExport(dsl.define_functions({}, functionNames));
-            initDocs();
-          });
-        }
-      } else {
-        functionNames = GraphiteFunctionNames;
-        scriptingExport(dsl.define_functions({}, functionNames));
-        serverOptionNames = Object.keys(docs.parameter_docs);
-        serverOptionNames.push('start', 'end');
-        return initDocs();
+      if (!functionNames) {
+        return http.get(ctx, url(ctx, 'functions')).fail(() => {
+          functionNames = [];
+          initDocs();
+          return Q.reject('failed to load functions from lead server');
+        }).then((functions) => {
+          functionNames = Object.keys(functions).filter((f) => f.indexOf('-') === -1);
+          scriptingExport(dsl.define_functions({}, functionNames));
+          initDocs();
+        });
       }
     }
   };

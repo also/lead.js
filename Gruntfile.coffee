@@ -114,12 +114,6 @@ module.exports = (grunt) ->
   grunt.registerTask 'css', ->
     grunt.file.write 'build/web/style.css', require './build/web/style.js'
 
-  grunt.registerTask 'peg-grammars', 'Builds pegjs parsers', ->
-    PEG = require 'pegjs'
-    grammar = grunt.file.read 'app/graphite_grammar.peg'
-    parser = PEG.buildParser grammar
-    grunt.file.write 'app/graphite_parser.js', "module.exports = #{parser.toSource()};"
-
   grunt.registerTask 'npm-link', ->
     done = @async()
     spawned = grunt.util.spawn cmd: "npm", args: ['link'], opts: {cwd: "#{__dirname}/dist/node", env: _.extend({npm_config_prefix: "#{__dirname}/build/node/npm"}, process.env)}, (err, result, code) ->
