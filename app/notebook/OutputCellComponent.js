@@ -25,6 +25,6 @@ export default connect(null, actions)(React.createClass({
   },
 
   componentDidMount() {
-    this.props.updateCell(this.props.cell.key, {dom_node: this.getDOMNode()});
+    this.props.updateCell(this.props.cell.cellId, {dom_node: this.getDOMNode()});
   }
 }));
