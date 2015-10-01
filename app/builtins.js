@@ -352,14 +352,6 @@ modules.export(exports, 'builtins', ({doc, fn, componentFn, componentCmd}) => {
     return <a href={uri}>{uri}</a>;
   });
 
-  componentFn('promise_status', 'Displays the status of a promise', (ctx, promise, startTime) => {
-    if (startTime == null) {
-      startTime = new Date();
-    }
-
-    return <PromiseStatusComponent promise={promise} start_time={startTime}/>;
-  });
-
   componentFn('grid', 'Generates a grid with a number of columns', (ctx, cols, wrappedFn) => {
     const nestedContext = Context.create_nested_context(ctx, {
       layout: GridComponent,

@@ -1,9 +1,3 @@
-## Promise Status
-
-    Q = require 'q'
-    input.live input.button('Show Promise Status'), ->
-      promise_status Q.delay(2000)
-
 ## Observable
 
     input.text_input()
@@ -65,9 +59,8 @@
 ## Source
 
     source 'coffeescript', """
-    Q = require 'q'
-    input.live input.button('Show Promise Status'), ->
-      promise_status Q.delay(2000)
+    React = require 'react'
+    React.createElement require('builtins').ErrorComponent, {message: new Error 'nope'}
     """
 
 ## Error
