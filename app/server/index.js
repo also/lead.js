@@ -365,7 +365,7 @@ export function resolveDocumentationKey(ctx, o) {
 
 export function renderError(error) {
   if (error instanceof ServerError) {
-    <ServerErrorComponent error={error.error}/>;
+    return <ServerErrorComponent error={error.error}/>;
   }
 }
 
