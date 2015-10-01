@@ -48,10 +48,6 @@
 
     html "<font color=blue>HTML</font>"
 
-## Object
-
-    object a: 1, b: 2, c: 3
-
 ## Example
 
     example "example 'Yo dawg i heard you like examples…'"
