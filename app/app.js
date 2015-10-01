@@ -80,7 +80,7 @@ export function initApp(target, options={}) {
   const extraRoutes = options.extraRoutes || [];
   const bodyWrapper = options.bodyWrapper;
 
-  const ctx = createLeadContext({imports, modules});
+  const ctx = createLeadContext({...options, imports, modules});
 
   ctx.initializationPromise.fail((error) => {
     return ctx.store.dispatch(actions.pushModal({

@@ -1,4 +1,5 @@
-import {createStore} from 'redux';
+import {createStore, applyMiddleware} from 'redux';
+import thunk from 'redux-thunk';
 
 import * as Settings from '../settings';
 import reducer from '../reducer';
@@ -7,8 +8,8 @@ import {combineReducers} from '../store';
 import * as Modules from '../modules';
 import * as actions from '../actions';
 
-export function createLeadContext({imports=[], modules={}}={}) {
-  const store = createStore(combineReducers([reducer, notebookReducer]));
+export function createLeadContext({imports=[], modules={}, reducers=[]}={}) {
+  const store = applyMiddleware(thunk)(createStore)(combineReducers([reducer, notebookReducer, ...reducers]));
   store.dispatch(actions.coreInit('pending'));
 
   const ctx = {
