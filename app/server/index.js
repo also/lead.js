@@ -26,7 +26,6 @@ function getSetting(ctx, ...key) {
   return ctx.settings.global.get('server', ...key);
 }
 
-let serverFunctions = null;
 const serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
 
 class ServerError {
@@ -340,7 +339,7 @@ export function url(ctx, path, params) {
 }
 
 Modules.export(exports, 'server', ({fn, componentFn, doc, scriptingExports}) => {
-  function initDocs() {
+  function initDocs(serverFunctions) {
     _.sortBy(Object.keys(serverFunctions), _.identity).forEach((n) => {
       if (!_.isFunction(serverFunctions[n])) {
         // FIXME document server modules
@@ -474,28 +473,25 @@ Modules.export(exports, 'server', ({fn, componentFn, doc, scriptingExports}) => 
 
   return {
     init(ctx) {
-      if (!serverFunctions) {
-        return http.get(ctx, url(ctx, 'functions')).fail(() => {
-          serverFunctions = {};
-          initDocs();
-          return Q.reject('failed to load functions from lead server');
-        }).then((functions) => {
-          serverFunctions = {};
-          Object.keys(functions).forEach((fullName) => {
-            if (fullName.indexOf('-') === -1) {
-              const path = fullName.split('.');
-              const name = path.pop();
-              console.log(path, 'name', name);
-              path.reduce((o, k) => {
-                o[k] = o[k] || {};
-                return o[k];
-              }, serverFunctions)[name] = dsl.createFunction(fullName);
-            }
-          });
-          initDocs();
-          Object.assign(scriptingExports, serverFunctions);
+      return http.get(ctx, url(ctx, 'functions')).fail(() => {
+        initDocs({});
+        return Q.reject('failed to load functions from lead server');
+      }).then((functions) => {
+        const serverFunctions = {};
+        Object.keys(functions).forEach((fullName) => {
+          if (fullName.indexOf('-') === -1) {
+            const path = fullName.split('.');
+            const name = path.pop();
+            console.log(path, 'name', name);
+            path.reduce((o, k) => {
+              o[k] = o[k] || {};
+              return o[k];
+            }, serverFunctions)[name] = dsl.createFunction(fullName);
+          }
         });
-      }
+        initDocs(serverFunctions);
+        Object.assign(scriptingExports, serverFunctions);
+      });
     }
   };
 });
