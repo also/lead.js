@@ -6,11 +6,10 @@ describe 'dsl', ->
     fake_function = null
 
     beforeEach ->
-      {fake_function} = dsl.define_functions {}, ['fake_function']
+      fake_function = dsl.createFunction('fake_function')
 
     it 'should be created', ->
-      functions = dsl.define_functions {}, ['fake_function']
-      expect(functions.fake_function).to.be.ok()
+      expect(fake_function).to.be.ok()
 
     it 'should return', ->
       result = fake_function()

@@ -26,7 +26,7 @@ function getSetting(ctx, ...key) {
   return ctx.settings.global.get('server', ...key);
 }
 
-let functionNames = null;
+let serverFunctions = null;
 const serverOptionNames = ['start', 'from', 'end', 'until', 'let'];
 
 class ServerError {
@@ -339,9 +339,13 @@ export function url(ctx, path, params) {
   return uri.toString();
 }
 
-Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scriptingExports}) => {
+Modules.export(exports, 'server', ({fn, componentFn, doc, scriptingExports}) => {
   function initDocs() {
-    _.sortBy(functionNames, _.identity).forEach((n) => {
+    _.sortBy(Object.keys(serverFunctions), _.identity).forEach((n) => {
+      if (!_.isFunction(serverFunctions[n])) {
+        // FIXME document server modules
+        return;
+      }
       let value;
       const d = docs.function_docs[n];
 
@@ -356,7 +360,7 @@ Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scrip
           summary: '(undocumented)'
         };
       }
-      const key = ['server', 'functions', n];
+      const key = ['server', 'functions', ...n.split('.')];
 
       if (!Documentation.getDocumentation(key)) {
         Documentation.register(key, value);
@@ -470,15 +474,26 @@ Modules.export(exports, 'server', ({fn, componentFn, scriptingExport, doc, scrip
 
   return {
     init(ctx) {
-      if (!functionNames) {
+      if (!serverFunctions) {
         return http.get(ctx, url(ctx, 'functions')).fail(() => {
-          functionNames = [];
+          serverFunctions = {};
           initDocs();
           return Q.reject('failed to load functions from lead server');
         }).then((functions) => {
-          functionNames = Object.keys(functions).filter((f) => f.indexOf('-') === -1);
-          scriptingExport(dsl.define_functions({}, functionNames));
+          serverFunctions = {};
+          Object.keys(functions).forEach((fullName) => {
+            if (fullName.indexOf('-') === -1) {
+              const path = fullName.split('.');
+              const name = path.pop();
+              console.log(path, 'name', name);
+              path.reduce((o, k) => {
+                o[k] = o[k] || {};
+                return o[k];
+              }, serverFunctions)[name] = dsl.createFunction(fullName);
+            }
+          });
           initDocs();
+          Object.assign(scriptingExports, serverFunctions);
         });
       }
     }

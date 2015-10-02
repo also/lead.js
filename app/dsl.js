@@ -133,7 +133,7 @@ function processArg(arg) {
   throw new TypeError(`illegal argument ${arg}`);
 }
 
-function dsl_fn(name) {
+export function createFunction(name) {
   const result = function (...args) {
     return new type.f(name, args.map(processArg));
   };
@@ -143,11 +143,6 @@ function dsl_fn(name) {
   result.value = name;
   result.__proto__ = new type.i();
   return result;
-}
-
-export function define_functions(ns, names) {
-  names.forEach((name) => ns[name] = dsl_fn(name));
-  return ns;
 }
 
 export function to_string(node) {
