@@ -197,7 +197,7 @@ export const DocumentationIndexComponent = React.createClass({
   displayName: 'DocumentationIndexComponent',
 
   render() {
-    return <table>
+    return <table><tbody>
       {this.props.entries.map((e) => {
         const key = e.key != null ? e.key : e.name;
 
@@ -208,7 +208,7 @@ export const DocumentationIndexComponent = React.createClass({
           </tr>
         );
       })}
-    </table>;
+    </tbody></table>;
   }
 });
 
