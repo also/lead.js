@@ -482,7 +482,7 @@ Modules.export(exports, 'server', ({fn, componentFn, doc, scriptingExports}) => 
           if (fullName.indexOf('-') === -1) {
             const path = fullName.split('.');
             const name = path.pop();
-            console.log(path, 'name', name);
+
             path.reduce((o, k) => {
               o[k] = o[k] || {};
               return o[k];
