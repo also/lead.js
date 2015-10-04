@@ -181,11 +181,13 @@ export const transformData = function (data, params, sizes) {
     valueMax = null;
 
     targets.forEach(({values}) => {
-      values.forEach(({value, y0}) => {
+      const len = values.length;
+      for (let i = 0; i < len; i++) {
+        let {value, y0} = values[i];
         value += y0;
         valueMin = Math.min(value, valueMin);
         valueMax = Math.max(value, valueMax);
-      });
+      }
     });
   }
 
@@ -200,13 +202,15 @@ export const transformData = function (data, params, sizes) {
   targets.forEach((target) => {
     const {values, drawNullAsZero} = target;
 
-    values.forEach((v) => {
+    const len = values.length;
+    for (let i = 0; i < len; i++) {
+      const v = values[i];
       if (v.value != null) {
         v.y = y(v.value);
       }
 
       v.x = x(v.time);
-    });
+    }
 
     let filterScatterValues;
     let expandLineValues;
