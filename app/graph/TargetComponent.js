@@ -25,15 +25,16 @@ export default React.createClass({
 
   render() {
     const {params} = this.context;
-    const d = this.props.target;
-    const {drawAsInfinite, type} = d;
+    const {hover, target} = this.props;
+    const {drawAsInfinite, type} = target;
+    const {value} = this.state;
 
-    const selected = this.state.value.selection[d.index];
-    const highlighted = this.state.value.highlightIndex === d.index;
+    const selected = this.state.value.selection[target.index];
+    const highlighted = value.highlightIndex === target.index;
     const DataHandler = drawAsInfinite ? InfiniteLinesComponent : type === 'line' ? LineComponent : ScatterComponent;
-    const opacity = this.props.hover ? 0 : selected ? 1 : params.deselectedOpacity;
+    const opacity = hover ? 0 : selected ? 1 : params.deselectedOpacity;
 
-    const dataComponent = <DataHandler target={d} hover={this.props.hover} highlighted={highlighted}/>;
+    const dataComponent = <DataHandler target={target} hover={hover} highlighted={highlighted}/>;
 
     if (this.props.hover) {
       return <g style={{opacity}}>
@@ -42,7 +43,7 @@ export default React.createClass({
     } else {
       return <g style={{opacity}}>
         {dataComponent}
-        <CrosshairValuePointComponent target={d}/>
+        <CrosshairValuePointComponent target={target}/>
       </g>;
     }
   }

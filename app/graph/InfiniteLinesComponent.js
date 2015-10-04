@@ -12,24 +12,24 @@ export default React.createClass({
   },
 
   render() {
-    const d = this.props.target;
+    const {target, hover, highlighted} = this.props;
+    const {sizes: {height}} = this.context;
 
     let extraWidth;
-    if (this.props.hover) {
+    if (hover) {
       extraWidth = 10;
     } else {
       extraWidth = 0;
     }
 
-    if (this.props.highlighted) {
+    if (highlighted) {
       extraWidth += 3;
     }
 
-    const lineColor = d.color;
-    const lineWidth = d.lineWidth + extraWidth;
-    const {height} = this.context.sizes;
+    const lineColor = target.color;
+    const lineWidth = target.lineWidth + extraWidth;
 
-    const lines = d.scatterValues.map((v, i) => {
+    const lines = target.scatterValues.map((v, i) => {
       if (v.value) {
         return <line key={i}
                      x1={v.x}
@@ -37,7 +37,7 @@ export default React.createClass({
                      y1={0}
                      y2={height}
                      stroke={lineColor}
-                     style={{strokeOpacity: d.lineAlpha, strokeWidth: lineWidth}}/>;
+                     style={{strokeOpacity: target.lineAlpha, strokeWidth: lineWidth}}/>;
       }
     });
 

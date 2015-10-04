@@ -20,30 +20,30 @@ export default React.createClass({
   },
 
   render() {
-    const d = this.props.target;
+    const {target, hover, highlighted} = this.props;
     const {clipPath} = this.context;
 
     let extraWidth;
-    if (this.props.hover) {
+    if (hover) {
       extraWidth = 10;
     } else {
       extraWidth = 0;
     }
 
-    if (this.props.highlighted) {
+    if (highlighted) {
       extraWidth += 3;
     }
 
     const style = Object.assign({
-      strokeWidth: d.lineWidth + extraWidth,
-      strokeOpacity: d.lineAlpha,
-      fillOpacity: d.areaAlpha
-    }, pathStyles[d.lineMode]);
+      strokeWidth: target.lineWidth + extraWidth,
+      strokeOpacity: target.lineAlpha,
+      fillOpacity: target.areaAlpha
+    }, pathStyles[target.lineMode]);
 
-    return <path stroke={d.color}
+    return <path stroke={target.color}
                  style={style}
-                 fill={d.lineMode === 'area' ? d.color : null}
-                 d={d.lineFn(d.lineValues)}
+                 fill={target.lineMode === 'area' ? target.color : null}
+                 d={target.lineFn(target.lineValues)}
                  clipPath={clipPath}/>;
   }
 });

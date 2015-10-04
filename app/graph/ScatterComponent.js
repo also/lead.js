@@ -12,26 +12,26 @@ export default React.createClass({
   },
 
   render() {
-    const d = this.props.target;
+    const {target, hover, highlighted} = this.props;
     const {yScale} = this.context;
 
     const [max, min] = yScale.range();
 
     let extraRadius;
-    if (this.props.hover) {
+    if (hover) {
       extraRadius = 3;
     } else {
       extraRadius = 0;
     }
 
-    if (this.props.highlighted) {
+    if (highlighted) {
       extraRadius += 3;
     }
 
-    const circleColor = d.color;
-    const radius = d.radius + extraRadius;
+    const circleColor = target.color;
+    const radius = target.radius + extraRadius;
 
-    const circles = d.scatterValues.map((v, i) => {
+    const circles = target.scatterValues.map((v, i) => {
       if (v.y < min || v.y > max) {
         return null;
       } else {
@@ -40,7 +40,7 @@ export default React.createClass({
                        cy={v.y}
                        fill={circleColor}
                        r={radius}
-                       style={{fillOpacity: d.pointAlpha}}/>;
+                       style={{fillOpacity: target.pointAlpha}}/>;
       }
     });
 
