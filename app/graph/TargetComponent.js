@@ -1,10 +1,8 @@
 import React from 'react';
 
 import {ObservableMixin} from '../components';
-import LineComponent from './LineComponent';
-import InfiniteLinesComponent from './InfiniteLinesComponent';
-import ScatterComponent from './ScatterComponent';
 import CrosshairValuePointComponent from './CrosshairValuePointComponent';
+
 
 export default React.createClass({
   mixins: [ObservableMixin],
@@ -26,12 +24,12 @@ export default React.createClass({
   render() {
     const {params} = this.context;
     const {hover, target} = this.props;
-    const {drawAsInfinite, type} = target;
+    const {DataHandler} = target;
     const {value} = this.state;
 
     const selected = this.state.value.selection[target.index];
     const highlighted = value.highlightIndex === target.index;
-    const DataHandler = drawAsInfinite ? InfiniteLinesComponent : type === 'line' ? LineComponent : ScatterComponent;
+
     const opacity = hover ? 0 : selected ? 1 : params.deselectedOpacity;
 
     const dataComponent = <DataHandler target={target} hover={hover} highlighted={highlighted}/>;

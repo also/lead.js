@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import d3 from 'd3';
 
+import LineComponent from './LineComponent';
+import InfiniteLinesComponent from './InfiniteLinesComponent';
+import ScatterComponent from './ScatterComponent';
+
+
 const expandIsolatedValuesToLineSegments = function (values) {
   const result = [];
   let segmentLength = 0;
@@ -105,12 +110,9 @@ export const transformData = function (data, params, sizes) {
     area.interpolate(params.interpolate);
   }
 
-  let simplify;
-  if (params.simplify) {
-    simplify = _.partial(simplifyPoints, params.simplify);
-  } else {
-    simplify = _.identity;
-  }
+  const simplify = params.simplify
+    ? _.partial(simplifyPoints, params.simplify)
+    : _.identity;
 
   let valueMin = null;
   let valueMax = null;
@@ -200,7 +202,7 @@ export const transformData = function (data, params, sizes) {
   x.domain([params.xMin != null ? params.xMin : timeMin, params.xMax != null ? params.xMax : timeMax]);
 
   targets.forEach((target) => {
-    const {values, drawNullAsZero} = target;
+    const {values, drawNullAsZero, drawAsInfinite, type} = target;
 
     const len = values.length;
     for (let i = 0; i < len; i++) {
@@ -225,8 +227,14 @@ export const transformData = function (data, params, sizes) {
       };
       expandLineValues = _.compose(expandIsolatedValuesToLineSegments, simplify);
     }
-    target.lineValues = expandLineValues(values);
-    target.scatterValues = filterScatterValues(values);
+
+    target.DataHandler = drawAsInfinite ? InfiniteLinesComponent : type === 'line' ? LineComponent : ScatterComponent;
+
+    if (target.DataHandler === LineComponent) {
+      target.lineValues = expandLineValues(values);
+    } else {
+      target.scatterValues = filterScatterValues(values);
+    }
   });
 
   return {
