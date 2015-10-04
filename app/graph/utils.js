@@ -125,7 +125,11 @@ export const transformData = function (data, params, sizes) {
       nullToZero :
       _.identity;
 
-    const values = s.datapoints.map((datapoint, i) => {
+    const {datapoints} = s;
+    const len = datapoints.length;
+    const values = new Array(len);
+    for (let i = 0; i < len; i++) {
+      const datapoint = datapoints[i];
       const value = transformValue(getValue(datapoint, i, targetIndex));
       const timestamp = getTimestamp(datapoint, i, targetIndex);
 
@@ -142,12 +146,12 @@ export const transformData = function (data, params, sizes) {
         }
       }
 
-      return {
+      values[i] = ({
         value,
         time,
         original: datapoint
-      };
-    });
+      });
+    }
 
     const bisector = timeBisector;
 
