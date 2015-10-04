@@ -64,7 +64,7 @@ const nullToZero = function (v) {
   return v != null ? v : 0;
 };
 
-const timeBisector = d3.bisector((d) => d.time);
+const timestampBisector = d3.bisector((d) => d.timestamp);
 
 export const transformData = function (data, params, sizes) {
   const color = d3.scale.ordinal().range(params.d3_colors);
@@ -74,7 +74,7 @@ export const transformData = function (data, params, sizes) {
   const colorsByName = {};
   allNames.forEach((name, i) => colorsByName[name] = color(i));
 
-  const x = d3.time.scale();
+  const x = d3.scale.linear();
   const y = d3.scale.linear();
   x.range([0, sizes.width]);
   y.range([sizes.height, 0]);
@@ -92,7 +92,7 @@ export const transformData = function (data, params, sizes) {
 
   const stack = d3.layout.stack()
     .values((d) => d.values)
-    .x((d) => d.time)
+    .x((d) => d.timestamp)
     .y((d) => d.value)
     .out((d, y0, y) => {
       d.y0 = y0;
@@ -131,11 +131,10 @@ export const transformData = function (data, params, sizes) {
     for (let i = 0; i < len; i++) {
       const datapoint = datapoints[i];
       const value = transformValue(getValue(datapoint, i, targetIndex));
-      const timestamp = getTimestamp(datapoint, i, targetIndex);
+      const timestamp = 1000 * getTimestamp(datapoint, i, targetIndex);
 
       timeMin = Math.min(timestamp, timeMin != null ? timeMin : timestamp);
       timeMax = Math.max(timestamp, timeMax);
-      const time = new Date(timestamp * 1000);
 
       if (!drawAsInfinite) {
         if (value != null) {
@@ -148,12 +147,12 @@ export const transformData = function (data, params, sizes) {
 
       values[i] = ({
         value,
-        time,
+        timestamp,
         original: datapoint
       });
     }
 
-    const bisector = timeBisector;
+    const bisector = timestampBisector;
 
     const lineMode = params.areaMode === 'all' || params.areaMode === 'stacked' ? 'area' : params.areaMode === 'first' && targetIndex === 0 ? 'area' : 'line';
     const lineFn = lineMode === 'line' ? line : area;
@@ -175,9 +174,6 @@ export const transformData = function (data, params, sizes) {
       index: targetIndex
     });
   });
-
-  timeMin = new Date(timeMin * 1000);
-  timeMax = new Date(timeMax * 1000);
 
   if (params.areaMode === 'stacked' && targets.length > 0) {
     stack(targets);
@@ -213,7 +209,7 @@ export const transformData = function (data, params, sizes) {
         v.y = y(v.value);
       }
 
-      v.x = x(v.time);
+      v.x = x(v.timestamp);
     }
 
     let filterScatterValues;
@@ -293,13 +289,13 @@ export const computeSizes = function (data, params) {
   };
 };
 
-export const targetValueAtTime = function (target, time) {
-  const i = target.bisector.left(target.values, time, 1);
+export const targetValueAtTimestamp = function (target, timestamp) {
+  const i = target.bisector.left(target.values, timestamp, 1);
   const d0 = target.values[i - 1];
   const d1 = target.values[i];
 
   if (d0 && d1) {
-    if (time - d0.time > d1.time - time) {
+    if (timestamp - d0.timestamp > d1.timestamp - timestamp) {
       return d1;
     } else {
       return d0;

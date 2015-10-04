@@ -5,7 +5,7 @@ import d3 from 'd3';
 import Q from 'q';
 
 import {computeParams} from './params';
-import {computeSizes, transformData, targetValueAtTime} from './utils';
+import {computeSizes, transformData, targetValueAtTimestamp} from './utils';
 import AxisComponent from './AxisComponent';
 import TargetComponent from './TargetComponent';
 import LegendComponent from './LegendComponent';
@@ -41,6 +41,11 @@ export default React.createClass({
       const sizes = computeSizes(data, params);
 
       const {targets, xScale, yScale} = transformData(data, params, sizes);
+      const [minTimestamp, maxTimestamp] = xScale.domain();
+      const xTimeScale = d3.time.scale().range(xScale.range()).domain([
+        new Date(minTimestamp),
+        new Date(maxTimestamp)
+      ]);
 
       const cursorModel = params.cursor != null ? params.cursor : new Bacon.Model();
       const brushModel = params.brush != null ? params.brush : new Bacon.Model({
@@ -55,36 +60,37 @@ export default React.createClass({
       });
 
       const cursorBus = new Bacon.Bus();
-      cursorBus.plug(this.mousePosition.map((p) => p.time));
+      cursorBus.plug(this.mousePosition.map((p) => p.timestamp));
 
       this.destroyFunctions.push(() => cursorBus.end());
 
       const externalCursorChanges = cursorModel.addSource(cursorBus);
-      const boundedExternalCursorPosition = externalCursorChanges.map((time) => {
+      const boundedExternalCursorPosition = externalCursorChanges.map((timestamp) => {
         const domain = xScale.domain();
-        if (time < domain[0]) {
-          time = domain[0];
-        } else if (time > domain[1]) {
-          time = domain[1];
+        if (timestamp < domain[0]) {
+          timestamp = domain[0];
+        } else if (timestamp > domain[1]) {
+          timestamp = domain[1];
         }
 
         return {
-          x: xScale(time),
-          time: time
+          x: xScale(timestamp),
+          timestamp
         };
       });
 
       const cursorPosition = boundedExternalCursorPosition
         .merge(this.mousePosition)
-        .map(({x, time}) => {
-          const targetValues = targets.map((t) => targetValueAtTime(t, time));
+        .map(({x, timestamp}) => {
+          const targetValues = targets.map((t) => targetValueAtTimestamp(t, timestamp));
 
-          return {x, time, targetValues};
+          return {x, timestamp, targetValues};
         });
 
       return {
         targets,
         xScale,
+        xTimeScale,
         yScale,
         params,
         sizes,
@@ -107,7 +113,7 @@ export default React.createClass({
       if (pos[1] >= 0 && pos[1] <= this.state.sizes.height) {
         const xConstrained = Math.max(0, Math.min(pos[0], this.state.sizes.width));
         return this.mousePosition.push({
-          time: this.state.xScale.invert(xConstrained),
+          timestamp: this.state.xScale.invert(xConstrained),
           value: this.state.yScale.invert(pos[1]),
           x: xConstrained,
           y: pos[1]
@@ -190,7 +196,7 @@ export default React.createClass({
 
   render() {
     if (this.state.params) {
-      const {targets, params, sizes, xScale, yScale} = this.state;
+      const {targets, params, sizes, xTimeScale, yScale} = this.state;
 
       let title = null;
       if (params.title != null) {
@@ -206,7 +212,7 @@ export default React.createClass({
       let xAxis = null;
       if (!(params.hideXAxis || params.hideAxes)) {
         xAxis = <g key='xAxis' transform={`translate(0, ${sizes.height})`}>
-          <AxisComponent axis={d3.svg.axis().scale(xScale).orient('bottom').ticks(params.xAxisTicks)}/>
+          <AxisComponent axis={d3.svg.axis().scale(xTimeScale).orient('bottom').ticks(params.xAxisTicks)}/>
         </g>;
       }
 

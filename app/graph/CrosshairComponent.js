@@ -16,7 +16,7 @@ export default React.createClass({
       const {params, sizes} = this.context;
       const {height} = sizes;
 
-      const {x, time} = this.state.value;
+      const {x, timestamp} = this.state.value;
 
       return <g>
         <line style={{shapeRendering: 'crispEdges'}}
@@ -29,7 +29,7 @@ export default React.createClass({
               y='-6'
               fill={params.crosshairTextColor}
               style={{textAnchor: 'middle', fontSize: params.crosshairTextSize}}>
-          {moment(time).format('lll')}
+          {moment(timestamp).format('lll')}
         </text>
       </g>;
     } else {
