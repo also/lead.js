@@ -6,7 +6,9 @@ const expandIsolatedValuesToLineSegments = function (values) {
   let segmentLength = 0;
   let previous = null;
 
-  values.forEach((v) => {
+  const len = values.length;
+  for (let i = 0; i < len; i++) {
+    const v = values[i];
     if (v.value != null) {
       segmentLength++;
       previous = v;
@@ -17,7 +19,7 @@ const expandIsolatedValuesToLineSegments = function (values) {
       segmentLength = 0;
     }
     result.push(v);
-  });
+  }
 
   if (segmentLength === 1) {
     result.push(previous);
@@ -30,7 +32,9 @@ const simplifyPoints = function (minDistance, values) {
   const result = [];
   let previous = null;
 
-  values.forEach((v) => {
+  const len = values.length;
+  for (let i = 0; i < len; i++) {
+    const v = values[i];
     if (previous != null) {
       if ((previous.y != null) !== (v.y != null)) {
         result.push(v);
@@ -44,14 +48,15 @@ const simplifyPoints = function (minDistance, values) {
 
         if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) > minDistance) {
           previous = v;
-          return result.push(v);
+          result.push(v);
         }
       }
     } else {
       previous = v;
-      return result.push(v);
+      result.push(v);
     }
-  });
+  }
+
   return result;
 };
 
@@ -211,7 +216,7 @@ export const transformData = function (data, params, sizes) {
       expandLineValues = simplify;
     } else {
       // TODO this won't work well with stack
-      filterScatterValues = function (values) {
+      filterScatterValues = (values) => {
         return simplify(_.filter(values, (d) => d.value != null));
       };
       expandLineValues = _.compose(expandIsolatedValuesToLineSegments, simplify);
