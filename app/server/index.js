@@ -473,6 +473,9 @@ Modules.export(exports, 'server', ({fn, componentFn, doc, scriptingExports}) => 
 
   return {
     init(ctx) {
+      if (!ctx.settings.global.get('server', 'base_url')) {
+        return;
+      }
       return http.get(ctx, url(ctx, 'functions')).fail(() => {
         initDocs({});
         return Q.reject('failed to load functions from lead server');
