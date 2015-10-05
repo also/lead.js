@@ -66,7 +66,7 @@ export default React.createClass({
   },
 
   getChildContext() {
-    return {showProto: this.props.showProto}
+    return {showProto: this.props.showProto};
   },
 
   render() {
@@ -217,7 +217,7 @@ const ObjectBrowserEntryComponent = React.createClass({
   mixins: [Toggleable],
 
   render() {
-    const {name, value, enumerable} = this.props
+    const {name, value, enumerable} = this.props;
 
     const className =  enumerable ? '' : 'non-enumerable-property';
 
@@ -265,7 +265,7 @@ const ObjectBrowserEntryComponent = React.createClass({
 
 const ObjectBrowserSummaryComponent = React.createClass({
   render() {
-    const c = componentForObject(this.props.object)
+    const c = componentForObject(this.props.object);
     if (c != null) {
       return c;
     } else {

@@ -17,7 +17,7 @@ export function replaceOnPropChange(Component) {
     render() {
       const {key} = this.state;
 
-      return <Component key={key} {...this.props}/>
+      return <Component key={key} {...this.props}/>;
     }
   });
 }

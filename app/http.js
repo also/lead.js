@@ -16,7 +16,7 @@ export function execute_xhr(ctx, url, options) {
 
 export let execute = function (ctx, url, options) {
   return Q.when($.ajax(Object.assign({url, dataType: 'json', contentType: 'application/json'}, options)));
-}
+};
 
 export function setExecute(e) {
   execute = e;

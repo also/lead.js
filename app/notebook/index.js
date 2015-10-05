@@ -204,7 +204,7 @@ function createOutputCell(notebookId) {
 
 function runInputCell(ctx, {cellId}) {
   const state = ctx.app.store.getState();
-  const inputCell = state.getIn(['cellsById', cellId])
+  const inputCell = state.getIn(['cellsById', cellId]);
   const outputCell = createOutputCell(ctx.notebookId);
 
   inputCell.used = true;
@@ -285,7 +285,7 @@ function openFilePicker(run_context) {
   inputElt.type = 'file';
   inputElt.onchange = function (e) {
     Array.from(e.target.files).forEach((file) => {
-      loadFile(run_context, file)
+      loadFile(run_context, file);
     });
   };
   inputElt.dispatchEvent(new Event('click'));

@@ -50,7 +50,7 @@ const TreeNodeComponent = React.createClass({
     } else if (state === 'opening') {
       toggle = 'fa fa-fw fa-spinner fa-spin';
     } else {
-      toggle = 'fa fa-fw fa-caret-right'
+      toggle = 'fa fa-fw fa-caret-right';
     }
 
     return (
@@ -70,7 +70,7 @@ const TreeNodeComponent = React.createClass({
     if (this.props.node.isLeaf) {
       this.context.leafClicked(path);
     } else {
-      this.context.toggle(path)
+      this.context.toggle(path);
     }
   }
 });
@@ -101,7 +101,7 @@ const TreeComponent = React.createClass({
     return {
       cache: {},
       treeState: {}
-    }
+    };
   },
 
   toggle(path) {
@@ -114,7 +114,7 @@ const TreeComponent = React.createClass({
   },
 
   value(path) {
-    const {cache} = this.state
+    const {cache} = this.state;
     return cache[path] ? cache[path].inspect().value : null;
   },
 

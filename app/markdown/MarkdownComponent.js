@@ -25,6 +25,6 @@ export default React.createClass({
 
     const html = Marked(this.props.value, markedOpts);
 
-    return <UserHtmlComponent html={html}/>
+    return <UserHtmlComponent html={html}/>;
   }
 });

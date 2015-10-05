@@ -33,7 +33,7 @@ const CoffeeScriptErrorComponent = React.createClass({
       </div>
     );
   }
-})
+});
 
 export function recompile(error_marks, editor) {
   error_marks.forEach((m) => m.clear());

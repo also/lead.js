@@ -13,7 +13,7 @@ if (typeof m.setup === 'function') {
 
 m.suite.emit('pre-require', global, 'hack', m);
 
-const tests = ['dsl', 'settings', 'context', 'server', 'github', 'html'];
+const tests = ['dsl', 'settings', 'context', 'server', 'github', 'html', 'graph/utils'];
 
 if (typeof window !== 'undefined') {
   tests.push('notebook');

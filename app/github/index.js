@@ -150,7 +150,7 @@ const NotebookGistLinkComponent = React.createClass({
 function ensureAuth(ctx, props={}) {
   const site = props.url
     ? getSiteFromUrl(ctx, props.url)
-    : getSite(ctx)
+    : getSite(ctx);
 
   if (site.requires_access_token && site.access_token == null) {
     const deferred = Q.defer();

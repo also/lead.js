@@ -5,7 +5,7 @@ document.write('<div id=mocha></div>');
 
 window.run = (callback) => {
   run().then(callback, callback);
-}
+};
 
 // automated tests will load the page with ?pause and call run
 if (window.location.search !== '?pause') {

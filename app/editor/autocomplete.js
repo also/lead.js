@@ -136,7 +136,7 @@ export function suggest(cm, showHints) {
       }
 
       return list;
-    }
+    };
 
     let list = collectSuggestions(fullS);
 

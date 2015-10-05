@@ -30,7 +30,7 @@ export default React.createClass({
       output = <OutputCellComponent
         cell={outputCell}
         key={outputCell.cellId}
-        ref='output'/>
+        ref='output'/>;
     } else {
       output = <div className='placeholder cell'/>;
     }
@@ -40,7 +40,7 @@ export default React.createClass({
         {input}
         {output}
       </div>
-    )
+    );
   },
 
   onAnimationFrame() {
