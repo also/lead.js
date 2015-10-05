@@ -33,7 +33,7 @@ const expandIsolatedValuesToLineSegments = function (values) {
   return result;
 };
 
-const simplifyPoints = function (minDistance, values) {
+export const simplifyPoints = function (minDistance, values) {
   const result = [];
   let previous = null;
 
