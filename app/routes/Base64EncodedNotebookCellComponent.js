@@ -6,7 +6,7 @@ import SingleCoffeeScriptCellNotebookComponent from './SingleCoffeeScriptCellNot
 export default React.createClass({
   displayName: 'Base64EncodedNotebookCellComponent',
   render() {
-    const value = decodeURIComponent(escape(atob(this.props.params.splat)));
+    const value = decodeURIComponent(escape(atob(decodeURIComponent(this.props.params.splat))));
 
     return <SingleCoffeeScriptCellNotebookComponent value={value}/>;
   }
