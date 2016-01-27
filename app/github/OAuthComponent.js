@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as Server from '../server';
 import * as Http from '../http';
 import * as Settings from '../settings';
-import {ModalComponent} from '../app';
+import {ModalComponent} from '../modal';
 import ContextAwareMixin from '../context/ContextAwareMixin';
 import {replaceOnPropChange} from '../component-utils';
 
