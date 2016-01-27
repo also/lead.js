@@ -11,7 +11,7 @@ import {replaceOnPropChange} from '../component-utils';
 export default replaceOnPropChange(React.createClass({
   mixins: [ContextAwareMixin],
 
-  getInitialState() {
+  componentWillMount() {
     const {query} = this.props;
     const ctx = this.ctx();
     const promise = Http.post(ctx, Server.url(ctx, 'github/oauth/token'), query);
@@ -25,7 +25,7 @@ export default replaceOnPropChange(React.createClass({
     })
     .done();
 
-    return {promise};
+    this.setState({promise});
   },
 
   renderLoaded(promiseState) {
